@@ -1150,7 +1150,37 @@ function inicializarEventos() {
         actualizarUsuario();
     });
 
-    console.log('✅ Eventos inicializados correctamente');
+    // ===== EVENTOS DE FILTROS Y BÚSQUEDA =====
+    
+    // Filtro por nombre
+    const searchName = document.getElementById('searchName');
+    if (searchName) {
+        searchName.addEventListener('input', aplicarFiltros);
+        console.log('✅ Event listener agregado a searchName');
+    }
+
+    // Filtro por cargo
+    const searchCargo = document.getElementById('searchCargo');
+    if (searchCargo) {
+        searchCargo.addEventListener('input', aplicarFiltros);
+        console.log('✅ Event listener agregado a searchCargo');
+    }
+
+    // Filtro por sede/departamento
+    const searchSede = document.getElementById('searchSede');
+    if (searchSede) {
+        searchSede.addEventListener('input', aplicarFiltros);
+        console.log('✅ Event listener agregado a searchSede');
+    }
+
+    // Botón limpiar filtros
+    const resetFilters = document.getElementById('resetFilters');
+    if (resetFilters) {
+        resetFilters.addEventListener('click', resetFiltros);
+        console.log('✅ Event listener agregado a resetFilters');
+    }
+
+    console.log('✅ Todos los eventos inicializados correctamente');
 }
 
         // Funciones CRUD
@@ -1453,43 +1483,105 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Funciones de filtrado
-        function aplicarFiltros() {
-            const nameFilter = document.getElementById('searchName').value.toLowerCase();
-            const cargoFilter = document.getElementById('searchCargo').value.toLowerCase();
-            const sedeFilter = document.getElementById('searchSede').value.toLowerCase();
+function aplicarFiltros() {
+    console.log('🔍 Aplicando filtros...');
+    
+    const nameFilter = document.getElementById('searchName').value.toLowerCase().trim();
+    const cargoFilter = document.getElementById('searchCargo').value.toLowerCase().trim();
+    const sedeFilter = document.getElementById('searchSede').value.toLowerCase().trim();
 
-            const rows = document.querySelectorAll('#usuariosTableBody tr');
-            let visibleCount = 0;
+    console.log('Filtros activos:', {
+        nombre: nameFilter,
+        cargo: cargoFilter,
+        sede: sedeFilter
+    });
 
-            rows.forEach(row => {
-                if (row.id === 'loadingRow') return;
+    const rows = document.querySelectorAll('#usuariosTableBody tr');
+    let visibleCount = 0;
 
-                const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-                const cargo = row.querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
-                const sede = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-
-                const nameMatch = !nameFilter || name.includes(nameFilter);
-                const cargoMatch = !cargoFilter || cargo.includes(cargoFilter);
-                const sedeMatch = !sedeFilter || sede.includes(sedeFilter);
-
-                if (nameMatch && cargoMatch && sedeMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            document.getElementById('resultCount').textContent = 
-                `Mostrando ${visibleCount} de ${totalRecords} usuarios`;
+    rows.forEach(row => {
+        // Saltar fila de carga o sin datos
+        if (row.id === 'loadingRow' || row.cells.length < 6) {
+            return;
         }
 
-        function resetFiltros() {
-            document.getElementById('searchName').value = '';
-            document.getElementById('searchCargo').value = '';
-            document.getElementById('searchSede').value = '';
-            aplicarFiltros();
+        try {
+            // Obtener datos de cada columna
+            const name = row.querySelector('td:nth-child(2) .fw-bold')?.textContent?.toLowerCase() || '';
+            const cargo = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
+            const sedeDepto = row.querySelector('td:nth-child(5)')?.textContent?.toLowerCase() || '';
+
+            // Aplicar filtros
+            const nameMatch = !nameFilter || name.includes(nameFilter);
+            const cargoMatch = !cargoFilter || cargo.includes(cargoFilter);
+            const sedeMatch = !sedeFilter || sedeDepto.includes(sedeFilter);
+
+            if (nameMatch && cargoMatch && sedeMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error procesando fila:', error);
+            row.style.display = 'none';
         }
+    });
+
+    // Actualizar contador
+    const resultCount = document.getElementById('resultCount');
+    if (resultCount) {
+        if (visibleCount === 0 && (nameFilter || cargoFilter || sedeFilter)) {
+            resultCount.innerHTML = `
+                <span class="text-warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    No se encontraron usuarios con los filtros aplicados
+                </span>
+            `;
+        } else {
+            resultCount.textContent = `Mostrando ${visibleCount} de ${totalRecords} usuarios`;
+        }
+    }
+
+    console.log(`✅ Filtros aplicados: ${visibleCount} usuarios visibles`);
+}
+
+function resetFiltros() {
+    console.log('🔄 Reseteando filtros...');
+    
+    document.getElementById('searchName').value = '';
+    document.getElementById('searchCargo').value = '';
+    document.getElementById('searchSede').value = '';
+    
+    // Aplicar filtros (que ahora mostrarán todos los registros)
+    aplicarFiltros();
+    
+    // Mostrar mensaje de confirmación
+    const toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 p-3';
+    toast.style.zIndex = '11';
+    toast.innerHTML = `
+        <div class="toast show" role="alert">
+            <div class="toast-header bg-success text-white">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong class="me-auto">Filtros limpiados</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                Se muestran todos los usuarios nuevamente.
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Remover el toast después de 3 segundos
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
 
         // Funciones de utilidad
         function mostrarError(mensaje) {
