@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model departamentos {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(191)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @db.Timestamp(3)
+  
+  usuarios usuarios[]
+  
+  @@map("departamentos")
+}
+
+model sedes {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(191)
+  ubicacion String?  @db.VarChar(191)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime @db.Timestamp(3)
+  
+  usuarios usuarios[]
+  
+  @@map("sedes")
+}
+
+model tipo_equipo {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(191)
+  descripcion String?  @db.VarChar(191)
+  requiere_ip Boolean? @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(3)
+  updated_at  DateTime @db.Timestamp(3)
+  
+  stock_equipos stock_equipos[]
+  
+  @@map("tipo_equipo")
+}
+
+model stock_equipos {
+  id                  Int      @id @default(autoincrement())
+  tipo_equipo_id      Int
+  marca               String?  @db.VarChar(191)
+  modelo              String?  @db.VarChar(191)
+  descripcion         String?  @db.VarChar(191)
+  cantidad_total      Int
+  cantidad_disponible Int
+  cantidad_asignada   Int
+  minimo_stock        Int?
+  fecha_adquisicion   DateTime? @db.Timestamp(3)
+  valor_adquisicion   Float?
+  created_at          DateTime @default(now()) @db.Timestamp(3)
+  updated_at          DateTime @db.Timestamp(3)
+  
+  tipo_equipo tipo_equipo @relation(fields: [tipo_equipo_id], references: [id], onUpdate: Cascade)
+  equipo_asignado equipo_asignado[]
+  
+  @@map("stock_equipos")
+}
+
+model usuario {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(191)
+  email     String   @unique @db.VarChar(191)
+  password  String   @db.VarChar(191)
+  activo    Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamp(3)
+  updated_at DateTime? @db.Timestamp(3)
+  
+  equipo_asignado equipo_asignado[]
+  
+  @@map("usuario")
+}
+
+model usuarios {
+  id              Int      @id @default(autoincrement())
+  nombre          String   @db.VarChar(191)
+  apellido        String?  @db.VarChar(191)
+  cargo           String   @db.VarChar(191)
+  correo          String?  @db.VarChar(191)
+  RDP             String?  @db.VarChar(191)
+  sede_id         Int
+  departamento_id Int
+  created_at      DateTime @default(now()) @db.Timestamp(3)
+  updated_at      DateTime @db.Timestamp(3)
+  
+  sede         sedes         @relation(fields: [sede_id], references: [id], onUpdate: Cascade)
+  departamento departamentos @relation(fields: [departamento_id], references: [id], onUpdate: Cascade)
+  equipo_asignado equipo_asignado[]
+  
+  @@map("usuarios")
+}
+
+model equipo_asignado {
+  id               Int      @id @default(autoincrement())
+  usuarios_id      Int
+  stock_equipos_id Int
+  fecha_asignacion DateTime? @db.Timestamp(3)
+  ip_equipo        String?   @db.VarChar(191)
+  fecha_devolucion DateTime? @db.Timestamp(3)
+  observaciones    String?   @db.VarChar(191)
+  usuario_id       Int?
+  estado           String    @default("activo") @db.VarChar(191)
+  created_at       DateTime  @default(now()) @db.Timestamp(3)
+  updated_at       DateTime  @db.Timestamp(3)
+  
+  usuarios     usuarios     @relation(fields: [usuarios_id], references: [id], onUpdate: Cascade)
+  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id], onUpdate: Cascade)
+  usuario      usuario?     @relation(fields: [usuario_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  
+  @@map("equipo_asignado")
+}

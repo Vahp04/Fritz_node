@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> <%= title || 'Fritz C.A | Gestión de TIC'%></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+   
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge-rol {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .badge-admin {
+            background-color: var(--fritz-red);
+        }
+        
+        .badge-tecnico {
+            background-color: #3498db;
+        }
+        
+        .badge-consulta {
+            background-color: #2ecc71;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-text {
+                display: none;
+            }
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .main-content {
+            
+            transition: all 0.3s;
+        }
+        
+      
+        
+        /* Estilos adicionales para la tabla */
+        .table th {
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .user-avatar-small {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: white;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #DC2626;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 position-relative">
+            <!-- Toggle Button -->
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            Activo
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Sección de Gestión -->
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Bottom -->
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+                        
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de TIC</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main class="p-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-people-fill me-2 text-danger"></i>
+                            Gestión de TIC
+                        </h2>
+                        <p class="text-muted mb-0">Administra los usuarios del sistema</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Usuario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <% if (success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <%= success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+
+                <% if (error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <%= error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+                
+                <!-- User Management Card -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Usuarios
+                            </h5>
+                            <div id="loadingIndicator" class="d-none">
+                                <div class="loading-spinner me-2"></div>
+                                <small class="text-white">Cargando...</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabla de Usuarios -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Usuario</th>
+                                        <th>Email</th>
+                                        <th>Estado</th>
+                                        <th>Registro</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usuariosTableBody">
+                                    <!-- Los usuarios se cargarán via JavaScript -->
+                                    <tr id="loadingRow">
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="loading-spinner mx-auto mb-2"></div>
+                                            <p class="text-muted mb-0">Cargando usuarios...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Usuario -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus me-2"></i> Nuevo Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createUserForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de Usuario*</label>
+                            <input type="text" class="form-control" name="name" required placeholder="Ingrese el nombre de usuario">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email*</label>
+                            <input type="email" class="form-control" name="email" required placeholder="Ingrese el email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña*</label>
+                            <input type="password" class="form-control" name="password" required placeholder="Ingrese la contraseña">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña*</label>
+                            <input type="password" class="form-control" name="password_confirmation" required placeholder="Confirme la contraseña">
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="activo" value="true" checked>
+                            <label class="form-check-label">Usuario Activo</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuario -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i> Editar Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUserForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_user_id" name="id">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de Usuario*</label>
+                        <input type="text" class="form-control" name="name" id="edit_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email*</label>
+                        <input type="email" class="form-control" name="email" id="edit_email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" name="password" placeholder="Dejar en blanco para no cambiar">
+                        <small class="text-muted">Mínimo 6 caracteres</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirmar Contraseña</label>
+                        <input type="password" class="form-control" name="password_confirmation" placeholder="Confirmar contraseña">
+                    </div>
+                    <!-- AGREGAR ESTE CAMPO -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="activo" id="edit_activo">
+                        <label class="form-check-label">Usuario Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Actualizar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+   <script>
+    // Variable global para almacenar usuarios
+     let usuarios = [];
+        let currentUserId = parseInt(document.body.getAttribute('data-user-id') || '0');
+
+    // Cargar usuarios al iniciar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarUsuarios();
+        inicializarEventos();
+    });
+
+    function getAuthHeaders() {
+    const token = localStorage.getItem('user_token');
+    
+    if (!token) {
+        return {
+            'Content-Type': 'application/json'
+        };
+    }
+    
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  
+    };
+}
+
+    // Cargar usuarios desde la API
+async function cargarUsuarios() {
+    try {
+        
+        const response = await fetch('/api/usuario', {
+            headers: getAuthHeaders()
+        });
+
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user_token');
+            window.location.href = '/login';
+            return;
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        usuarios = await response.json();
+        renderizarUsuarios();
+        
+    } catch (error) {
+        
+        let errorMessage = 'No se pudieron cargar los usuarios';
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+        } else if (error.message.includes('401')) {
+            errorMessage = 'Sesión expirada. Redirigiendo al login...';
+            setTimeout(() => window.location.href = '/login', 2000);
+        }
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMessage
+        });
+    } finally {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.classList.add('d-none');
+    }
+}
+
+    // Renderizar usuarios en la tabla
+ function renderizarUsuarios() {
+    const tbody = document.getElementById('usuariosTableBody');
+    tbody.innerHTML = '';
+
+    // Función para formatear fecha de manera segura
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        try {
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? 'Fecha inválida' : 
+                date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+        } catch (error) {
+            return 'Fecha inválida';
+        }
+    };
+
+    usuarios.forEach(usuario => {
+        const isCurrentUser = usuario.id === currentUserId;
+        const row = document.createElement('tr');
+        
+        // Escapar comillas simples en el nombre para JavaScript
+        const safeName = usuario.name ? usuario.name.replace(/'/g, "\\'") : '';
+        
+        row.innerHTML = `
+            <td class="fw-bold">${usuario.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar-small bg-gradient-danger text-white me-3">
+                        ${usuario.name ? usuario.name.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div>
+                        <div class="fw-bold">${usuario.name}</div>
+                        <small class="text-muted">ID: ${usuario.id}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${usuario.email}</td>
+            <td>
+                ${isCurrentUser ? 
+                    `<span class="badge rounded-pill bg-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Activo (Tú)
+                    </span>` :
+                    `<span class="badge rounded-pill bg-${usuario.activo ? 'success' : 'secondary'}">
+                        <i class="bi bi-${usuario.activo ? 'check-circle' : 'x-circle'} me-1"></i>
+                        ${usuario.activo ? 'Activo' : 'Inactivo'}
+                    </span>`
+                }
+            </td>
+            <td>${formatDate(usuario.createdAt)}</td>
+            <td class="table-actions text-center">
+                <!-- Botón Editar -->
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editarUsuario(${usuario.id})"
+                        title="Editar usuario">
+                    <i class="bi bi-pencil"></i>
+                </button>
+
+                <!-- Botón Cambiar Estado -->
+                ${isCurrentUser ? 
+                    `<button class="btn btn-sm btn-outline-secondary action-btn me-1" disabled
+                            title="No puedes cambiar tu propio estado">
+                        <i class="bi bi-slash-circle"></i>
+                    </button>` :
+                    `<button class="btn btn-sm ${usuario.activo ? 'btn-outline-warning' : 'btn-outline-success'} action-btn me-1"
+                            onclick="cambiarEstadoUsuario(${usuario.id})"
+                            title="${usuario.activo ? 'Desactivar usuario' : 'Activar usuario'}">
+                        <i class="bi bi-${usuario.activo ? 'pause-circle' : 'play-circle'}"></i>
+                    </button>`
+                }
+
+                <!-- Botón Eliminar -->
+                ${isCurrentUser ? 
+                    `<button class="btn btn-sm btn-outline-secondary action-btn" disabled
+                            title="No puedes eliminar tu propio usuario">
+                        <i class="bi bi-trash3"></i>
+                    </button>` :
+                    `<button class="btn btn-sm btn-outline-danger action-btn"
+                            onclick="eliminarUsuario(${usuario.id}, '${safeName}')"
+                            title="Eliminar usuario">
+                        <i class="bi bi-trash3"></i>
+                    </button>`
+                }
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const htmlElement = document.documentElement;
+        
+        if (savedTheme) {
+            htmlElement.setAttribute('data-bs-theme', savedTheme);
+            
+            const themeIcon = document.querySelector('.theme-switcher i');
+            if (themeIcon) {
+                if (savedTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    function toggleTheme() {
+        const htmlElement = document.documentElement;
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const themeIcon = document.querySelector('.theme-switcher i');
+        
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        
+        if (themeIcon) {
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('bi-moon-stars');
+                themeIcon.classList.add('bi-sun');
+            } else {
+                themeIcon.classList.remove('bi-sun');
+                themeIcon.classList.add('bi-moon-stars');
+            }
+        }
+        
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // ===== INICIALIZACIÓN =====
+    document.addEventListener('DOMContentLoaded', function() {
+        applySavedTheme();
+        
+        // Sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('sidebar-collapsed');
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-chevron-double-left');
+                icon.classList.toggle('bi-chevron-double-right');
+            });
+        }
+
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+            });
+        }
+
+        // Tema
+        const themeSwitcher = document.querySelector('.theme-switcher');
+        if (themeSwitcher) {
+            themeSwitcher.addEventListener('click', toggleTheme);
+        }
+    });
+
+    // Inicializar eventos
+    function inicializarEventos() {
+
+
+        // Manejar logout
+        document.getElementById('logoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit();
+        });
+
+        // Formulario de crear usuario
+        document.getElementById('createUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await crearUsuario();
+        });
+
+        // Formulario de editar usuario
+        document.getElementById('editUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await actualizarUsuario();
+        });
+    }
+
+    // Crear usuario
+async function crearUsuario() {
+    const form = document.getElementById('createUserForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    try {
+        // Mostrar loading
+        submitBtn.innerHTML = '<div class="loading-spinner"></div> Guardando...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+
+        // Validaciones
+        if (data.password !== data.password_confirmation) {
+            throw new Error('Las contraseñas no coinciden');
+        }
+
+        if (data.password.length < 6) {
+            throw new Error('La contraseña debe tener al menos 6 caracteres');
+        }
+
+        const token = localStorage.getItem('user_token');
+        const response = await fetch('/api/usuario', {
+            method: 'POST',
+  headers: getAuthHeaders(),
+            body: JSON.stringify({
+                name: data.name.trim(),
+                email: data.email.trim(),
+                password: data.password,
+                activo: data.activo === 'on'
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Error al crear usuario');
+        }
+
+        // Éxito
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: result.message
+        });
+        
+        $('#createUserModal').modal('hide');
+        form.reset();
+        await cargarUsuarios();
+
+    } catch (error) {
+        console.error('Error creando usuario:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+    // Editar usuario
+   function editarUsuario(id) {
+    const usuario = usuarios.find(u => u.id === id);
+    if (usuario) {
+        document.getElementById('edit_user_id').value = usuario.id;
+        document.getElementById('edit_name').value = usuario.name;
+        document.getElementById('edit_email').value = usuario.email;
+        document.getElementById('edit_activo').checked = usuario.activo;
+        $('#editUserModal').modal('show');
+    }
+}
+
+    // Actualizar usuario
+    async function actualizarUsuario() {
+    const form = document.getElementById('editUserForm');
+    const formData = new FormData(form);
+    const userId = formData.get('id');
+
+    // Validar contraseñas si se proporcionan
+    const password = formData.get('password');
+    const passwordConfirmation = formData.get('password_confirmation');
+    
+    if (password && password !== passwordConfirmation) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Las contraseñas no coinciden'
+        });
+        return;
+    }
+
+    try {
+        // Preparar datos para enviar
+        const data = {
+            name: formData.get('name'),
+            email: formData.get('email'),
+            activo: formData.get('activo') === 'on'
+        };
+
+        // Solo agregar password si se proporcionó
+        if (password && password.trim() !== '') {
+            data.password = password;
+        }
+
+        console.log('Enviando datos:', data); // Para debug
+
+        const response = await fetch(`/api/usuario/${userId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: result.message
+            });
+            $('#editUserModal').modal('hide');
+            form.reset();
+            await cargarUsuarios();
+        } else {
+            throw new Error(result.error || 'Error al actualizar usuario');
+        }
+    } catch (error) {
+        console.error('Error al actualizar:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+    // Cambiar estado de usuario
+    async function cambiarEstadoUsuario(id) {
+        const usuario = usuarios.find(u => u.id === id);
+        if (!usuario) return;
+
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Vas a ${usuario.activo ? 'desactivar' : 'activar'} al usuario "${usuario.name}"`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: `Sí, ${usuario.activo ? 'desactivar' : 'activar'}`,
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/usuario/${id}/toggle-status`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    await cargarUsuarios();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+    }
+
+    // Eliminar usuario
+    async function eliminarUsuario(id, nombre) {
+        const result = await Swal.fire({
+            title: '¿Estás seguro?',
+            text: `Vas a eliminar al usuario "${nombre}". Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/api/usuario/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    await cargarUsuarios();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+    }
+</script>
+</body>
+</html>

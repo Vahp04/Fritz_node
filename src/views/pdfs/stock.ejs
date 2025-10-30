@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Reporte de Stock de Equipos - FRITZ C.A</title>
+    <style>
+        /* Estilos iguales a los proporcionados */
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #DC2626;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #DC2626;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-section {
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #DC2626;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 9px;
+        }
+        .table th {
+            background-color: #DC2626;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .stock-bajo {
+            background-color: #fff3cd !important;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FRITZ C.A</h1>
+        <div class="subtitle">Reporte de Stock de Equipos</div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Fecha de generación:</span>
+            <span><%= fechaGeneracion %></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de equipos en inventario:</span>
+            <span><%= stockEquipos.length %> tipos diferentes</span>
+        </div>
+    </div>
+
+    <!-- Estadísticas principales -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number"><%= totalEquipos.toLocaleString() %></div>
+            <div class="stat-label">Total de Equipos</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= totalDisponible.toLocaleString() %></div>
+            <div class="stat-label">Disponibles</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= totalAsignado.toLocaleString() %></div>
+            <div class="stat-label">Asignados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= stockBajoCount.toLocaleString() %></div>
+            <div class="stat-label">Stock Bajo</div>
+        </div>
+    </div>
+
+    <!-- Distribución por tipo -->
+    <div class="summary">
+        <h4 style="margin: 0 0 10px 0;">Distribución por Tipo de Equipo</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <% Object.entries(equiposPorTipo).forEach(([tipo, cantidad]) => { %>
+            <div style="background: white; padding: 8px; border-radius: 4px; border-left: 4px solid #DC2626;">
+                <strong><%= tipo %></strong>: <%= cantidad %> equipos
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+      <% if (stockEquipos && stockEquipos.length > 0) { %>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Descripción</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Disponible</th>
+                <th class="text-center">Asignado</th>
+                <th class="text-center">Mínimo</th>
+                <th class="text-center">Estado</th>
+                <th class="valor-column">Valor Unit.</th>
+                <th>Fecha Adq.</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% stockEquipos.forEach(equipo => { %>
+            <% 
+                const esStockBajo = equipo.cantidad_disponible <= equipo.minimo_stock;
+                const valorUnitario = equipo.valor_adquisicion || 0;
+                const valorTotalEquipo = equipo.valor_total || (valorUnitario * (equipo.cantidad_total || 0));
+            %>
+            <tr class="<%= esStockBajo ? 'stock-bajo' : '' %>">
+                <td><%= equipo.tipo_equipo?.nombre || 'N/A' %></td>
+                <td><%= equipo.marca %></td>
+                <td><%= equipo.modelo %></td>
+                <td><%= equipo.descripcion || 'Sin descripción' %></td>
+                <td class="text-center"><%= equipo.cantidad_total || 0 %></td>
+                <td class="text-center"><%= equipo.cantidad_disponible || 0 %></td>
+                <td class="text-center"><%= equipo.cantidad_asignada || 0 %></td>
+                <td class="text-center"><%= equipo.minimo_stock || 0 %></td>
+                <td class="text-center">
+                    <% 
+                        const disponible = equipo.cantidad_disponible || 0;
+                        const minimo = equipo.minimo_stock || 0;
+                    %>
+                    <% if (disponible == 0) { %>
+                        <span class="badge badge-danger">Agotado</span>
+                    <% } else if (disponible <= minimo) { %>
+                        <span class="badge badge-warning">Stock Bajo</span>
+                    <% } else { %>
+                        <span class="badge badge-success">Disponible</span>
+                    <% } %>
+                </td>
+                <td class="valor-column">$<%= valorUnitario.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
+                <td><%= equipo.fecha_adquisicion ? new Date(equipo.fecha_adquisicion).toLocaleDateString('es-ES') : 'N/A' %></td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+
+    <!-- Resumen financiero mejorado -->
+    <div class="summary">
+        <h4 style="margin: 0 0 10px 0;">Resumen Financiero del Inventario</h4>
+        <div class="info-row">
+            <span class="info-label">Valor total del inventario:</span>
+            <span class="info-label" style="font-size: 14px; color: #DC2626;">
+                $<%= valorTotal.toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %>
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de equipos en inventario:</span>
+            <span><%= totalEquipos.toLocaleString() %> unidades</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Equipos con stock bajo:</span>
+            <span><%= stockBajoCount %></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Tasa de asignación:</span>
+            <span><%= totalEquipos > 0 ? ((totalAsignado / totalEquipos) * 100).toFixed(1) : 0 %>%</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Valor promedio por equipo:</span>
+            <span>$<%= (valorTotal / totalEquipos).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></span>
+        </div>
+    </div>
+    <% } else { %>
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <h3>No hay equipos en stock</h3>
+    </div>
+    <% } %>
+
+    <div class="footer">
+        <div>Sistema de Gestión - FRITZ C.A</div>
+        <div>Generado el <%= fechaGeneracion %></div>
+    </div>
+</body>
+</html>

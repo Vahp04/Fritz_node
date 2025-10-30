@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Gestión de Stock de Equipos' %></title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                // Tema por defecto
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge-rol {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .badge-admin {
+            background-color: var(--fritz-red);
+        }
+        
+        .badge-tecnico {
+            background-color: #3498db;
+        }
+        
+        .badge-consulta {
+            background-color: #2ecc71;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-text {
+                display: none;
+            }
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .equipo-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ca36ddff 0%, #4615a1ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .description-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+        }
+        
+        .stock-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+        }
+        
+        .available-badge {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+        }
+        
+        .assigned-badge {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+        }
+        
+        .low-stock {
+            background-color: #fff3cd !important;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .critical-stock {
+            background-color: #f8d7da !important;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .currency {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .main-content {
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 position-relative">
+            <!-- Toggle Button -->
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Sección de Gestión -->
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Bottom -->
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+                        
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Stock de Equipos</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main class="p-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-box-seam me-2 text-danger"></i>
+                            Gestión de Stock de Equipos
+                        </h2>
+                        <p class="text-muted mb-0">Administra el inventario de equipos tecnológicos</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createStockEquipoModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Equipo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumen de Stock -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalEquipos">0</h4>
+                                        <small>Total Equipos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-box-seam fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalDisponibles">0</h4>
+                                        <small>Disponibles</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-check-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalAsignados">0</h4>
+                                        <small>Asignados</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-person-check fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="stockBajoCount">0</h4>
+                                        <small>Stock Bajo</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stock Equipos Management Card -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Equipos en Stock
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-download me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="generarPDFStock()">
+                                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF Stock
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="verPDFStock()">
+                                            <i class="bi bi-eye me-2"></i>Ver PDF Stock
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por marca o modelo..." id="searchName">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterTipo">
+                                    <option value="">Todos los tipos</option>
+                                    <!-- Los tipos se cargarán via JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterStock">
+                                    <option value="">Todo el stock</option>
+                                    <option value="bajo">Stock Bajo</option>
+                                    <option value="critico">Stock Crítico</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Stock de Equipos -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Equipo</th>
+                                        <th>Tipo</th>
+                                        <th>Stock</th>
+                                        <th>Valor</th>
+                                        <th>Fecha Adquisición</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockEquiposTableBody">
+                                    <!-- Los equipos se cargarán via JavaScript -->
+                                    <tr id="loadingRow">
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="spinner-border text-danger" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando equipos...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginación -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted" id="resultCount">
+                                Mostrando 0 de 0 equipos
+                            </div>
+                            
+                            <nav aria-label="Paginación de stock de equipos">
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                    <!-- La paginación se generará via JavaScript -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Stock de Equipo -->
+    <div class="modal fade" id="createStockEquipoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-box-seam me-2"></i> Nuevo Equipo en Stock
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createStockEquipoForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo de Equipo*</label>
+                                    <select class="form-select" name="tipo_equipo_id" id="create_tipo_equipo_id" required>
+                                        <option value="">Seleccione un tipo</option>
+                                        <!-- Los tipos se cargarán via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Marca*</label>
+                                    <input type="text" class="form-control" name="marca" required placeholder="Ingrese la marca">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Modelo*</label>
+                                    <input type="text" class="form-control" name="modelo" required placeholder="Ingrese el modelo">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha Adquisición*</label>
+                                    <input type="date" class="form-control" name="fecha_adquisicion" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad Total*</label>
+                                    <input type="number" class="form-control" name="cantidad_total" required min="0" id="cantidad_total" oninput="calcularCantidadesNuevo()">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad Disponible*</label>
+                                    <input type="number" class="form-control" name="cantidad_disponible" required min="0" id="cantidad_disponible" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+    <div class="mb-3">
+        <label class="form-label">Cantidad Asignada*</label>
+        <input type="number" class="form-control" name="cantidad_asignada" required min="0" 
+               id="cantidad_asignada" value="0" oninput="calcularCantidadesNuevo()">
+    </div>
+</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Stock Mínimo*</label>
+                                    <input type="number" class="form-control" name="minimo_stock" required min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Adquisición*</label>
+                                    <input type="number" step="0.01" class="form-control" name="valor_adquisicion" required min="0" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del equipo"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Equipo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Stock de Equipo -->
+    <div class="modal fade" id="editStockEquipoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Equipo en Stock
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editStockEquipoForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_equipo_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tipo de Equipo*</label>
+                                    <select class="form-select" name="tipo_equipo_id" id="edit_tipo_equipo_id" required>
+                                        <option value="">Seleccione un tipo</option>
+                                        <!-- Los tipos se cargarán via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Marca*</label>
+                                    <input type="text" class="form-control" name="marca" id="edit_marca" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Modelo*</label>
+                                    <input type="text" class="form-control" name="modelo" id="edit_modelo" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha Adquisición*</label>
+                                    <input type="date" class="form-control" name="fecha_adquisicion" id="edit_fecha_adquisicion" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad Total*</label>
+                                    <input type="number" class="form-control" name="cantidad_total" id="edit_cantidad_total" required min="0" oninput="calcularCantidadesEdicion()">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad Disponible*</label>
+                                    <input type="number" class="form-control" name="cantidad_disponible" id="edit_cantidad_disponible" required min="0" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+    <div class="mb-3">
+        <label class="form-label">Cantidad Asignada*</label>
+        <input type="number" class="form-control" name="cantidad_asignada" required min="0" 
+               id="edit_cantidad_asignada" oninput="calcularCantidadesEdicion()">
+    </div>
+</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Stock Mínimo*</label>
+                                    <input type="number" class="form-control" name="minimo_stock" id="edit_minimo_stock" required min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Valor Adquisición*</label>
+                                    <input type="number" step="0.01" class="form-control" name="valor_adquisicion" id="edit_valor_adquisicion" required min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Equipo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Stock de Equipo -->
+    <div class="modal fade" id="viewStockEquipoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles del Equipo en Stock
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="equipo-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
+                            <!-- Icono se llena con JavaScript -->
+                        </div>
+                        <h4 id="view_marca_modelo"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ID:</strong>
+                            <p id="view_equipo_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Tipo de Equipo:</strong>
+                            <p id="view_tipo_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Marca:</strong>
+                            <p id="view_marca" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Modelo:</strong>
+                            <p id="view_modelo" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Descripción:</strong>
+                            <p id="view_descripcion" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Cantidad Total:</strong>
+                            <p id="view_cantidad_total" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Cantidad Disponible:</strong>
+                            <p id="view_cantidad_disponible" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Cantidad Asignada:</strong>
+                            <p id="view_cantidad_asignada" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Stock Mínimo:</strong>
+                            <p id="view_minimo_stock" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Valor Adquisición:</strong>
+                            <p id="view_valor_adquisicion" class="mb-2 currency"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Adquisición:</strong>
+                            <p id="view_fecha_adquisicion" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let stockEquipos = [];
+        let tipoEquipos = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarStockEquipos();
+            cargarTipoEquipos();
+            inicializarEventos();
+            calcularCantidadesNuevo(); // Inicializar cálculos
+        });
+
+        
+
+        // Cargar equipos en stock
+        async function cargarStockEquipos(page = 1) {
+            try {
+                currentPage = page;
+                const response = await fetch(`/api/stock_equipos?page=${page}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipos');
+                }
+
+                const data = await response.json();
+                
+                stockEquipos = data.stockEquipos || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                actualizarResumen(data);
+                renderizarStockEquipos();
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los equipos');
+            }
+        }
+
+        // Cargar tipos de equipo
+        async function cargarTipoEquipos() {
+            try {
+                const response = await fetch('/api/tipo_equipo');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar tipos de equipo');
+                }
+
+                tipoEquipos = await response.json();
+                renderizarTipoEquipos();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Actualizar resumen
+        async function actualizarResumen() {
+            try {
+                console.log('Intentando cargar resumen...');
+                const response = await fetch('/api/stock_equipos/resumen');
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error('Error al cargar resumen: ' + response.status);
+                }
+
+                const resumen = await response.json();
+                console.log('Resumen recibido:', resumen);
+                
+                document.getElementById('totalEquipos').textContent = resumen.total_equipos || 0;
+                document.getElementById('totalDisponibles').textContent = resumen.total_disponible || 0;
+                document.getElementById('totalAsignados').textContent = resumen.total_asignado || 0;
+                document.getElementById('stockBajoCount').textContent = resumen.stock_bajo_count || 0;
+                
+            } catch (error) {
+                console.error('Error completo:', error);
+                // Mostrar valores por defecto en caso de error
+                document.getElementById('totalEquipos').textContent = '0';
+                document.getElementById('totalDisponibles').textContent = '0';
+                document.getElementById('totalAsignados').textContent = '0';
+                document.getElementById('stockBajoCount').textContent = '0';
+            }
+        }
+
+        // Renderizar equipos en la tabla
+        function renderizarStockEquipos() {
+            const tbody = document.getElementById('stockEquiposTableBody');
+            tbody.innerHTML = '';
+
+            if (stockEquipos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron equipos en stock</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            stockEquipos.forEach(equipo => {
+                const isLowStock = equipo.cantidad_disponible <= equipo.minimo_stock && equipo.cantidad_disponible > 0;
+                const isCriticalStock = equipo.cantidad_disponible === 0;
+                
+                const row = document.createElement('tr');
+                if (isLowStock) row.classList.add('low-stock');
+                if (isCriticalStock) row.classList.add('critical-stock');
+                
+                row.innerHTML = `
+                    <td class="fw-bold">${equipo.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="equipo-icon me-3">
+                                ${equipo.marca ? equipo.marca.charAt(0).toUpperCase() : 'E'}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${equipo.marca} ${equipo.modelo}</div>
+                                <small class="text-muted">${equipo.descripcion ? equipo.descripcion.substring(0, 25) + (equipo.descripcion.length > 25 ? '...' : '') : 'Sin descripción'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary rounded-pill">
+                            ${equipo.tipo_equipo ? equipo.tipo_equipo.nombre : 'Sin tipo'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <span class="badge available-badge rounded-pill">
+                                <i class="bi bi-check-circle me-1"></i>
+                                ${equipo.cantidad_disponible} Disp.
+                            </span>
+                            <span class="badge assigned-badge rounded-pill">
+                                <i class="bi bi-person-check me-1"></i>
+                                ${equipo.cantidad_asignada} Asig.
+                            </span>
+                            <small class="text-muted">Mín: ${equipo.minimo_stock}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="currency">$${parseFloat(equipo.valor_adquisicion).toFixed(2)}</span>
+                    </td>
+                    <td>
+                        ${new Date(equipo.fecha_adquisicion).toLocaleDateString('es-ES')}
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewStockEquipo(${equipo.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editStockEquipo(${equipo.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteStockEquipo(${equipo.id}, '${equipo.marca} ${equipo.modelo}')"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+
+            // Actualizar contador de resultados
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${stockEquipos.length} de ${totalRecords} equipos`;
+        }
+
+        // Renderizar tipos de equipo en los selects
+        function renderizarTipoEquipos() {
+            const selects = [
+                'filterTipo',
+                'create_tipo_equipo_id', 
+                'edit_tipo_equipo_id'
+            ];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    // Limpiar opciones excepto la primera
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    // Agregar opciones
+                    tipoEquipos.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.id;
+                        option.textContent = tipo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Renderizar paginación
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+            pagination.innerHTML = '';
+
+            // Botón anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage - 1})" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            pagination.appendChild(prevLi);
+
+            // Números de página
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarStockEquipos(${i})">${i}</a>
+                `;
+                pagination.appendChild(pageLi);
+            }
+
+            // Botón siguiente
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage + 1})" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
+
+        // ===== FUNCIONES PARA CALCULAR CANTIDADES =====
+function calcularCantidadesNuevo() {
+    const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
+    const cantidadAsignada = parseInt(document.getElementById('cantidad_asignada').value) || 0;
+    
+    // Calcular disponible basado en total y asignada
+    const cantidadDisponible = cantidadTotal - cantidadAsignada;
+    
+    if (cantidadDisponible >= 0) {
+        document.getElementById('cantidad_disponible').value = cantidadDisponible;
+    } else {
+        // Si la asignada es mayor que el total, mostrar error
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'La cantidad asignada no puede ser mayor que la cantidad total'
+        });
+        document.getElementById('cantidad_asignada').value = 0;
+        document.getElementById('cantidad_disponible').value = cantidadTotal;
+    }
+}
+
+
+ function calcularCantidadesEdicion() {
+    const cantidadTotal = parseInt(document.getElementById('edit_cantidad_total').value) || 0;
+    const cantidadAsignada = parseInt(document.getElementById('edit_cantidad_asignada').value) || 0;
+    
+    // Calcular disponible basado en total y asignada
+    const cantidadDisponible = cantidadTotal - cantidadAsignada;
+    
+    if (cantidadDisponible >= 0) {
+        document.getElementById('edit_cantidad_disponible').value = cantidadDisponible;
+    } else {
+        // Si la cantidad total es menor que la asignada, mostrar error
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'La cantidad total no puede ser menor que la cantidad asignada actual'
+        });
+        document.getElementById('edit_cantidad_total').value = cantidadTotal + cantidadAsignada;
+        document.getElementById('edit_cantidad_disponible').value = 0;
+    }
+}
+
+        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                
+                const themeIcon = document.querySelector('.theme-switcher i');
+                if (themeIcon) {
+                    if (savedTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeIcon = document.querySelector('.theme-switcher i');
+            
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            
+            if (themeIcon) {
+                if (newTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+            
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            applySavedTheme();
+            
+            // Sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-double-left');
+                    icon.classList.toggle('bi-chevron-double-right');
+                });
+            }
+
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            // Tema
+            const themeSwitcher = document.querySelector('.theme-switcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', toggleTheme);
+            }
+        });
+
+        // Inicializar eventos
+        function inicializarEventos() {
+            // Manejar logout
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            // Formulario de crear equipo
+            document.getElementById('createStockEquipoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearStockEquipo();
+            });
+
+            // Formulario de editar equipo
+            document.getElementById('editStockEquipoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarStockEquipo();
+            });
+
+            // Eventos para calcular cantidades
+             document.getElementById('cantidad_total').addEventListener('input', calcularCantidadesNuevo);
+    document.getElementById('cantidad_asignada').addEventListener('input', calcularCantidadesNuevo);
+    document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
+    document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
+            // Filtros
+            document.getElementById('searchName').addEventListener('input', aplicarFiltros);
+            document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterStock').addEventListener('change', aplicarFiltros);
+            document.getElementById('resetFilters').addEventListener('click', resetFiltros);
+        }
+
+        // Funciones CRUD
+        async function crearStockEquipo() {
+    const form = document.getElementById('createStockEquipoForm');
+    const formData = new FormData(form);
+
+    try {
+        console.log('Datos a enviar:', Object.fromEntries(formData)); // Debug
+
+        const response = await fetch('/api/stock_equipos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(errorText || 'Error del servidor');
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.message
+        });
+        $('#createStockEquipoModal').modal('hide');
+        form.reset();
+        calcularCantidadesNuevo();
+        
+        await cargarStockEquipos(currentPage);
+        await actualizarResumen();
+    } catch (error) {
+        console.error('Error completo:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Error al crear el equipo'
+        });
+    }
+}
+
+        async function editStockEquipo(id) {
+            try {
+                const response = await fetch(`/api/stock_equipos/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipo');
+                }
+
+                const equipo = await response.json();
+                
+                document.getElementById('edit_equipo_id').value = equipo.id;
+                document.getElementById('edit_tipo_equipo_id').value = equipo.tipo_equipo_id;
+                document.getElementById('edit_marca').value = equipo.marca;
+                document.getElementById('edit_modelo').value = equipo.modelo;
+                document.getElementById('edit_descripcion').value = equipo.descripcion || '';
+                document.getElementById('edit_cantidad_total').value = equipo.cantidad_total;
+                document.getElementById('edit_cantidad_disponible').value = equipo.cantidad_disponible;
+                document.getElementById('edit_cantidad_asignada').value = equipo.cantidad_asignada;
+                document.getElementById('edit_minimo_stock').value = equipo.minimo_stock;
+                document.getElementById('edit_fecha_adquisicion').value = equipo.fecha_adquisicion.split('T')[0];
+                document.getElementById('edit_valor_adquisicion').value = equipo.valor_adquisicion;
+                
+                // Guardar la cantidad asignada original para validaciones
+                document.getElementById('edit_cantidad_asignada').setAttribute('data-original', equipo.cantidad_asignada);
+                
+                $('#editStockEquipoModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function actualizarStockEquipo() {
+    const form = document.getElementById('editStockEquipoForm');
+    const formData = new FormData(form);
+    const equipoId = formData.get('id');
+
+    try {
+        console.log('Datos a actualizar:', Object.fromEntries(formData)); // Debug
+
+        const response = await fetch(`/api/stock_equipos/${equipoId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            throw new Error(errorText || 'Error del servidor');
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.message
+        });
+        $('#editStockEquipoModal').modal('hide');
+        form.reset();
+        
+        await cargarStockEquipos(currentPage);
+        await actualizarResumen();
+    } catch (error) {
+        console.error('Error completo:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Error al actualizar el equipo'
+        });
+    }
+}
+
+        async function viewStockEquipo(id) {
+            try {
+                const response = await fetch(`/api/stock_equipos/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipo');
+                }
+
+                const equipo = await response.json();
+                
+                document.getElementById('view_icon').textContent = equipo.marca ? equipo.marca.charAt(0).toUpperCase() : 'E';
+                document.getElementById('view_marca_modelo').textContent = `${equipo.marca} ${equipo.modelo}`;
+                document.getElementById('view_id').textContent = `ID: ${equipo.id}`;
+                document.getElementById('view_equipo_id').textContent = equipo.id;
+                document.getElementById('view_tipo_equipo').textContent = equipo.tipo_equipo ? equipo.tipo_equipo.nombre : 'Sin tipo';
+                document.getElementById('view_marca').textContent = equipo.marca;
+                document.getElementById('view_modelo').textContent = equipo.modelo;
+                document.getElementById('view_descripcion').textContent = equipo.descripcion || 'Sin descripción';
+                document.getElementById('view_cantidad_total').textContent = equipo.cantidad_total;
+                document.getElementById('view_cantidad_disponible').textContent = equipo.cantidad_disponible;
+                document.getElementById('view_cantidad_asignada').textContent = equipo.cantidad_asignada;
+                document.getElementById('view_minimo_stock').textContent = equipo.minimo_stock;
+                document.getElementById('view_valor_adquisicion').textContent = `$${parseFloat(equipo.valor_adquisicion).toFixed(2)}`;
+                document.getElementById('view_fecha_adquisicion').textContent = new Date(equipo.fecha_adquisicion).toLocaleDateString('es-ES');
+                
+                $('#viewStockEquipoModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+      async function deleteStockEquipo(id, nombre) {
+    const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: `Vas a eliminar el equipo "${nombre}". Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/stock_equipos/${id}`, {
+                method: 'DELETE'
+                // ELIMINADO: headers con Authorization
+            });
+
+            console.log('Delete response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(errorText || 'Error del servidor');
+            }
+
+            const data = await response.json();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message
+            });
+            await cargarStockEquipos(currentPage);
+            await actualizarResumen();
+        } catch (error) {
+            console.error('Error completo:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Error al eliminar el equipo'
+            });
+        }
+    }
+}
+
+        // Funciones de filtrado
+        function aplicarFiltros() {
+            const nameFilter = document.getElementById('searchName').value.toLowerCase();
+            const tipoFilter = document.getElementById('filterTipo').value;
+            const stockFilter = document.getElementById('filterStock').value;
+
+            const rows = document.querySelectorAll('#stockEquiposTableBody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                if (row.id === 'loadingRow') return;
+
+                const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
+                const tipo = row.querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
+                const isLowStock = row.classList.contains('low-stock');
+                const isCriticalStock = row.classList.contains('critical-stock');
+
+                const nameMatch = !nameFilter || name.includes(nameFilter);
+                const tipoMatch = !tipoFilter || row.querySelector('td:nth-child(3) .badge').textContent.includes(
+                    tipoEquipos.find(t => t.id == tipoFilter)?.nombre || ''
+                );
+                let stockMatch = true;
+
+                if (stockFilter === 'bajo') {
+                    stockMatch = isLowStock;
+                } else if (stockFilter === 'critico') {
+                    stockMatch = isCriticalStock;
+                }
+
+                if (nameMatch && tipoMatch && stockMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${visibleCount} de ${totalRecords} equipos`;
+        }
+
+        function resetFiltros() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('filterTipo').value = '';
+            document.getElementById('filterStock').value = '';
+            aplicarFiltros();
+        }
+
+        // Funciones de utilidad
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+
+function generarPDFStock() {
+    // Descargar PDF
+    window.location.href = '/api/pdf/stock';
+}
+
+function verPDFStock() {
+    // Ver PDF en nueva pestaña
+    const link = document.createElement('a');
+    link.href = '/api/pdf/stock/ver';
+    link.target = '_blank';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Reporte de Equipos Asignados - FRITZ C.A</title>
+    <style>
+        /* Estilos iguales a los proporcionados */
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #DC2626;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            color: #DC2626;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-section {
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #DC2626;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 9px;
+        }
+        .table th {
+            background-color: #DC2626;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+        }
+        .table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 8px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-secondary {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .activo-row {
+            background-color: #d4edda !important;
+        }
+        .devuelto-row {
+            background-color: #d1ecf1 !important;
+        }
+        .obsoleto-row {
+            background-color: #fff3cd !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FRITZ C.A</h1>
+        <div class="subtitle">Reporte de Equipos Asignados</div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Fecha de generación:</span>
+            <span><%= fechaGeneracion %></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de asignaciones:</span>
+            <span><%= totalAsignaciones %></span>
+        </div>
+    </div>
+
+    <!-- Estadísticas principales -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number"><%= asignacionesActivas %></div>
+            <div class="stat-label">Activas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= asignacionesDevueltas %></div>
+            <div class="stat-label">Devueltas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= asignacionesObsoletas %></div>
+            <div class="stat-label">Obsoletas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number"><%= totalAsignaciones %></div>
+            <div class="stat-label">Total</div>
+        </div>
+    </div>
+
+    <!-- Distribución por tipo de equipo -->
+    <div class="summary">
+        <h4 style="margin: 0 0 10px 0;">Distribución por Tipo de Equipo</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <% Object.entries(asignacionesPorTipo).forEach(([tipo, cantidad]) => { %>
+            <div style="background: white; padding: 8px; border-radius: 4px; border-left: 4px solid #DC2626;">
+                <strong><%= tipo %></strong>: <%= cantidad %> asignaciones
+            </div>
+            <% }); %>
+        </div>
+    </div>
+
+    <% if (equiposAsignados && equiposAsignados.length > 0) { %>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Cargo</th>
+                <th>Sede</th>
+                <th>Departamento</th>
+                <th>Equipo</th>
+                <th>Tipo</th>
+                <th>Fecha Asignación</th>
+                <th>Fecha Devolución</th>
+                <th>IP Equipo</th>
+                <th>Asignado Por</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% equiposAsignados.forEach(asignacion => { %>
+            <% 
+                let estadoClass = '';
+                if (asignacion.estado == 'activo') {
+                    estadoClass = 'activo-row';
+                } else if (asignacion.estado == 'devuelto') {
+                    estadoClass = 'devuelto-row';
+                } else if (asignacion.estado == 'obsoleto') {
+                    estadoClass = 'obsoleto-row';
+                }
+            %>
+            <tr class="<%= estadoClass %>">
+             <td><%= asignacion.usuarioAsignado.nombre %> <%= asignacion.usuarioAsignado.apellido %></td>
+<td><%= asignacion.usuarioAsignado.cargo %></td>
+<td><%= asignacion.usuarioAsignado.sede.nombre %></td>
+<td><%= asignacion.usuarioAsignado.departamento.nombre %></td>
+<td><%= asignacion.stockEquipo.marca %> <%= asignacion.stockEquipo.modelo %></td>
+<td><%= asignacion.stockEquipo.tipoEquipo.nombre %></td>
+                <td><%= asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A' %></td>
+                <td>
+                    <% if (asignacion.fecha_devolucion) { %>
+                        <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
+                    <% } else { %>
+                        -
+                    <% } %>
+                </td>
+                <td><%= asignacion.ip_equipo || 'No requiere' %></td>
+                <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
+                <td class="text-center">
+                    <% 
+                        const estado = asignacion.estado || 'desconocido';
+                    %>
+                    <% if (estado == 'activo') { %>
+                        <span class="badge badge-success">Activo</span>
+                    <% } else if (estado == 'devuelto') { %>
+                        <span class="badge badge-secondary">Devuelto</span>
+                    <% } else if (estado == 'obsoleto') { %>
+                        <span class="badge badge-warning">Obsoleto</span>
+                    <% } else { %>
+                        <span class="badge badge-danger"><%= estado.charAt(0).toUpperCase() + estado.slice(1) %></span>
+                    <% } %>
+                </td>
+            </tr>
+            <% }); %>
+        </tbody>
+    </table>
+
+    <!-- Resumen final -->
+    <div class="summary">
+        <div class="info-row">
+            <span class="info-label">Total de asignaciones activas:</span>
+            <span><%= asignacionesActivas %> (<%= totalAsignaciones > 0 ? ((asignacionesActivas / totalAsignaciones) * 100).toFixed(1) : 0 %>%)</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de asignaciones devueltas:</span>
+            <span><%= asignacionesDevueltas %> (<%= totalAsignaciones > 0 ? ((asignacionesDevueltas / totalAsignaciones) * 100).toFixed(1) : 0 %>%)</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total de asignaciones obsoletas:</span>
+            <span><%= asignacionesObsoletas %> (<%= totalAsignaciones > 0 ? ((asignacionesObsoletas / totalAsignaciones) * 100).toFixed(1) : 0 %>%)</span>
+        </div>
+    </div>
+    <% } else { %>
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <h3>No hay equipos asignados</h3>
+    </div>
+    <% } %>
+
+    <div class="footer">
+        <div>Sistema de Gestión - FRITZ C.A</div>
+        <div>Generado el <%= fechaGeneracion %></div>
+    </div>
+</body>
+</html>

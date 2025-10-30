@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Equipos Asignados' %></title>
+
+        <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                // Tema por defecto
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge-rol {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .badge-admin {
+            background-color: var(--fritz-red);
+        }
+        
+        .badge-tecnico {
+            background-color: #3498db;
+        }
+        
+        .badge-consulta {
+            background-color: #2ecc71;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-text {
+                display: none;
+            }
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .equipo-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #274ebbff 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .estado-badge {
+            font-size: 0.7rem;
+            padding: 0.4em 0.8em;
+            border-radius: 50px;
+        }
+        
+        .estado-devuelto {
+            background: linear-gradient(135deg, #5160a8ff 0%, #8046b9ff 100%);
+            color: black;
+        }
+        
+        .estado-activo {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: black;
+        }
+        
+        .estado-obsoleto {
+            background: linear-gradient(135deg, #949631ff 0%, #75881eff 100%);
+            color: black;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+        }
+
+        .equipo-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: black;
+            border: none;
+        }
+
+        .asignador-badge {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: black;
+            border: none;
+        }
+
+        .obsoleto-row {
+            background-color: #fff3cd !important;
+            border-left: 4px solid #188032ff;
+        }
+        
+        .devuelto-row {
+            background-color: #d1ecf1 !important;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .main-content {
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 position-relative">
+            <!-- Toggle Button -->
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            
+            <!-- Brand -->
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Sección de Gestión -->
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Bottom -->
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+                        
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Equipos Asignados</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main class="p-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-laptop me-2 text-danger"></i>
+                            Gestión de Equipos Asignados
+                        </h2>
+                        <p class="text-muted mb-0">Administra las asignaciones de equipos a usuarios</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createEquipoAsignadoModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nueva Asignación
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Resumen de Asignaciones -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countActivos">0</h4>
+                                        <small>Asignaciones Activas</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-laptop fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countDevueltos">0</h4>
+                                        <small>Devueltos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-arrow-return-left fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countObsoletos">0</h4>
+                                        <small>Obsoletos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-exclamation-triangle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countTotal">0</h4>
+                                        <small>Total Registros</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-archive fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Equipos Asignados Management Card -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Equipos Asignados
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-download me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="generarPDFAsignaciones()">
+                                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF Asignaciones
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="verPDFAsignaciones()">
+                                            <i class="bi bi-eye me-2"></i>Ver PDF Asignaciones
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="abrirModalSeleccionUsuario()">
+                                            <i class="bi bi-person me-2"></i>PDF por Usuario
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por usuario ..." id="searchName">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por equipo..." id="searchEquipo">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterEstado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="activo">Activo</option>
+                                    <option value="devuelto">Devuelto</option>
+                                    <option value="obsoleto">Obsoleto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Equipos Asignados -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Usuario</th>
+                                        <th>Equipo</th>
+                                        <th>Fecha Asignación</th>
+                                        <th>Estado</th>
+                                        <th>Asignado Por</th>
+                                        <th width="140px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equiposAsignadosTableBody">
+                                    <!-- Los equipos asignados se cargarán via JavaScript -->
+                                    <tr id="loadingRow">
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="spinner-border text-danger" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando equipos asignados...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Asignación -->
+    <div class="modal fade" id="createEquipoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-laptop me-2"></i> Nueva Asignación de Equipo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createEquipoAsignadoForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario*</label>
+                                    <select class="form-select" name="usuarios_id" id="create_usuarios_id" required>
+                                        <option value="">Seleccione un usuario</option>
+                                        <!-- Se cargará via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipo*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
+                                        <option value="">Seleccione un equipo</option>
+                                        <!-- Se cargará via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Asignación*</label>
+                                    <input type="date" class="form-control" name="fecha_asignacion" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="devuelto">Devuelto</option>
+                                        <option value="obsoleto">Obsoleto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Equipo</label>
+                                    <input type="text" class="form-control" name="ip_equipo" placeholder="Ej: 192.168.1.100">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Devolución</label>
+                                    <input type="date" class="form-control" name="fecha_devolucion">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Observaciones</label>
+                                    <textarea class="form-control" name="observaciones" rows="3" placeholder="Observaciones sobre la asignación"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Asignación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Asignación -->
+    <div class="modal fade" id="editEquipoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Asignación de Equipo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editEquipoAsignadoForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_asignacion_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario*</label>
+                                    <select class="form-select" name="usuarios_id" id="edit_usuarios_id" required>
+                                        <option value="">Seleccione un usuario</option>
+                                        <!-- Se cargará via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipo*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="edit_stock_equipos_id" required>
+                                        <option value="">Seleccione un equipo</option>
+                                        <!-- Se cargará via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Asignación*</label>
+                                    <input type="date" class="form-control" name="fecha_asignacion" id="edit_fecha_asignacion" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" id="edit_estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="devuelto">Devuelto</option>
+                                        <option value="obsoleto">Obsoleto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Equipo</label>
+                                    <input type="text" class="form-control" name="ip_equipo" id="edit_ip_equipo" placeholder="Ej: 192.168.1.100">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Devolución</label>
+                                    <input type="date" class="form-control" name="fecha_devolucion" id="edit_fecha_devolucion">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Observaciones</label>
+                                    <textarea class="form-control" name="observaciones" id="edit_observaciones" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Asignación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Asignación -->
+    <div class="modal fade" id="viewEquipoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles de la Asignación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="equipo-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
+                            <!-- Icono se llena con JavaScript -->
+                        </div>
+                        <h4 id="view_titulo"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ID:</strong>
+                            <p id="view_asignacion_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Estado:</strong>
+                            <p id="view_estado" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Usuario Asignado:</strong>
+                            <p id="view_usuario" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Equipo:</strong>
+                            <p id="view_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Asignación:</strong>
+                            <p id="view_fecha_asignacion" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Devolución:</strong>
+                            <p id="view_fecha_devolucion" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>IP del Equipo:</strong>
+                            <p id="view_ip_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Asignado Por:</strong>
+                            <p id="view_asignado_por" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Observaciones:</strong>
+                            <p id="view_observaciones" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar usuario para PDF -->
+    <div class="modal fade" id="seleccionUsuarioModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person me-2"></i> Generar PDF por Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione un usuario:</label>
+                        <select class="form-select" id="usuarioSeleccionado">
+                            <option value="">Seleccione un usuario</option>
+                            <!-- Se cargará via JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarPDFUsuarioSeleccionado()">
+                        <i class="bi bi-download me-1"></i> Descargar PDF
+                    </button>
+                    <button type="button" class="btn btn-info text-white" onclick="verPDFUsuarioSeleccionado()">
+                        <i class="bi bi-eye me-1"></i> Ver PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let equiposAsignados = [];
+        let usuarios = [];
+        let stockEquipos = [];
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEquiposAsignados();
+            cargarUsuarios();
+            cargarStockEquipos();
+            inicializarEventos();
+        });
+
+// Cargar usuarios - VERSIÓN FINAL CON ESTRUCTURA CORRECTA
+async function cargarUsuarios() {
+    try {
+        console.log('🔍 Cargando usuarios...');
+        const response = await fetch('/api/usuarios');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📦 Respuesta usuarios:', data);
+        
+        // Manejar diferentes estructuras de respuesta
+        if (data.success && data.usuarios) {
+            usuarios = data.usuarios;
+        } else if (Array.isArray(data)) {
+            usuarios = data;
+        } else if (data.usuarios) {
+            usuarios = data.usuarios;
+        } else {
+            usuarios = [];
+        }
+        
+        console.log(`✅ ${usuarios.length} usuarios cargados`);
+        llenarSelectUsuarios();
+        
+    } catch (error) {
+        console.error('❌ Error cargando usuarios:', error);
+        usuarios = [];
+        llenarSelectUsuarios();
+    }
+}
+
+// Cargar stock de equipos - VERSIÓN FINAL
+async function cargarStockEquipos() {
+    try {
+        console.log('🔍 Cargando stock de equipos...');
+        const response = await fetch('/api/stock_equipos');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📦 Respuesta stock:', data);
+        
+        // Manejar diferentes estructuras de respuesta
+        if (data.success && data.stockEquipos) {
+            stockEquipos = data.stockEquipos;
+        } else if (Array.isArray(data)) {
+            stockEquipos = data;
+        } else if (data.stockEquipos) {
+            stockEquipos = data.stockEquipos;
+        } else if (data.equipos) {
+            stockEquipos = data.equipos;
+        } else {
+            stockEquipos = [];
+        }
+        
+        console.log(`✅ ${stockEquipos.length} equipos cargados`);
+        llenarSelectStockEquipos();
+        
+    } catch (error) {
+        console.error('❌ Error cargando stock:', error);
+        stockEquipos = [];
+        llenarSelectStockEquipos();
+    }
+}
+
+
+// Cargar equipos asignados - VERSIÓN FINAL
+async function cargarEquiposAsignados() {
+    try {
+        console.log('🔍 Cargando equipos asignados...');
+        const response = await fetch('/api/equipos_asignados');
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar equipos asignados');
+        }
+
+        const data = await response.json();
+        console.log('📦 Respuesta equipos asignados:', data);
+        
+        // La respuesta ya debería ser un array formateado
+        equiposAsignados = Array.isArray(data) ? data : [];
+        
+        console.log(`✅ ${equiposAsignados.length} asignaciones cargadas`);
+        
+        if (equiposAsignados.length > 0) {
+            console.log('📋 Primera asignación:', equiposAsignados[0]);
+        }
+        
+        renderizarEquiposAsignados();
+        actualizarContadores();
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+        equiposAsignados = [];
+        renderizarEquiposAsignados();
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los equipos asignados'
+        });
+    }
+}
+function llenarSelectUsuarios() {
+    const createSelect = document.getElementById('create_usuarios_id');
+    const editSelect = document.getElementById('edit_usuarios_id');
+    const pdfSelect = document.getElementById('usuarioSeleccionado');
+
+    const selects = [createSelect, editSelect, pdfSelect].filter(select => select !== null);
+
+    selects.forEach(select => {
+        // Limpiar select
+        select.innerHTML = '<option value="">Seleccione un usuario</option>';
+        
+        if (!usuarios || usuarios.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No hay usuarios disponibles";
+            select.appendChild(option);
+            return;
+        }
+        
+        console.log(`📝 Llenando select con ${usuarios.length} usuarios`);
+        
+        // Llenar con usuarios
+        usuarios.forEach(usuario => {
+            if (!usuario || !usuario.id) return;
+            
+            const option = document.createElement('option');
+            option.value = usuario.id;
+            
+            // Construir texto descriptivo
+            let texto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+            
+            if (usuario.cargo) {
+                texto += ` - ${usuario.cargo}`;
+            }
+            
+            // Agregar información adicional si está disponible
+            if (usuario.sede && usuario.sede.nombre) {
+                texto += ` (${usuario.sede.nombre})`;
+            }
+            
+            option.textContent = texto || `Usuario ${usuario.id}`;
+            select.appendChild(option);
+        });
+    });
+    
+    console.log('✅ Selects de usuarios llenados correctamente');
+}
+
+// Llenar select de stock equipos - VERSIÓN MEJORADA
+function llenarSelectStockEquipos() {
+    const createSelect = document.getElementById('create_stock_equipos_id');
+    const editSelect = document.getElementById('edit_stock_equipos_id');
+
+    const selects = [createSelect, editSelect].filter(select => select !== null);
+
+    selects.forEach(select => {
+        // Limpiar select
+        select.innerHTML = '<option value="">Seleccione un equipo</option>';
+        
+        if (!stockEquipos || stockEquipos.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No hay equipos disponibles";
+            select.appendChild(option);
+            return;
+        }
+        
+        console.log(`📝 Llenando select con ${stockEquipos.length} equipos`);
+        
+        // Llenar con equipos
+        stockEquipos.forEach(equipo => {
+            if (!equipo || !equipo.id) return;
+            
+            const option = document.createElement('option');
+            option.value = equipo.id;
+            
+            // Construir texto descriptivo
+            let texto = '';
+            if (equipo.marca && equipo.modelo) {
+                texto = `${equipo.marca} ${equipo.modelo}`;
+            } else if (equipo.nombre) {
+                texto = equipo.nombre;
+            } else {
+                texto = `Equipo ${equipo.id}`;
+            }
+            
+            // Agregar disponibilidad
+            if (equipo.cantidad_disponible !== undefined) {
+                texto += ` (${equipo.cantidad_disponible} disponible${equipo.cantidad_disponible !== 1 ? 's' : ''})`;
+            }
+            
+            option.textContent = texto;
+            
+            // Manejar campo de IP
+            if (equipo.tipoEquipo && equipo.tipoEquipo.requiere_ip) {
+                option.setAttribute('data-requiere-ip', '1');
+            } else {
+                option.setAttribute('data-requiere-ip', '0');
+            }
+            
+            select.appendChild(option);
+        });
+    });
+    
+    console.log('✅ Selects de equipos llenados correctamente');
+}
+// Renderizar equipos asignados en la tabla
+function renderizarEquiposAsignados() {
+    const tbody = document.getElementById('equiposAsignadosTableBody');
+    
+    if (!tbody) {
+        console.error('❌ No se encontró el tbody de la tabla');
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    if (equiposAsignados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-laptop display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No se encontraron equipos asignados</p>
+                    <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
+                        <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    equiposAsignados.forEach(asignacion => {
+        const row = document.createElement('tr');
+        const estadoClass = `estado-${asignacion.estado || 'activo'}`;
+        const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
+                       (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
+        
+        row.className = rowClass;
+        
+        // Usar las propiedades formateadas
+        const usuario = asignacion.usuarioAsignado || {};
+        const stockEquipo = asignacion.stockEquipo || {};
+        const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
+        
+        const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+        const cargoUsuario = usuario.cargo || 'Sin cargo';
+        const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+        const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
+
+        row.innerHTML = `
+            <td class="fw-bold">${asignacion.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="equipo-icon me-3">
+                        ${inicialUsuario}
+                    </div>
+                    <div>
+                        <div class="fw-bold">${nombreUsuario}</div>
+                        <small class="text-muted">${cargoUsuario}</small>
+                        ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge equipo-badge rounded-pill">
+                    <i class="bi bi-pc me-1"></i>
+                    ${infoEquipo}
+                </span>
+                ${stockEquipo.tipo_equipo ? `
+                <small class="d-block text-muted">
+                    ${stockEquipo.tipo_equipo.nombre}
+                </small>
+                ` : ''}
+                ${asignacion.ip_equipo ? `
+                <small class="d-block text-muted">
+                    <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <small class="d-block">
+                    ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
+                </small>
+                ${asignacion.fecha_devolucion ? `
+                <small class="d-block text-muted">
+                    Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <span class="badge estado-badge ${estadoClass}">
+                    ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
+                </span>
+            </td>
+            <td>
+                <span class="badge asignador-badge rounded-pill">
+                    <i class="bi bi-person-check me-1"></i>
+                    ${usuarioAsignador.name}
+                </span>
+            </td>
+            <td class="table-actions text-center">
+                <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                        onclick="viewEquipoAsignado(${asignacion.id})"
+                        title="Ver">
+                    <i class="bi bi-eye"></i>
+                </button>
+                ${asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editEquipoAsignado(${asignacion.id})"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                ` : ''}
+                ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-success action-btn me-1"
+                        onclick="devolverEquipo(${asignacion.id})"
+                        title="Devolver">
+                    <i class="bi bi-arrow-return-left"></i>
+                </button>
+                ` : ''}
+                ${asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-danger action-btn"
+                        onclick="deleteEquipoAsignado(${asignacion.id})"
+                        title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                </button>
+                ` : ''}
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+        // Actualizar contadores
+        function actualizarContadores() {
+            const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
+            const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
+            const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
+            const countTotal = equiposAsignados.length;
+
+            document.getElementById('countActivos').textContent = countActivos;
+            document.getElementById('countDevueltos').textContent = countDevueltos;
+            document.getElementById('countObsoletos').textContent = countObsoletos;
+            document.getElementById('countTotal').textContent = countTotal;
+        }
+
+            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const htmlElement = document.documentElement;
+        
+        if (savedTheme) {
+            htmlElement.setAttribute('data-bs-theme', savedTheme);
+            
+            const themeIcon = document.querySelector('.theme-switcher i');
+            if (themeIcon) {
+                if (savedTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    function toggleTheme() {
+        const htmlElement = document.documentElement;
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const themeIcon = document.querySelector('.theme-switcher i');
+        
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        
+        if (themeIcon) {
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('bi-moon-stars');
+                themeIcon.classList.add('bi-sun');
+            } else {
+                themeIcon.classList.remove('bi-sun');
+                themeIcon.classList.add('bi-moon-stars');
+            }
+        }
+        
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // ===== INICIALIZACIÓN =====
+    document.addEventListener('DOMContentLoaded', function() {
+        applySavedTheme();
+        
+        // Sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('sidebar-collapsed');
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-chevron-double-left');
+                icon.classList.toggle('bi-chevron-double-right');
+            });
+        }
+
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+            });
+        }
+
+        // Tema
+        const themeSwitcher = document.querySelector('.theme-switcher');
+        if (themeSwitcher) {
+            themeSwitcher.addEventListener('click', toggleTheme);
+        }
+    });
+
+        // Inicializar eventos
+        function inicializarEventos() {
+
+            // Manejar logout
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            // Formulario de crear asignación
+            document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearEquipoAsignado();
+            });
+
+            // Formulario de editar asignación
+            document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarEquipoAsignado();
+            });
+
+            // Event listeners para los selects de equipos
+            document.getElementById('create_stock_equipos_id')?.addEventListener('change', function() {
+                toggleIPFieldBasedOnSelection(this, false);
+            });
+
+            document.getElementById('edit_stock_equipos_id')?.addEventListener('change', function() {
+                toggleIPFieldBasedOnSelection(this, true);
+            });
+
+            // Filtros
+            document.getElementById('searchName').addEventListener('input', aplicarFiltros);
+            document.getElementById('searchEquipo').addEventListener('input', aplicarFiltros);
+            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+            document.getElementById('resetFilters').addEventListener('click', resetFiltros);
+        }
+
+        // Funciones CRUD
+        async function crearEquipoAsignado() {
+            const form = document.getElementById('createEquipoAsignadoForm');
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/equipos_asignados', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Asignación creada exitosamente'
+                    });
+                    $('#createEquipoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarEquiposAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al crear asignación');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function editEquipoAsignado(id) {
+            try {
+                const response = await fetch(`/api/equipos_asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
+
+                const asignacion = await response.json();
+                
+                document.getElementById('edit_asignacion_id').value = asignacion.id;
+                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
+                document.getElementById('edit_estado').value = asignacion.estado;
+                document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
+                document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
+                document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+                
+                // Aplicar toggle del campo IP
+                setTimeout(() => {
+                    const editSelect = document.getElementById('edit_stock_equipos_id');
+                    if (editSelect && editSelect.value) {
+                        toggleIPFieldBasedOnSelection(editSelect, true);
+                    }
+                }, 100);
+                
+                $('#editEquipoAsignadoModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function actualizarEquipoAsignado() {
+            const form = document.getElementById('editEquipoAsignadoForm');
+            const formData = new FormData(form);
+            const asignacionId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/equipos_asignados/${asignacionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Asignación actualizada exitosamente'
+                    });
+                    $('#editEquipoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarEquiposAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al actualizar asignación');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+ async function viewEquipoAsignado(id) {
+    try {
+        const response = await fetch(`/api/equipos_asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
+        }
+
+        const asignacion = await response.json();
+        
+        // Usar las relaciones correctas
+        const usuario = asignacion.usuarioAsignado;
+        const stockEquipo = asignacion.stockEquipo;
+        const usuarioAsignador = asignacion.usuarioAsignador;
+        
+        // Icono - usar primera letra del nombre del usuario
+        let inicial = 'A';
+        if (usuario && usuario.nombre) {
+            inicial = usuario.nombre.charAt(0).toUpperCase();
+        }
+        document.getElementById('view_icon').textContent = inicial;
+        
+        document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+        document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+        document.getElementById('view_asignacion_id').textContent = asignacion.id;
+        
+        // Estado
+        const estadoClass = `estado-${asignacion.estado}`;
+        const estadoTexto = asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1);
+        document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
+        
+        // Usuario asignado
+        let usuarioTexto = 'N/A';
+        if (usuario) {
+            usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+            if (usuario.cargo) {
+                usuarioTexto += ` - ${usuario.cargo}`;
+            }
+        }
+        document.getElementById('view_usuario').textContent = usuarioTexto;
+        
+        // Equipo 
+        let equipoTexto = 'N/A';
+        if (stockEquipo) {
+            equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
+            
+            // Tipo de equipo
+            if (stockEquipo.tipoEquipo && stockEquipo.tipoEquipo.nombre) {
+                equipoTexto += ` (${stockEquipo.tipoEquipo.nombre})`;
+            }
+        }
+        document.getElementById('view_equipo').textContent = equipoTexto;
+        
+        // Fechas
+        document.getElementById('view_fecha_asignacion').textContent = new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES');
+        document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
+            new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
+        
+        // IP
+        document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
+        
+        // Asignado por
+        let asignadorTexto = 'Sistema';
+        if (usuarioAsignador) {
+            asignadorTexto = usuarioAsignador.name || 'Usuario';
+        }
+        document.getElementById('view_asignado_por').textContent = asignadorTexto;
+        
+        // Observaciones
+        document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
+        
+        $('#viewEquipoAsignadoModal').modal('show');
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+        async function devolverEquipo(id) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¿Deseas marcar este equipo como devuelto?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, devolver',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/equipos_asignados/${id}/devolver`, {
+                        method: 'POST'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message || 'Equipo devuelto exitosamente'
+                        });
+                        await cargarEquiposAsignados();
+                    } else {
+                        throw new Error(data.error || 'Error al devolver equipo');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
+            }
+        }
+
+        async function deleteEquipoAsignado(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar la asignación "${nombre}". Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/equipos_asignados/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message || 'Asignación eliminada exitosamente'
+                        });
+                        await cargarEquiposAsignados();
+                    } else {
+                        throw new Error(data.error || 'Error al eliminar asignación');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
+            }
+        }
+
+        // Función para toggle del campo IP
+        function toggleIPFieldBasedOnSelection(selectElement, isEditModal = false) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
+            
+            // Determinar qué campo IP usar según el modal
+            let ipField, ipLabel;
+            if (isEditModal) {
+                ipField = document.getElementById('edit_ip_equipo');
+                ipLabel = ipField ? ipField.closest('.mb-3') : null;
+            } else {
+                ipField = document.querySelector('[name="ip_equipo"]');
+                ipLabel = ipField ? ipField.closest('.mb-3') : null;
+            }
+            
+            if (ipField && ipLabel) {
+                if (requiereIP) {
+                    ipLabel.style.display = 'block';
+                    ipField.required = true;
+                } else {
+                    ipLabel.style.display = 'none';
+                    ipField.value = '';
+                    ipField.required = false;
+                }
+            }
+        }
+
+        // Funciones de filtros
+        function aplicarFiltros() {
+            const nameFilter = document.getElementById('searchName').value.toLowerCase();
+            const equipoFilter = document.getElementById('searchEquipo').value.toLowerCase();
+            const estadoFilter = document.getElementById('filterEstado').value;
+            
+            const rows = document.querySelectorAll('#equiposAsignadosTableBody tr');
+            
+            rows.forEach(row => {
+                if (row.id === 'loadingRow') return;
+                
+                const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
+                const equipo = row.querySelector('td:nth-child(3) .badge.equipo-badge').textContent.toLowerCase();
+                const estado = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase().replace(/\s+/g, '');
+                
+                const nameMatch = !nameFilter || name.includes(nameFilter);
+                const equipoMatch = !equipoFilter || equipo.includes(equipoFilter);
+                const estadoMatch = !estadoFilter || estado === estadoFilter;
+                
+                row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
+            });
+        }
+
+        function resetFiltros() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchEquipo').value = '';
+            document.getElementById('filterEstado').value = '';
+            aplicarFiltros();
+        }
+
+        // Funciones de PDF
+        function abrirModalSeleccionUsuario() {
+            $('#seleccionUsuarioModal').modal('show');
+        }
+
+function generarPDFUsuarioSeleccionado() {
+    const usuarioId = document.getElementById('usuarioSeleccionado').value;
+    if (usuarioId) {
+        generarPDFUsuario(usuarioId);
+        $('#seleccionUsuarioModal').modal('hide');
+    } else {
+        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+    }
+}
+
+function verPDFUsuarioSeleccionado() {
+    const usuarioId = document.getElementById('usuarioSeleccionado').value;
+    if (usuarioId) {
+        verPDFUsuario(usuarioId);
+        $('#seleccionUsuarioModal').modal('hide');
+    } else {
+        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+    }
+}
+
+function generarPDFUsuario(usuarioId) {
+    // Usar la ruta correcta según tu available_endpoints
+    const url = `/api/pdf/asignaciones/usuario/${usuarioId}`;
+    console.log(`📥 Descargando PDF para usuario ${usuarioId}: ${url}`);
+    window.location.href = url;
+}
+
+function verPDFUsuario(usuarioId) {
+    // Usar la ruta correcta según tu available_endpoints
+    const url = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
+    console.log(`👁️ Viendo PDF para usuario ${usuarioId}: ${url}`);
+    window.open(url, '_blank');
+}
+
+function generarPDFAsignaciones() {
+    const url = '/api/pdf/asignaciones';
+    console.log('📥 Descargando PDF general de asignaciones');
+    window.location.href = url;
+}
+
+function verPDFAsignaciones() {
+    const url = '/api/pdf/asignaciones/ver';
+    console.log('👁️ Viendo PDF general de asignaciones');
+    window.open(url, '_blank');
+}
+
+        // Funciones de utilidad
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+
+        async function diagnosticoAPIs() {
+    console.log('🔍 INICIANDO DIAGNÓSTICO DE APIS...');
+    
+    try {
+        // Probar usuarios
+        console.log('\n📋 Probando /api/usuarios...');
+        const usuariosResp = await fetch('/api/usuarios');
+        const usuariosData = await usuariosResp.json();
+        console.log('Estructura de usuarios:', usuariosData);
+        console.log('¿Es array?:', Array.isArray(usuariosData));
+        if (!Array.isArray(usuariosData)) {
+            console.log('Propiedades del objeto:', Object.keys(usuariosData));
+            if (usuariosData.usuarios) {
+                console.log('usuarios array length:', usuariosData.usuarios.length);
+            }
+            if (usuariosData.data) {
+                console.log('data array length:', usuariosData.data.length);
+            }
+        }
+        
+        // Probar stock
+        console.log('\n💻 Probando /api/stock_equipos...');
+        const stockResp = await fetch('/api/stock_equipos');
+        const stockData = await stockResp.json();
+        console.log('Estructura de stock:', stockData);
+        console.log('¿Es array?:', Array.isArray(stockData));
+        if (!Array.isArray(stockData)) {
+            console.log('Propiedades del objeto:', Object.keys(stockData));
+            if (stockData.stockEquipos) {
+                console.log('stockEquipos array length:', stockData.stockEquipos.length);
+            }
+            if (stockData.data) {
+                console.log('data array length:', stockData.data.length);
+            }
+        }
+        
+        // Probar equipos asignados
+        console.log('\n🖥️ Probando /api/equipos_asignados...');
+        const asignadosResp = await fetch('/api/equipos_asignados');
+        const asignadosData = await asignadosResp.json();
+        console.log('Estructura de equipos asignados:', asignadosData);
+        console.log('¿Es array?:', Array.isArray(asignadosData));
+        
+    } catch (error) {
+        console.error('❌ Error en diagnóstico:', error);
+    }
+}
+
+// Ejecutar diagnóstico automáticamente
+setTimeout(() => {
+    console.log('🔄 Ejecutando diagnóstico automático...');
+    diagnosticoAPIs();
+}, 2000);
+
+function generarPDFAsignaciones() {
+    // Descargar PDF
+    window.location.href = '/api/pdf/asignaciones';
+}
+
+function verPDFAsignaciones() {
+    // Ver PDF en nueva pestaña
+    const link = document.createElement('a');
+    link.href = '/api/pdf/asignaciones/ver';
+    link.target = '_blank';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function generarPDFPorUsuario(usuarioId) {
+    window.location.href = `/api/pdf/asignaciones/usuario/${usuarioId}`;
+}
+
+
+function verPDFUsuario(usuarioId) {
+    const link = document.createElement('a');
+    link.href = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
+    link.target = '_blank';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    </script>
+</body>
+</html>

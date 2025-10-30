@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Gestión de Usuarios' %></title>
+
+        <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                // Tema por defecto
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge-rol {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .badge-admin {
+            background-color: var(--fritz-red);
+        }
+        
+        .badge-tecnico {
+            background-color: #3498db;
+        }
+        
+        .badge-consulta {
+            background-color: #2ecc71;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-text {
+                display: none;
+            }
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .user-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .sede-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+        }
+
+        .departamento-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+        }
+
+        .equipo-badge {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            border: none;
+        }
+
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .email-cell {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Para que se vea bien en el modal de ver */
+        #view_correo {
+            word-break: break-all;
+        }
+
+        .main-content {
+        
+            transition: all 0.3s;
+        }
+        
+    
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="sidebar text-white p-3 position-relative">
+            <!-- Toggle Button -->
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Sección de Gestión -->
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Bottom -->
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+                        
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Usuarios</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main class="p-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-people-fill me-2 text-danger"></i>
+                            Gestión de Usuarios
+                        </h2>
+                        <p class="text-muted mb-0">Administra los usuarios del sistema</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createUsuarioModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Usuario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <% if (success) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <%= success %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+
+                <% if (error) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <%= error %>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <% } %>
+                
+                <!-- Usuario Management Card -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Usuarios
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-download me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+    <li>
+        <a class="dropdown-item" href="#" onclick="generarPDF()">
+            <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+        </a>
+    </li>
+    <li>
+        <a class="dropdown-item" href="#" onclick="verPDF()">
+            <i class="bi bi-eye me-2"></i>Ver PDF
+        </a>
+    </li>
+</ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Nombre ..." id="searchName">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Cargo..." id="searchCargo">
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Sede o Departamento..." id="searchSede">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Usuarios -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Usuario</th>
+                                        <th>Cargo</th>
+                                        <th>Contacto</th>
+                                        <th>Sede & Departamento</th>
+                                        <th>Equipos</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usuariosTableBody">
+                                    <!-- Los usuarios se cargarán via JavaScript -->
+                                    <tr id="loadingRow">
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="spinner-border text-danger" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando usuarios...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginación -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted" id="resultCount">
+                                Mostrando 0 de 0 usuarios
+                            </div>
+                            
+                            <nav aria-label="Paginación de usuarios">
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                    <!-- La paginación se generará via JavaScript -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Usuario -->
+    <div class="modal fade" id="createUsuarioModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus me-2"></i> Nuevo Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createUsuarioForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre*</label>
+                                    <input type="text" class="form-control" name="nombre" required placeholder="Ingrese el nombre">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Apellido*</label>
+                                    <input type="text" class="form-control" name="apellido" required placeholder="Ingrese el apellido">
+                                </div>
+                            </div>
+<div class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Cargo*</label>
+        <select class="form-select" name="cargo" id="create_cargo" required> <!-- Cambiado de edit_cargo a create_cargo -->
+            <option value="">Seleccione un cargo</option>
+            <option value="Jefe">Jefe</option>
+            <option value="Analista">Analista</option>
+            <option value="Especialista">Especialista</option>
+            <option value="Becario">Becario</option>
+            <option value="Pasante">Pasante</option>
+            <option value="Coordinador">Coordinador</option>
+            <option value="Supervisor">Supervisor</option>
+        </select>
+        <small class="text-muted">Seleccione el cargo del usuario</small>
+    </div>
+</div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Correo Electrónico*</label>
+                                    <input type="email" class="form-control" name="correo" required placeholder="Ingrese el correo">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">RDP*</label>
+                                    <input type="text" class="form-control" name="RDP" required placeholder="Ingrese el RDP">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="create_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                        <!-- Las sedes se cargarán via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departamento*</label>
+                                    <select class="form-select" name="departamento_id" id="create_departamento_id" required>
+                                        <option value="">Seleccione un departamento</option>
+                                        <!-- Los departamentos se cargarán via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuario -->
+<div class="modal fade" id="editUsuarioModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i> Editar Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editUsuarioForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_usuario_id" name="id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre*</label>
+                                <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Apellido*</label>
+                                <input type="text" class="form-control" name="apellido" id="edit_apellido" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cargo*</label>
+                                <select class="form-select" name="cargo" id="edit_cargo" required>
+                                    <option value="">Seleccione un cargo</option>
+                                    <option value="Jefe">Jefe</option>
+                                    <option value="Analista">Analista</option>
+                                    <option value="Especialista">Especialista</option>
+                                    <option value="Becario">Becario</option>
+                                    <option value="Pasante">Pasante</option>
+                                    <option value="Coordinador">Coordinador</option>
+                                    <option value="Supervisor">Supervisor</option>
+                                </select>
+                                <small class="text-muted">Seleccione el cargo del usuario</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Correo Electrónico*</label>
+                                <input type="email" class="form-control" name="correo" id="edit_correo" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">RDP*</label>
+                                <input type="text" class="form-control" name="RDP" id="edit_rdp" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sede*</label>
+                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                    <option value="">Seleccione una sede</option>
+                                    <!-- Las sedes se cargarán via JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Departamento*</label>
+                                <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
+                                    <option value="">Seleccione un departamento</option>
+                                    <!-- Los departamentos se cargarán via JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Actualizar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal para Ver Usuario -->
+    <div class="modal fade" id="viewUsuarioModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles del Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="user-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
+                        </div>
+                        <h4 id="view_nombre_completo"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>ID:</strong>
+                            <p id="view_usuario_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Cargo:</strong>
+                            <p id="view_cargo" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>RDP:</strong>
+                            <p id="view_rdp" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Correo:</strong>
+                            <p id="view_correo" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Sede:</strong>
+                            <p id="view_sede" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Departamento:</strong>
+                            <p id="view_departamento" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Equipos Asignados:</strong>
+                            <p id="view_equipos_count" class="mb-2"></p>
+                        </div>
+                        <div class="col-6">
+                            <strong>Fecha de Registro:</strong>
+                            <p id="view_created" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let usuarios = [];
+        let sedes = [];
+        let departamentos = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarUsuarios();
+            cargarSedes();
+            cargarDepartamentos();
+            inicializarEventos();
+        });
+
+        // Cargar usuarios
+        async function cargarUsuarios(page = 1) {
+            try {
+                currentPage = page;
+                const response = await fetch(`/api/usuarios?page=${page}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar usuarios');
+                }
+
+                const data = await response.json();
+                
+                usuarios = data.usuarios || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                renderizarUsuarios();
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los usuarios');
+            }
+        }
+
+        // Cargar sedes
+        async function cargarSedes() {
+            try {
+                const response = await fetch('/api/sedes');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar sedes');
+                }
+
+                sedes = await response.json();
+                renderizarSedes();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar departamentos
+        async function cargarDepartamentos() {
+            try {
+                const response = await fetch('/api/departamentos');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar departamentos');
+                }
+
+                departamentos = await response.json();
+                renderizarDepartamentos();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Renderizar usuarios en la tabla
+        function renderizarUsuarios() {
+            const tbody = document.getElementById('usuariosTableBody');
+            tbody.innerHTML = '';
+
+            if (usuarios.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-people display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron usuarios</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            usuarios.forEach(usuario => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="fw-bold">${usuario.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="user-icon me-3">
+                                ${usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${usuario.nombre} ${usuario.apellido}</div>
+                                <small class="text-muted">RDP: ${usuario.rdp}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary">
+                            ${usuario.cargo}
+                        </span>
+                    </td>
+                    <td>
+                        <small class="d-block email-cell" title="${usuario.correo}">
+                            <i class="bi bi-envelope me-1"></i>${usuario.correo}
+                        </small>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <span class="badge sede-badge rounded-pill">
+                                <i class="bi bi-building me-1"></i>
+                                ${usuario.sede ? usuario.sede.nombre : 'Sin sede'}
+                            </span>
+                            <span class="badge departamento-badge rounded-pill">
+                                <i class="bi bi-person-badge me-1"></i>
+                                ${usuario.departamento ? usuario.departamento.nombre : 'Sin departamento'}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge equipo-badge rounded-pill">
+                            <i class="bi bi-laptop me-1"></i>
+                            ${usuario.equipos_activos_count || 0} Equipos
+                        </span>
+                        ${usuario.equipos_devueltos_count > 0 ? 
+                            `<small class="d-block text-muted mt-1">${usuario.equipos_devueltos_count} devueltos</small>` : 
+                            ''}
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewUsuario(${usuario.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editUsuario(${usuario.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteUsuario(${usuario.id}, '${usuario.nombre} ${usuario.apellido}')"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+
+            // Actualizar contador de resultados
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
+        }
+
+        // Renderizar sedes en los selects
+        function renderizarSedes() {
+            const selects = [
+                'create_sede_id',
+                'edit_sede_id'
+            ];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    // Limpiar opciones excepto la primera
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    // Agregar opciones
+                    sedes.forEach(sede => {
+                        const option = document.createElement('option');
+                        option.value = sede.id;
+                        option.textContent = sede.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Renderizar departamentos en los selects
+        function renderizarDepartamentos() {
+            const selects = [
+                'create_departamento_id',
+                'edit_departamento_id'
+            ];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    // Limpiar opciones excepto la primera
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    // Agregar opciones
+                    departamentos.forEach(departamento => {
+                        const option = document.createElement('option');
+                        option.value = departamento.id;
+                        option.textContent = departamento.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // Renderizar paginación
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+            pagination.innerHTML = '';
+
+            // Botón anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage - 1})" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            pagination.appendChild(prevLi);
+
+            // Números de página
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarUsuarios(${i})">${i}</a>
+                `;
+                pagination.appendChild(pageLi);
+            }
+
+            // Botón siguiente
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage + 1})" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
+
+            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+    function applySavedTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const htmlElement = document.documentElement;
+        
+        if (savedTheme) {
+            htmlElement.setAttribute('data-bs-theme', savedTheme);
+            
+            const themeIcon = document.querySelector('.theme-switcher i');
+            if (themeIcon) {
+                if (savedTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+        } else {
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    function toggleTheme() {
+        const htmlElement = document.documentElement;
+        const currentTheme = htmlElement.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        const themeIcon = document.querySelector('.theme-switcher i');
+        
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        
+        if (themeIcon) {
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('bi-moon-stars');
+                themeIcon.classList.add('bi-sun');
+            } else {
+                themeIcon.classList.remove('bi-sun');
+                themeIcon.classList.add('bi-moon-stars');
+            }
+        }
+        
+        localStorage.setItem('theme', newTheme);
+    }
+
+    // ===== INICIALIZACIÓN =====
+    document.addEventListener('DOMContentLoaded', function() {
+        applySavedTheme();
+        
+        // Sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                const sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('sidebar-collapsed');
+                
+                const icon = this.querySelector('i');
+                icon.classList.toggle('bi-chevron-double-left');
+                icon.classList.toggle('bi-chevron-double-right');
+            });
+        }
+
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+            });
+        }
+
+        // Tema
+        const themeSwitcher = document.querySelector('.theme-switcher');
+        if (themeSwitcher) {
+            themeSwitcher.addEventListener('click', toggleTheme);
+        }
+    });
+
+        // Inicializar eventos
+let eventosInicializados = false;
+
+function inicializarEventos() {
+    if (eventosInicializados) {
+        console.log('⚠️ Eventos ya inicializados, omitiendo...');
+        return;
+    }
+    
+    console.log('🔄 Inicializando eventos...');
+    eventosInicializados = true;
+
+    // Remover event listeners existentes primero
+    const createForm = document.getElementById('createUsuarioForm');
+    const editForm = document.getElementById('editUsuarioForm');
+    
+    // Clonar y reemplazar el formulario para limpiar event listeners
+    const newCreateForm = createForm.cloneNode(true);
+    createForm.parentNode.replaceChild(newCreateForm, createForm);
+
+    // Formulario de crear usuario - CON PREVENCIÓN DE DOBLE ENVÍO
+    document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('📝 Evento submit del formulario capturado');
+        crearUsuario();
+    });
+
+    // Formulario de editar usuario
+    document.getElementById('editUsuarioForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('📝 Evento submit del formulario editar capturado');
+        actualizarUsuario();
+    });
+
+    console.log('✅ Eventos inicializados correctamente');
+}
+
+        // Funciones CRUD
+let creandoUsuario = false;
+
+async function crearUsuario() {
+    // Prevenir múltiples ejecuciones
+    if (creandoUsuario) {
+        console.log('🚫 Ya se está creando un usuario, ignorando...');
+        return;
+    }
+    
+    console.log('🖱️ === INICIANDO CREACIÓN DE USUARIO ===');
+    creandoUsuario = true;
+    
+    const form = document.getElementById('createUsuarioForm');
+    const formData = new FormData(form);
+    const datos = Object.fromEntries(formData);
+    
+    console.log('📋 Datos del formulario:', datos);
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Deshabilitar el botón
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
+
+    try {
+        const inicio = Date.now();
+        const response = await fetch('/api/usuarios', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos)
+        });
+
+        const tiempo = Date.now() - inicio;
+        console.log(`⏱️ Tiempo de respuesta: ${tiempo}ms`);
+        console.log('📨 Estado de respuesta:', response.status);
+
+        const data = await response.json();
+        console.log('📦 Respuesta del servidor:', data);
+
+        if (response.ok) {
+            console.log('✅ Usuario creado exitosamente');
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message
+            });
+            
+            $('#createUsuarioModal').modal('hide');
+            form.reset();
+            await cargarUsuarios(currentPage);
+        } else {
+            console.error('❌ Error del servidor:', data.error);
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('💥 Error en crearUsuario:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    } finally {
+        // Rehabilitar el botón y resetear estado
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+        creandoUsuario = false;
+        console.log('🔚 === FIN DE CREAR USUARIO ===');
+    }
+}
+
+$('#createUsuarioModal').on('hidden.bs.modal', function () {
+    console.log('🔒 Modal cerrado, reseteando estado...');
+    creandoUsuario = false;
+    
+    // También resetear el formulario
+    const form = document.getElementById('createUsuarioForm');
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = false;
+    submitButton.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Guardar Usuario';
+});
+
+$('#createUsuarioModal').on('show.bs.modal', function () {
+    console.log('🔓 Modal abierto, estado reset');
+    creandoUsuario = false;
+});
+
+async function editUsuario(id) {
+    try {
+        const response = await fetch(`/api/usuarios/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar usuario');
+        }
+
+        const usuario = await response.json();
+        
+        console.log('Datos del usuario para editar:', usuario); // Para debug
+        
+        document.getElementById('edit_usuario_id').value = usuario.id;
+        document.getElementById('edit_nombre').value = usuario.nombre;
+        document.getElementById('edit_apellido').value = usuario.apellido;
+        
+        // Actualizar el select de cargo - usar el ID correcto
+        const cargoSelect = document.getElementById('edit_cargo');
+        if (cargoSelect) {
+            cargoSelect.value = usuario.cargo || '';
+            console.log('Cargo seleccionado:', usuario.cargo); // Para debug
+        } else {
+            console.error('No se encontró el select edit_cargo');
+        }
+        
+        document.getElementById('edit_correo').value = usuario.correo;
+        document.getElementById('edit_rdp').value = usuario.rdp;
+        document.getElementById('edit_sede_id').value = usuario.sede_id;
+        document.getElementById('edit_departamento_id').value = usuario.departamento_id;
+        
+        $('#editUsuarioModal').modal('show');
+        
+    } catch (error) {
+        console.error('Error en editUsuario:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+        async function actualizarUsuario() {
+            const form = document.getElementById('editUsuarioForm');
+            const formData = new FormData(form);
+            const usuarioId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/usuarios/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('user_token') || ''}`
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    $('#editUsuarioModal').modal('hide');
+                    form.reset();
+                    await cargarUsuarios(currentPage);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function viewUsuario(id) {
+            try {
+                const response = await fetch(`/api/usuarios/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar usuario');
+                }
+
+                const usuario = await response.json();
+                
+                document.getElementById('view_icon').textContent = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                document.getElementById('view_nombre_completo').textContent = `${usuario.nombre} ${usuario.apellido}`;
+                document.getElementById('view_id').textContent = `ID: ${usuario.id}`;
+                document.getElementById('view_usuario_id').textContent = usuario.id;
+                document.getElementById('view_cargo').textContent = usuario.cargo;
+                document.getElementById('view_rdp').textContent = usuario.rdp;
+                document.getElementById('view_correo').textContent = usuario.correo;
+                document.getElementById('view_sede').textContent = usuario.sede ? usuario.sede.nombre : 'Sin sede';
+                document.getElementById('view_departamento').textContent = usuario.departamento ? usuario.departamento.nombre : 'Sin departamento';
+
+                const equiposActivos = usuario.equipos_activos_count || 0;
+                const equiposDevueltos = usuario.equipos_devueltos_count || 0;
+                
+                let equiposHTML = '';
+                if (equiposActivos > 0) {
+                    equiposHTML = `<span class="badge bg-success">${equiposActivos} Activos</span>`;
+                    if (equiposDevueltos > 0) {
+                        equiposHTML += `<br><small class="text-muted">${equiposDevueltos} Devueltos</small>`;
+                    }
+                } else {
+                    equiposHTML = '<span class="badge bg-secondary">0 Equipos Activos</span>';
+                    if (equiposDevueltos > 0) {
+                        equiposHTML += `<br><small class="text-muted">${equiposDevueltos} Devueltos</small>`;
+                    }
+                }
+                
+                document.getElementById('view_equipos_count').innerHTML = equiposHTML;
+                document.getElementById('view_created').textContent = new Date(usuario.created_at).toLocaleDateString('es-ES');
+                
+                $('#viewUsuarioModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        function inicializarSelectsCargo() {
+    const cargos = [
+        "Jefe", "Analista", "Especialista", "Becario", 
+        "Pasante", "Coordinador", "Supervisor"
+    ];
+    
+    const selects = ['create_cargo', 'edit_cargo'];
+    
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            // Limpiar opciones excepto la primera
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Agregar opciones de cargo
+            cargos.forEach(cargo => {
+                const option = document.createElement('option');
+                option.value = cargo;
+                option.textContent = cargo;
+                select.appendChild(option);
+            });
+        }
+    });
+}
+
+// Llamar esta función al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    inicializarSelectsCargo();
+    cargarUsuarios();
+    cargarSedes();
+    cargarDepartamentos();
+    inicializarEventos();
+});
+
+        async function deleteUsuario(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar al usuario "${nombre}". Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/usuarios/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('user_token') || ''}`
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message
+                        });
+                        await cargarUsuarios(currentPage);
+                    } else {
+                        throw new Error(data.error);
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
+            }
+        }
+
+        // Funciones de filtrado
+        function aplicarFiltros() {
+            const nameFilter = document.getElementById('searchName').value.toLowerCase();
+            const cargoFilter = document.getElementById('searchCargo').value.toLowerCase();
+            const sedeFilter = document.getElementById('searchSede').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#usuariosTableBody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                if (row.id === 'loadingRow') return;
+
+                const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
+                const cargo = row.querySelector('td:nth-child(3) .badge').textContent.toLowerCase();
+                const sede = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+
+                const nameMatch = !nameFilter || name.includes(nameFilter);
+                const cargoMatch = !cargoFilter || cargo.includes(cargoFilter);
+                const sedeMatch = !sedeFilter || sede.includes(sedeFilter);
+
+                if (nameMatch && cargoMatch && sedeMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${visibleCount} de ${totalRecords} usuarios`;
+        }
+
+        function resetFiltros() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchCargo').value = '';
+            document.getElementById('searchSede').value = '';
+            aplicarFiltros();
+        }
+
+        // Funciones de utilidad
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+
+function generarPDF() {
+  
+    window.open('/api/pdf/usuarios', '_blank');
+}
+
+async function verPDF() {
+    const swalInstance = Swal.fire({
+        title: 'Generando PDF',
+        html: `
+            <div class="text-center">
+                <p class="mb-1">Preparando documento para visualización...</p>
+                <small class="text-muted">Esto puede tomar unos segundos</small>
+            </div>
+        `,
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        const timestamp = new Date().getTime();
+        const response = await fetch(`/api/pdf/usuarios/ver?t=${timestamp}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const pdfBlob = await response.blob();
+        
+        if (pdfBlob.size === 0) {
+            throw new Error('El PDF generado está vacío');
+        }
+
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        
+        await Swal.close();
+        
+        const newWindow = window.open(pdfUrl, '_blank');
+        
+        if (!newWindow || newWindow.closed) {
+            Swal.fire({
+                title: 'Ventana bloqueada',
+                html: `
+                    <div class="text-center">
+                        <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+                        <p>Tu navegador bloqueó la nueva ventana.</p>
+                        <p class="text-muted">El PDF se descargará automáticamente.</p>
+                    </div>
+                `,
+                icon: 'warning',
+                confirmButtonText: 'Entendido',
+                didClose: () => {
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = pdfUrl;
+                    downloadLink.download = `reporte-usuarios-${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    
+                    setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+                }
+            });
+        } else {
+            setTimeout(() => URL.revokeObjectURL(pdfUrl), 3000);
+        }
+        
+    } catch (error) {
+        await Swal.close();
+        
+        console.error('Error generando PDF:', error);
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al generar PDF',
+            html: `
+                <div class="text-start">
+                    <p class="mb-2">No se pudo generar el documento:</p>
+                    <code class="d-block bg-light p-2 rounded small">${error.message}</code>
+                    <small class="text-muted mt-2 d-block">Intenta nuevamente en unos momentos.</small>
+                </div>
+            `,
+            confirmButtonText: 'Reintentar',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                verPDF();
+            }
+        });
+    }
+}
+    </script>
+</body>
+</html>
