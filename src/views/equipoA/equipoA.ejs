@@ -893,13 +893,24 @@
             
         });
 
-// Cargar usuarios - VERSIÓN FINAL CON ESTRUCTURA CORRECTA
+// Cargar usuarios - VERSIÓN CORREGIDA
 async function cargarUsuarios() {
     try {
         console.log('🔍 Cargando usuarios...');
-        const response = await fetch('/api/usuarios');
+        const response = await fetch('/api/usuarios', {
+            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (!response.ok) {
+            if (response.status === 401) {
+                console.error('❌ Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
             throw new Error(`Error HTTP: ${response.status}`);
         }
 
@@ -913,6 +924,8 @@ async function cargarUsuarios() {
             usuarios = data;
         } else if (data.usuarios) {
             usuarios = data.usuarios;
+        } else if (data.data) {
+            usuarios = data.data;
         } else {
             usuarios = [];
         }
@@ -922,17 +935,32 @@ async function cargarUsuarios() {
         
     } catch (error) {
         console.error('❌ Error cargando usuarios:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
         usuarios = [];
         llenarSelectUsuarios();
     }
 }
 
+// Cargar stock de equipos - VERSIÓN CORREGIDA
 async function cargarStockEquipos() {
     try {
         console.log('🔍 Cargando stock de equipos...');
-        const response = await fetch('/api/stock_equipos');
+        const response = await fetch('/api/stock_equipos', {
+            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (!response.ok) {
+            if (response.status === 401) {
+                console.error('❌ Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
             throw new Error(`Error HTTP: ${response.status}`);
         }
 
@@ -962,49 +990,44 @@ async function cargarStockEquipos() {
         stockEquipos = equiposArray;
         console.log(`✅ ${stockEquipos.length} equipos cargados`);
         
-        // Diagnosticar la estructura de los equipos
-        if (stockEquipos.length > 0) {
-            console.log('\n🔍 ESTRUCTURA DEL PRIMER EQUIPO:');
-            const primerEquipo = stockEquipos[0];
-            console.log('Primer equipo:', primerEquipo);
-            
-            // Buscar información de tipo_equipo
-            console.log('\n🔍 BUSCANDO INFORMACIÓN DE TIPO_EQUIPO:');
-            
-            if (primerEquipo.tipo_equipo) {
-                console.log('✅ tipo_equipo encontrado:', primerEquipo.tipo_equipo);
-                console.log('   requiere_ip:', primerEquipo.tipo_equipo.requiere_ip);
-            } else {
-                console.log('❌ tipo_equipo NO encontrado en primer nivel');
-            }
-            
-            if (primerEquipo.tipoEquipo) {
-                console.log('✅ tipoEquipo encontrado:', primerEquipo.tipoEquipo);
-                console.log('   requiere_ip:', primerEquipo.tipoEquipo.requiere_ip);
-            } else {
-                console.log('❌ tipoEquipo NO encontrado en primer nivel');
-            }
-            
-            // Buscar en todas las propiedades
-            console.log('\n🔍 TODAS LAS PROPIEDADES DEL EQUIPO:');
-            Object.keys(primerEquipo).forEach(key => {
-                const value = primerEquipo[key];
-                if (key.toLowerCase().includes('tipo')) {
-                    console.log(`   ${key}:`, value);
-                    if (value && typeof value === 'object') {
-                        console.log(`     requiere_ip: ${value.requiere_ip}`);
-                    }
-                }
-            });
-        }
-        
         llenarSelectStockEquipos();
         
     } catch (error) {
         console.error('❌ Error cargando stock:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
         stockEquipos = [];
         llenarSelectStockEquipos();
     }
+}
+
+// Función para manejar error de autenticación
+function manejarErrorAutenticacion() {
+    console.log('🔐 Redirigiendo al login...');
+    Swal.fire({
+        icon: 'warning',
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha expirado. Serás redirigido al login.',
+        confirmButtonText: 'Ir al login',
+        allowOutsideClick: false,
+        allowEscapeKey: false
+    }).then((result) => {
+        window.location.href = '/login';
+    });
+}
+// Función para manejar error de autenticación
+function manejarErrorAutenticacion() {
+    console.log('🔐 Redirigiendo al login...');
+    Swal.fire({
+        icon: 'warning',
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha expirado. Serás redirigido al login.',
+        confirmButtonText: 'Ir al login',
+        allowOutsideClick: false
+    }).then((result) => {
+        window.location.href = '/login';
+    });
 }
 
 
@@ -1079,14 +1102,24 @@ function inicializarEventosSelects() {
 }
 
 
-// Cargar equipos asignados - VERSIÓN FINAL
 async function cargarEquiposAsignados() {
     try {
         console.log('🔍 Cargando equipos asignados...');
-        const response = await fetch('/api/equipos_asignados');
+        const response = await fetch('/api/equipos_asignados', {
+            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
         
         if (!response.ok) {
-            throw new Error('Error al cargar equipos asignados');
+            if (response.status === 401) {
+                console.error('❌ Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
+            throw new Error(`Error HTTP: ${response.status}`);
         }
 
         const data = await response.json();
@@ -1106,6 +1139,9 @@ async function cargarEquiposAsignados() {
         
     } catch (error) {
         console.error('❌ Error:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
         equiposAsignados = [];
         renderizarEquiposAsignados();
         
@@ -1574,24 +1610,21 @@ setTimeout(() => {
     diagnosticarEstructuraEquipos();
 }, 1000);
 
-// Ejecutar diagnóstico después de cargar los equipos
-setTimeout(() => {
-    diagnosticarTiposEquipo();
-}, 3000);
 
-        // Funciones CRUD
-        async function crearEquipoAsignado() {
-            const form = document.getElementById('createEquipoAsignadoForm');
-            const formData = new FormData(form);
 
-            try {
-                const response = await fetch('/api/equipos_asignados', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                });
+ async function crearEquipoAsignado() {
+    const form = document.getElementById('createEquipoAsignadoForm');
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch('/api/equipos_asignados', {
+            method: 'POST',
+            credentials: 'include', // ¡AGREGAR ESTO!
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
 
                 const data = await response.json();
 
