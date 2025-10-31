@@ -976,7 +976,7 @@ async verPdfAsignaciones(req, res) {
     }
 },
 
- async generarPdfPorUsuario(req, res) {
+async generarPdfPorUsuario(req, res) {
     console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
     
     try {
@@ -1012,7 +1012,7 @@ async verPdfAsignaciones(req, res) {
             ]
         });
 
-        // CORREGIR: Formatear los datos para la plantilla
+        // Formatear los datos para la plantilla
         const equiposProcesados = equiposAsignados.map(asignacion => {
             const stock = asignacion.stock_equipos || {};
             const tipoEquipo = stock.tipo_equipo || {};
@@ -1025,7 +1025,6 @@ async verPdfAsignaciones(req, res) {
                 ip_equipo: asignacion.ip_equipo,
                 estado: asignacion.estado,
                 
-                // NOMBRES CORRECTOS para la plantilla
                 stockEquipo: {
                     id: stock.id || 0,
                     marca: stock.marca || 'N/A',
@@ -1053,13 +1052,15 @@ async verPdfAsignaciones(req, res) {
             totalEquipos: totalEquipos,
             equiposActivos: equiposActivos,
             equiposDevueltos: equiposDevueltos,
-            equiposObsoletos: equiposObsoletos
+            equiposObsoletos: equiposObsoletos,
+            // Agregar flag para indicar que es formato duplicado
+            formatoDuplicado: true
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
             format: 'A4',
-            landscape: false
+            landscape: false // Mantener vertical
         });
 
         console.log('=== PDF POR USUARIO GENERADO EXITOSAMENTE ===');
@@ -1084,8 +1085,6 @@ async verPdfAsignaciones(req, res) {
         }
     }
 },
-
-// Aplicar la misma corrección a verPdfPorUsuario
 async verPdfPorUsuario(req, res) {
     console.log('=== VER PDF POR USUARIO INICIADO ===');
     
@@ -1122,7 +1121,7 @@ async verPdfPorUsuario(req, res) {
             ]
         });
 
-        // CORREGIR: Formatear los datos para la plantilla
+        // Formatear los datos para la plantilla
         const equiposProcesados = equiposAsignados.map(asignacion => {
             const stock = asignacion.stock_equipos || {};
             const tipoEquipo = stock.tipo_equipo || {};
@@ -1135,7 +1134,6 @@ async verPdfPorUsuario(req, res) {
                 ip_equipo: asignacion.ip_equipo,
                 estado: asignacion.estado,
                 
-                // NOMBRES CORRECTOS para la plantilla
                 stockEquipo: {
                     id: stock.id || 0,
                     marca: stock.marca || 'N/A',
@@ -1163,13 +1161,15 @@ async verPdfPorUsuario(req, res) {
             totalEquipos: totalEquipos,
             equiposActivos: equiposActivos,
             equiposDevueltos: equiposDevueltos,
-            equiposObsoletos: equiposObsoletos
+            equiposObsoletos: equiposObsoletos,
+            // Agregar flag para indicar que es formato duplicado
+            formatoDuplicado: true
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
             format: 'A4',
-            landscape: false
+            landscape: false // Mantener vertical
         });
 
         console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');

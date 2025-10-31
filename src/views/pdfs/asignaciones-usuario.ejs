@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Equipos Asignados - <%= usuario.nombre %></title>
     <style>
-        /* Estilos iguales a los proporcionados */
+        /* ESTILOS BASE */
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 12px;
@@ -12,6 +12,38 @@
             margin: 0;
             padding: 20px;
         }
+        
+        /* CONTENEDOR PRINCIPAL PARA DUPLICADO */
+        .contenedor-duplicado {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* PRIMERA PÁGINA */
+        .pagina-1 {
+            flex: 1;
+            page-break-after: always; /* Forzar salto de página */
+        }
+        
+        /* SEGUNDA PÁGINA (COPIA) */
+        .pagina-2 {
+            flex: 1;
+            margin-top: 50px;
+        }
+        
+        /* Indicador de copia */
+        .indicador-copia {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -43,6 +75,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            margin-bottom: 20px;
         }
         th {
             background-color: #343a40;
@@ -101,9 +134,9 @@
         .badge-secondary { background: #e9ecef; color: #495057; }
         .text-center { text-align: center; }
         
-        /* ESTILOS MEJORADOS PARA FIRMAS - SOLUCIÓN CON TABLA */
+        /* ESTILOS PARA FIRMAS */
         .firmas-container {
-            margin-top: 60px;
+            margin-top: 40px;
             width: 100%;
             page-break-inside: avoid;
         }
@@ -143,108 +176,252 @@
             font-size: 9px;
             color: #666;
         }
+        
+        /* ESTADÍSTICAS */
+        .estadisticas {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        .estadistica-item {
+            text-align: center;
+        }
+        .estadistica-valor {
+            font-size: 18px;
+            font-weight: bold;
+            color: #DC2626;
+        }
+        .estadistica-label {
+            font-size: 10px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>FRITZ C.A</h1>
-        <h2>Reporte de Equipos Asignados</h2>
-        <p>Sistema de Gestión de Equipos</p>
-    </div>
+    <div class="contenedor-duplicado">
+        
+        <!-- PRIMERA PÁGINA - ORIGINAL -->
+        <div class="pagina-1">
+            
+            <div class="header">
+                <h1>FRITZ C.A</h1>
+                <h2>Reporte de Equipos Asignados</h2>
+                <p>Sistema de Gestión de Equipos</p>
+            </div>
 
-    <div class="info-usuario">
-        <h3>Información del Usuario</h3>
-        <p><strong>Nombre:</strong> <%= usuario.nombre %> <%= usuario.apellido %></p>
-        <p><strong>Cargo:</strong> <%= usuario.cargo || 'No especificado' %></p>
-        <p><strong>Departamento:</strong> <%= usuario.departamento?.nombre || 'No asignado' %></p>
-        <p><strong>Sede:</strong> <%= usuario.sede?.nombre || 'No asignada' %></p>
-        <p><strong>Correo:</strong> <%= usuario.correo || 'No especificado' %></p>
-    </div>
+            <div class="info-usuario">
+                <h3>Información del Usuario</h3>
+                <p><strong>Nombre:</strong> <%= usuario.nombre %> <%= usuario.apellido %></p>
+                <p><strong>Cargo:</strong> <%= usuario.cargo || 'No especificado' %></p>
+                <p><strong>Departamento:</strong> <%= usuario.departamento?.nombre || 'No asignado' %></p>
+                <p><strong>Sede:</strong> <%= usuario.sede?.nombre || 'No asignada' %></p>
+                <p><strong>Correo:</strong> <%= usuario.correo || 'No especificado' %></p>
+            </div>
 
-    <h3>Detalle de Equipos Asignados</h3>
-    
-    <% if (equiposAsignados && equiposAsignados.length > 0) { %>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Equipo</th>
-                <th>Tipo</th>
-                <th>Fecha Asignación</th>
-                <th>Fecha Devolución</th>
-                <th>IP</th>
-                <th>Estado</th>
-                <th>Asignado Por</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% equiposAsignados.forEach(asignacion => { %>
-            <tr>
-                <td><%= asignacion.id %></td>
-                <td>
-                    <strong><%= asignacion.stockEquipo?.marca || 'N/A' %> <%= asignacion.stockEquipo?.modelo || '' %></strong>
-                    <br><small><%= asignacion.stockEquipo?.descripcion || '' %></small>
-                </td>
-                <td><%= asignacion.stockEquipo?.tipoEquipo?.nombre || 'Sin tipo' %></td>
-                <td><%= new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') %></td>
-                <td>
-                    <% if (asignacion.fecha_devolucion) { %>
-                        <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
-                    <% } else { %>
-                        -
-                    <% } %>
-                </td>
-                <td><%= asignacion.ip_equipo || '-' %></td>
-                <td class="text-center">
-                    <% if (asignacion.estado == 'activo') { %>
-                        <span class="badge badge-success">Activo</span>
-                    <% } else if (asignacion.estado == 'devuelto') { %>
-                        <span class="badge badge-info">Devuelto</span>
-                    <% } else if (asignacion.estado == 'obsoleto') { %>
-                        <span class="badge badge-warning">Obsoleto</span>
-                    <% } else { %>
-                        <span class="badge badge-secondary"><%= asignacion.estado %></span>
-                    <% } %>
-                </td>
-                <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
-            </tr>
-            <% }); %>
-        </tbody>
-    </table>
-    <% } else { %>
-    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 5px;">
-        <p style="margin: 0; color: #666; font-style: italic;">El usuario no tiene equipos asignados</p>
-    </div>
-    <% } %>
+          
 
-    <!-- SECCIÓN DE FIRMAS CON TABLA - MÁS COMPATIBLE -->
-    <div class="firmas-container">
-        <table class="tabla-firmas">
-            <tr>
-                <!-- Firma del Usuario -->
-                <td>
-                    <div class="firma">
-                        <div class="espacio-firma"></div>
-                        <div class="nombre-firma"><%= usuario.nombre %> <%= usuario.apellido %></div>
-                        <div class="cargo-firma">Usuario</div>
-                    </div>
-                </td>
-                
-                <!-- Firma del Departamento de Tecnología -->
-                <td>
-                    <div class="firma">
-                        <div class="espacio-firma"></div>
-                        <div class="cargo-firma">Departamento de Tecnología</div>
-                        <div class="cargo-firma">FRITZ C.A</div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+            <h3>Detalle de Equipos Asignados</h3>
+            
+            <% if (equiposAsignados && equiposAsignados.length > 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Equipo</th>
+                        <th>Tipo</th>
+                        <th>Fecha Asignación</th>
+                        <th>Fecha Devolución</th>
+                        <th>IP</th>
+                        <th>Estado</th>
+                        <th>Asignado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% equiposAsignados.forEach(asignacion => { %>
+                    <tr>
+                        <td><%= asignacion.id %></td>
+                        <td>
+                            <strong><%= asignacion.stockEquipo?.marca || 'N/A' %> <%= asignacion.stockEquipo?.modelo || '' %></strong>
+                            <br><small><%= asignacion.stockEquipo?.descripcion || '' %></small>
+                        </td>
+                        <td><%= asignacion.stockEquipo?.tipoEquipo?.nombre || 'Sin tipo' %></td>
+                        <td><%= new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') %></td>
+                        <td>
+                            <% if (asignacion.fecha_devolucion) { %>
+                                <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+                        <td><%= asignacion.ip_equipo || '-' %></td>
+                        <td class="text-center">
+                            <% if (asignacion.estado == 'activo') { %>
+                                <span class="badge badge-success">Activo</span>
+                            <% } else if (asignacion.estado == 'devuelto') { %>
+                                <span class="badge badge-info">Devuelto</span>
+                            <% } else if (asignacion.estado == 'obsoleto') { %>
+                                <span class="badge badge-warning">Obsoleto</span>
+                            <% } else { %>
+                                <span class="badge badge-secondary"><%= asignacion.estado %></span>
+                            <% } %>
+                        </td>
+                        <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <% } else { %>
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                <p style="margin: 0; color: #666; font-style: italic;">El usuario no tiene equipos asignados</p>
+            </div>
+            <% } %>
 
-    <div class="footer">
-        <p>Generado el: <%= fechaGeneracion %></p>
-        <p>FRITZ C.A - Sistema de Gestión de Equipos</p>
+            <!-- FIRMAS PRIMERA PÁGINA -->
+            <div class="firmas-container">
+                <table class="tabla-firmas">
+                    <tr>
+                        <!-- Firma del Usuario -->
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="nombre-firma"><%= usuario.nombre %> <%= usuario.apellido %></div>
+                                <div class="cargo-firma">Usuario</div>
+                                <div class="fecha-firma">Fecha: ________________</div>
+                            </div>
+                        </td>
+                        
+                        <!-- Firma del Departamento de Tecnología -->
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="cargo-firma">Departamento de Tecnología</div>
+                                <div class="cargo-firma">FRITZ C.A</div>
+                                <div class="fecha-firma">Fecha: ________________</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="footer">
+                <p>Generado el: <%= fechaGeneracion %></p>
+                <p>FRITZ C.A - Sistema de Gestión de Equipos</p>
+                <p>Página 1 de 2 - ORIGINAL</p>
+            </div>
+        </div>
+
+        <!-- SEGUNDA PÁGINA - COPIA -->
+        <div class="pagina-2">
+            
+            <div class="header">
+                <h1>FRITZ C.A</h1>
+                <h2>Reporte de Equipos Asignados</h2>
+                <p>Sistema de Gestión de Equipos</p>
+            </div>
+
+            <div class="info-usuario">
+                <h3>Información del Usuario</h3>
+                <p><strong>Nombre:</strong> <%= usuario.nombre %> <%= usuario.apellido %></p>
+                <p><strong>Cargo:</strong> <%= usuario.cargo || 'No especificado' %></p>
+                <p><strong>Departamento:</strong> <%= usuario.departamento?.nombre || 'No asignado' %></p>
+                <p><strong>Sede:</strong> <%= usuario.sede?.nombre || 'No asignada' %></p>
+                <p><strong>Correo:</strong> <%= usuario.correo || 'No especificado' %></p>
+            </div>
+
+          
+
+            <h3>Detalle de Equipos Asignados</h3>
+            
+            <% if (equiposAsignados && equiposAsignados.length > 0) { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Equipo</th>
+                        <th>Tipo</th>
+                        <th>Fecha Asignación</th>
+                        <th>Fecha Devolución</th>
+                        <th>IP</th>
+                        <th>Estado</th>
+                        <th>Asignado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% equiposAsignados.forEach(asignacion => { %>
+                    <tr>
+                        <td><%= asignacion.id %></td>
+                        <td>
+                            <strong><%= asignacion.stockEquipo?.marca || 'N/A' %> <%= asignacion.stockEquipo?.modelo || '' %></strong>
+                            <br><small><%= asignacion.stockEquipo?.descripcion || '' %></small>
+                        </td>
+                        <td><%= asignacion.stockEquipo?.tipoEquipo?.nombre || 'Sin tipo' %></td>
+                        <td><%= new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') %></td>
+                        <td>
+                            <% if (asignacion.fecha_devolucion) { %>
+                                <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+                        <td><%= asignacion.ip_equipo || '-' %></td>
+                        <td class="text-center">
+                            <% if (asignacion.estado == 'activo') { %>
+                                <span class="badge badge-success">Activo</span>
+                            <% } else if (asignacion.estado == 'devuelto') { %>
+                                <span class="badge badge-info">Devuelto</span>
+                            <% } else if (asignacion.estado == 'obsoleto') { %>
+                                <span class="badge badge-warning">Obsoleto</span>
+                            <% } else { %>
+                                <span class="badge badge-secondary"><%= asignacion.estado %></span>
+                            <% } %>
+                        </td>
+                        <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <% } else { %>
+            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+                <p style="margin: 0; color: #666; font-style: italic;">El usuario no tiene equipos asignados</p>
+            </div>
+            <% } %>
+
+            <!-- FIRMAS SEGUNDA PÁGINA -->
+            <div class="firmas-container">
+                <table class="tabla-firmas">
+                    <tr>
+                        <!-- Firma del Usuario -->
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="nombre-firma"><%= usuario.nombre %> <%= usuario.apellido %></div>
+                                <div class="cargo-firma">Usuario</div>
+                                <div class="fecha-firma">Fecha: ________________</div>
+                            </div>
+                        </td>
+                        
+                        <!-- Firma del Departamento de Tecnología -->
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="cargo-firma">Departamento de Tecnología</div>
+                                <div class="cargo-firma">FRITZ C.A</div>
+                                <div class="fecha-firma">Fecha: ________________</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="footer">
+                <p>Generado el: <%= fechaGeneracion %></p>
+                <p>FRITZ C.A - Sistema de Gestión de Equipos</p>
+                <p>Página 2 de 2 - COPIA</p>
+            </div>
+        </div>
     </div>
 </body>
 </html>
