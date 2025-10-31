@@ -3,12 +3,23 @@ const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
+// Los cargos permitidos - definidos manualmente para evitar problemas de importación
+const CARGOS_PERMITIDOS = [
+  'Gerente',
+  'Jefe', 
+  'Analista',
+  'Especialista',
+  'Becario',
+  'Pasante',
+  'Coordinador',
+  'Supervisor'
+];
+
 export const usuariosController = {
   async index(req, res) {
     try {
       console.log('🔍 Iniciando carga de usuarios...');
       
-      // Consulta básica sin paginación primero para debug
       const usuariosCount = await prisma.usuarios.count();
       console.log(`📊 Total de usuarios en BD: ${usuariosCount}`);
 
@@ -16,7 +27,6 @@ export const usuariosController = {
       const limit = 10;
       const skip = (page - 1) * limit;
 
-      // Consulta simple con solo los campos necesarios
       const usuarios = await prisma.usuarios.findMany({
         skip,
         take: limit,
@@ -92,6 +102,7 @@ export const usuariosController = {
         usuarios: usuariosConCount,
         sedes,
         departamentos,
+        cargosPermitidos: CARGOS_PERMITIDOS,
         pagination: {
           current: page,
           total: Math.ceil(usuariosCount / limit),
@@ -108,92 +119,126 @@ export const usuariosController = {
     }
   },
 
-   async store(req, res) {
+async store(req, res) {
     console.log('🔍 === INICIANDO STORE USUARIO ===');
     try {
-      const {
-        nombre,
-        apellido,
-        cargo,
-        correo,
-        rdp,
-        sede_id,
-        departamento_id
-      } = req.body;
+        const {
+            nombre,
+            apellido,
+            cargo,
+            correo,
+            sede_id,
+            departamento_id
+        } = req.body;
 
-      console.log('📝 Datos recibidos:', req.body);
+        console.log('📝 Datos recibidos:', req.body);
 
-      // Validaciones básicas
-      if (!nombre || !cargo || !sede_id || !departamento_id) {
-        return res.status(400).json({ error: 'Nombre, cargo, sede y departamento son obligatorios' });
-      }
+        // SOLUCIÓN: Usar el nombre correcto del campo RDP
+        const rdpValue = req.body.RDP || req.body.rdp;
+        
+        console.log('✅ RDP a guardar:', rdpValue);
 
-      if (correo) {
-        const usuarioConCorreo = await prisma.usuarios.findFirst({
-          where: { correo }
-        });
-        if (usuarioConCorreo) {
-          return res.status(400).json({ error: 'El correo ya está registrado' });
+        // Validaciones básicas
+        if (!nombre || !cargo || !sede_id || !departamento_id) {
+            return res.status(400).json({ 
+                error: 'Campos obligatorios faltantes',
+                message: 'Nombre, cargo, sede y departamento son obligatorios'
+            });
         }
-      }
 
-      if (rdp) {
-        const usuarioConrdp = await prisma.usuarios.findFirst({
-          where: { rdp }
-        });
-        if (usuarioConrdp) {
-          return res.status(400).json({ error: 'El RDP ya está registrado' });
+        // Validar que el cargo sea uno de los valores permitidos
+        if (!CARGOS_PERMITIDOS.includes(cargo)) {
+            return res.status(400).json({ 
+                error: 'Cargo no válido',
+                message: `El cargo debe ser uno de: ${CARGOS_PERMITIDOS.join(', ')}`,
+                cargosPermitidos: CARGOS_PERMITIDOS
+            });
         }
-      }
 
-      console.log('✅ Creando nuevo usuario...');
-      const usuario = await prisma.usuarios.create({
-        data: {
-          nombre: nombre.trim(),
-          apellido: apellido?.trim(),
-          cargo: cargo.trim(),
-          correo: correo?.trim(),
-          rdp: rdp?.trim(),
-          sede_id: parseInt(sede_id),
-          departamento_id: parseInt(departamento_id)
-        },
-        select: {
-          id: true,
-          nombre: true,
-          apellido: true,
-          cargo: true,
-          correo: true,
-          rdp: true,
-          created_at: true,
-          sede: {
-            select: {
-              id: true,
-              nombre: true
+        if (correo) {
+            const usuarioConCorreo = await prisma.usuarios.findFirst({
+                where: { correo }
+            });
+            if (usuarioConCorreo) {
+                return res.status(400).json({ 
+                    error: 'Correo ya registrado',
+                    message: 'El correo electrónico ya está registrado en el sistema'
+                });
             }
-          },
-          departamento: {
-            select: {
-              id: true,
-              nombre: true
-            }
-          }
         }
-      });
 
-      console.log('✅ USUARIO CREADO EXITOSAMENTE - ID:', usuario.id);
-      
-      res.status(201).json({
-        message: 'Usuario creado exitosamente.',
-        usuario
-      });
+        // CORRECCIÓN: Usar rdpValue en lugar de rdp para la verificación
+        if (rdpValue) {
+            const usuarioConRdp = await prisma.usuarios.findFirst({
+                where: { rdp: rdpValue }
+            });
+            if (usuarioConRdp) {
+                return res.status(400).json({ 
+                    error: 'RDP ya registrado',
+                    message: 'El RDP ya está registrado en el sistema'
+                });
+            }
+        }
+
+        console.log('✅ Creando nuevo usuario...');
+        const usuario = await prisma.usuarios.create({
+            data: {
+                nombre: nombre.trim(),
+                apellido: apellido?.trim(),
+                cargo: cargo,
+                correo: correo?.trim(),
+                // CORRECCIÓN: Usar rdpValue en lugar de rdp
+                rdp: rdpValue?.trim(),
+                sede_id: parseInt(sede_id),
+                departamento_id: parseInt(departamento_id)
+            },
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                cargo: true,
+                correo: true,
+                rdp: true,
+                created_at: true,
+                sede: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                },
+                departamento: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            }
+        });
+
+        console.log('✅ USUARIO CREADO EXITOSAMENTE - ID:', usuario.id);
+        
+        res.status(201).json({
+            message: 'Usuario creado exitosamente.',
+            usuario
+        });
     } catch (error) {
-      console.error('💥 ERROR en store:', error);
-      res.status(500).json({ 
-        error: 'Error al crear usuario',
-        message: error.message
-      });
+        console.error('💥 ERROR en store:', error);
+        
+        // Manejar errores específicos de Prisma para el Enum
+        if (error.code === 'P2000' || error.message.includes('enum')) {
+            return res.status(400).json({ 
+                error: 'Cargo no válido',
+                message: `El cargo debe ser uno de: ${CARGOS_PERMITIDOS.join(', ')}`,
+                cargosPermitidos: CARGOS_PERMITIDOS
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Error al crear usuario',
+            message: error.message
+        });
     }
-  },
+},
 
   async show(req, res) {
     try {
@@ -255,99 +300,126 @@ export const usuariosController = {
     }
   },
 
-
-   async update(req, res) {
+async update(req, res) {
     try {
-      const { id } = req.params;
-      const {
-        nombre,
-        apellido,
-        cargo,
-        correo,
-        rdp,
-        sede_id,
-        departamento_id
-      } = req.body;
-
-      console.log(`🔍 Actualizando usuario ID: ${id}`, req.body);
-
-      const usuarioExistente = await prisma.usuarios.findUnique({
-        where: { id: parseInt(id) }
-      });
-
-      if (!usuarioExistente) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
-      }
-
-      // Verificar duplicados excluyendo el usuario actual
-      if (correo) {
-        const usuarioConCorreo = await prisma.usuarios.findFirst({
-          where: { 
+        const { id } = req.params;
+        const {
+            nombre,
+            apellido,
+            cargo,
             correo,
-            NOT: { id: parseInt(id) }
-          }
+            sede_id,
+            departamento_id
+        } = req.body;
+
+        // SOLUCIÓN: Usar el nombre correcto
+        const rdpValue = req.body.RDP || req.body.rdp;
+
+        console.log('🔍 Actualizando usuario ID:', id, 'RDP:', rdpValue);
+
+        // Validar que el cargo sea uno de los valores permitidos (si se está actualizando)
+        if (cargo && !CARGOS_PERMITIDOS.includes(cargo)) {
+            return res.status(400).json({ 
+                error: 'Cargo no válido',
+                message: `El cargo debe ser uno de: ${CARGOS_PERMITIDOS.join(', ')}`,
+                cargosPermitidos: CARGOS_PERMITIDOS
+            });
+        }
+
+        const usuarioExistente = await prisma.usuarios.findUnique({
+            where: { id: parseInt(id) }
         });
-        if (usuarioConCorreo) {
-          return res.status(400).json({ error: 'El correo ya está registrado' });
-        }
-      }
 
-      if (rdp) {
-        const usuarioConrdp = await prisma.usuarios.findFirst({
-          where: { 
-            rdp,
-            NOT: { id: parseInt(id) }
-          }
+        if (!usuarioExistente) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+
+        // Verificar duplicados excluyendo el usuario actual
+        if (correo) {
+            const usuarioConCorreo = await prisma.usuarios.findFirst({
+                where: { 
+                    correo,
+                    NOT: { id: parseInt(id) }
+                }
+            });
+            if (usuarioConCorreo) {
+                return res.status(400).json({ 
+                    error: 'Correo ya registrado',
+                    message: 'El correo electrónico ya está registrado por otro usuario'
+                });
+            }
+        }
+
+        // CORRECCIÓN: Usar rdpValue para la verificación
+        if (rdpValue) {
+            const usuarioConRdp = await prisma.usuarios.findFirst({
+                where: { 
+                    rdp: rdpValue,
+                    NOT: { id: parseInt(id) }
+                }
+            });
+            if (usuarioConRdp) {
+                return res.status(400).json({ 
+                    error: 'RDP ya registrado',
+                    message: 'El RDP ya está registrado por otro usuario'
+                });
+            }
+        }
+
+        const usuario = await prisma.usuarios.update({
+            where: { id: parseInt(id) },
+            data: {
+                nombre: nombre?.trim(),
+                apellido: apellido?.trim(),
+                cargo: cargo,
+                correo: correo?.trim(),
+                // CORRECCIÓN: Usar rdpValue en lugar de rdp
+                rdp: rdpValue?.trim(),
+                sede_id: sede_id ? parseInt(sede_id) : undefined,
+                departamento_id: departamento_id ? parseInt(departamento_id) : undefined
+            },
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                cargo: true,
+                correo: true,
+                rdp: true,
+                updated_at: true,
+                sede: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                },
+                departamento: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            }
         });
-        if (usuarioConrdp) {
-          return res.status(400).json({ error: 'El RDP ya está registrado' });
-        }
-      }
 
-      const usuario = await prisma.usuarios.update({
-        where: { id: parseInt(id) },
-        data: {
-          nombre: nombre?.trim(),
-          apellido: apellido?.trim(),
-          cargo: cargo?.trim(),
-          correo: correo?.trim(),
-          rdp: rdp?.trim(),
-          sede_id: sede_id ? parseInt(sede_id) : undefined,
-          departamento_id: departamento_id ? parseInt(departamento_id) : undefined
-        },
-        select: {
-          id: true,
-          nombre: true,
-          apellido: true,
-          cargo: true,
-          correo: true,
-          rdp: true,
-          updated_at: true,
-          sede: {
-            select: {
-              id: true,
-              nombre: true
-            }
-          },
-          departamento: {
-            select: {
-              id: true,
-              nombre: true
-            }
-          }
-        }
-      });
-
-      res.json({
-        message: 'Usuario actualizado exitosamente.',
-        usuario
-      });
+        res.json({
+            message: 'Usuario actualizado exitosamente.',
+            usuario
+        });
     } catch (error) {
-      console.error('💥 ERROR en update:', error);
-      res.status(500).json({ error: error.message });
+        console.error('💥 ERROR en update:', error);
+        
+        // Manejar errores específicos de Prisma para el Enum
+        if (error.code === 'P2000' || error.message.includes('enum')) {
+            return res.status(400).json({ 
+                error: 'Cargo no válido',
+                message: `El cargo debe ser uno de: ${CARGOS_PERMITIDOS.join(', ')}`,
+                cargosPermitidos: CARGOS_PERMITIDOS
+            });
+        }
+        
+        res.status(500).json({ error: error.message });
     }
-  },
-
+},
 
   async destroy(req, res) {
     try {

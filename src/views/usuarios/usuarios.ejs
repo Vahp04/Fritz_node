@@ -586,8 +586,9 @@
 <div class="col-md-6">
     <div class="mb-3">
         <label class="form-label">Cargo*</label>
-        <select class="form-select" name="cargo" id="create_cargo" required> <!-- Cambiado de edit_cargo a create_cargo -->
+        <select class="form-select" name="cargo" id="create_cargo" required>
             <option value="">Seleccione un cargo</option>
+            <option value="Gerente">Gerente</option>
             <option value="Jefe">Jefe</option>
             <option value="Analista">Analista</option>
             <option value="Especialista">Especialista</option>
@@ -829,38 +830,75 @@
         }
 
         // Cargar sedes
-        async function cargarSedes() {
-            try {
-                const response = await fetch('/api/sedes');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar sedes');
-                }
-
-                sedes = await response.json();
-                renderizarSedes();
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+      async function cargarSedes() {
+    try {
+        // Si ya están cargadas, no hacer nada
+        if (sedes.length > 0) {
+            return sedes;
+        }
+        
+        const response = await fetch('/api/sedes');
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar sedes');
         }
 
-        // Cargar departamentos
-        async function cargarDepartamentos() {
-            try {
-                const response = await fetch('/api/departamentos');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar departamentos');
-                }
+        sedes = await response.json();
+        renderizarSedes();
+        return sedes;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
+    }
+}
 
-                departamentos = await response.json();
-                renderizarDepartamentos();
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+// Cargar departamentos
+async function cargarDepartamentos() {
+    try {
+        // Si ya están cargadas, no hacer nada
+        if (departamentos.length > 0) {
+            return departamentos;
         }
+        
+        const response = await fetch('/api/departamentos');
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar departamentos');
+        }
+
+        departamentos = await response.json();
+        renderizarDepartamentos();
+        return departamentos;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        return [];
+    }
+}
+
+        function debugRDP() {
+    console.log('=== DEBUG RDP ===');
+    usuarios.forEach((usuario, index) => {
+        console.log(`Usuario ${index + 1}:`, {
+            id: usuario.id,
+            nombre: usuario.nombre,
+            rdp: usuario.rdp,
+            tieneRdp: !!usuario.rdp,
+            rdpType: typeof usuario.rdp,
+            rdpLength: usuario.rdp ? usuario.rdp.length : 0
+        });
+    });
+    
+    // Verificar también los datos del formulario
+    const createForm = document.getElementById('createUsuarioForm');
+    const formData = new FormData(createForm);
+    console.log('Formulario crear - RDP field:', formData.get('RDP'));
+    
+    const editForm = document.getElementById('editUsuarioForm');
+    const editFormData = new FormData(editForm);
+    console.log('Formulario editar - RDP field:', editFormData.get('RDP'));
+}
 
         // Renderizar usuarios en la tabla
         function renderizarUsuarios() {
@@ -953,57 +991,72 @@
                 `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
         }
 
-        // Renderizar sedes en los selects
-        function renderizarSedes() {
-            const selects = [
-                'create_sede_id',
-                'edit_sede_id'
-            ];
+function renderizarSedes() {
+    const selects = [
+        'create_sede_id',
+        'edit_sede_id'
+    ];
 
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    // Limpiar opciones excepto la primera
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            // Guardar el valor actual antes de limpiar
+            const currentValue = select.value;
+            
+            // Limpiar opciones excepto la primera
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
 
-                    // Agregar opciones
-                    sedes.forEach(sede => {
-                        const option = document.createElement('option');
-                        option.value = sede.id;
-                        option.textContent = sede.nombre;
-                        select.appendChild(option);
-                    });
-                }
+            // Agregar opciones
+            sedes.forEach(sede => {
+                const option = document.createElement('option');
+                option.value = sede.id;
+                option.textContent = sede.nombre;
+                select.appendChild(option);
             });
+            
+            // Restaurar el valor si existe
+            if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                select.value = currentValue;
+            }
         }
+    });
+}
 
-        // Renderizar departamentos en los selects
-        function renderizarDepartamentos() {
-            const selects = [
-                'create_departamento_id',
-                'edit_departamento_id'
-            ];
+// Renderizar departamentos en los selects
+function renderizarDepartamentos() {
+    const selects = [
+        'create_departamento_id',
+        'edit_departamento_id'
+    ];
 
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    // Limpiar opciones excepto la primera
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            // Guardar el valor actual antes de limpiar
+            const currentValue = select.value;
+            
+            // Limpiar opciones excepto la primera
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
 
-                    // Agregar opciones
-                    departamentos.forEach(departamento => {
-                        const option = document.createElement('option');
-                        option.value = departamento.id;
-                        option.textContent = departamento.nombre;
-                        select.appendChild(option);
-                    });
-                }
+            // Agregar opciones
+            departamentos.forEach(departamento => {
+                const option = document.createElement('option');
+                option.value = departamento.id;
+                option.textContent = departamento.nombre;
+                select.appendChild(option);
             });
+            
+            // Restaurar el valor si existe
+            if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                select.value = currentValue;
+            }
         }
+    });
+}
 
         // Renderizar paginación
         function renderizarPaginacion() {
@@ -1283,25 +1336,54 @@ async function editUsuario(id) {
 
         const usuario = await response.json();
         
-        console.log('Datos del usuario para editar:', usuario); // Para debug
+        console.log('Datos del usuario para editar:', usuario);
         
+        // Establecer valores básicos
         document.getElementById('edit_usuario_id').value = usuario.id;
         document.getElementById('edit_nombre').value = usuario.nombre;
         document.getElementById('edit_apellido').value = usuario.apellido;
+        document.getElementById('edit_correo').value = usuario.correo;
+        document.getElementById('edit_rdp').value = usuario.rdp;
         
-        // Actualizar el select de cargo - usar el ID correcto
+        // Establecer cargo
         const cargoSelect = document.getElementById('edit_cargo');
         if (cargoSelect) {
             cargoSelect.value = usuario.cargo || '';
-            console.log('Cargo seleccionado:', usuario.cargo); // Para debug
-        } else {
-            console.error('No se encontró el select edit_cargo');
         }
         
-        document.getElementById('edit_correo').value = usuario.correo;
-        document.getElementById('edit_rdp').value = usuario.rdp;
-        document.getElementById('edit_sede_id').value = usuario.sede_id;
-        document.getElementById('edit_departamento_id').value = usuario.departamento_id;
+        // CORRECCIÓN: Asegurar que los selects de sede y departamento estén cargados
+        // antes de establecer los valores
+        await Promise.all([cargarSedes(), cargarDepartamentos()]);
+        
+        // Establecer sede - IMPORTANTE: Esperar a que el DOM se actualice
+        setTimeout(() => {
+            const sedeSelect = document.getElementById('edit_sede_id');
+            if (sedeSelect) {
+                console.log('Buscando sede_id:', usuario.sede_id);
+                console.log('Opciones disponibles:', Array.from(sedeSelect.options).map(opt => ({value: opt.value, text: opt.text})));
+                sedeSelect.value = usuario.sede_id || '';
+                
+                // Verificar si se estableció correctamente
+                if (sedeSelect.value !== usuario.sede_id?.toString()) {
+                    console.warn('⚠️ No se pudo establecer sede_id. Valor esperado:', usuario.sede_id, 'Valor actual:', sedeSelect.value);
+                }
+            }
+        }, 100);
+        
+        // Establecer departamento - IMPORTANTE: Esperar a que el DOM se actualice
+        setTimeout(() => {
+            const departamentoSelect = document.getElementById('edit_departamento_id');
+            if (departamentoSelect) {
+                console.log('Buscando departamento_id:', usuario.departamento_id);
+                console.log('Opciones disponibles:', Array.from(departamentoSelect.options).map(opt => ({value: opt.value, text: opt.text})));
+                departamentoSelect.value = usuario.departamento_id || '';
+                
+                // Verificar si se estableció correctamente
+                if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
+                    console.warn('⚠️ No se pudo establecer departamento_id. Valor esperado:', usuario.departamento_id, 'Valor actual:', departamentoSelect.value);
+                }
+            }
+        }, 100);
         
         $('#editUsuarioModal').modal('show');
         
@@ -1314,44 +1396,46 @@ async function editUsuario(id) {
         });
     }
 }
+async function actualizarUsuario() {
+    const form = document.getElementById('editUsuarioForm');
+    const formData = new FormData(form);
+    const datos = Object.fromEntries(formData);
+    const usuarioId = datos.id;
 
-        async function actualizarUsuario() {
-            const form = document.getElementById('editUsuarioForm');
-            const formData = new FormData(form);
-            const usuarioId = formData.get('id');
+    console.log('📝 Datos para actualizar:', datos);
 
-            try {
-                const response = await fetch(`/api/usuarios/${usuarioId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('user_token') || ''}`
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                });
+    try {
+        const response = await fetch(`/api/usuarios/${usuarioId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos)
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.message
-                    });
-                    $('#editUsuarioModal').modal('hide');
-                    form.reset();
-                    await cargarUsuarios(currentPage);
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message
+            });
+            $('#editUsuarioModal').modal('hide');
+            form.reset();
+            await cargarUsuarios(currentPage);
+        } else {
+            throw new Error(data.error || data.message);
         }
+    } catch (error) {
+        console.error('Error en actualizarUsuario:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
         async function viewUsuario(id) {
             try {
@@ -1403,9 +1487,9 @@ async function editUsuario(id) {
             }
         }
 
-        function inicializarSelectsCargo() {
+function inicializarSelectsCargo() {
     const cargos = [
-        "Jefe", "Analista", "Especialista", "Becario", 
+        "Gerente", "Jefe", "Analista", "Especialista", "Becario", 
         "Pasante", "Coordinador", "Supervisor"
     ];
     

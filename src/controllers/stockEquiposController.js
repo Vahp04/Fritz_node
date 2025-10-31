@@ -245,19 +245,31 @@ export const stockEquiposController = {
     }
   },
 
-  async apiIndex(req, res) {
+async apiIndex(req, res) {
     try {
-      const stockEquipos = await prisma.stock_equipos.findMany({
-        include: {
-          tipo_equipo: true
-        }
-      });
+        const stockEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        requiere_ip: true  // Asegúrate de incluir este campo
+                    }
+                }
+            }
+        });
 
-      res.json(stockEquipos);
+        console.log('🔍 Primer equipo sample:', stockEquipos[0] ? {
+            id: stockEquipos[0].id,
+            marca: stockEquipos[0].marca,
+            tipo_equipo: stockEquipos[0].tipo_equipo
+        } : 'No hay equipos');
+
+        res.json(stockEquipos);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-  },
+},
 
   async apiShow(req, res) {
     try {

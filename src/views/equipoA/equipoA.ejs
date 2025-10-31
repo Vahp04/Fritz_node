@@ -890,6 +890,7 @@
             cargarUsuarios();
             cargarStockEquipos();
             inicializarEventos();
+            
         });
 
 // Cargar usuarios - VERSIÓN FINAL CON ESTRUCTURA CORRECTA
@@ -926,7 +927,6 @@ async function cargarUsuarios() {
     }
 }
 
-// Cargar stock de equipos - VERSIÓN FINAL
 async function cargarStockEquipos() {
     try {
         console.log('🔍 Cargando stock de equipos...');
@@ -937,22 +937,67 @@ async function cargarStockEquipos() {
         }
 
         const data = await response.json();
-        console.log('📦 Respuesta stock:', data);
+        console.log('📦 Respuesta stock (estructura):', data);
         
-        // Manejar diferentes estructuras de respuesta
-        if (data.success && data.stockEquipos) {
-            stockEquipos = data.stockEquipos;
-        } else if (Array.isArray(data)) {
-            stockEquipos = data;
-        } else if (data.stockEquipos) {
-            stockEquipos = data.stockEquipos;
-        } else if (data.equipos) {
-            stockEquipos = data.equipos;
+        // Determinar la estructura de los datos
+        let equiposArray = [];
+        
+        if (Array.isArray(data)) {
+            equiposArray = data;
+            console.log('✅ Datos recibidos como array directo');
+        } else if (data.stockEquipos && Array.isArray(data.stockEquipos)) {
+            equiposArray = data.stockEquipos;
+            console.log('✅ Datos recibidos en propiedad stockEquipos');
+        } else if (data.equipos && Array.isArray(data.equipos)) {
+            equiposArray = data.equipos;
+            console.log('✅ Datos recibidos en propiedad equipos');
+        } else if (data.data && Array.isArray(data.data)) {
+            equiposArray = data.data;
+            console.log('✅ Datos recibidos en propiedad data');
         } else {
-            stockEquipos = [];
+            console.warn('⚠️ Estructura de datos no reconocida:', Object.keys(data));
+            equiposArray = [];
         }
         
+        stockEquipos = equiposArray;
         console.log(`✅ ${stockEquipos.length} equipos cargados`);
+        
+        // Diagnosticar la estructura de los equipos
+        if (stockEquipos.length > 0) {
+            console.log('\n🔍 ESTRUCTURA DEL PRIMER EQUIPO:');
+            const primerEquipo = stockEquipos[0];
+            console.log('Primer equipo:', primerEquipo);
+            
+            // Buscar información de tipo_equipo
+            console.log('\n🔍 BUSCANDO INFORMACIÓN DE TIPO_EQUIPO:');
+            
+            if (primerEquipo.tipo_equipo) {
+                console.log('✅ tipo_equipo encontrado:', primerEquipo.tipo_equipo);
+                console.log('   requiere_ip:', primerEquipo.tipo_equipo.requiere_ip);
+            } else {
+                console.log('❌ tipo_equipo NO encontrado en primer nivel');
+            }
+            
+            if (primerEquipo.tipoEquipo) {
+                console.log('✅ tipoEquipo encontrado:', primerEquipo.tipoEquipo);
+                console.log('   requiere_ip:', primerEquipo.tipoEquipo.requiere_ip);
+            } else {
+                console.log('❌ tipoEquipo NO encontrado en primer nivel');
+            }
+            
+            // Buscar en todas las propiedades
+            console.log('\n🔍 TODAS LAS PROPIEDADES DEL EQUIPO:');
+            Object.keys(primerEquipo).forEach(key => {
+                const value = primerEquipo[key];
+                if (key.toLowerCase().includes('tipo')) {
+                    console.log(`   ${key}:`, value);
+                    if (value && typeof value === 'object') {
+                        console.log(`     requiere_ip: ${value.requiere_ip}`);
+                    }
+                }
+            });
+        }
+        
         llenarSelectStockEquipos();
         
     } catch (error) {
@@ -960,6 +1005,77 @@ async function cargarStockEquipos() {
         stockEquipos = [];
         llenarSelectStockEquipos();
     }
+}
+
+
+
+// Función mejorada para toggle del campo IP
+function toggleIPFieldBasedOnSelection(selectElement, isEditModal = false) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
+    const equipoId = selectedOption.value;
+    
+    console.log(`🔍 Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}`);
+    
+    // Determinar qué campo IP usar según el modal
+    let ipField, ipContainer;
+    if (isEditModal) {
+        ipField = document.getElementById('edit_ip_equipo');
+        ipContainer = ipField ? ipField.closest('.mb-3') : null;
+    } else {
+        ipField = document.querySelector('[name="ip_equipo"]');
+        ipContainer = ipField ? ipField.closest('.mb-3') : null;
+    }
+    
+    if (ipField && ipContainer) {
+        if (requiereIP) {
+            ipContainer.style.display = 'block';
+            ipField.required = true;
+            console.log(`✅ Mostrando campo IP para equipo ${equipoId}`);
+        } else {
+            ipContainer.style.display = 'none';
+            ipField.value = '';
+            ipField.required = false;
+            console.log(`❌ Ocultando campo IP para equipo ${equipoId}`);
+        }
+    } else {
+        console.error('❌ No se encontró el campo IP o su contenedor');
+    }
+}
+
+function inicializarEventosSelects() {
+    // Event listeners para los selects de equipos - CREAR
+    const createSelect = document.getElementById('create_stock_equipos_id');
+    if (createSelect) {
+        createSelect.addEventListener('change', function() {
+            console.log('🔄 Cambio en select de crear');
+            toggleIPFieldBasedOnSelection(this, false);
+        });
+        
+        // Aplicar estado inicial inmediatamente después de llenar
+        setTimeout(() => {
+            if (createSelect.value) {
+                toggleIPFieldBasedOnSelection(createSelect, false);
+            } else {
+                // Ocultar campo IP por defecto
+                const ipContainer = document.querySelector('[name="ip_equipo"]')?.closest('.mb-3');
+                if (ipContainer) {
+                    ipContainer.style.display = 'none';
+                }
+            }
+        }, 100);
+    }
+
+    // Event listeners para los selects de equipos - EDITAR
+    const editSelect = document.getElementById('edit_stock_equipos_id');
+    if (editSelect) {
+        editSelect.addEventListener('change', function() {
+            console.log('🔄 Cambio en select de editar');
+            toggleIPFieldBasedOnSelection(this, true);
+        });
+    }
+    
+    console.log('✅ Eventos de selects inicializados');
 }
 
 
@@ -1048,7 +1164,6 @@ function llenarSelectUsuarios() {
     console.log('✅ Selects de usuarios llenados correctamente');
 }
 
-// Llenar select de stock equipos - VERSIÓN MEJORADA
 function llenarSelectStockEquipos() {
     const createSelect = document.getElementById('create_stock_equipos_id');
     const editSelect = document.getElementById('edit_stock_equipos_id');
@@ -1093,11 +1208,44 @@ function llenarSelectStockEquipos() {
             
             option.textContent = texto;
             
-            // Manejar campo de IP
-            if (equipo.tipoEquipo && equipo.tipoEquipo.requiere_ip) {
-                option.setAttribute('data-requiere-ip', '1');
+            // DETECCIÓN DE REQUIERE_IP - FORMA ROBUSTA
+            let requiereIP = false;
+            
+            // Intentar todas las posibles formas de acceder a la información
+            if (equipo.tipo_equipo && equipo.tipo_equipo.requiere_ip !== undefined) {
+                requiereIP = Boolean(equipo.tipo_equipo.requiere_ip);
+                console.log(`✅ Equipo ${equipo.id}: requiere_ip desde tipo_equipo = ${requiereIP}`);
+            } else if (equipo.tipoEquipo && equipo.tipoEquipo.requiere_ip !== undefined) {
+                requiereIP = Boolean(equipo.tipoEquipo.requiere_ip);
+                console.log(`✅ Equipo ${equipo.id}: requiere_ip desde tipoEquipo = ${requiereIP}`);
+            } else if (equipo.requiere_ip !== undefined) {
+                requiereIP = Boolean(equipo.requiere_ip);
+                console.log(`✅ Equipo ${equipo.id}: requiere_ip directo = ${requiereIP}`);
             } else {
-                option.setAttribute('data-requiere-ip', '0');
+                // Si no se encuentra, buscar en todas las propiedades del objeto
+                Object.keys(equipo).forEach(key => {
+                    if (key.toLowerCase().includes('tipo') && equipo[key] && typeof equipo[key] === 'object') {
+                        if (equipo[key].requiere_ip !== undefined) {
+                            requiereIP = Boolean(equipo[key].requiere_ip);
+                            console.log(`✅ Equipo ${equipo.id}: requiere_ip desde ${key} = ${requiereIP}`);
+                        }
+                    }
+                });
+            }
+            
+            // Si aún no se encontró, asumir false
+            if (requiereIP === undefined) {
+                console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
+                requiereIP = false;
+            }
+            
+            // Establecer atributo data-requiere-ip
+            option.setAttribute('data-requiere-ip', requiereIP ? '1' : '0');
+            option.setAttribute('data-equipo-id', equipo.id);
+            
+            // Debug info
+            if (requiereIP) {
+                console.log(`🔔 Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) REQUIERE IP - campo IP se mostrará`);
             }
             
             select.appendChild(option);
@@ -1358,7 +1506,78 @@ function renderizarEquiposAsignados() {
             document.getElementById('searchEquipo').addEventListener('input', aplicarFiltros);
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
             document.getElementById('resetFilters').addEventListener('click', resetFiltros);
+
+            inicializarEventosSelects();
         }
+$('#createEquipoAsignadoModal').on('show.bs.modal', function () {
+    console.log('🔄 Modal de crear abierto, forzando actualización de campo IP...');
+    
+    // Forzar actualización después de un pequeño delay para asegurar que el DOM esté listo
+    setTimeout(() => {
+        const createSelect = document.getElementById('create_stock_equipos_id');
+        if (createSelect) {
+            if (createSelect.value) {
+                console.log('🔍 Aplicando toggle IP con selección existente:', createSelect.value);
+                toggleIPFieldBasedOnSelection(createSelect, false);
+            } else {
+                // Ocultar campo IP por defecto si no hay selección
+                const ipContainer = document.querySelector('[name="ip_equipo"]')?.closest('.mb-3');
+                if (ipContainer) {
+                    ipContainer.style.display = 'none';
+                    console.log('🔍 Campo IP oculto por defecto (sin selección)');
+                }
+            }
+        }
+    }, 150);
+});
+
+async function diagnosticarEstructuraEquipos() {
+    console.log('🔍 DIAGNÓSTICO DETALLADO DE ESTRUCTURA DE EQUIPOS');
+    
+    if (!stockEquipos || stockEquipos.length === 0) {
+        console.log('❌ No hay equipos cargados');
+        return;
+    }
+    
+    // Revisar los primeros 3 equipos
+    stockEquipos.slice(0, 3).forEach((equipo, index) => {
+        console.log(`\n📋 Equipo ${index + 1} (ID: ${equipo.id}):`);
+        console.log('   Propiedades principales:', Object.keys(equipo));
+        
+        // Buscar información de tipo_equipo en todas las propiedades posibles
+        console.log('   🔎 Buscando información de tipo_equipo:');
+        
+        // Verificar diferentes nombres posibles
+        const posiblesPropiedades = ['tipo_equipo', 'tipoEquipo', 'tipo', 'tipoEquipoId', 'tipo_equipo_id'];
+        
+        posiblesPropiedades.forEach(prop => {
+            if (equipo[prop] !== undefined) {
+                console.log(`     ${prop}:`, equipo[prop]);
+                if (equipo[prop] && typeof equipo[prop] === 'object') {
+                    console.log(`       propiedades de ${prop}:`, Object.keys(equipo[prop]));
+                    if (equipo[prop].requiere_ip !== undefined) {
+                        console.log(`       ✅ ${prop}.requiere_ip =`, equipo[prop].requiere_ip);
+                    }
+                }
+            }
+        });
+        
+        // Verificar propiedades directas
+        if (equipo.requiere_ip !== undefined) {
+            console.log(`     ✅ requiere_ip directo =`, equipo.requiere_ip);
+        }
+    });
+}
+
+// Ejecutar después de cargar los equipos
+setTimeout(() => {
+    diagnosticarEstructuraEquipos();
+}, 1000);
+
+// Ejecutar diagnóstico después de cargar los equipos
+setTimeout(() => {
+    diagnosticarTiposEquipo();
+}, 3000);
 
         // Funciones CRUD
         async function crearEquipoAsignado() {
@@ -1397,43 +1616,46 @@ function renderizarEquiposAsignados() {
             }
         }
 
-        async function editEquipoAsignado(id) {
-            try {
-                const response = await fetch(`/api/equipos_asignados/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar asignación');
-                }
-
-                const asignacion = await response.json();
-                
-                document.getElementById('edit_asignacion_id').value = asignacion.id;
-                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
-                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
-                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
-                document.getElementById('edit_estado').value = asignacion.estado;
-                document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
-                document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
-                document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
-                
-                // Aplicar toggle del campo IP
-                setTimeout(() => {
-                    const editSelect = document.getElementById('edit_stock_equipos_id');
-                    if (editSelect && editSelect.value) {
-                        toggleIPFieldBasedOnSelection(editSelect, true);
-                    }
-                }, 100);
-                
-                $('#editEquipoAsignadoModal').modal('show');
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+async function editEquipoAsignado(id) {
+    try {
+        const response = await fetch(`/api/equipos_asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
         }
+
+        const asignacion = await response.json();
+        
+        // Establecer valores básicos
+        document.getElementById('edit_asignacion_id').value = asignacion.id;
+        document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+        document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+        document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
+        document.getElementById('edit_estado').value = asignacion.estado;
+        document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
+        document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
+        document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+        
+        // Mostrar modal primero
+        $('#editEquipoAsignadoModal').modal('show');
+        
+        // Aplicar toggle del campo IP después de que el modal esté visible
+        setTimeout(() => {
+            const editSelect = document.getElementById('edit_stock_equipos_id');
+            if (editSelect && editSelect.value) {
+                console.log('🔄 Aplicando toggle IP en edición para equipo:', editSelect.value);
+                toggleIPFieldBasedOnSelection(editSelect, true);
+            }
+        }, 300);
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
         async function actualizarEquipoAsignado() {
             const form = document.getElementById('editEquipoAsignadoForm');

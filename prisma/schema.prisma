@@ -11,7 +11,7 @@ model departamentos {
   id         Int        @id @default(autoincrement())
   nombre     String     @db.VarChar(191)
   created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) 
+  updated_at DateTime   @default(now())
   usuarios   usuarios[]
 
   @@map("departamentos")
@@ -22,7 +22,7 @@ model sedes {
   nombre     String     @db.VarChar(191)
   ubicacion  String?    @db.VarChar(191)
   created_at DateTime   @default(now())
-  updated_at DateTime   @default(now()) 
+  updated_at DateTime   @default(now())
   usuarios   usuarios[]
 
   @@map("sedes")
@@ -34,7 +34,7 @@ model tipo_equipo {
   descripcion   String?         @db.VarChar(191)
   requiere_ip   Boolean?        @default(true)
   created_at    DateTime        @default(now())
-  updated_at    DateTime        @default(now()) 
+  updated_at    DateTime        @default(now())
   stock_equipos stock_equipos[]
 
   @@map("tipo_equipo")
@@ -53,7 +53,7 @@ model stock_equipos {
   fecha_adquisicion   DateTime?
   valor_adquisicion   Float?
   created_at          DateTime          @default(now())
-  updated_at          DateTime          @default(now()) 
+  updated_at          DateTime          @default(now())
   equipo_asignado     equipo_asignado[]
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
 
@@ -67,7 +67,7 @@ model usuario {
   password        String            @db.VarChar(191)
   activo          Boolean           @default(true)
   created_at      DateTime          @default(now())
-  updated_at      DateTime          @default(now()) 
+  updated_at      DateTime          @default(now())
   equipo_asignado equipo_asignado[]
 
   @@map("usuario")
@@ -77,13 +77,13 @@ model usuarios {
   id              Int               @id @default(autoincrement())
   nombre          String            @db.VarChar(191)
   apellido        String?           @db.VarChar(191)
-  cargo           String            @db.VarChar(191)
+  cargo           cargo
   correo          String?           @db.VarChar(191)
   rdp             String?           @db.VarChar(191)
   sede_id         Int
   departamento_id Int
   created_at      DateTime          @default(now())
-    updated_at     DateTime         @default(now()) 
+  updated_at      DateTime          @default(now())
   equipo_asignado equipo_asignado[]
   departamento    departamentos     @relation(fields: [departamento_id], references: [id], onDelete: NoAction)
   sede            sedes             @relation(fields: [sede_id], references: [id], onDelete: NoAction)
@@ -108,4 +108,15 @@ model equipo_asignado {
   usuarios         usuarios      @relation(fields: [usuarios_id], references: [id], onDelete: NoAction)
 
   @@map("equipo_asignado")
+}
+
+enum cargo {
+  Gerente
+  Jefe
+  Analista
+  Especialista
+  Becario
+  Pasante
+  Coordinador
+  Supervisor
 }
