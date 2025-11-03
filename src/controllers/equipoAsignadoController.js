@@ -215,171 +215,217 @@ export const equipoAsignadoController = {
     }
   },
 
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const {
-        usuarios_id,
-        stock_equipos_id,
-        fecha_asignacion,
-        ip_equipo,
-        numero_serie, // Este viene del frontend como "numero_serie"
-        fecha_devolucion,
-        observaciones,
-        estado
-      } = req.body;
+async update(req, res) {
+  try {
+    const { id } = req.params;
+    const {
+      usuarios_id,
+      stock_equipos_id,
+      fecha_asignacion,
+      ip_equipo,
+      numero_serie,
+      fecha_devolucion,
+      observaciones,
+      estado
+    } = req.body;
 
-      console.log('📝 Datos recibidos para actualizar asignación:', {
-        usuarios_id,
-        stock_equipos_id,
-        fecha_asignacion,
-        ip_equipo,
-        numero_serie,
-        fecha_devolucion,
-        observaciones,
-        estado
+    console.log('📝 Datos recibidos para actualizar asignación:', {
+      usuarios_id,
+      stock_equipos_id,
+      fecha_asignacion,
+      ip_equipo,
+      numero_serie,
+      fecha_devolucion,
+      observaciones,
+      estado
+    });
+
+    const equipoAsignado = await prisma.equipo_asignado.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!equipoAsignado) {
+      return res.status(404).json({ error: 'Asignación no encontrada' });
+    }
+
+    const nuevoEstado = estado;
+    const estadoAnterior = equipoAsignado.estado;
+
+    // ELIMINAR LA LÓGICA QUE BORRA EQUIPOS OBSOLETOS
+    // Solo actualizar el estado sin eliminar el registro
+    if (nuevoEstado === 'obsoleto' && estadoAnterior !== 'obsoleto') {
+      // Actualizar el stock cuando se marca como obsoleto
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: parseInt(stock_equipos_id) }
       });
 
-      const equipoAsignado = await prisma.equipo_asignado.findUnique({
-        where: { id: parseInt(id) }
+      if (stockEquipo) {
+        const updateData = {
+          cantidad_total: { decrement: 1 }
+        };
+
+        if (estadoAnterior === 'activo') {
+          updateData.cantidad_asignada = { decrement: 1 };
+        } else if (estadoAnterior === 'devuelto') {
+          updateData.cantidad_disponible = { decrement: 1 };
+        }
+
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: updateData
+        });
+
+        // Verificar si hay que eliminar el stock
+        const stockActualizado = await prisma.stock_equipos.findUnique({
+          where: { id: stockEquipo.id }
+        });
+
+        if (stockActualizado.cantidad_total <= 0) {
+          await prisma.stock_equipos.delete({
+            where: { id: stockEquipo.id }
+          });
+        }
+      }
+    }
+
+    // LÓGICA ORIGINAL PARA OTROS CAMBIOS DE ESTADO
+    if (estadoAnterior === 'devuelto' && nuevoEstado === 'activo') {
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: parseInt(stock_equipos_id) }
       });
-
-      if (!equipoAsignado) {
-        return res.status(404).json({ error: 'Asignación no encontrada' });
-      }
-
-      const nuevoEstado = estado;
-      const estadoAnterior = equipoAsignado.estado;
-
-      if (estadoAnterior === 'devuelto' && nuevoEstado === 'activo') {
-        const stockEquipo = await prisma.stock_equipos.findUnique({
-          where: { id: parseInt(stock_equipos_id) }
+      if (stockEquipo && stockEquipo.cantidad_disponible > 0) {
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: {
+            cantidad_disponible: { decrement: 1 },
+            cantidad_asignada: { increment: 1 }
+          }
         });
-        if (stockEquipo && stockEquipo.cantidad_disponible > 0) {
-          await prisma.stock_equipos.update({
-            where: { id: stockEquipo.id },
-            data: {
-              cantidad_disponible: { decrement: 1 },
-              cantidad_asignada: { increment: 1 }
-            }
-          });
-        } else {
-          return res.status(400).json({ error: 'No hay stock disponible para reactivar la asignación' });
-        }
-      } else if (estadoAnterior === 'activo' && nuevoEstado === 'devuelto') {
-        const stockEquipo = await prisma.stock_equipos.findUnique({
-          where: { id: parseInt(stock_equipos_id) }
-        });
-        if (stockEquipo) {
-          await prisma.stock_equipos.update({
-            where: { id: stockEquipo.id },
-            data: {
-              cantidad_disponible: { increment: 1 },
-              cantidad_asignada: { decrement: 1 }
-            }
-          });
-        }
+      } else {
+        return res.status(400).json({ error: 'No hay stock disponible para reactivar la asignación' });
       }
+    } else if (estadoAnterior === 'activo' && nuevoEstado === 'devuelto') {
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: parseInt(stock_equipos_id) }
+      });
+      if (stockEquipo) {
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: {
+            cantidad_disponible: { increment: 1 },
+            cantidad_asignada: { decrement: 1 }
+          }
+        });
+      }
+    }
 
-      // USAR CEREAL_EQUIPO en la base de datos
-      const updated = await prisma.equipo_asignado.update({
-        where: { id: parseInt(id) },
-        data: {
-          usuarios_id: parseInt(usuarios_id),
-          stock_equipos_id: parseInt(stock_equipos_id),
-          fecha_asignacion: new Date(fecha_asignacion),
-          ip_equipo,
-          cereal_equipo: numero_serie, // Mapear numero_serie a cereal_equipo
-          fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
-          observaciones,
-          estado: nuevoEstado
+    // USAR CEREAL_EQUIPO en la base de datos
+    const updated = await prisma.equipo_asignado.update({
+      where: { id: parseInt(id) },
+      data: {
+        usuarios_id: parseInt(usuarios_id),
+        stock_equipos_id: parseInt(stock_equipos_id),
+        fecha_asignacion: new Date(fecha_asignacion),
+        ip_equipo,
+        cereal_equipo: numero_serie,
+        fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
+        observaciones,
+        estado: nuevoEstado
+      },
+      include: {
+        usuarios: {
+          select: {
+            id: true,
+            nombre: true,
+            apellido: true,
+            cargo: true,
+            correo: true
+          }
         },
-        include: {
-          usuarios: {
-            select: {
-              id: true,
-              nombre: true,
-              apellido: true,
-              cargo: true,
-              correo: true
-            }
-          },
-          usuario: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          stock_equipos: {
-            include: {
-              tipo_equipo: {
-                select: {
-                  id: true,
-                  nombre: true,
-                  requiere_ip: true,
-                  requiere_cereal: true
-                }
+        usuario: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        stock_equipos: {
+          include: {
+            tipo_equipo: {
+              select: {
+                id: true,
+                nombre: true,
+                requiere_ip: true,
+                requiere_cereal: true
               }
             }
           }
         }
-      });
+      }
+    });
 
-      res.json({
-        message: 'Asignación actualizada exitosamente.',
-        equipoAsignado: updated
-      });
+    res.json({
+      message: 'Asignación actualizada exitosamente.',
+      equipoAsignado: updated
+    });
 
-    } catch (error) {
-      console.error('Error en update:', error);
-      res.status(500).json({ error: error.message });
+  } catch (error) {
+    console.error('Error en update:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
+
+async destroy(req, res) {  
+  try {
+    const { id } = req.params;
+    console.log('Eliminando asignación:', id);
+
+    const equipoAsignado = await prisma.equipo_asignado.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!equipoAsignado) {
+      return res.status(404).json({ error: 'Asignación no encontrada' });
     }
-  },
 
-  async destroy(req, res) {  
-    try {
-      const { id } = req.params;
-      console.log('Eliminando asignación:', id);
-
-      const equipoAsignado = await prisma.equipo_asignado.findUnique({
-        where: { id: parseInt(id) }
-      });
-
-      if (!equipoAsignado) {
-        return res.status(404).json({ error: 'Asignación no encontrada' });
-      }
-
-      if (equipoAsignado.estado === 'obsoleto') {
-        return res.status(400).json({ error: 'No se puede eliminar un equipo marcado como obsoleto' });
-      }
-
-      if (equipoAsignado.estado !== 'devuelto') {
-        const stockEquipo = await prisma.stock_equipos.findUnique({
-          where: { id: equipoAsignado.stock_equipos_id }
-        });
-        if (stockEquipo) {
-          await prisma.stock_equipos.update({
-            where: { id: stockEquipo.id },
-            data: {
-              cantidad_disponible: { increment: 1 },
-              cantidad_asignada: { decrement: 1 }
-            }
-          });
-        }
-      }
-
+    // PERMITIR ELIMINAR EQUIPOS OBSOLETOS
+    if (equipoAsignado.estado === 'obsoleto') {
       await prisma.equipo_asignado.delete({
         where: { id: parseInt(id) }
       });
-
-      res.json({ message: 'Asignación eliminada exitosamente.' });
-
-    } catch (error) {
-      console.error('Error en destroy:', error);
-      res.status(500).json({ error: error.message });
+      
+      return res.json({ 
+        message: 'Asignación obsoleta eliminada exitosamente.' 
+      });
     }
-  },
+
+    // Para equipos no obsoletos, mantener la lógica actual
+    if (equipoAsignado.estado !== 'devuelto') {
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: equipoAsignado.stock_equipos_id }
+      });
+      if (stockEquipo) {
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: {
+            cantidad_disponible: { increment: 1 },
+            cantidad_asignada: { decrement: 1 }
+          }
+        });
+      }
+    }
+
+    await prisma.equipo_asignado.delete({
+      where: { id: parseInt(id) }
+    });
+
+    res.json({ message: 'Asignación eliminada exitosamente.' });
+
+  } catch (error) {
+    console.error('Error en destroy:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async devolver(req, res) {
     try {
@@ -433,54 +479,128 @@ export const equipoAsignadoController = {
     }
   },
 
-  async marcarObsoleto(req, res) {
-    try {
-      const { id } = req.params;
+async marcarObsoleto(req, res) {
+  try {
+    const { id } = req.params;
 
-      const equipoAsignado = await prisma.equipo_asignado.findUnique({
-        where: { id: parseInt(id) }
+    const equipoAsignado = await prisma.equipo_asignado.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        stock_equipos: true
+      }
+    });
+
+    if (!equipoAsignado) {
+      return res.status(404).json({ error: 'Asignación no encontrada' });
+    }
+
+    if (equipoAsignado.estado === 'obsoleto') {
+      return res.status(400).json({ error: 'El equipo ya está marcado como obsoleto' });
+    }
+
+    // SOLO ACTUALIZAR EL ESTADO, NO ELIMINAR
+    const updated = await prisma.equipo_asignado.update({
+      where: { id: parseInt(id) },
+      data: {
+        estado: 'obsoleto',
+        fecha_devolucion: new Date() // Opcional: establecer fecha de devolución
+      }
+    });
+
+    // ACTUALIZAR EL STOCK - REDUCIR CANTIDADES
+    const stockEquipo = await prisma.stock_equipos.findUnique({
+      where: { id: equipoAsignado.stock_equipos_id }
+    });
+
+    if (stockEquipo) {
+      const updateData = {
+        cantidad_total: { decrement: 1 }
+      };
+
+      if (equipoAsignado.estado === 'activo') {
+        updateData.cantidad_asignada = { decrement: 1 };
+      } else if (equipoAsignado.estado === 'devuelto') {
+        updateData.cantidad_disponible = { decrement: 1 };
+      }
+
+      await prisma.stock_equipos.update({
+        where: { id: stockEquipo.id },
+        data: updateData
       });
 
-      if (!equipoAsignado) {
-        return res.status(404).json({ error: 'Asignación no encontrada' });
-      }
+      // Si después de esta operación el stock queda en 0, eliminar el registro del stock
+      const stockActualizado = await prisma.stock_equipos.findUnique({
+        where: { id: stockEquipo.id }
+      });
 
-      if (equipoAsignado.estado === 'obsoleto') {
-        return res.status(400).json({ error: 'El equipo ya está marcado como obsoleto' });
+      if (stockActualizado.cantidad_total <= 0) {
+        await prisma.stock_equipos.delete({
+          where: { id: stockEquipo.id }
+        });
+        console.log(`🗑️ Equipo de stock ${stockEquipo.id} eliminado por cantidad total 0`);
       }
+    }
 
-      const updated = await prisma.equipo_asignado.update({
-        where: { id: parseInt(id) },
+    res.json({ 
+      message: 'Equipo marcado como obsoleto exitosamente.',
+      equipoActualizado: updated
+    });
+
+  } catch (error) {
+    console.error('Error en marcarObsoleto:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
+
+async reactivar(req, res) {
+  try {
+    const { id } = req.params;
+
+    const equipoAsignado = await prisma.equipo_asignado.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!equipoAsignado) {
+      return res.status(404).json({ error: 'Asignación no encontrada' });
+    }
+
+    if (equipoAsignado.estado !== 'obsoleto') {
+      return res.status(400).json({ error: 'Solo se pueden reactivar equipos obsoletos' });
+    }
+
+    const updated = await prisma.equipo_asignado.update({
+      where: { id: parseInt(id) },
+      data: {
+        estado: 'activo',
+        fecha_devolucion: null
+      }
+    });
+
+    // Actualizar el stock
+    const stockEquipo = await prisma.stock_equipos.findUnique({
+      where: { id: equipoAsignado.stock_equipos_id }
+    });
+
+    if (stockEquipo) {
+      await prisma.stock_equipos.update({
+        where: { id: stockEquipo.id },
         data: {
-          estado: 'obsoleto',
-          fecha_devolucion: new Date()
+          cantidad_total: { increment: 1 },
+          cantidad_asignada: { increment: 1 }
         }
       });
-
-      const stockEquipo = await prisma.stock_equipos.findUnique({
-        where: { id: equipoAsignado.stock_equipos_id }
-      });
-      if (stockEquipo) {
-        await prisma.stock_equipos.update({
-          where: { id: stockEquipo.id },
-          data: {
-            cantidad_disponible: { decrement: 1 },
-            cantidad_asignada: { decrement: 1 },
-            cantidad_total: { decrement: 1 }
-          }
-        });
-      }
-
-      res.json({ 
-        message: 'Equipo marcado como obsoleto exitosamente.',
-        equipoAsignado: updated
-      });
-
-    } catch (error) {
-      console.error('Error en marcarObsoleto:', error);
-      res.status(500).json({ error: error.message });
     }
-  },
+
+    res.json({ 
+      message: 'Equipo reactivado exitosamente.',
+      equipoAsignado: updated
+    });
+
+  } catch (error) {
+    console.error('Error en reactivar:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async porUsuario(req, res) {
     try {

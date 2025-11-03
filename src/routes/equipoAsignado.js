@@ -12,6 +12,7 @@ router.get('/reporte', authenticateToken, equipoAsignadoController.reporte);
 router.get('/api', authenticateToken, equipoAsignadoController.apiIndex);
 router.post('/:id/devolver', authenticateToken, equipoAsignadoController.devolver);
 router.post('/:id/obsoleto', authenticateToken, equipoAsignadoController.marcarObsoleto);
+router.post('/:id/reactivar', authenticateToken,equipoAsignadoController.reactivar);
 router.get('/usuario/:usuarioId', authenticateToken, equipoAsignadoController.porUsuario);
 router.get('/stock/:stockId', authenticateToken, equipoAsignadoController.porStock);
 router.get('/:id', authenticateToken, equipoAsignadoController.show);

@@ -1329,138 +1329,155 @@
         }
 
         // Renderizar equipos asignados en la tabla
-        function renderizarEquiposAsignados() {
-            const tbody = document.getElementById('equiposAsignadosTableBody');
-            
-            if (!tbody) {
-                console.error('❌ No se encontró el tbody de la tabla');
-                return;
-            }
+function renderizarEquiposAsignados() {
+    const tbody = document.getElementById('equiposAsignadosTableBody');
+    const estadoFilter = document.getElementById('filterEstado').value;
+    
+    if (!tbody) {
+        console.error('❌ No se encontró el tbody de la tabla');
+        return;
+    }
 
-            tbody.innerHTML = '';
+    tbody.innerHTML = '';
 
-            if (equiposAsignados.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-laptop display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron equipos asignados</p>
-                            <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
-                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+    if (equiposAsignados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-laptop display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No se encontraron equipos asignados</p>
+                    <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
+                        <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            equiposAsignados.forEach(asignacion => {
-                const row = document.createElement('tr');
-                const estadoClass = `estado-${asignacion.estado || 'activo'}`;
-                const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
-                               (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
-                
-                row.className = rowClass;
-                
-                // Usar las propiedades formateadas
-                const usuario = asignacion.usuarioAsignado || {};
-                const stockEquipo = asignacion.stockEquipo || {};
-                const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
-                
-                const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
-                const cargoUsuario = usuario.cargo || 'Sin cargo';
-                const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
-                const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
-
-                row.innerHTML = `
-                    <td class="fw-bold">${asignacion.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="equipo-icon me-3">
-                                ${inicialUsuario}
-                            </div>
-                            <div>
-                                <div class="fw-bold">${nombreUsuario}</div>
-                                <small class="text-muted">${cargoUsuario}</small>
-                                ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge equipo-badge rounded-pill">
-                            <i class="bi bi-pc me-1"></i>
-                            ${infoEquipo}
-                        </span>
-                        ${stockEquipo.tipo_equipo ? `
-                        <small class="d-block text-muted">
-                            ${stockEquipo.tipo_equipo.nombre}
-                        </small>
-                        ` : ''}
-                        ${asignacion.ip_equipo ? `
-                        <small class="d-block text-muted">
-                            <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
-                        </small>
-                        ` : ''}
-                        ${asignacion.numero_serie ? `
-                        <small class="d-block text-muted">
-                            <i class="bi bi-upc-scan me-1"></i>${asignacion.numero_serie}
-                        </small>
-                        ` : ''}
-                    </td>
-                    <td>
-                        <small class="d-block">
-                            ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
-                        </small>
-                        ${asignacion.fecha_devolucion ? `
-                        <small class="d-block text-muted">
-                            Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
-                        </small>
-                        ` : ''}
-                    </td>
-                    <td>
-                        <span class="badge estado-badge ${estadoClass}">
-                            ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge asignador-badge rounded-pill">
-                            <i class="bi bi-person-check me-1"></i>
-                            ${usuarioAsignador.name}
-                        </span>
-                    </td>
-                    <td class="table-actions text-center">
-                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewEquipoAsignado(${asignacion.id})"
-                                title="Ver">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        ${asignacion.estado !== 'obsoleto' ? `
-                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editEquipoAsignado(${asignacion.id})"
-                                title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        ` : ''}
-                        ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
-                        <button class="btn btn-sm btn-outline-success action-btn me-1"
-                                onclick="devolverEquipo(${asignacion.id})"
-                                title="Devolver">
-                            <i class="bi bi-arrow-return-left"></i>
-                        </button>
-                        ` : ''}
-                        ${asignacion.estado !== 'obsoleto' ? `
-                        <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteEquipoAsignado(${asignacion.id})"
-                                title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+    equiposAsignados.forEach(asignacion => {
+        const row = document.createElement('tr');
+        const estadoClass = `estado-${asignacion.estado || 'activo'}`;
+        const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
+                       (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
+        
+        row.className = rowClass;
+        
+        // OCULTAR POR DEFECTO LOS EQUIPOS OBSOLETOS A MENOS QUE SE FILTREN EXPLÍCITAMENTE
+        if (asignacion.estado === 'obsoleto' && estadoFilter !== 'obsoleto') {
+            row.style.display = 'none';
         }
+        
+        // Usar las propiedades formateadas
+        const usuario = asignacion.usuarioAsignado || {};
+        const stockEquipo = asignacion.stockEquipo || {};
+        const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
+        
+        const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+        const cargoUsuario = usuario.cargo || 'Sin cargo';
+        const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+        const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
+
+        row.innerHTML = `
+            <td class="fw-bold">${asignacion.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="equipo-icon me-3">
+                        ${inicialUsuario}
+                    </div>
+                    <div>
+                        <div class="fw-bold">${nombreUsuario}</div>
+                        <small class="text-muted">${cargoUsuario}</small>
+                        ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge equipo-badge rounded-pill">
+                    <i class="bi bi-pc me-1"></i>
+                    ${infoEquipo}
+                </span>
+                ${stockEquipo.tipo_equipo ? `
+                <small class="d-block text-muted">
+                    ${stockEquipo.tipo_equipo.nombre}
+                </small>
+                ` : ''}
+                ${asignacion.ip_equipo ? `
+                <small class="d-block text-muted">
+                    <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
+                </small>
+                ` : ''}
+                ${asignacion.numero_serie ? `
+                <small class="d-block text-muted">
+                    <i class="bi bi-upc-scan me-1"></i>${asignacion.numero_serie}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <small class="d-block">
+                    ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
+                </small>
+                ${asignacion.fecha_devolucion ? `
+                <small class="d-block text-muted">
+                    Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <span class="badge estado-badge ${estadoClass}">
+                    ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
+                </span>
+            </td>
+            <td>
+                <span class="badge asignador-badge rounded-pill">
+                    <i class="bi bi-person-check me-1"></i>
+                    ${usuarioAsignador.name}
+                </span>
+            </td>
+            <td class="table-actions text-center">
+                <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                        onclick="viewEquipoAsignado(${asignacion.id})"
+                        title="Ver">
+                    <i class="bi bi-eye"></i>
+                </button>
+                ${asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editEquipoAsignado(${asignacion.id})"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                ` : `
+                <button class="btn btn-sm btn-outline-secondary action-btn me-1" 
+                        onclick="reactivarEquipo(${asignacion.id})"
+                        title="Reactivar">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                `}
+                ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-success action-btn me-1"
+                        onclick="devolverEquipo(${asignacion.id})"
+                        title="Devolver">
+                    <i class="bi bi-arrow-return-left"></i>
+                </button>
+                ` : ''}
+                ${asignacion.estado !== 'obsoleto' && asignacion.estado !== 'devuelto' ? `
+<button class="btn btn-sm btn-outline-warning action-btn me-1"
+        onclick="marcarObsoleto(${asignacion.id})"
+        title="Marcar como Obsoleto">
+    <i class="bi bi-exclamation-triangle"></i>
+</button>
+` : ''}
+                <button class="btn btn-sm btn-outline-danger action-btn"
+                        onclick="deleteEquipoAsignado(${asignacion.id})"
+                        title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
 
         // Actualizar contadores
         function actualizarContadores() {
@@ -1871,6 +1888,87 @@ async function viewEquipoAsignado(id) {
             }
         }
 
+        async function marcarObsoleto(id) {
+    const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Deseas marcar este equipo como obsoleto? Esta acción eliminará el equipo del inventario y del sistema.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, marcar como obsoleto',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/equipos_asignados/${id}/obsoleto`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message || 'Equipo marcado como obsoleto y eliminado del sistema'
+                });
+                // Recargar la lista para reflejar los cambios
+                await cargarEquiposAsignados();
+            } else {
+                throw new Error(data.error || 'Error al marcar equipo como obsoleto');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+}
+
+async function reactivarEquipo(id) {
+    const result = await Swal.fire({
+        title: '¿Reactivar equipo?',
+        text: '¿Deseas reactivar este equipo obsoleto?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, reactivar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/equipos_asignados/${id}/reactivar`, {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message || 'Equipo reactivado exitosamente'
+                });
+                await cargarEquiposAsignados();
+            } else {
+                throw new Error(data.error || 'Error al reactivar equipo');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+}
+
         async function deleteEquipoAsignado(id) {
             const result = await Swal.fire({
                 title: '¿Estás seguro?',
@@ -1912,27 +2010,32 @@ async function viewEquipoAsignado(id) {
         }
 
         // Funciones de filtros
-        function aplicarFiltros() {
-            const nameFilter = document.getElementById('searchName').value.toLowerCase();
-            const equipoFilter = document.getElementById('searchEquipo').value.toLowerCase();
-            const estadoFilter = document.getElementById('filterEstado').value;
-            
-            const rows = document.querySelectorAll('#equiposAsignadosTableBody tr');
-            
-            rows.forEach(row => {
-                if (row.id === 'loadingRow') return;
-                
-                const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-                const equipo = row.querySelector('td:nth-child(3) .badge.equipo-badge').textContent.toLowerCase();
-                const estado = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase().replace(/\s+/g, '');
-                
-                const nameMatch = !nameFilter || name.includes(nameFilter);
-                const equipoMatch = !equipoFilter || equipo.includes(equipoFilter);
-                const estadoMatch = !estadoFilter || estado === estadoFilter;
-                
-                row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
-            });
+function aplicarFiltros() {
+    const nameFilter = document.getElementById('searchName').value.toLowerCase();
+    const equipoFilter = document.getElementById('searchEquipo').value.toLowerCase();
+    const estadoFilter = document.getElementById('filterEstado').value;
+    
+    const rows = document.querySelectorAll('#equiposAsignadosTableBody tr');
+    
+    rows.forEach(row => {
+        if (row.id === 'loadingRow') return;
+        
+        const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
+        const equipo = row.querySelector('td:nth-child(3) .badge.equipo-badge').textContent.toLowerCase();
+        const estado = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase().replace(/\s+/g, '');
+        
+        const nameMatch = !nameFilter || name.includes(nameFilter);
+        const equipoMatch = !equipoFilter || equipo.includes(equipoFilter);
+        const estadoMatch = !estadoFilter || estado === estadoFilter;
+        
+        // MOSTRAR EQUIPOS OBSOLETOS SOLO CUANDO SE FILTRA EXPLÍCITAMENTE
+        if (estado === 'obsoleto' && estadoFilter !== 'obsoleto') {
+            row.style.display = 'none';
+        } else {
+            row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
         }
+    });
+}
 
         function resetFiltros() {
             document.getElementById('searchName').value = '';

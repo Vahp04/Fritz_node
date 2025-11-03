@@ -520,10 +520,7 @@
                             <div class="col-md-3">
                                 <input type="text" class="form-control form-control-sm" placeholder="Buscar por Sede o Departamento..." id="searchSede">
                             </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por RDP..." id="searchRDP">
-                            </div>
-                            <div class="col-md-12 mt-2">
+                            <div class="col-md-3 mt-2">
                                 <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
                                     <i class="bi bi-arrow-counterclockwise"></i> Limpiar
                                 </button>
@@ -932,10 +929,10 @@
                 // Generar badges para RDPs
                 let rdpHTML = '';
                 if (usuario.rdpfis) {
-                    rdpHTML += `<span class="badge rdp-badge rdp-fisico" title="RDP Físico">Fís: ${usuario.rdpfis}</span>`;
+                    rdpHTML += `<span class="badge rdp-badge rdp-fisico" title="RDP Fiscal">Bs: ${usuario.rdpfis}</span>`;
                 }
                 if (usuario.rdpfin) {
-                    rdpHTML += `<span class="badge rdp-badge rdp-financiero" title="RDP Financiero">Fin: ${usuario.rdpfin}</span>`;
+                    rdpHTML += `<span class="badge rdp-badge rdp-financiero" title="RDP Financiero">$: ${usuario.rdpfin}</span>`;
                 }
                 if (!usuario.rdpfis && !usuario.rdpfin) {
                     rdpHTML = '<span class="text-muted small">Sin RDP</span>';
