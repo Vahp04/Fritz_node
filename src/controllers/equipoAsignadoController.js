@@ -4,70 +4,72 @@ import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 export const equipoAsignadoController = {
-async index(req, res) {
-  try {
-    const equiposAsignados = await prisma.equipo_asignado.findMany({
-      include: {
-        usuarios: {
-          include: {
-            sede: true,
-            departamento: true
+  async index(req, res) {
+    try {
+      const equiposAsignados = await prisma.equipo_asignado.findMany({
+        include: {
+          usuarios: {
+            include: {
+              sede: true,
+              departamento: true
+            }
+          },
+          usuario: true,
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
           }
         },
-        usuario: true,
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
-          }
-        }
-      },
-      orderBy: { id: 'asc' }
-    });
+        orderBy: { id: 'asc' }
+      });
 
-    console.log('🔍 Equipos asignados encontrados:', equiposAsignados.length);
-    
-    // Formatear la respuesta para el frontend
-    const response = equiposAsignados.map(asignacion => ({
-      id: asignacion.id,
-      usuarios_id: asignacion.usuarios_id,
-      stock_equipos_id: asignacion.stock_equipos_id,
-      fecha_asignacion: asignacion.fecha_asignacion,
-      fecha_devolucion: asignacion.fecha_devolucion,
-      ip_equipo: asignacion.ip_equipo,
-      observaciones: asignacion.observaciones,
-      estado: asignacion.estado,
-      created_at: asignacion.created_at,
-      updated_at: asignacion.updated_at,
-      // Relaciones formateadas correctamente
-      usuarioAsignado: asignacion.usuarios ? {
-        id: asignacion.usuarios.id,
-        nombre: asignacion.usuarios.nombre,
-        apellido: asignacion.usuarios.apellido,
-        cargo: asignacion.usuarios.cargo,
-        correo: asignacion.usuarios.correo,
-        sede: asignacion.usuarios.sede,
-        departamento: asignacion.usuarios.departamento
-      } : null,
-      stockEquipo: asignacion.stock_equipos ? {
-        id: asignacion.stock_equipos.id,
-        marca: asignacion.stock_equipos.marca,
-        modelo: asignacion.stock_equipos.modelo,
-        tipo_equipo: asignacion.stock_equipos.tipo_equipo
-      } : null,
-      usuarioAsignador: asignacion.usuario ? {
-        id: asignacion.usuario.id,
-        name: asignacion.usuario.name,
-        email: asignacion.usuario.email
-      } : null
-    }));
+      console.log('🔍 Equipos asignados encontrados:', equiposAsignados.length);
+      
+      // Formatear la respuesta para el frontend - USAR CEREAL_EQUIPO
+      const response = equiposAsignados.map(asignacion => ({
+        id: asignacion.id,
+        usuarios_id: asignacion.usuarios_id,
+        stock_equipos_id: asignacion.stock_equipos_id,
+        fecha_asignacion: asignacion.fecha_asignacion,
+        fecha_devolucion: asignacion.fecha_devolucion,
+        ip_equipo: asignacion.ip_equipo,
+        numero_serie: asignacion.cereal_equipo, // CAMBIAR A cereal_equipo
+        observaciones: asignacion.observaciones,
+        estado: asignacion.estado,
+        created_at: asignacion.created_at,
+        updated_at: asignacion.updated_at,
+        // Relaciones formateadas correctamente
+        usuarioAsignado: asignacion.usuarios ? {
+          id: asignacion.usuarios.id,
+          nombre: asignacion.usuarios.nombre,
+          apellido: asignacion.usuarios.apellido,
+          cargo: asignacion.usuarios.cargo,
+          correo: asignacion.usuarios.correo,
+          sede: asignacion.usuarios.sede,
+          departamento: asignacion.usuarios.departamento
+        } : null,
+        stockEquipo: asignacion.stock_equipos ? {
+          id: asignacion.stock_equipos.id,
+          marca: asignacion.stock_equipos.marca,
+          modelo: asignacion.stock_equipos.modelo,
+          tipo_equipo: asignacion.stock_equipos.tipo_equipo
+        } : null,
+        usuarioAsignador: asignacion.usuario ? {
+          id: asignacion.usuario.id,
+          name: asignacion.usuario.name,
+          email: asignacion.usuario.email
+        } : null
+      }));
 
-    res.json(response);
+      res.json(response);
 
-  } catch (error) {
-    console.error('Error en index:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+    } catch (error) {
+      console.error('Error en index:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
   async store(req, res) {
     try {
       const {
@@ -75,10 +77,22 @@ async index(req, res) {
         stock_equipos_id,
         fecha_asignacion,
         ip_equipo,
+        numero_serie, // Este viene del frontend como "numero_serie"
         fecha_devolucion,
         observaciones,
         estado = 'activo'
       } = req.body;
+
+      console.log('📝 Datos recibidos para crear asignación:', {
+        usuarios_id,
+        stock_equipos_id,
+        fecha_asignacion,
+        ip_equipo,
+        numero_serie,
+        fecha_devolucion,
+        observaciones,
+        estado
+      });
 
       if (!req.user || !req.user.id) {
         return res.status(401).json({ error: 'Usuario no autenticado' });
@@ -97,12 +111,14 @@ async index(req, res) {
         return res.status(400).json({ error: 'El equipo seleccionado no tiene stock disponible' });
       }
 
+      // USAR CEREAL_EQUIPO en la base de datos
       const equipoAsignado = await prisma.equipo_asignado.create({
         data: {
           usuarios_id: parseInt(usuarios_id),
           stock_equipos_id: parseInt(stock_equipos_id),
           fecha_asignacion: new Date(fecha_asignacion),
           ip_equipo,
+          cereal_equipo: numero_serie, // Mapear numero_serie a cereal_equipo
           fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
           observaciones,
           usuario_id: req.user.id,
@@ -131,7 +147,8 @@ async index(req, res) {
                 select: {
                   id: true,
                   nombre: true,
-                  requiere_ip: true
+                  requiere_ip: true,
+                  requiere_cereal: true
                 }
               }
             }
@@ -185,7 +202,13 @@ async index(req, res) {
         return res.status(404).json({ error: 'Asignación no encontrada' });
       }
 
-      res.json(equipoAsignado);
+      // Formatear respuesta para mantener consistencia con el frontend
+      const response = {
+        ...equipoAsignado,
+        numero_serie: equipoAsignado.cereal_equipo || null // Mapear cereal_equipo a numero_serie para el frontend
+      };
+
+      res.json(response);
     } catch (error) {
       console.error('Error en show:', error);
       res.status(500).json({ error: error.message });
@@ -200,10 +223,22 @@ async index(req, res) {
         stock_equipos_id,
         fecha_asignacion,
         ip_equipo,
+        numero_serie, // Este viene del frontend como "numero_serie"
         fecha_devolucion,
         observaciones,
         estado
       } = req.body;
+
+      console.log('📝 Datos recibidos para actualizar asignación:', {
+        usuarios_id,
+        stock_equipos_id,
+        fecha_asignacion,
+        ip_equipo,
+        numero_serie,
+        fecha_devolucion,
+        observaciones,
+        estado
+      });
 
       const equipoAsignado = await prisma.equipo_asignado.findUnique({
         where: { id: parseInt(id) }
@@ -246,6 +281,7 @@ async index(req, res) {
         }
       }
 
+      // USAR CEREAL_EQUIPO en la base de datos
       const updated = await prisma.equipo_asignado.update({
         where: { id: parseInt(id) },
         data: {
@@ -253,6 +289,7 @@ async index(req, res) {
           stock_equipos_id: parseInt(stock_equipos_id),
           fecha_asignacion: new Date(fecha_asignacion),
           ip_equipo,
+          cereal_equipo: numero_serie, // Mapear numero_serie a cereal_equipo
           fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
           observaciones,
           estado: nuevoEstado
@@ -280,7 +317,8 @@ async index(req, res) {
                 select: {
                   id: true,
                   nombre: true,
-                  requiere_ip: true
+                  requiere_ip: true,
+                  requiere_cereal: true
                 }
               }
             }
@@ -646,7 +684,7 @@ async index(req, res) {
     }
   },
 
- async generarPdfAsignaciones(req, res) {
+   async generarPdfAsignaciones(req, res) {
     console.log('=== GENERAR PDF ASIGNACIONES INICIADO ===');
     
     try {
@@ -684,7 +722,8 @@ async index(req, res) {
                             select: {
                                 id: true,
                                 nombre: true,
-                                requiere_ip: true
+                                requiere_ip: true,
+                                requiere_cereal: true
                             }
                         }
                     }
@@ -698,16 +737,7 @@ async index(req, res) {
 
         console.log(`📊 ${equiposAsignados.length} asignaciones encontradas`);
         
-        if (equiposAsignados.length > 0) {
-            console.log('🔍 Primera asignación sample:', {
-                id: equiposAsignados[0].id,
-                usuarios: equiposAsignados[0].usuarios,
-                stock_equipos: equiposAsignados[0].stock_equipos,
-                usuario: equiposAsignados[0].usuario
-            });
-        }
-
-        // CORREGIR: Formatear los datos para que coincidan con la plantilla EJS
+        // Formatear los datos para la plantilla EJS
         const asignacionesProcesadas = equiposAsignados.map(asignacion => {
             const usuario = asignacion.usuarios || {};
             const stock = asignacion.stock_equipos || {};
@@ -722,12 +752,13 @@ async index(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
+                numero_serie: asignacion.cereal_equipo, // USAR CEREAL_EQUIPO
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 created_at: asignacion.created_at,
                 updated_at: asignacion.updated_at,
                 
-                // CORRECCIÓN: Usar los nombres que espera la plantilla EJS
+                // Relaciones
                 usuarioAsignado: {
                     id: usuario.id || 0,
                     nombre: usuario.nombre || 'N/A',
@@ -745,7 +776,8 @@ async index(req, res) {
                     tipoEquipo: {
                         id: tipoEquipo.id || 0,
                         nombre: tipoEquipo.nombre || 'Sin tipo',
-                        requiere_ip: tipoEquipo.requiere_ip || false
+                        requiere_ip: tipoEquipo.requiere_ip || false,
+                        requiere_cereal: tipoEquipo.requiere_cereal || false
                     }
                 },
                 usuarioAsignador: {
