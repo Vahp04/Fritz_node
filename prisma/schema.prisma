@@ -33,6 +33,7 @@ model tipo_equipo {
   nombre        String          @db.VarChar(191)
   descripcion   String?         @db.VarChar(191)
   requiere_ip   Boolean?        @default(true)
+  requiere_cereal Boolean?      @default(true)
   created_at    DateTime        @default(now())
   updated_at    DateTime        @default(now())
   stock_equipos stock_equipos[]
@@ -79,7 +80,9 @@ model usuarios {
   apellido        String?           @db.VarChar(191)
   cargo           cargo
   correo          String?           @db.VarChar(191)
-  rdp             String?           @db.VarChar(191)
+  rdpfis          String?           @db.VarChar(191)
+  rdpfin          String?           @db.VarChar(191)
+  descripcion     String?           @db.VarChar(191)
   sede_id         Int
   departamento_id Int
   created_at      DateTime          @default(now())
@@ -97,6 +100,7 @@ model equipo_asignado {
   stock_equipos_id Int
   fecha_asignacion DateTime?
   ip_equipo        String?       @db.VarChar(191)
+  cereal_equipo    String?       @db.VarChar(191)  // NUEVO CAMPO AGREGADO
   fecha_devolucion DateTime?
   observaciones    String?       @db.VarChar(191)
   usuario_id       Int?
@@ -119,4 +123,12 @@ enum cargo {
   Pasante
   Coordinador
   Supervisor
+}
+
+model ContadorRegistros {
+  id        Int      @id @default(autoincrement())
+  tipo      String   @unique // Por ejemplo: "reporte_equipos"
+  ultimoNumero Int   @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

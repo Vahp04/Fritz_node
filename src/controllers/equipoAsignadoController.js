@@ -982,6 +982,19 @@ async generarPdfPorUsuario(req, res) {
     try {
         const { usuarioId } = req.params;
 
+        // Obtener o crear el contador de registros
+        let contador = await prisma.contadorRegistros.upsert({
+            where: { tipo: 'reporte_equipos' },
+            update: { ultimoNumero: { increment: 1 } },
+            create: { 
+                tipo: 'reporte_equipos',
+                ultimoNumero: 1
+            }
+        });
+
+        // Formatear el número de registro (T0001, T0002, etc.)
+        const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
+
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(usuarioId) },
             include: {
@@ -1053,21 +1066,22 @@ async generarPdfPorUsuario(req, res) {
             equiposActivos: equiposActivos,
             equiposDevueltos: equiposDevueltos,
             equiposObsoletos: equiposObsoletos,
-            // Agregar flag para indicar que es formato duplicado
-            formatoDuplicado: true
+            formatoDuplicado: true,
+            numeroRegistro: numeroRegistro // Agregar el número de registro
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
             format: 'A4',
-            landscape: false // Mantener vertical
+            landscape: false
         });
 
         console.log('=== PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+        console.log(`Número de registro asignado: ${numeroRegistro}`);
 
         if (res.headersSent) return;
 
-        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}.pdf`;
+        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
         
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
@@ -1085,11 +1099,24 @@ async generarPdfPorUsuario(req, res) {
         }
     }
 },
+
 async verPdfPorUsuario(req, res) {
     console.log('=== VER PDF POR USUARIO INICIADO ===');
     
     try {
         const { usuarioId } = req.params;
+
+        // Obtener el contador actual sin incrementarlo (solo para visualización)
+        let contador = await prisma.contadorRegistros.findUnique({
+            where: { tipo: 'reporte_equipos' }
+        });
+
+        // Si no existe el contador, crear uno temporal
+        if (!contador) {
+            contador = { ultimoNumero: 1 };
+        }
+
+        const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
 
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(usuarioId) },
@@ -1121,7 +1148,6 @@ async verPdfPorUsuario(req, res) {
             ]
         });
 
-        // Formatear los datos para la plantilla
         const equiposProcesados = equiposAsignados.map(asignacion => {
             const stock = asignacion.stock_equipos || {};
             const tipoEquipo = stock.tipo_equipo || {};
@@ -1162,21 +1188,21 @@ async verPdfPorUsuario(req, res) {
             equiposActivos: equiposActivos,
             equiposDevueltos: equiposDevueltos,
             equiposObsoletos: equiposObsoletos,
-            // Agregar flag para indicar que es formato duplicado
-            formatoDuplicado: true
+            formatoDuplicado: true,
+            numeroRegistro: numeroRegistro // Agregar el número de registro
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
             format: 'A4',
-            landscape: false // Mantener vertical
+            landscape: false
         });
 
         console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
 
         if (res.headersSent) return;
 
-        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}.pdf`;
+        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
         
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${nombreArchivo}"`);

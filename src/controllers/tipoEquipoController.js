@@ -24,6 +24,7 @@ export const tipoEquipoController = {
               nombre: tipo.nombre,
               descripcion: tipo.descripcion,
               requiere_ip: tipo.requiere_ip,
+              requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
               // Mapear los campos con guión bajo a camelCase para el frontend
               createdAt: tipo.created_at,  // Cambiado de created_at a createdAt
               updatedAt: tipo.updated_at,  // Cambiado de updated_at a updatedAt
@@ -36,6 +37,7 @@ export const tipoEquipoController = {
               nombre: tipo.nombre,
               descripcion: tipo.descripcion,
               requiere_ip: tipo.requiere_ip,
+              requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
               createdAt: tipo.created_at,  // Mapear a camelCase
               updatedAt: tipo.updated_at,  // Mapear a camelCase
               stock_count: 0
@@ -53,7 +55,7 @@ export const tipoEquipoController = {
 
   async store(req, res) {
     try {
-      const { nombre, descripcion, requiere_ip } = req.body;
+      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; // NUEVO CAMPO
 
       const existe = await prisma.tipo_equipo.findFirst({
         where: { nombre }
@@ -67,7 +69,8 @@ export const tipoEquipoController = {
         data: {
           nombre,
           descripcion,
-          requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1'
+          requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1',
+          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' // NUEVO CAMPO
         }
       });
 
@@ -77,6 +80,7 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
+        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
         createdAt: tipoEquipo.created_at,  // Mapear a camelCase
         updatedAt: tipoEquipo.updated_at   // Mapear a camelCase
       };
@@ -113,6 +117,7 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
+        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
         // Mapear los campos de fecha
         createdAt: tipoEquipo.created_at,  // Mapear a camelCase
         updatedAt: tipoEquipo.updated_at,  // Mapear a camelCase
@@ -130,7 +135,7 @@ export const tipoEquipoController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { nombre, descripcion, requiere_ip } = req.body;
+      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; // NUEVO CAMPO
 
       const existe = await prisma.tipo_equipo.findFirst({
         where: { 
@@ -148,7 +153,8 @@ export const tipoEquipoController = {
         data: {
           nombre,
           descripcion,
-          requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1'
+          requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1',
+          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' // NUEVO CAMPO
         }
       });
 
@@ -158,6 +164,7 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
+        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
         createdAt: tipoEquipo.created_at,  // Mapear a camelCase
         updatedAt: tipoEquipo.updated_at   // Mapear a camelCase
       };
@@ -216,6 +223,7 @@ export const tipoEquipoController = {
             nombre: tipo.nombre,
             descripcion: tipo.descripcion,
             requiere_ip: tipo.requiere_ip,
+            requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
             // Mapear los campos de fecha
             createdAt: tipo.created_at,  // Mapear a camelCase
             updatedAt: tipo.updated_at,  // Mapear a camelCase
@@ -252,6 +260,7 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
+        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
         // Mapear los campos de fecha
         createdAt: tipoEquipo.created_at,  // Mapear a camelCase
         updatedAt: tipoEquipo.updated_at,  // Mapear a camelCase
@@ -261,6 +270,84 @@ export const tipoEquipoController = {
       res.json(tipoConConteo);
     } catch (error) {
       console.error('Error en apiShow:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // NUEVO: Endpoint para obtener tipos de equipo que requieren cereal
+  async getTiposConCereal(req, res) {
+    try {
+      console.log('🔍 Cargando tipos de equipo que requieren cereal...');
+      
+      const tiposEquipo = await prisma.tipo_equipo.findMany({
+        where: { 
+          requiere_cereal: true 
+        },
+        orderBy: { id: 'asc' }
+      });
+
+      const tiposConConteo = await Promise.all(
+        tiposEquipo.map(async (tipo) => {
+          const stockCount = await prisma.stock_equipos.count({
+            where: { tipo_equipo_id: tipo.id }
+          });
+          
+          return {
+            id: tipo.id,
+            nombre: tipo.nombre,
+            descripcion: tipo.descripcion,
+            requiere_ip: tipo.requiere_ip,
+            requiere_cereal: tipo.requiere_cereal,
+            createdAt: tipo.created_at,
+            updatedAt: tipo.updated_at,
+            stock_count: stockCount
+          };
+        })
+      );
+
+      console.log(`✅ ${tiposConConteo.length} tipos con cereal encontrados`);
+      res.json(tiposConConteo);
+    } catch (error) {
+      console.error('Error en getTiposConCereal:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  // NUEVO: Endpoint para obtener tipos de equipo que requieren IP
+  async getTiposConIP(req, res) {
+    try {
+      console.log('🔍 Cargando tipos de equipo que requieren IP...');
+      
+      const tiposEquipo = await prisma.tipo_equipo.findMany({
+        where: { 
+          requiere_ip: true 
+        },
+        orderBy: { id: 'asc' }
+      });
+
+      const tiposConConteo = await Promise.all(
+        tiposEquipo.map(async (tipo) => {
+          const stockCount = await prisma.stock_equipos.count({
+            where: { tipo_equipo_id: tipo.id }
+          });
+          
+          return {
+            id: tipo.id,
+            nombre: tipo.nombre,
+            descripcion: tipo.descripcion,
+            requiere_ip: tipo.requiere_ip,
+            requiere_cereal: tipo.requiere_cereal,
+            createdAt: tipo.created_at,
+            updatedAt: tipo.updated_at,
+            stock_count: stockCount
+          };
+        })
+      );
+
+      console.log(`✅ ${tiposConConteo.length} tipos con IP encontrados`);
+      res.json(tiposConConteo);
+    } catch (error) {
+      console.error('Error en getTiposConIP:', error);
       res.status(500).json({ error: error.message });
     }
   }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title || 'Fritz C.A | Equipos Asignados' %></title>
 
-        <script>
+    <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -468,7 +468,6 @@
                     </div>
                 </div>
 
-
                 <!-- Resumen de Asignaciones -->
                 <div class="row mb-4">
                     <div class="col-md-3">
@@ -672,12 +671,22 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            
+                            <!-- CAMPOS DINÁMICOS - IP Y CEREAL -->
+                            <div class="col-md-6 ip-field-container" style="display: none;">
                                 <div class="mb-3">
-                                    <label class="form-label">IP del Equipo</label>
+                                    <label class="form-label">IP del Equipo*</label>
                                     <input type="text" class="form-control" name="ip_equipo" placeholder="Ej: 192.168.1.100">
                                 </div>
                             </div>
+                            
+                            <div class="col-md-6 cereal-field-container" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie*</label>
+                                    <input type="text" class="form-control" name="numero_serie" placeholder="Ej: SN123456789">
+                                </div>
+                            </div>
+                            
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Fecha de Devolución</label>
@@ -749,12 +758,22 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            
+                            <!-- CAMPOS DINÁMICOS - IP Y CEREAL -->
+                            <div class="col-md-6 ip-field-container" style="display: none;">
                                 <div class="mb-3">
-                                    <label class="form-label">IP del Equipo</label>
+                                    <label class="form-label">IP del Equipo*</label>
                                     <input type="text" class="form-control" name="ip_equipo" id="edit_ip_equipo" placeholder="Ej: 192.168.1.100">
                                 </div>
                             </div>
+                            
+                            <div class="col-md-6 cereal-field-container" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie*</label>
+                                    <input type="text" class="form-control" name="numero_serie" id="edit_numero_serie" placeholder="Ej: SN123456789">
+                                </div>
+                            </div>
+                            
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Fecha de Devolución</label>
@@ -826,6 +845,10 @@
                             <p id="view_ip_equipo" class="mb-2"></p>
                         </div>
                         <div class="col-md-6">
+                            <strong>Número de Serie:</strong>
+                            <p id="view_numero_serie" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
                             <strong>Asignado Por:</strong>
                             <p id="view_asignado_por" class="mb-2"></p>
                         </div>
@@ -890,534 +913,554 @@
             cargarUsuarios();
             cargarStockEquipos();
             inicializarEventos();
+        });
+
+        // Cargar usuarios
+        async function cargarUsuarios() {
+            try {
+                console.log('🔍 Cargando usuarios...');
+                const response = await fetch('/api/usuarios', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('❌ Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('📦 Respuesta usuarios:', data);
+                
+                // Manejar diferentes estructuras de respuesta
+                if (data.success && data.usuarios) {
+                    usuarios = data.usuarios;
+                } else if (Array.isArray(data)) {
+                    usuarios = data;
+                } else if (data.usuarios) {
+                    usuarios = data.usuarios;
+                } else if (data.data) {
+                    usuarios = data.data;
+                } else {
+                    usuarios = [];
+                }
+                
+                console.log(`✅ ${usuarios.length} usuarios cargados`);
+                llenarSelectUsuarios();
+                
+            } catch (error) {
+                console.error('❌ Error cargando usuarios:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                usuarios = [];
+                llenarSelectUsuarios();
+            }
+        }
+
+        // Cargar stock de equipos
+        async function cargarStockEquipos() {
+            try {
+                console.log('🔍 Cargando stock de equipos...');
+                const response = await fetch('/api/stock_equipos', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('❌ Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('📦 Respuesta stock (estructura):', data);
+                
+                // Determinar la estructura de los datos
+                let equiposArray = [];
+                
+                if (Array.isArray(data)) {
+                    equiposArray = data;
+                    console.log('✅ Datos recibidos como array directo');
+                } else if (data.stockEquipos && Array.isArray(data.stockEquipos)) {
+                    equiposArray = data.stockEquipos;
+                    console.log('✅ Datos recibidos en propiedad stockEquipos');
+                } else if (data.equipos && Array.isArray(data.equipos)) {
+                    equiposArray = data.equipos;
+                    console.log('✅ Datos recibidos en propiedad equipos');
+                } else if (data.data && Array.isArray(data.data)) {
+                    equiposArray = data.data;
+                    console.log('✅ Datos recibidos en propiedad data');
+                } else {
+                    console.warn('⚠️ Estructura de datos no reconocida:', Object.keys(data));
+                    equiposArray = [];
+                }
+                
+                stockEquipos = equiposArray;
+                console.log(`✅ ${stockEquipos.length} equipos cargados`);
+                
+                llenarSelectStockEquipos();
+                
+            } catch (error) {
+                console.error('❌ Error cargando stock:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                stockEquipos = [];
+                llenarSelectStockEquipos();
+            }
+        }
+
+        // Función para manejar error de autenticación
+        function manejarErrorAutenticacion() {
+            console.log('🔐 Redirigiendo al login...');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sesión expirada',
+                text: 'Tu sesión ha expirado. Serás redirigido al login.',
+                confirmButtonText: 'Ir al login',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then((result) => {
+                window.location.href = '/login';
+            });
+        }
+
+        // Función mejorada para toggle de campos dinámicos (IP y Cereal)
+        function toggleDynamicFieldsBasedOnSelection(selectElement, isEditModal = false) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
+            const requiereCereal = selectedOption.getAttribute('data-requiere-cereal') === '1';
+            const equipoId = selectedOption.value;
             
-        });
-
-// Cargar usuarios - VERSIÓN CORREGIDA
-async function cargarUsuarios() {
-    try {
-        console.log('🔍 Cargando usuarios...');
-        const response = await fetch('/api/usuarios', {
-            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('❌ Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📦 Respuesta usuarios:', data);
-        
-        // Manejar diferentes estructuras de respuesta
-        if (data.success && data.usuarios) {
-            usuarios = data.usuarios;
-        } else if (Array.isArray(data)) {
-            usuarios = data;
-        } else if (data.usuarios) {
-            usuarios = data.usuarios;
-        } else if (data.data) {
-            usuarios = data.data;
-        } else {
-            usuarios = [];
-        }
-        
-        console.log(`✅ ${usuarios.length} usuarios cargados`);
-        llenarSelectUsuarios();
-        
-    } catch (error) {
-        console.error('❌ Error cargando usuarios:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        usuarios = [];
-        llenarSelectUsuarios();
-    }
-}
-
-// Cargar stock de equipos - VERSIÓN CORREGIDA
-async function cargarStockEquipos() {
-    try {
-        console.log('🔍 Cargando stock de equipos...');
-        const response = await fetch('/api/stock_equipos', {
-            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('❌ Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📦 Respuesta stock (estructura):', data);
-        
-        // Determinar la estructura de los datos
-        let equiposArray = [];
-        
-        if (Array.isArray(data)) {
-            equiposArray = data;
-            console.log('✅ Datos recibidos como array directo');
-        } else if (data.stockEquipos && Array.isArray(data.stockEquipos)) {
-            equiposArray = data.stockEquipos;
-            console.log('✅ Datos recibidos en propiedad stockEquipos');
-        } else if (data.equipos && Array.isArray(data.equipos)) {
-            equiposArray = data.equipos;
-            console.log('✅ Datos recibidos en propiedad equipos');
-        } else if (data.data && Array.isArray(data.data)) {
-            equiposArray = data.data;
-            console.log('✅ Datos recibidos en propiedad data');
-        } else {
-            console.warn('⚠️ Estructura de datos no reconocida:', Object.keys(data));
-            equiposArray = [];
-        }
-        
-        stockEquipos = equiposArray;
-        console.log(`✅ ${stockEquipos.length} equipos cargados`);
-        
-        llenarSelectStockEquipos();
-        
-    } catch (error) {
-        console.error('❌ Error cargando stock:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        stockEquipos = [];
-        llenarSelectStockEquipos();
-    }
-}
-
-// Función para manejar error de autenticación
-function manejarErrorAutenticacion() {
-    console.log('🔐 Redirigiendo al login...');
-    Swal.fire({
-        icon: 'warning',
-        title: 'Sesión expirada',
-        text: 'Tu sesión ha expirado. Serás redirigido al login.',
-        confirmButtonText: 'Ir al login',
-        allowOutsideClick: false,
-        allowEscapeKey: false
-    }).then((result) => {
-        window.location.href = '/login';
-    });
-}
-// Función para manejar error de autenticación
-function manejarErrorAutenticacion() {
-    console.log('🔐 Redirigiendo al login...');
-    Swal.fire({
-        icon: 'warning',
-        title: 'Sesión expirada',
-        text: 'Tu sesión ha expirado. Serás redirigido al login.',
-        confirmButtonText: 'Ir al login',
-        allowOutsideClick: false
-    }).then((result) => {
-        window.location.href = '/login';
-    });
-}
-
-
-
-// Función mejorada para toggle del campo IP
-function toggleIPFieldBasedOnSelection(selectElement, isEditModal = false) {
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
-    const equipoId = selectedOption.value;
-    
-    console.log(`🔍 Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}`);
-    
-    // Determinar qué campo IP usar según el modal
-    let ipField, ipContainer;
-    if (isEditModal) {
-        ipField = document.getElementById('edit_ip_equipo');
-        ipContainer = ipField ? ipField.closest('.mb-3') : null;
-    } else {
-        ipField = document.querySelector('[name="ip_equipo"]');
-        ipContainer = ipField ? ipField.closest('.mb-3') : null;
-    }
-    
-    if (ipField && ipContainer) {
-        if (requiereIP) {
-            ipContainer.style.display = 'block';
-            ipField.required = true;
-            console.log(`✅ Mostrando campo IP para equipo ${equipoId}`);
-        } else {
-            ipContainer.style.display = 'none';
-            ipField.value = '';
-            ipField.required = false;
-            console.log(`❌ Ocultando campo IP para equipo ${equipoId}`);
-        }
-    } else {
-        console.error('❌ No se encontró el campo IP o su contenedor');
-    }
-}
-
-function inicializarEventosSelects() {
-    // Event listeners para los selects de equipos - CREAR
-    const createSelect = document.getElementById('create_stock_equipos_id');
-    if (createSelect) {
-        createSelect.addEventListener('change', function() {
-            console.log('🔄 Cambio en select de crear');
-            toggleIPFieldBasedOnSelection(this, false);
-        });
-        
-        // Aplicar estado inicial inmediatamente después de llenar
-        setTimeout(() => {
-            if (createSelect.value) {
-                toggleIPFieldBasedOnSelection(createSelect, false);
+            console.log(`🔍 Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}, requiere Cereal: ${requiereCereal}`);
+            
+            // Determinar qué campos usar según el modal
+            let ipField, ipContainer, cerealField, cerealContainer;
+            
+            if (isEditModal) {
+                ipField = document.getElementById('edit_ip_equipo');
+                ipContainer = ipField ? ipField.closest('.ip-field-container') : null;
+                cerealField = document.getElementById('edit_numero_serie');
+                cerealContainer = cerealField ? cerealField.closest('.cereal-field-container') : null;
             } else {
-                // Ocultar campo IP por defecto
-                const ipContainer = document.querySelector('[name="ip_equipo"]')?.closest('.mb-3');
-                if (ipContainer) {
+                ipField = document.querySelector('[name="ip_equipo"]');
+                ipContainer = ipField ? ipField.closest('.ip-field-container') : null;
+                cerealField = document.querySelector('[name="numero_serie"]');
+                cerealContainer = cerealField ? cerealField.closest('.cereal-field-container') : null;
+            }
+            
+            // Manejar campo IP
+            if (ipField && ipContainer) {
+                if (requiereIP) {
+                    ipContainer.style.display = 'block';
+                    ipField.required = true;
+                    console.log(`✅ Mostrando campo IP para equipo ${equipoId}`);
+                } else {
                     ipContainer.style.display = 'none';
+                    ipField.value = '';
+                    ipField.required = false;
+                    console.log(`❌ Ocultando campo IP para equipo ${equipoId}`);
                 }
             }
-        }, 100);
-    }
-
-    // Event listeners para los selects de equipos - EDITAR
-    const editSelect = document.getElementById('edit_stock_equipos_id');
-    if (editSelect) {
-        editSelect.addEventListener('change', function() {
-            console.log('🔄 Cambio en select de editar');
-            toggleIPFieldBasedOnSelection(this, true);
-        });
-    }
-    
-    console.log('✅ Eventos de selects inicializados');
-}
-
-
-async function cargarEquiposAsignados() {
-    try {
-        console.log('🔍 Cargando equipos asignados...');
-        const response = await fetch('/api/equipos_asignados', {
-            credentials: 'include', // ¡IMPORTANTE! Incluir cookies
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+            
+            // Manejar campo Cereal (Número de Serie)
+            if (cerealField && cerealContainer) {
+                if (requiereCereal) {
+                    cerealContainer.style.display = 'block';
+                    cerealField.required = true;
+                    console.log(`✅ Mostrando campo Número de Serie para equipo ${equipoId}`);
+                } else {
+                    cerealContainer.style.display = 'none';
+                    cerealField.value = '';
+                    cerealField.required = false;
+                    console.log(`❌ Ocultando campo Número de Serie para equipo ${equipoId}`);
+                }
             }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('❌ Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('📦 Respuesta equipos asignados:', data);
-        
-        // La respuesta ya debería ser un array formateado
-        equiposAsignados = Array.isArray(data) ? data : [];
-        
-        console.log(`✅ ${equiposAsignados.length} asignaciones cargadas`);
-        
-        if (equiposAsignados.length > 0) {
-            console.log('📋 Primera asignación:', equiposAsignados[0]);
-        }
-        
-        renderizarEquiposAsignados();
-        actualizarContadores();
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        equiposAsignados = [];
-        renderizarEquiposAsignados();
-        
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudieron cargar los equipos asignados'
-        });
-    }
-}
-function llenarSelectUsuarios() {
-    const createSelect = document.getElementById('create_usuarios_id');
-    const editSelect = document.getElementById('edit_usuarios_id');
-    const pdfSelect = document.getElementById('usuarioSeleccionado');
-
-    const selects = [createSelect, editSelect, pdfSelect].filter(select => select !== null);
-
-    selects.forEach(select => {
-        // Limpiar select
-        select.innerHTML = '<option value="">Seleccione un usuario</option>';
-        
-        if (!usuarios || usuarios.length === 0) {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay usuarios disponibles";
-            select.appendChild(option);
-            return;
-        }
-        
-        console.log(`📝 Llenando select con ${usuarios.length} usuarios`);
-        
-        // Llenar con usuarios
-        usuarios.forEach(usuario => {
-            if (!usuario || !usuario.id) return;
-            
-            const option = document.createElement('option');
-            option.value = usuario.id;
-            
-            // Construir texto descriptivo
-            let texto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-            
-            if (usuario.cargo) {
-                texto += ` - ${usuario.cargo}`;
-            }
-            
-            // Agregar información adicional si está disponible
-            if (usuario.sede && usuario.sede.nombre) {
-                texto += ` (${usuario.sede.nombre})`;
-            }
-            
-            option.textContent = texto || `Usuario ${usuario.id}`;
-            select.appendChild(option);
-        });
-    });
-    
-    console.log('✅ Selects de usuarios llenados correctamente');
-}
-
-function llenarSelectStockEquipos() {
-    const createSelect = document.getElementById('create_stock_equipos_id');
-    const editSelect = document.getElementById('edit_stock_equipos_id');
-
-    const selects = [createSelect, editSelect].filter(select => select !== null);
-
-    selects.forEach(select => {
-        // Limpiar select
-        select.innerHTML = '<option value="">Seleccione un equipo</option>';
-        
-        if (!stockEquipos || stockEquipos.length === 0) {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay equipos disponibles";
-            select.appendChild(option);
-            return;
-        }
-        
-        console.log(`📝 Llenando select con ${stockEquipos.length} equipos`);
-        
-        // Llenar con equipos
-        stockEquipos.forEach(equipo => {
-            if (!equipo || !equipo.id) return;
-            
-            const option = document.createElement('option');
-            option.value = equipo.id;
-            
-            // Construir texto descriptivo
-            let texto = '';
-            if (equipo.marca && equipo.modelo) {
-                texto = `${equipo.marca} ${equipo.modelo}`;
-            } else if (equipo.nombre) {
-                texto = equipo.nombre;
-            } else {
-                texto = `Equipo ${equipo.id}`;
-            }
-            
-            // Agregar disponibilidad
-            if (equipo.cantidad_disponible !== undefined) {
-                texto += ` (${equipo.cantidad_disponible} disponible${equipo.cantidad_disponible !== 1 ? 's' : ''})`;
-            }
-            
-            option.textContent = texto;
-            
-            // DETECCIÓN DE REQUIERE_IP - FORMA ROBUSTA
-            let requiereIP = false;
-            
-            // Intentar todas las posibles formas de acceder a la información
-            if (equipo.tipo_equipo && equipo.tipo_equipo.requiere_ip !== undefined) {
-                requiereIP = Boolean(equipo.tipo_equipo.requiere_ip);
-                console.log(`✅ Equipo ${equipo.id}: requiere_ip desde tipo_equipo = ${requiereIP}`);
-            } else if (equipo.tipoEquipo && equipo.tipoEquipo.requiere_ip !== undefined) {
-                requiereIP = Boolean(equipo.tipoEquipo.requiere_ip);
-                console.log(`✅ Equipo ${equipo.id}: requiere_ip desde tipoEquipo = ${requiereIP}`);
-            } else if (equipo.requiere_ip !== undefined) {
-                requiereIP = Boolean(equipo.requiere_ip);
-                console.log(`✅ Equipo ${equipo.id}: requiere_ip directo = ${requiereIP}`);
-            } else {
-                // Si no se encuentra, buscar en todas las propiedades del objeto
-                Object.keys(equipo).forEach(key => {
-                    if (key.toLowerCase().includes('tipo') && equipo[key] && typeof equipo[key] === 'object') {
-                        if (equipo[key].requiere_ip !== undefined) {
-                            requiereIP = Boolean(equipo[key].requiere_ip);
-                            console.log(`✅ Equipo ${equipo.id}: requiere_ip desde ${key} = ${requiereIP}`);
-                        }
+        function inicializarEventosSelects() {
+            // Event listeners para los selects de equipos - CREAR
+            const createSelect = document.getElementById('create_stock_equipos_id');
+            if (createSelect) {
+                createSelect.addEventListener('change', function() {
+                    console.log('🔄 Cambio en select de crear');
+                    toggleDynamicFieldsBasedOnSelection(this, false);
+                });
+                
+                // Aplicar estado inicial inmediatamente después de llenar
+                setTimeout(() => {
+                    if (createSelect.value) {
+                        toggleDynamicFieldsBasedOnSelection(createSelect, false);
+                    } else {
+                        // Ocultar campos por defecto
+                        const ipContainer = document.querySelector('.ip-field-container');
+                        const cerealContainer = document.querySelector('.cereal-field-container');
+                        if (ipContainer) ipContainer.style.display = 'none';
+                        if (cerealContainer) cerealContainer.style.display = 'none';
                     }
+                }, 100);
+            }
+
+            // Event listeners para los selects de equipos - EDITAR
+            const editSelect = document.getElementById('edit_stock_equipos_id');
+            if (editSelect) {
+                editSelect.addEventListener('change', function() {
+                    console.log('🔄 Cambio en select de editar');
+                    toggleDynamicFieldsBasedOnSelection(this, true);
                 });
             }
             
-            // Si aún no se encontró, asumir false
-            if (requiereIP === undefined) {
-                console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
-                requiereIP = false;
+            console.log('✅ Eventos de selects inicializados');
+        }
+
+        async function cargarEquiposAsignados() {
+            try {
+                console.log('🔍 Cargando equipos asignados...');
+                const response = await fetch('/api/equipos_asignados', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('❌ Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('📦 Respuesta equipos asignados:', data);
+                
+                equiposAsignados = Array.isArray(data) ? data : [];
+                
+                console.log(`✅ ${equiposAsignados.length} asignaciones cargadas`);
+                
+                if (equiposAsignados.length > 0) {
+                    console.log('📋 Primera asignación:', equiposAsignados[0]);
+                }
+                
+                renderizarEquiposAsignados();
+                actualizarContadores();
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                equiposAsignados = [];
+                renderizarEquiposAsignados();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los equipos asignados'
+                });
             }
+        }
+
+        function llenarSelectUsuarios() {
+            const createSelect = document.getElementById('create_usuarios_id');
+            const editSelect = document.getElementById('edit_usuarios_id');
+            const pdfSelect = document.getElementById('usuarioSeleccionado');
+
+            const selects = [createSelect, editSelect, pdfSelect].filter(select => select !== null);
+
+            selects.forEach(select => {
+                // Limpiar select
+                select.innerHTML = '<option value="">Seleccione un usuario</option>';
+                
+                if (!usuarios || usuarios.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay usuarios disponibles";
+                    select.appendChild(option);
+                    return;
+                }
+                
+                console.log(`📝 Llenando select con ${usuarios.length} usuarios`);
+                
+                // Llenar con usuarios
+                usuarios.forEach(usuario => {
+                    if (!usuario || !usuario.id) return;
+                    
+                    const option = document.createElement('option');
+                    option.value = usuario.id;
+                    
+                    // Construir texto descriptivo
+                    let texto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    
+                    if (usuario.cargo) {
+                        texto += ` - ${usuario.cargo}`;
+                    }
+                    
+                    // Agregar información adicional si está disponible
+                    if (usuario.sede && usuario.sede.nombre) {
+                        texto += ` (${usuario.sede.nombre})`;
+                    }
+                    
+                    option.textContent = texto || `Usuario ${usuario.id}`;
+                    select.appendChild(option);
+                });
+            });
             
-            // Establecer atributo data-requiere-ip
-            option.setAttribute('data-requiere-ip', requiereIP ? '1' : '0');
-            option.setAttribute('data-equipo-id', equipo.id);
+            console.log('✅ Selects de usuarios llenados correctamente');
+        }
+
+        function llenarSelectStockEquipos() {
+            const createSelect = document.getElementById('create_stock_equipos_id');
+            const editSelect = document.getElementById('edit_stock_equipos_id');
+
+            const selects = [createSelect, editSelect].filter(select => select !== null);
+
+            selects.forEach(select => {
+                // Limpiar select
+                select.innerHTML = '<option value="">Seleccione un equipo</option>';
+                
+                if (!stockEquipos || stockEquipos.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay equipos disponibles";
+                    select.appendChild(option);
+                    return;
+                }
+                
+                console.log(`📝 Llenando select con ${stockEquipos.length} equipos`);
+                
+                // Llenar con equipos
+                stockEquipos.forEach(equipo => {
+                    if (!equipo || !equipo.id) return;
+                    
+                    const option = document.createElement('option');
+                    option.value = equipo.id;
+                    
+                    // Construir texto descriptivo
+                    let texto = '';
+                    if (equipo.marca && equipo.modelo) {
+                        texto = `${equipo.marca} ${equipo.modelo}`;
+                    } else if (equipo.nombre) {
+                        texto = equipo.nombre;
+                    } else {
+                        texto = `Equipo ${equipo.id}`;
+                    }
+                    
+                    // Agregar disponibilidad
+                    if (equipo.cantidad_disponible !== undefined) {
+                        texto += ` (${equipo.cantidad_disponible} disponible${equipo.cantidad_disponible !== 1 ? 's' : ''})`;
+                    }
+                    
+                    option.textContent = texto;
+                    
+                    // DETECCIÓN DE REQUIERE_IP Y REQUIERE_CEREAL
+                    let requiereIP = false;
+                    let requiereCereal = false;
+                    
+                    // Intentar todas las posibles formas de acceder a la información
+                    if (equipo.tipo_equipo) {
+                        requiereIP = Boolean(equipo.tipo_equipo.requiere_ip);
+                        requiereCereal = Boolean(equipo.tipo_equipo.requiere_cereal);
+                        console.log(`✅ Equipo ${equipo.id}: desde tipo_equipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                    } else if (equipo.tipoEquipo) {
+                        requiereIP = Boolean(equipo.tipoEquipo.requiere_ip);
+                        requiereCereal = Boolean(equipo.tipoEquipo.requiere_cereal);
+                        console.log(`✅ Equipo ${equipo.id}: desde tipoEquipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                    } else if (equipo.requiere_ip !== undefined || equipo.requiere_cereal !== undefined) {
+                        requiereIP = Boolean(equipo.requiere_ip);
+                        requiereCereal = Boolean(equipo.requiere_cereal);
+                        console.log(`✅ Equipo ${equipo.id}: directo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                    } else {
+                        // Si no se encuentra, buscar en todas las propiedades del objeto
+                        Object.keys(equipo).forEach(key => {
+                            if (key.toLowerCase().includes('tipo') && equipo[key] && typeof equipo[key] === 'object') {
+                                if (equipo[key].requiere_ip !== undefined) {
+                                    requiereIP = Boolean(equipo[key].requiere_ip);
+                                }
+                                if (equipo[key].requiere_cereal !== undefined) {
+                                    requiereCereal = Boolean(equipo[key].requiere_cereal);
+                                }
+                                console.log(`✅ Equipo ${equipo.id}: desde ${key} - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                            }
+                        });
+                    }
+                    
+                    // Si aún no se encontró, asumir false
+                    if (requiereIP === undefined) {
+                        console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
+                        requiereIP = false;
+                    }
+                    if (requiereCereal === undefined) {
+                        console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere cereal, asumiendo false`);
+                        requiereCereal = false;
+                    }
+                    
+                    // Establecer atributos data
+                    option.setAttribute('data-requiere-ip', requiereIP ? '1' : '0');
+                    option.setAttribute('data-requiere-cereal', requiereCereal ? '1' : '0');
+                    option.setAttribute('data-equipo-id', equipo.id);
+                    
+                    // Debug info
+                    if (requiereIP || requiereCereal) {
+                        console.log(`🔔 Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                    }
+                    
+                    select.appendChild(option);
+                });
+            });
             
-            // Debug info
-            if (requiereIP) {
-                console.log(`🔔 Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) REQUIERE IP - campo IP se mostrará`);
+            console.log('✅ Selects de equipos llenados correctamente');
+        }
+
+        // Renderizar equipos asignados en la tabla
+        function renderizarEquiposAsignados() {
+            const tbody = document.getElementById('equiposAsignadosTableBody');
+            
+            if (!tbody) {
+                console.error('❌ No se encontró el tbody de la tabla');
+                return;
             }
-            
-            select.appendChild(option);
-        });
-    });
-    
-    console.log('✅ Selects de equipos llenados correctamente');
-}
-// Renderizar equipos asignados en la tabla
-function renderizarEquiposAsignados() {
-    const tbody = document.getElementById('equiposAsignadosTableBody');
-    
-    if (!tbody) {
-        console.error('❌ No se encontró el tbody de la tabla');
-        return;
-    }
 
-    tbody.innerHTML = '';
+            tbody.innerHTML = '';
 
-    if (equiposAsignados.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-4">
-                    <i class="bi bi-laptop display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No se encontraron equipos asignados</p>
-                    <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
-                        <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                    </button>
-                </td>
-            </tr>
-        `;
-        return;
-    }
+            if (equiposAsignados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-laptop display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron equipos asignados</p>
+                            <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-    equiposAsignados.forEach(asignacion => {
-        const row = document.createElement('tr');
-        const estadoClass = `estado-${asignacion.estado || 'activo'}`;
-        const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
-                       (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
-        
-        row.className = rowClass;
-        
-        // Usar las propiedades formateadas
-        const usuario = asignacion.usuarioAsignado || {};
-        const stockEquipo = asignacion.stockEquipo || {};
-        const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
-        
-        const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
-        const cargoUsuario = usuario.cargo || 'Sin cargo';
-        const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
-        const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
+            equiposAsignados.forEach(asignacion => {
+                const row = document.createElement('tr');
+                const estadoClass = `estado-${asignacion.estado || 'activo'}`;
+                const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
+                               (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
+                
+                row.className = rowClass;
+                
+                // Usar las propiedades formateadas
+                const usuario = asignacion.usuarioAsignado || {};
+                const stockEquipo = asignacion.stockEquipo || {};
+                const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
+                
+                const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+                const cargoUsuario = usuario.cargo || 'Sin cargo';
+                const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
 
-        row.innerHTML = `
-            <td class="fw-bold">${asignacion.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="equipo-icon me-3">
-                        ${inicialUsuario}
-                    </div>
-                    <div>
-                        <div class="fw-bold">${nombreUsuario}</div>
-                        <small class="text-muted">${cargoUsuario}</small>
-                        ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
-                    </div>
-                </div>
-            </td>
-            <td>
-                <span class="badge equipo-badge rounded-pill">
-                    <i class="bi bi-pc me-1"></i>
-                    ${infoEquipo}
-                </span>
-                ${stockEquipo.tipo_equipo ? `
-                <small class="d-block text-muted">
-                    ${stockEquipo.tipo_equipo.nombre}
-                </small>
-                ` : ''}
-                ${asignacion.ip_equipo ? `
-                <small class="d-block text-muted">
-                    <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
-                </small>
-                ` : ''}
-            </td>
-            <td>
-                <small class="d-block">
-                    ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
-                </small>
-                ${asignacion.fecha_devolucion ? `
-                <small class="d-block text-muted">
-                    Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
-                </small>
-                ` : ''}
-            </td>
-            <td>
-                <span class="badge estado-badge ${estadoClass}">
-                    ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
-                </span>
-            </td>
-            <td>
-                <span class="badge asignador-badge rounded-pill">
-                    <i class="bi bi-person-check me-1"></i>
-                    ${usuarioAsignador.name}
-                </span>
-            </td>
-            <td class="table-actions text-center">
-                <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                        onclick="viewEquipoAsignado(${asignacion.id})"
-                        title="Ver">
-                    <i class="bi bi-eye"></i>
-                </button>
-                ${asignacion.estado !== 'obsoleto' ? `
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editEquipoAsignado(${asignacion.id})"
-                        title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                ` : ''}
-                ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
-                <button class="btn btn-sm btn-outline-success action-btn me-1"
-                        onclick="devolverEquipo(${asignacion.id})"
-                        title="Devolver">
-                    <i class="bi bi-arrow-return-left"></i>
-                </button>
-                ` : ''}
-                ${asignacion.estado !== 'obsoleto' ? `
-                <button class="btn btn-sm btn-outline-danger action-btn"
-                        onclick="deleteEquipoAsignado(${asignacion.id})"
-                        title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                </button>
-                ` : ''}
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
+                row.innerHTML = `
+                    <td class="fw-bold">${asignacion.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="equipo-icon me-3">
+                                ${inicialUsuario}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${nombreUsuario}</div>
+                                <small class="text-muted">${cargoUsuario}</small>
+                                ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge equipo-badge rounded-pill">
+                            <i class="bi bi-pc me-1"></i>
+                            ${infoEquipo}
+                        </span>
+                        ${stockEquipo.tipo_equipo ? `
+                        <small class="d-block text-muted">
+                            ${stockEquipo.tipo_equipo.nombre}
+                        </small>
+                        ` : ''}
+                        ${asignacion.ip_equipo ? `
+                        <small class="d-block text-muted">
+                            <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
+                        </small>
+                        ` : ''}
+                        ${asignacion.numero_serie ? `
+                        <small class="d-block text-muted">
+                            <i class="bi bi-upc-scan me-1"></i>${asignacion.numero_serie}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <small class="d-block">
+                            ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
+                        </small>
+                        ${asignacion.fecha_devolucion ? `
+                        <small class="d-block text-muted">
+                            Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <span class="badge estado-badge ${estadoClass}">
+                            ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge asignador-badge rounded-pill">
+                            <i class="bi bi-person-check me-1"></i>
+                            ${usuarioAsignador.name}
+                        </span>
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewEquipoAsignado(${asignacion.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        ${asignacion.estado !== 'obsoleto' ? `
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editEquipoAsignado(${asignacion.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        ` : ''}
+                        ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
+                        <button class="btn btn-sm btn-outline-success action-btn me-1"
+                                onclick="devolverEquipo(${asignacion.id})"
+                                title="Devolver">
+                            <i class="bi bi-arrow-return-left"></i>
+                        </button>
+                        ` : ''}
+                        ${asignacion.estado !== 'obsoleto' ? `
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteEquipoAsignado(${asignacion.id})"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                        ` : ''}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
 
         // Actualizar contadores
         function actualizarContadores() {
@@ -1432,17 +1475,39 @@ function renderizarEquiposAsignados() {
             document.getElementById('countTotal').textContent = countTotal;
         }
 
-            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
-    function applySavedTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        const htmlElement = document.documentElement;
-        
-        if (savedTheme) {
-            htmlElement.setAttribute('data-bs-theme', savedTheme);
+        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
             
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                
+                const themeIcon = document.querySelector('.theme-switcher i');
+                if (themeIcon) {
+                    if (savedTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             const themeIcon = document.querySelector('.theme-switcher i');
+            
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            
             if (themeIcon) {
-                if (savedTheme === 'dark') {
+                if (newTheme === 'dark') {
                     themeIcon.classList.remove('bi-moon-stars');
                     themeIcon.classList.add('bi-sun');
                 } else {
@@ -1450,66 +1515,43 @@ function renderizarEquiposAsignados() {
                     themeIcon.classList.add('bi-moon-stars');
                 }
             }
-        } else {
-            localStorage.setItem('theme', 'light');
+            
+            localStorage.setItem('theme', newTheme);
         }
-    }
 
-    function toggleTheme() {
-        const htmlElement = document.documentElement;
-        const currentTheme = htmlElement.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        const themeIcon = document.querySelector('.theme-switcher i');
-        
-        htmlElement.setAttribute('data-bs-theme', newTheme);
-        
-        if (themeIcon) {
-            if (newTheme === 'dark') {
-                themeIcon.classList.remove('bi-moon-stars');
-                themeIcon.classList.add('bi-sun');
-            } else {
-                themeIcon.classList.remove('bi-sun');
-                themeIcon.classList.add('bi-moon-stars');
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            applySavedTheme();
+            
+            // Sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-double-left');
+                    icon.classList.toggle('bi-chevron-double-right');
+                });
             }
-        }
-        
-        localStorage.setItem('theme', newTheme);
-    }
 
-    // ===== INICIALIZACIÓN =====
-    document.addEventListener('DOMContentLoaded', function() {
-        applySavedTheme();
-        
-        // Sidebar
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                const sidebar = document.querySelector('.sidebar');
-                sidebar.classList.toggle('sidebar-collapsed');
-                
-                const icon = this.querySelector('i');
-                icon.classList.toggle('bi-chevron-double-left');
-                icon.classList.toggle('bi-chevron-double-right');
-            });
-        }
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                });
+            }
 
-        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', function() {
-                document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
-            });
-        }
-
-        // Tema
-        const themeSwitcher = document.querySelector('.theme-switcher');
-        if (themeSwitcher) {
-            themeSwitcher.addEventListener('click', toggleTheme);
-        }
-    });
+            // Tema
+            const themeSwitcher = document.querySelector('.theme-switcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', toggleTheme);
+            }
+        });
 
         // Inicializar eventos
         function inicializarEventos() {
-
             // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -1528,15 +1570,6 @@ function renderizarEquiposAsignados() {
                 await actualizarEquipoAsignado();
             });
 
-            // Event listeners para los selects de equipos
-            document.getElementById('create_stock_equipos_id')?.addEventListener('change', function() {
-                toggleIPFieldBasedOnSelection(this, false);
-            });
-
-            document.getElementById('edit_stock_equipos_id')?.addEventListener('change', function() {
-                toggleIPFieldBasedOnSelection(this, true);
-            });
-
             // Filtros
             document.getElementById('searchName').addEventListener('input', aplicarFiltros);
             document.getElementById('searchEquipo').addEventListener('input', aplicarFiltros);
@@ -1545,86 +1578,43 @@ function renderizarEquiposAsignados() {
 
             inicializarEventosSelects();
         }
-$('#createEquipoAsignadoModal').on('show.bs.modal', function () {
-    console.log('🔄 Modal de crear abierto, forzando actualización de campo IP...');
-    
-    // Forzar actualización después de un pequeño delay para asegurar que el DOM esté listo
-    setTimeout(() => {
-        const createSelect = document.getElementById('create_stock_equipos_id');
-        if (createSelect) {
-            if (createSelect.value) {
-                console.log('🔍 Aplicando toggle IP con selección existente:', createSelect.value);
-                toggleIPFieldBasedOnSelection(createSelect, false);
-            } else {
-                // Ocultar campo IP por defecto si no hay selección
-                const ipContainer = document.querySelector('[name="ip_equipo"]')?.closest('.mb-3');
-                if (ipContainer) {
-                    ipContainer.style.display = 'none';
-                    console.log('🔍 Campo IP oculto por defecto (sin selección)');
-                }
-            }
-        }
-    }, 150);
-});
 
-async function diagnosticarEstructuraEquipos() {
-    console.log('🔍 DIAGNÓSTICO DETALLADO DE ESTRUCTURA DE EQUIPOS');
-    
-    if (!stockEquipos || stockEquipos.length === 0) {
-        console.log('❌ No hay equipos cargados');
-        return;
-    }
-    
-    // Revisar los primeros 3 equipos
-    stockEquipos.slice(0, 3).forEach((equipo, index) => {
-        console.log(`\n📋 Equipo ${index + 1} (ID: ${equipo.id}):`);
-        console.log('   Propiedades principales:', Object.keys(equipo));
-        
-        // Buscar información de tipo_equipo en todas las propiedades posibles
-        console.log('   🔎 Buscando información de tipo_equipo:');
-        
-        // Verificar diferentes nombres posibles
-        const posiblesPropiedades = ['tipo_equipo', 'tipoEquipo', 'tipo', 'tipoEquipoId', 'tipo_equipo_id'];
-        
-        posiblesPropiedades.forEach(prop => {
-            if (equipo[prop] !== undefined) {
-                console.log(`     ${prop}:`, equipo[prop]);
-                if (equipo[prop] && typeof equipo[prop] === 'object') {
-                    console.log(`       propiedades de ${prop}:`, Object.keys(equipo[prop]));
-                    if (equipo[prop].requiere_ip !== undefined) {
-                        console.log(`       ✅ ${prop}.requiere_ip =`, equipo[prop].requiere_ip);
+        // Evento cuando se abre el modal de crear
+        $('#createEquipoAsignadoModal').on('show.bs.modal', function () {
+            console.log('🔄 Modal de crear abierto, forzando actualización de campos dinámicos...');
+            
+            // Forzar actualización después de un pequeño delay para asegurar que el DOM esté listo
+            setTimeout(() => {
+                const createSelect = document.getElementById('create_stock_equipos_id');
+                if (createSelect) {
+                    if (createSelect.value) {
+                        console.log('🔍 Aplicando toggle campos con selección existente:', createSelect.value);
+                        toggleDynamicFieldsBasedOnSelection(createSelect, false);
+                    } else {
+                        // Ocultar campos por defecto si no hay selección
+                        const ipContainer = document.querySelector('.ip-field-container');
+                        const cerealContainer = document.querySelector('.cereal-field-container');
+                        if (ipContainer) ipContainer.style.display = 'none';
+                        if (cerealContainer) cerealContainer.style.display = 'none';
+                        console.log('🔍 Campos dinámicos ocultos por defecto (sin selección)');
                     }
                 }
-            }
+            }, 150);
         });
-        
-        // Verificar propiedades directas
-        if (equipo.requiere_ip !== undefined) {
-            console.log(`     ✅ requiere_ip directo =`, equipo.requiere_ip);
-        }
-    });
-}
 
-// Ejecutar después de cargar los equipos
-setTimeout(() => {
-    diagnosticarEstructuraEquipos();
-}, 1000);
+        async function crearEquipoAsignado() {
+            const form = document.getElementById('createEquipoAsignadoForm');
+            const formData = new FormData(form);
 
-
-
- async function crearEquipoAsignado() {
-    const form = document.getElementById('createEquipoAsignadoForm');
-    const formData = new FormData(form);
-
-    try {
-        const response = await fetch('/api/equipos_asignados', {
-            method: 'POST',
-            credentials: 'include', // ¡AGREGAR ESTO!
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        });
+            try {
+                const response = await fetch('/api/equipos_asignados', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
 
                 const data = await response.json();
 
@@ -1649,46 +1639,47 @@ setTimeout(() => {
             }
         }
 
-async function editEquipoAsignado(id) {
-    try {
-        const response = await fetch(`/api/equipos_asignados/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar asignación');
-        }
+        async function editEquipoAsignado(id) {
+            try {
+                const response = await fetch(`/api/equipos_asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
 
-        const asignacion = await response.json();
-        
-        // Establecer valores básicos
-        document.getElementById('edit_asignacion_id').value = asignacion.id;
-        document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
-        document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
-        document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
-        document.getElementById('edit_estado').value = asignacion.estado;
-        document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
-        document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
-        document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
-        
-        // Mostrar modal primero
-        $('#editEquipoAsignadoModal').modal('show');
-        
-        // Aplicar toggle del campo IP después de que el modal esté visible
-        setTimeout(() => {
-            const editSelect = document.getElementById('edit_stock_equipos_id');
-            if (editSelect && editSelect.value) {
-                console.log('🔄 Aplicando toggle IP en edición para equipo:', editSelect.value);
-                toggleIPFieldBasedOnSelection(editSelect, true);
+                const asignacion = await response.json();
+                
+                // Establecer valores básicos
+                document.getElementById('edit_asignacion_id').value = asignacion.id;
+                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
+                document.getElementById('edit_estado').value = asignacion.estado;
+                document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
+                document.getElementById('edit_numero_serie').value = asignacion.numero_serie || '';
+                document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
+                document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+                
+                // Mostrar modal primero
+                $('#editEquipoAsignadoModal').modal('show');
+                
+                // Aplicar toggle de campos dinámicos después de que el modal esté visible
+                setTimeout(() => {
+                    const editSelect = document.getElementById('edit_stock_equipos_id');
+                    if (editSelect && editSelect.value) {
+                        console.log('🔄 Aplicando toggle campos en edición para equipo:', editSelect.value);
+                        toggleDynamicFieldsBasedOnSelection(editSelect, true);
+                    }
+                }, 300);
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
-        }, 300);
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
+        }
 
         async function actualizarEquipoAsignado() {
             const form = document.getElementById('editEquipoAsignadoForm');
@@ -1727,87 +1718,90 @@ async function editEquipoAsignado(id) {
             }
         }
 
- async function viewEquipoAsignado(id) {
-    try {
-        const response = await fetch(`/api/equipos_asignados/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar asignación');
-        }
+        async function viewEquipoAsignado(id) {
+            try {
+                const response = await fetch(`/api/equipos_asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
 
-        const asignacion = await response.json();
-        
-        // Usar las relaciones correctas
-        const usuario = asignacion.usuarioAsignado;
-        const stockEquipo = asignacion.stockEquipo;
-        const usuarioAsignador = asignacion.usuarioAsignador;
-        
-        // Icono - usar primera letra del nombre del usuario
-        let inicial = 'A';
-        if (usuario && usuario.nombre) {
-            inicial = usuario.nombre.charAt(0).toUpperCase();
-        }
-        document.getElementById('view_icon').textContent = inicial;
-        
-        document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
-        document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
-        document.getElementById('view_asignacion_id').textContent = asignacion.id;
-        
-        // Estado
-        const estadoClass = `estado-${asignacion.estado}`;
-        const estadoTexto = asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1);
-        document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
-        
-        // Usuario asignado
-        let usuarioTexto = 'N/A';
-        if (usuario) {
-            usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-            if (usuario.cargo) {
-                usuarioTexto += ` - ${usuario.cargo}`;
+                const asignacion = await response.json();
+                
+                // Usar las relaciones correctas
+                const usuario = asignacion.usuarioAsignado;
+                const stockEquipo = asignacion.stockEquipo;
+                const usuarioAsignador = asignacion.usuarioAsignador;
+                
+                // Icono - usar primera letra del nombre del usuario
+                let inicial = 'A';
+                if (usuario && usuario.nombre) {
+                    inicial = usuario.nombre.charAt(0).toUpperCase();
+                }
+                document.getElementById('view_icon').textContent = inicial;
+                
+                document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+                document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+                document.getElementById('view_asignacion_id').textContent = asignacion.id;
+                
+                // Estado
+                const estadoClass = `estado-${asignacion.estado}`;
+                const estadoTexto = asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1);
+                document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
+                
+                // Usuario asignado
+                let usuarioTexto = 'N/A';
+                if (usuario) {
+                    usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    if (usuario.cargo) {
+                        usuarioTexto += ` - ${usuario.cargo}`;
+                    }
+                }
+                document.getElementById('view_usuario').textContent = usuarioTexto;
+                
+                // Equipo 
+                let equipoTexto = 'N/A';
+                if (stockEquipo) {
+                    equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
+                    
+                    // Tipo de equipo
+                    if (stockEquipo.tipoEquipo && stockEquipo.tipoEquipo.nombre) {
+                        equipoTexto += ` (${stockEquipo.tipoEquipo.nombre})`;
+                    }
+                }
+                document.getElementById('view_equipo').textContent = equipoTexto;
+                
+                // Fechas
+                document.getElementById('view_fecha_asignacion').textContent = new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES');
+                document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
+                    new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
+                
+                // IP
+                document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
+                
+                // Número de Serie
+                document.getElementById('view_numero_serie').textContent = asignacion.numero_serie || 'No asignado';
+                
+                // Asignado por
+                let asignadorTexto = 'Sistema';
+                if (usuarioAsignador) {
+                    asignadorTexto = usuarioAsignador.name || 'Usuario';
+                }
+                document.getElementById('view_asignado_por').textContent = asignadorTexto;
+                
+                // Observaciones
+                document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
+                
+                $('#viewEquipoAsignadoModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
         }
-        document.getElementById('view_usuario').textContent = usuarioTexto;
-        
-        // Equipo 
-        let equipoTexto = 'N/A';
-        if (stockEquipo) {
-            equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
-            
-            // Tipo de equipo
-            if (stockEquipo.tipoEquipo && stockEquipo.tipoEquipo.nombre) {
-                equipoTexto += ` (${stockEquipo.tipoEquipo.nombre})`;
-            }
-        }
-        document.getElementById('view_equipo').textContent = equipoTexto;
-        
-        // Fechas
-        document.getElementById('view_fecha_asignacion').textContent = new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES');
-        document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
-            new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
-        
-        // IP
-        document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
-        
-        // Asignado por
-        let asignadorTexto = 'Sistema';
-        if (usuarioAsignador) {
-            asignadorTexto = usuarioAsignador.name || 'Usuario';
-        }
-        document.getElementById('view_asignado_por').textContent = asignadorTexto;
-        
-        // Observaciones
-        document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
-        
-        $('#viewEquipoAsignadoModal').modal('show');
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
         async function devolverEquipo(id) {
             const result = await Swal.fire({
@@ -1849,10 +1843,10 @@ async function editEquipoAsignado(id) {
             }
         }
 
-        async function deleteEquipoAsignado(id, nombre) {
+        async function deleteEquipoAsignado(id) {
             const result = await Swal.fire({
                 title: '¿Estás seguro?',
-                text: `Vas a eliminar la asignación "${nombre}". Esta acción no se puede deshacer.`,
+                text: `Vas a eliminar esta asignación. Esta acción no se puede deshacer.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#DC2626',
@@ -1885,33 +1879,6 @@ async function editEquipoAsignado(id) {
                         title: 'Error',
                         text: error.message
                     });
-                }
-            }
-        }
-
-        // Función para toggle del campo IP
-        function toggleIPFieldBasedOnSelection(selectElement, isEditModal = false) {
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
-            
-            // Determinar qué campo IP usar según el modal
-            let ipField, ipLabel;
-            if (isEditModal) {
-                ipField = document.getElementById('edit_ip_equipo');
-                ipLabel = ipField ? ipField.closest('.mb-3') : null;
-            } else {
-                ipField = document.querySelector('[name="ip_equipo"]');
-                ipLabel = ipField ? ipField.closest('.mb-3') : null;
-            }
-            
-            if (ipField && ipLabel) {
-                if (requiereIP) {
-                    ipLabel.style.display = 'block';
-                    ipField.required = true;
-                } else {
-                    ipLabel.style.display = 'none';
-                    ipField.value = '';
-                    ipField.required = false;
                 }
             }
         }
@@ -1951,51 +1918,49 @@ async function editEquipoAsignado(id) {
             $('#seleccionUsuarioModal').modal('show');
         }
 
-function generarPDFUsuarioSeleccionado() {
-    const usuarioId = document.getElementById('usuarioSeleccionado').value;
-    if (usuarioId) {
-        generarPDFUsuario(usuarioId);
-        $('#seleccionUsuarioModal').modal('hide');
-    } else {
-        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-    }
-}
+        function generarPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                generarPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
 
-function verPDFUsuarioSeleccionado() {
-    const usuarioId = document.getElementById('usuarioSeleccionado').value;
-    if (usuarioId) {
-        verPDFUsuario(usuarioId);
-        $('#seleccionUsuarioModal').modal('hide');
-    } else {
-        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-    }
-}
+        function verPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                verPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
 
-function generarPDFUsuario(usuarioId) {
-    // Usar la ruta correcta según tu available_endpoints
-    const url = `/api/pdf/asignaciones/usuario/${usuarioId}`;
-    console.log(`📥 Descargando PDF para usuario ${usuarioId}: ${url}`);
-    window.location.href = url;
-}
+        function generarPDFUsuario(usuarioId) {
+            const url = `/api/pdf/asignaciones/usuario/${usuarioId}`;
+            console.log(`📥 Descargando PDF para usuario ${usuarioId}: ${url}`);
+            window.location.href = url;
+        }
 
-function verPDFUsuario(usuarioId) {
-    // Usar la ruta correcta según tu available_endpoints
-    const url = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
-    console.log(`👁️ Viendo PDF para usuario ${usuarioId}: ${url}`);
-    window.open(url, '_blank');
-}
+        function verPDFUsuario(usuarioId) {
+            const url = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
+            console.log(`👁️ Viendo PDF para usuario ${usuarioId}: ${url}`);
+            window.open(url, '_blank');
+        }
 
-function generarPDFAsignaciones() {
-    const url = '/api/pdf/asignaciones';
-    console.log('📥 Descargando PDF general de asignaciones');
-    window.location.href = url;
-}
+        function generarPDFAsignaciones() {
+            const url = '/api/pdf/asignaciones';
+            console.log('📥 Descargando PDF general de asignaciones');
+            window.location.href = url;
+        }
 
-function verPDFAsignaciones() {
-    const url = '/api/pdf/asignaciones/ver';
-    console.log('👁️ Viendo PDF general de asignaciones');
-    window.open(url, '_blank');
-}
+        function verPDFAsignaciones() {
+            const url = '/api/pdf/asignaciones/ver';
+            console.log('👁️ Viendo PDF general de asignaciones');
+            window.open(url, '_blank');
+        }
 
         // Funciones de utilidad
         function mostrarError(mensaje) {
@@ -2005,91 +1970,6 @@ function verPDFAsignaciones() {
                 text: mensaje
             });
         }
-
-        async function diagnosticoAPIs() {
-    console.log('🔍 INICIANDO DIAGNÓSTICO DE APIS...');
-    
-    try {
-        // Probar usuarios
-        console.log('\n📋 Probando /api/usuarios...');
-        const usuariosResp = await fetch('/api/usuarios');
-        const usuariosData = await usuariosResp.json();
-        console.log('Estructura de usuarios:', usuariosData);
-        console.log('¿Es array?:', Array.isArray(usuariosData));
-        if (!Array.isArray(usuariosData)) {
-            console.log('Propiedades del objeto:', Object.keys(usuariosData));
-            if (usuariosData.usuarios) {
-                console.log('usuarios array length:', usuariosData.usuarios.length);
-            }
-            if (usuariosData.data) {
-                console.log('data array length:', usuariosData.data.length);
-            }
-        }
-        
-        // Probar stock
-        console.log('\n💻 Probando /api/stock_equipos...');
-        const stockResp = await fetch('/api/stock_equipos');
-        const stockData = await stockResp.json();
-        console.log('Estructura de stock:', stockData);
-        console.log('¿Es array?:', Array.isArray(stockData));
-        if (!Array.isArray(stockData)) {
-            console.log('Propiedades del objeto:', Object.keys(stockData));
-            if (stockData.stockEquipos) {
-                console.log('stockEquipos array length:', stockData.stockEquipos.length);
-            }
-            if (stockData.data) {
-                console.log('data array length:', stockData.data.length);
-            }
-        }
-        
-        // Probar equipos asignados
-        console.log('\n🖥️ Probando /api/equipos_asignados...');
-        const asignadosResp = await fetch('/api/equipos_asignados');
-        const asignadosData = await asignadosResp.json();
-        console.log('Estructura de equipos asignados:', asignadosData);
-        console.log('¿Es array?:', Array.isArray(asignadosData));
-        
-    } catch (error) {
-        console.error('❌ Error en diagnóstico:', error);
-    }
-}
-
-// Ejecutar diagnóstico automáticamente
-setTimeout(() => {
-    console.log('🔄 Ejecutando diagnóstico automático...');
-    diagnosticoAPIs();
-}, 2000);
-
-function generarPDFAsignaciones() {
-    // Descargar PDF
-    window.location.href = '/api/pdf/asignaciones';
-}
-
-function verPDFAsignaciones() {
-    // Ver PDF en nueva pestaña
-    const link = document.createElement('a');
-    link.href = '/api/pdf/asignaciones/ver';
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function generarPDFPorUsuario(usuarioId) {
-    window.location.href = `/api/pdf/asignaciones/usuario/${usuarioId}`;
-}
-
-
-function verPDFUsuario(usuarioId) {
-    const link = document.createElement('a');
-    link.href = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
     </script>
 </body>
 </html>

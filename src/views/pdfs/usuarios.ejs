@@ -168,7 +168,6 @@
                     <th>Depto</th>
                     <th width="40" class="text-center">Total</th>
                     <th width="40" class="text-center">Activos</th>
-                    <th width="40" class="text-center">Devueltos</th>
                     <th width="60" class="text-center">Estado</th>
                 </tr>
             </thead>
@@ -178,12 +177,11 @@
                         <td><%= usuario.nombre %> <%= usuario.apellido %></td>
                         <td><%= usuario.cargo %></td>
                         <td><%= usuario.correo %></td>
-                        <td><%= usuario.RDP %></td>
+                        <td><%= usuario.rdpfis %> <%= usuario.rdpfin %></td>
                         <td><%= usuario.sede && usuario.sede.nombre ? usuario.sede.nombre : 'N/A' %></td>
                         <td><%= usuario.departamento && usuario.departamento.nombre ? usuario.departamento.nombre : 'N/A' %></td>
                         <td class="text-center"><%= usuario.equipos_totales_count || 0 %></td>
                         <td class="text-center"><%= usuario.equipos_activos_count || 0 %></td>
-                        <td class="text-center"><%= usuario.equipos_devueltos_count || 0 %></td>
                         <td class="text-center">
                             <% 
                                 const activos = usuario.equipos_activos_count || 0;

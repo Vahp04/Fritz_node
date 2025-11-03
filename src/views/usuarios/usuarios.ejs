@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title || 'Fritz C.A | Gestión de Usuarios' %></title>
 
-        <script>
+    <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -224,7 +224,7 @@
         }
 
         .departamento-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #2a5ca7 0%, #3266d8 100%);
             color: white;
             border: none;
         }
@@ -268,11 +268,26 @@
         }
 
         .main-content {
-        
             transition: all 0.3s;
         }
+
+        /* Estilos para los nuevos campos RDP */
+        .rdp-badge {
+            font-size: 0.7rem;
+            padding: 0.25em 0.5em;
+            margin: 1px;
+        }
+
+        .rdp-fisico {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .rdp-financiero {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
         
-    
     </style>
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
@@ -479,17 +494,17 @@
                                     <i class="bi bi-download me-1"></i> Exportar
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-    <li>
-        <a class="dropdown-item" href="#" onclick="generarPDF()">
-            <i class="bi bi-file-pdf me-2"></i>Descargar PDF
-        </a>
-    </li>
-    <li>
-        <a class="dropdown-item" href="#" onclick="verPDF()">
-            <i class="bi bi-eye me-2"></i>Ver PDF
-        </a>
-    </li>
-</ul>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="generarPDF()">
+                                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="verPDF()">
+                                            <i class="bi bi-eye me-2"></i>Ver PDF
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -506,6 +521,9 @@
                                 <input type="text" class="form-control form-control-sm" placeholder="Buscar por Sede o Departamento..." id="searchSede">
                             </div>
                             <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por RDP..." id="searchRDP">
+                            </div>
+                            <div class="col-md-12 mt-2">
                                 <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
                                     <i class="bi bi-arrow-counterclockwise"></i> Limpiar
                                 </button>
@@ -521,6 +539,7 @@
                                         <th>Usuario</th>
                                         <th>Cargo</th>
                                         <th>Contacto</th>
+                                        <th>RDP</th>
                                         <th>Sede & Departamento</th>
                                         <th>Equipos</th>
                                         <th width="120px" class="text-center">Acciones</th>
@@ -529,7 +548,7 @@
                                 <tbody id="usuariosTableBody">
                                     <!-- Los usuarios se cargarán via JavaScript -->
                                     <tr id="loadingRow">
-                                        <td colspan="7" class="text-center py-4">
+                                        <td colspan="8" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
                                                 <span class="visually-hidden">Cargando...</span>
                                             </div>
@@ -583,23 +602,23 @@
                                     <input type="text" class="form-control" name="apellido" required placeholder="Ingrese el apellido">
                                 </div>
                             </div>
-<div class="col-md-6">
-    <div class="mb-3">
-        <label class="form-label">Cargo*</label>
-        <select class="form-select" name="cargo" id="create_cargo" required>
-            <option value="">Seleccione un cargo</option>
-            <option value="Gerente">Gerente</option>
-            <option value="Jefe">Jefe</option>
-            <option value="Analista">Analista</option>
-            <option value="Especialista">Especialista</option>
-            <option value="Becario">Becario</option>
-            <option value="Pasante">Pasante</option>
-            <option value="Coordinador">Coordinador</option>
-            <option value="Supervisor">Supervisor</option>
-        </select>
-        <small class="text-muted">Seleccione el cargo del usuario</small>
-    </div>
-</div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cargo*</label>
+                                    <select class="form-select" name="cargo" id="create_cargo" required>
+                                        <option value="">Seleccione un cargo</option>
+                                        <option value="Gerente">Gerente</option>
+                                        <option value="Jefe">Jefe</option>
+                                        <option value="Analista">Analista</option>
+                                        <option value="Especialista">Especialista</option>
+                                        <option value="Becario">Becario</option>
+                                        <option value="Pasante">Pasante</option>
+                                        <option value="Coordinador">Coordinador</option>
+                                        <option value="Supervisor">Supervisor</option>
+                                    </select>
+                                    <small class="text-muted">Seleccione el cargo del usuario</small>
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Correo Electrónico*</label>
@@ -608,8 +627,23 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">RDP*</label>
-                                    <input type="text" class="form-control" name="RDP" required placeholder="Ingrese el RDP">
+                                    <label class="form-label">RDP Fiscal*</label>
+                                    <input type="text" class="form-control" name="rdpfis" required placeholder="Ingrese el RDP Fiscal">
+                                    <small class="text-muted">Identificador Fiscal del usuario</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">RDP Financiero</label>
+                                    <input type="text" class="form-control" name="rdpfin" placeholder="Ingrese el RDP Financiero ">
+                                    <small class="text-muted">Identificador financiero</small>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Módulos</label>
+                                    <textarea class="form-control" name="descripcion" rows="3" placeholder="Ingrese los módulos que utiliza el usuario"></textarea>
+                                    <small class="text-muted">Información de los módulos del usuario</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -642,91 +676,108 @@
     </div>
 
     <!-- Modal para Editar Usuario -->
-<div class="modal fade" id="editUsuarioModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i> Editar Usuario
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editUsuarioForm">
-                <div class="modal-body">
-                    <input type="hidden" id="edit_usuario_id" name="id">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Nombre*</label>
-                                <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+    <div class="modal fade" id="editUsuarioModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editUsuarioForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_usuario_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre*</label>
+                                    <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Apellido*</label>
-                                <input type="text" class="form-control" name="apellido" id="edit_apellido" required>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Apellido*</label>
+                                    <input type="text" class="form-control" name="apellido" id="edit_apellido" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Cargo*</label>
-                                <select class="form-select" name="cargo" id="edit_cargo" required>
-                                    <option value="">Seleccione un cargo</option>
-                                    <option value="Jefe">Jefe</option>
-                                    <option value="Analista">Analista</option>
-                                    <option value="Especialista">Especialista</option>
-                                    <option value="Becario">Becario</option>
-                                    <option value="Pasante">Pasante</option>
-                                    <option value="Coordinador">Coordinador</option>
-                                    <option value="Supervisor">Supervisor</option>
-                                </select>
-                                <small class="text-muted">Seleccione el cargo del usuario</small>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cargo*</label>
+                                    <select class="form-select" name="cargo" id="edit_cargo" required>
+                                        <option value="">Seleccione un cargo</option>
+                                        <option value="Gerente">Gerente</option>
+                                        <option value="Jefe">Jefe</option>
+                                        <option value="Analista">Analista</option>
+                                        <option value="Especialista">Especialista</option>
+                                        <option value="Becario">Becario</option>
+                                        <option value="Pasante">Pasante</option>
+                                        <option value="Coordinador">Coordinador</option>
+                                        <option value="Supervisor">Supervisor</option>
+                                    </select>
+                                    <small class="text-muted">Seleccione el cargo del usuario</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Correo Electrónico*</label>
-                                <input type="email" class="form-control" name="correo" id="edit_correo" required>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Correo Electrónico*</label>
+                                    <input type="email" class="form-control" name="correo" id="edit_correo" required>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">RDP*</label>
-                                <input type="text" class="form-control" name="RDP" id="edit_rdp" required>
+                            <!-- NUEVOS CAMPOS RDP -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">RDP Fiscal*</label>
+                                    <input type="text" class="form-control" name="rdpfis" id="edit_rdpfis" required>
+                                    <small class="text-muted">Identificador Fiscal del usuario</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Sede*</label>
-                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
-                                    <option value="">Seleccione una sede</option>
-                                    <!-- Las sedes se cargarán via JavaScript -->
-                                </select>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">RDP Financiero</label>
+                                    <input type="text" class="form-control" name="rdpfin" id="edit_rdpfin" placeholder="Ingrese el RDP Financiero">
+                                    <small class="text-muted">Identificador financiero</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Departamento*</label>
-                                <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
-                                    <option value="">Seleccione un departamento</option>
-                                    <!-- Los departamentos se cargarán via JavaScript -->
-                                </select>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Módulos</label>
+                                    <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3" placeholder="Ingrese los módulos que utiliza el usuario"></textarea>
+                                    <small class="text-muted">Información de los módulos del usuario</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                        <!-- Las sedes se cargarán via JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departamento*</label>
+                                    <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
+                                        <option value="">Seleccione un departamento</option>
+                                        <!-- Los departamentos se cargarán via JavaScript -->
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">Actualizar Usuario</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Usuario</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Modal para Ver Usuario -->
     <div class="modal fade" id="viewUsuarioModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title">
@@ -742,35 +793,43 @@
                         <p class="text-muted" id="view_id"></p>
                     </div>
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>ID:</strong>
                             <p id="view_usuario_id" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>Cargo:</strong>
                             <p id="view_cargo" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
-                            <strong>RDP:</strong>
-                            <p id="view_rdp" class="mb-2"></p>
+                        <div class="col-md-6">
+                            <strong>RDP Fiscal:</strong>
+                            <p id="view_rdpfis" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
+                            <strong>RDP Financiero:</strong>
+                            <p id="view_rdpfin" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Descripción:</strong>
+                            <p id="view_descripcion" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
                             <strong>Correo:</strong>
                             <p id="view_correo" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>Sede:</strong>
                             <p id="view_sede" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>Departamento:</strong>
                             <p id="view_departamento" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>Equipos Asignados:</strong>
                             <p id="view_equipos_count" class="mb-2"></p>
                         </div>
-                        <div class="col-6">
+                        <div class="col-md-6">
                             <strong>Fecha de Registro:</strong>
                             <p id="view_created" class="mb-2"></p>
                         </div>
@@ -802,9 +861,9 @@
             cargarSedes();
             cargarDepartamentos();
             inicializarEventos();
+            inicializarSelectsCargo();
         });
-
-        // Cargar usuarios
+        
         async function cargarUsuarios(page = 1) {
             try {
                 currentPage = page;
@@ -829,54 +888,6 @@
             }
         }
 
-        // Cargar sedes
-      async function cargarSedes() {
-    try {
-        // Si ya están cargadas, no hacer nada
-        if (sedes.length > 0) {
-            return sedes;
-        }
-        
-        const response = await fetch('/api/sedes');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar sedes');
-        }
-
-        sedes = await response.json();
-        renderizarSedes();
-        return sedes;
-        
-    } catch (error) {
-        console.error('Error:', error);
-        return [];
-    }
-}
-
-// Cargar departamentos
-async function cargarDepartamentos() {
-    try {
-        // Si ya están cargadas, no hacer nada
-        if (departamentos.length > 0) {
-            return departamentos;
-        }
-        
-        const response = await fetch('/api/departamentos');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar departamentos');
-        }
-
-        departamentos = await response.json();
-        renderizarDepartamentos();
-        return departamentos;
-        
-    } catch (error) {
-        console.error('Error:', error);
-        return [];
-    }
-}
-
         function debugRDP() {
     console.log('=== DEBUG RDP ===');
     usuarios.forEach((usuario, index) => {
@@ -890,7 +901,6 @@ async function cargarDepartamentos() {
         });
     });
     
-    // Verificar también los datos del formulario
     const createForm = document.getElementById('createUsuarioForm');
     const formData = new FormData(createForm);
     console.log('Formulario crear - RDP field:', formData.get('RDP'));
@@ -900,7 +910,6 @@ async function cargarDepartamentos() {
     console.log('Formulario editar - RDP field:', editFormData.get('RDP'));
 }
 
-        // Renderizar usuarios en la tabla
         function renderizarUsuarios() {
             const tbody = document.getElementById('usuariosTableBody');
             tbody.innerHTML = '';
@@ -908,7 +917,7 @@ async function cargarDepartamentos() {
             if (usuarios.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-4">
+                        <td colspan="8" class="text-center py-4">
                             <i class="bi bi-people display-4 text-muted mb-3"></i>
                             <p class="text-muted mb-0">No se encontraron usuarios</p>
                         </td>
@@ -920,6 +929,18 @@ async function cargarDepartamentos() {
             usuarios.forEach(usuario => {
                 const row = document.createElement('tr');
                 
+                // Generar badges para RDPs
+                let rdpHTML = '';
+                if (usuario.rdpfis) {
+                    rdpHTML += `<span class="badge rdp-badge rdp-fisico" title="RDP Físico">Fís: ${usuario.rdpfis}</span>`;
+                }
+                if (usuario.rdpfin) {
+                    rdpHTML += `<span class="badge rdp-badge rdp-financiero" title="RDP Financiero">Fin: ${usuario.rdpfin}</span>`;
+                }
+                if (!usuario.rdpfis && !usuario.rdpfin) {
+                    rdpHTML = '<span class="text-muted small">Sin RDP</span>';
+                }
+                
                 row.innerHTML = `
                     <td class="fw-bold">${usuario.id}</td>
                     <td>
@@ -929,7 +950,7 @@ async function cargarDepartamentos() {
                             </div>
                             <div>
                                 <div class="fw-bold">${usuario.nombre} ${usuario.apellido}</div>
-                                <small class="text-muted">RDP: ${usuario.rdp}</small>
+                                ${usuario.descripcion ? `<small class="text-muted d-block">${usuario.descripcion}</small>` : ''}
                             </div>
                         </div>
                     </td>
@@ -942,6 +963,11 @@ async function cargarDepartamentos() {
                         <small class="d-block email-cell" title="${usuario.correo}">
                             <i class="bi bi-envelope me-1"></i>${usuario.correo}
                         </small>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            ${rdpHTML}
+                        </div>
                     </td>
                     <td>
                         <div class="d-flex flex-column gap-1">
@@ -991,21 +1017,24 @@ async function cargarDepartamentos() {
                 `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
         }
 
-function renderizarSedes() {
-    const selects = [
-        'create_sede_id',
-        'edit_sede_id'
-    ];
+function renderizarSedes(preservarValores = false, selectId = null) {
+    const selects = selectId ? [selectId] : ['create_sede_id', 'edit_sede_id'];
 
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (select) {
-            // Guardar el valor actual antes de limpiar
-            const currentValue = select.value;
+            // Guardar el valor actual antes de limpiar SOLO si estamos preservando valores
+            const currentValue = preservarValores ? select.value : null;
             
             // Limpiar opciones excepto la primera
             while (select.options.length > 1) {
                 select.remove(1);
+            }
+
+            // Verificar que hay sedes para mostrar
+            if (sedes.length === 0) {
+                console.warn('No hay sedes cargadas para renderizar');
+                return;
             }
 
             // Agregar opciones
@@ -1016,33 +1045,37 @@ function renderizarSedes() {
                 select.appendChild(option);
             });
             
-            // Restaurar el valor si existe
-            if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+            // Restaurar el valor si existe y estamos preservando valores
+            if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
             }
+            
+            console.log(`✅ Select ${selectId} renderizado con ${sedes.length} sedes`);
+        } else {
+            console.warn(`❌ No se encontró el select: ${selectId}`);
         }
     });
 }
 
 // Renderizar departamentos en los selects
-function renderizarDepartamentos() {
-    const selects = [
-        'create_departamento_id',
-        'edit_departamento_id'
-    ];
+function renderizarDepartamentos(preservarValores = false, selectId = null) {
+    const selects = selectId ? [selectId] : ['create_departamento_id', 'edit_departamento_id'];
 
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (select) {
-            // Guardar el valor actual antes de limpiar
-            const currentValue = select.value;
+            const currentValue = preservarValores ? select.value : null;
             
-            // Limpiar opciones excepto la primera
             while (select.options.length > 1) {
                 select.remove(1);
             }
 
-            // Agregar opciones
+            // Verificar que hay departamentos para mostrar
+            if (departamentos.length === 0) {
+                console.warn('No hay departamentos cargados para renderizar');
+                return;
+            }
+
             departamentos.forEach(departamento => {
                 const option = document.createElement('option');
                 option.value = departamento.id;
@@ -1050,12 +1083,116 @@ function renderizarDepartamentos() {
                 select.appendChild(option);
             });
             
-            // Restaurar el valor si existe
-            if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+            if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
             }
+            
+            console.log(`✅ Select ${selectId} renderizado con ${departamentos.length} departamentos`);
+        } else {
+            console.warn(`❌ No se encontró el select: ${selectId}`);
         }
     });
+}
+
+async function cargarDatosParaEdicion(usuario) {
+    try {
+        console.log('🔄 Cargando datos para edición...');
+        
+        // Verificar si ya tenemos los datos cargados
+        if (sedes.length === 0) {
+            console.log('📥 Cargando sedes...');
+            await cargarSedes();
+        }
+        
+        if (departamentos.length === 0) {
+            console.log('📥 Cargando departamentos...');
+            await cargarDepartamentos();
+        }
+        
+        console.log(`📊 Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
+        
+        // Renderizar SOLO el select de edición, preservando valores
+        renderizarSedes(true, 'edit_sede_id');
+        renderizarDepartamentos(true, 'edit_departamento_id');
+        
+        // Establecer valores inmediatamente
+        const sedeSelect = document.getElementById('edit_sede_id');
+        const departamentoSelect = document.getElementById('edit_departamento_id');
+        
+        if (sedeSelect) {
+            console.log(`🎯 Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
+            sedeSelect.value = usuario.sede_id || '';
+            
+            // Verificar si se estableció correctamente
+            if (sedeSelect.value !== usuario.sede_id?.toString()) {
+                console.warn('⚠️ No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
+                // Forzar el valor después de un breve delay
+                setTimeout(() => {
+                    sedeSelect.value = usuario.sede_id || '';
+                    console.log('🔄 Reintentando establecer sede_id:', sedeSelect.value);
+                }, 100);
+            }
+        }
+        
+        if (departamentoSelect) {
+            console.log(`🎯 Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
+            departamentoSelect.value = usuario.departamento_id || '';
+            
+            // Verificar si se estableció correctamente
+            if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
+                console.warn('⚠️ No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
+                // Forzar el valor después de un breve delay
+                setTimeout(() => {
+                    departamentoSelect.value = usuario.departamento_id || '';
+                    console.log('🔄 Reintentando establecer departamento_id:', departamentoSelect.value);
+                }, 100);
+            }
+        }
+        
+    } catch (error) {
+        console.error('❌ Error cargando datos para edición:', error);
+    }
+}
+
+async function cargarSedes() {
+    try {
+        console.log('📥 Iniciando carga de sedes...');
+        const response = await fetch('/api/sedes');
+        
+        if (!response.ok) {
+            throw new Error(`Error ${response.status} al cargar sedes`);
+        }
+
+        sedes = await response.json();
+        console.log(`✅ ${sedes.length} sedes cargadas correctamente`);
+        renderizarSedes();
+        return sedes;
+        
+    } catch (error) {
+        console.error('❌ Error cargando sedes:', error);
+        return [];
+    }
+}
+
+// Cargar departamentos
+async function cargarDepartamentos() {
+    try {
+        console.log('📥 Iniciando carga de departamentos...');
+        const response = await fetch('/api/departamentos');
+        
+        if (!response.ok) {
+            throw new Error(`Error ${response.status} al cargar departamentos`);
+        }
+
+        departamentos = await response.json();
+        console.log(`✅ ${departamentos.length} departamentos cargados correctamente`);
+        renderizarDepartamentos();
+        return departamentos;
+        
+    } catch (error) {
+        console.error('❌ Error cargando departamentos:', error);
+        return [];
+    }
 }
 
         // Renderizar paginación
@@ -1138,6 +1275,67 @@ function renderizarDepartamentos() {
         localStorage.setItem('theme', newTheme);
     }
 
+    async function actualizarUsuario() {
+    const form = document.getElementById('editUsuarioForm');
+    const formData = new FormData(form);
+    const datos = Object.fromEntries(formData);
+    const usuarioId = datos.id;
+
+    console.log('📝 Datos para actualizar:', datos);
+
+    // Validar datos requeridos
+    if (!datos.nombre || !datos.cargo || !datos.correo || !datos.rdpfis || !datos.sede_id || !datos.departamento_id) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Todos los campos marcados con * son obligatorios'
+        });
+        return;
+    }
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Deshabilitar el botón
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Actualizando...';
+
+    try {
+        const response = await fetch(`/api/usuarios/${usuarioId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datos)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message
+            });
+            $('#editUsuarioModal').modal('hide');
+            form.reset();
+            await cargarUsuarios(currentPage);
+        } else {
+            throw new Error(data.error || data.message || 'Error al actualizar usuario');
+        }
+    } catch (error) {
+        console.error('Error en actualizarUsuario:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    } finally {
+        // Rehabilitar el botón
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+    }
+}
     // ===== INICIALIZACIÓN =====
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
@@ -1181,18 +1379,10 @@ function inicializarEventos() {
     console.log('🔄 Inicializando eventos...');
     eventosInicializados = true;
 
-    // Remover event listeners existentes primero
-    const createForm = document.getElementById('createUsuarioForm');
-    const editForm = document.getElementById('editUsuarioForm');
-    
-    // Clonar y reemplazar el formulario para limpiar event listeners
-    const newCreateForm = createForm.cloneNode(true);
-    createForm.parentNode.replaceChild(newCreateForm, createForm);
-
-    // Formulario de crear usuario - CON PREVENCIÓN DE DOBLE ENVÍO
+    // Formulario de crear usuario
     document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        console.log('📝 Evento submit del formulario capturado');
+        console.log('📝 Evento submit del formulario crear capturado');
         crearUsuario();
     });
 
@@ -1203,35 +1393,18 @@ function inicializarEventos() {
         actualizarUsuario();
     });
 
-    // ===== EVENTOS DE FILTROS Y BÚSQUEDA =====
-    
-    // Filtro por nombre
+    // Eventos de filtros
     const searchName = document.getElementById('searchName');
-    if (searchName) {
-        searchName.addEventListener('input', aplicarFiltros);
-        console.log('✅ Event listener agregado a searchName');
-    }
-
-    // Filtro por cargo
     const searchCargo = document.getElementById('searchCargo');
-    if (searchCargo) {
-        searchCargo.addEventListener('input', aplicarFiltros);
-        console.log('✅ Event listener agregado a searchCargo');
-    }
-
-    // Filtro por sede/departamento
     const searchSede = document.getElementById('searchSede');
-    if (searchSede) {
-        searchSede.addEventListener('input', aplicarFiltros);
-        console.log('✅ Event listener agregado a searchSede');
-    }
-
-    // Botón limpiar filtros
+    const searchRDP = document.getElementById('searchRDP');
     const resetFilters = document.getElementById('resetFilters');
-    if (resetFilters) {
-        resetFilters.addEventListener('click', resetFiltros);
-        console.log('✅ Event listener agregado a resetFilters');
-    }
+
+    if (searchName) searchName.addEventListener('input', aplicarFiltros);
+    if (searchCargo) searchCargo.addEventListener('input', aplicarFiltros);
+    if (searchSede) searchSede.addEventListener('input', aplicarFiltros);
+    if (searchRDP) searchRDP.addEventListener('input', aplicarFiltros);
+    if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
 
     console.log('✅ Todos los eventos inicializados correctamente');
 }
@@ -1325,9 +1498,10 @@ $('#createUsuarioModal').on('show.bs.modal', function () {
     console.log('🔓 Modal abierto, estado reset');
     creandoUsuario = false;
 });
-
 async function editUsuario(id) {
     try {
+        console.log(`🔍 Cargando usuario ID: ${id} para edición`);
+        
         const response = await fetch(`/api/usuarios/${id}`);
         
         if (!response.ok) {
@@ -1336,14 +1510,16 @@ async function editUsuario(id) {
 
         const usuario = await response.json();
         
-        console.log('Datos del usuario para editar:', usuario);
+        console.log('📋 Datos del usuario para editar:', usuario);
         
-        // Establecer valores básicos
+        // Primero establecer todos los valores básicos
         document.getElementById('edit_usuario_id').value = usuario.id;
-        document.getElementById('edit_nombre').value = usuario.nombre;
-        document.getElementById('edit_apellido').value = usuario.apellido;
-        document.getElementById('edit_correo').value = usuario.correo;
-        document.getElementById('edit_rdp').value = usuario.rdp;
+        document.getElementById('edit_nombre').value = usuario.nombre || '';
+        document.getElementById('edit_apellido').value = usuario.apellido || '';
+        document.getElementById('edit_correo').value = usuario.correo || '';
+        document.getElementById('edit_rdpfis').value = usuario.rdpfis || '';
+        document.getElementById('edit_rdpfin').value = usuario.rdpfin || '';
+        document.getElementById('edit_descripcion').value = usuario.descripcion || '';
         
         // Establecer cargo
         const cargoSelect = document.getElementById('edit_cargo');
@@ -1351,44 +1527,28 @@ async function editUsuario(id) {
             cargoSelect.value = usuario.cargo || '';
         }
         
-        // CORRECCIÓN: Asegurar que los selects de sede y departamento estén cargados
-        // antes de establecer los valores
-        await Promise.all([cargarSedes(), cargarDepartamentos()]);
+        console.log('🎯 Estableciendo valores temporales de sede y departamento...');
+        // Establecer valores de sede y departamento temporalmente
+        const sedeSelect = document.getElementById('edit_sede_id');
+        const departamentoSelect = document.getElementById('edit_departamento_id');
         
-        // Establecer sede - IMPORTANTE: Esperar a que el DOM se actualice
-        setTimeout(() => {
-            const sedeSelect = document.getElementById('edit_sede_id');
-            if (sedeSelect) {
-                console.log('Buscando sede_id:', usuario.sede_id);
-                console.log('Opciones disponibles:', Array.from(sedeSelect.options).map(opt => ({value: opt.value, text: opt.text})));
-                sedeSelect.value = usuario.sede_id || '';
-                
-                // Verificar si se estableció correctamente
-                if (sedeSelect.value !== usuario.sede_id?.toString()) {
-                    console.warn('⚠️ No se pudo establecer sede_id. Valor esperado:', usuario.sede_id, 'Valor actual:', sedeSelect.value);
-                }
-            }
-        }, 100);
+        if (sedeSelect) {
+            sedeSelect.value = usuario.sede_id || '';
+            console.log(`📍 Sede temporal establecida: ${sedeSelect.value}`);
+        }
+        if (departamentoSelect) {
+            departamentoSelect.value = usuario.departamento_id || '';
+            console.log(`📍 Departamento temporal establecido: ${departamentoSelect.value}`);
+        }
         
-        // Establecer departamento - IMPORTANTE: Esperar a que el DOM se actualice
-        setTimeout(() => {
-            const departamentoSelect = document.getElementById('edit_departamento_id');
-            if (departamentoSelect) {
-                console.log('Buscando departamento_id:', usuario.departamento_id);
-                console.log('Opciones disponibles:', Array.from(departamentoSelect.options).map(opt => ({value: opt.value, text: opt.text})));
-                departamentoSelect.value = usuario.departamento_id || '';
-                
-                // Verificar si se estableció correctamente
-                if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
-                    console.warn('⚠️ No se pudo establecer departamento_id. Valor esperado:', usuario.departamento_id, 'Valor actual:', departamentoSelect.value);
-                }
-            }
-        }, 100);
+        // Ahora cargar y establecer sedes y departamentos
+        await cargarDatosParaEdicion(usuario);
         
+        console.log('✅ Modal listo para mostrar');
         $('#editUsuarioModal').modal('show');
         
     } catch (error) {
-        console.error('Error en editUsuario:', error);
+        console.error('❌ Error en editUsuario:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1396,47 +1556,6 @@ async function editUsuario(id) {
         });
     }
 }
-async function actualizarUsuario() {
-    const form = document.getElementById('editUsuarioForm');
-    const formData = new FormData(form);
-    const datos = Object.fromEntries(formData);
-    const usuarioId = datos.id;
-
-    console.log('📝 Datos para actualizar:', datos);
-
-    try {
-        const response = await fetch(`/api/usuarios/${usuarioId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message
-            });
-            $('#editUsuarioModal').modal('hide');
-            form.reset();
-            await cargarUsuarios(currentPage);
-        } else {
-            throw new Error(data.error || data.message);
-        }
-    } catch (error) {
-        console.error('Error en actualizarUsuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
-
         async function viewUsuario(id) {
             try {
                 const response = await fetch(`/api/usuarios/${id}`);
@@ -1452,7 +1571,9 @@ async function actualizarUsuario() {
                 document.getElementById('view_id').textContent = `ID: ${usuario.id}`;
                 document.getElementById('view_usuario_id').textContent = usuario.id;
                 document.getElementById('view_cargo').textContent = usuario.cargo;
-                document.getElementById('view_rdp').textContent = usuario.rdp;
+                document.getElementById('view_rdpfis').textContent = usuario.rdpfis || 'No asignado';
+                document.getElementById('view_rdpfin').textContent = usuario.rdpfin || 'No asignado';
+                document.getElementById('view_descripcion').textContent = usuario.descripcion || 'Sin descripción';
                 document.getElementById('view_correo').textContent = usuario.correo;
                 document.getElementById('view_sede').textContent = usuario.sede ? usuario.sede.nombre : 'Sin sede';
                 document.getElementById('view_departamento').textContent = usuario.departamento ? usuario.departamento.nombre : 'Sin departamento';
@@ -1573,34 +1694,35 @@ function aplicarFiltros() {
     const nameFilter = document.getElementById('searchName').value.toLowerCase().trim();
     const cargoFilter = document.getElementById('searchCargo').value.toLowerCase().trim();
     const sedeFilter = document.getElementById('searchSede').value.toLowerCase().trim();
+    const rdpFilter = document.getElementById('searchRDP').value.toLowerCase().trim();
 
     console.log('Filtros activos:', {
         nombre: nameFilter,
         cargo: cargoFilter,
-        sede: sedeFilter
+        sede: sedeFilter,
+        rdp: rdpFilter
     });
 
     const rows = document.querySelectorAll('#usuariosTableBody tr');
     let visibleCount = 0;
 
     rows.forEach(row => {
-        // Saltar fila de carga o sin datos
-        if (row.id === 'loadingRow' || row.cells.length < 6) {
+        if (row.id === 'loadingRow' || row.cells.length < 7) {
             return;
         }
 
         try {
-            // Obtener datos de cada columna
             const name = row.querySelector('td:nth-child(2) .fw-bold')?.textContent?.toLowerCase() || '';
             const cargo = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
-            const sedeDepto = row.querySelector('td:nth-child(5)')?.textContent?.toLowerCase() || '';
+            const sedeDepto = row.querySelector('td:nth-child(6)')?.textContent?.toLowerCase() || '';
+            const rdp = row.querySelector('td:nth-child(5)')?.textContent?.toLowerCase() || '';
 
-            // Aplicar filtros
             const nameMatch = !nameFilter || name.includes(nameFilter);
             const cargoMatch = !cargoFilter || cargo.includes(cargoFilter);
             const sedeMatch = !sedeFilter || sedeDepto.includes(sedeFilter);
+            const rdpMatch = !rdpFilter || rdp.includes(rdpFilter);
 
-            if (nameMatch && cargoMatch && sedeMatch) {
+            if (nameMatch && cargoMatch && sedeMatch && rdpMatch) {
                 row.style.display = '';
                 visibleCount++;
             } else {
@@ -1612,10 +1734,9 @@ function aplicarFiltros() {
         }
     });
 
-    // Actualizar contador
     const resultCount = document.getElementById('resultCount');
     if (resultCount) {
-        if (visibleCount === 0 && (nameFilter || cargoFilter || sedeFilter)) {
+        if (visibleCount === 0 && (nameFilter || cargoFilter || sedeFilter || rdpFilter)) {
             resultCount.innerHTML = `
                 <span class="text-warning">
                     <i class="bi bi-exclamation-triangle me-1"></i>
@@ -1630,14 +1751,15 @@ function aplicarFiltros() {
     console.log(`✅ Filtros aplicados: ${visibleCount} usuarios visibles`);
 }
 
+// Función mejorada para resetear filtros
 function resetFiltros() {
     console.log('🔄 Reseteando filtros...');
     
     document.getElementById('searchName').value = '';
     document.getElementById('searchCargo').value = '';
     document.getElementById('searchSede').value = '';
+    document.getElementById('searchRDP').value = '';
     
-    // Aplicar filtros (que ahora mostrarán todos los registros)
     aplicarFiltros();
     
     // Mostrar mensaje de confirmación
@@ -1659,7 +1781,6 @@ function resetFiltros() {
     
     document.body.appendChild(toast);
     
-    // Remover el toast después de 3 segundos
     setTimeout(() => {
         if (toast.parentNode) {
             toast.parentNode.removeChild(toast);

@@ -36,7 +36,9 @@ export const usuariosController = {
           apellido: true,
           cargo: true,
           correo: true,
-          rdp: true,
+          rdpfis: true,      // CAMBIO: rdp → rdpfis
+          rdpfin: true,      // NUEVO CAMPO
+          descripcion: true, // NUEVO CAMPO
           created_at: true,
           updated_at: true,
           sede: {
@@ -119,7 +121,7 @@ export const usuariosController = {
     }
   },
 
-async store(req, res) {
+  async store(req, res) {
     console.log('🔍 === INICIANDO STORE USUARIO ===');
     try {
         const {
@@ -128,15 +130,13 @@ async store(req, res) {
             cargo,
             correo,
             sede_id,
-            departamento_id
+            departamento_id,
+            rdpfis,    // NUEVO CAMPO
+            rdpfin,    // NUEVO CAMPO
+            descripcion // NUEVO CAMPO
         } = req.body;
 
         console.log('📝 Datos recibidos:', req.body);
-
-        // SOLUCIÓN: Usar el nombre correcto del campo RDP
-        const rdpValue = req.body.RDP || req.body.rdp;
-        
-        console.log('✅ RDP a guardar:', rdpValue);
 
         // Validaciones básicas
         if (!nombre || !cargo || !sede_id || !departamento_id) {
@@ -167,15 +167,28 @@ async store(req, res) {
             }
         }
 
-        // CORRECCIÓN: Usar rdpValue en lugar de rdp para la verificación
-        if (rdpValue) {
-            const usuarioConRdp = await prisma.usuarios.findFirst({
-                where: { rdp: rdpValue }
+        // Verificar duplicados de rdpfis
+        if (rdpfis) {
+            const usuarioConRdpfis = await prisma.usuarios.findFirst({
+                where: { rdpfis }
             });
-            if (usuarioConRdp) {
+            if (usuarioConRdpfis) {
                 return res.status(400).json({ 
-                    error: 'RDP ya registrado',
-                    message: 'El RDP ya está registrado en el sistema'
+                    error: 'RDP Físico ya registrado',
+                    message: 'El RDP Físico ya está registrado en el sistema'
+                });
+            }
+        }
+
+        // Verificar duplicados de rdpfin
+        if (rdpfin) {
+            const usuarioConRdpfin = await prisma.usuarios.findFirst({
+                where: { rdpfin }
+            });
+            if (usuarioConRdpfin) {
+                return res.status(400).json({ 
+                    error: 'RDP Financiero ya registrado',
+                    message: 'El RDP Financiero ya está registrado en el sistema'
                 });
             }
         }
@@ -187,8 +200,9 @@ async store(req, res) {
                 apellido: apellido?.trim(),
                 cargo: cargo,
                 correo: correo?.trim(),
-                // CORRECCIÓN: Usar rdpValue en lugar de rdp
-                rdp: rdpValue?.trim(),
+                rdpfis: rdpfis?.trim(),      // NUEVO CAMPO
+                rdpfin: rdpfin?.trim(),      // NUEVO CAMPO
+                descripcion: descripcion?.trim(), // NUEVO CAMPO
                 sede_id: parseInt(sede_id),
                 departamento_id: parseInt(departamento_id)
             },
@@ -198,7 +212,9 @@ async store(req, res) {
                 apellido: true,
                 cargo: true,
                 correo: true,
-                rdp: true,
+                rdpfis: true,      // NUEVO CAMPO
+                rdpfin: true,      // NUEVO CAMPO
+                descripcion: true, // NUEVO CAMPO
                 created_at: true,
                 sede: {
                     select: {
@@ -238,7 +254,7 @@ async store(req, res) {
             message: error.message
         });
     }
-},
+  },
 
   async show(req, res) {
     try {
@@ -253,7 +269,9 @@ async store(req, res) {
           apellido: true,
           cargo: true,
           correo: true,
-          rdp: true,
+          rdpfis: true,      // CAMBIO: rdp → rdpfis
+          rdpfin: true,      // NUEVO CAMPO
+          descripcion: true, // NUEVO CAMPO
           created_at: true,
           updated_at: true,
           sede: {
@@ -300,7 +318,7 @@ async store(req, res) {
     }
   },
 
-async update(req, res) {
+  async update(req, res) {
     try {
         const { id } = req.params;
         const {
@@ -309,13 +327,13 @@ async update(req, res) {
             cargo,
             correo,
             sede_id,
-            departamento_id
+            departamento_id,
+            rdpfis,    // NUEVO CAMPO
+            rdpfin,    // NUEVO CAMPO
+            descripcion // NUEVO CAMPO
         } = req.body;
 
-        // SOLUCIÓN: Usar el nombre correcto
-        const rdpValue = req.body.RDP || req.body.rdp;
-
-        console.log('🔍 Actualizando usuario ID:', id, 'RDP:', rdpValue);
+        console.log('🔍 Actualizando usuario ID:', id, 'RDPFis:', rdpfis, 'RDPFin:', rdpfin);
 
         // Validar que el cargo sea uno de los valores permitidos (si se está actualizando)
         if (cargo && !CARGOS_PERMITIDOS.includes(cargo)) {
@@ -350,18 +368,34 @@ async update(req, res) {
             }
         }
 
-        // CORRECCIÓN: Usar rdpValue para la verificación
-        if (rdpValue) {
-            const usuarioConRdp = await prisma.usuarios.findFirst({
+        // Verificar duplicados de rdpfis excluyendo el usuario actual
+        if (rdpfis) {
+            const usuarioConRdpfis = await prisma.usuarios.findFirst({
                 where: { 
-                    rdp: rdpValue,
+                    rdpfis,
                     NOT: { id: parseInt(id) }
                 }
             });
-            if (usuarioConRdp) {
+            if (usuarioConRdpfis) {
                 return res.status(400).json({ 
-                    error: 'RDP ya registrado',
-                    message: 'El RDP ya está registrado por otro usuario'
+                    error: 'RDP Físico ya registrado',
+                    message: 'El RDP Físico ya está registrado por otro usuario'
+                });
+            }
+        }
+
+        // Verificar duplicados de rdpfin excluyendo el usuario actual
+        if (rdpfin) {
+            const usuarioConRdpfin = await prisma.usuarios.findFirst({
+                where: { 
+                    rdpfin,
+                    NOT: { id: parseInt(id) }
+                }
+            });
+            if (usuarioConRdpfin) {
+                return res.status(400).json({ 
+                    error: 'RDP Financiero ya registrado',
+                    message: 'El RDP Financiero ya está registrado por otro usuario'
                 });
             }
         }
@@ -373,8 +407,9 @@ async update(req, res) {
                 apellido: apellido?.trim(),
                 cargo: cargo,
                 correo: correo?.trim(),
-                // CORRECCIÓN: Usar rdpValue en lugar de rdp
-                rdp: rdpValue?.trim(),
+                rdpfis: rdpfis?.trim(),      // NUEVO CAMPO
+                rdpfin: rdpfin?.trim(),      // NUEVO CAMPO
+                descripcion: descripcion?.trim(), // NUEVO CAMPO
                 sede_id: sede_id ? parseInt(sede_id) : undefined,
                 departamento_id: departamento_id ? parseInt(departamento_id) : undefined
             },
@@ -384,7 +419,9 @@ async update(req, res) {
                 apellido: true,
                 cargo: true,
                 correo: true,
-                rdp: true,
+                rdpfis: true,      // NUEVO CAMPO
+                rdpfin: true,      // NUEVO CAMPO
+                descripcion: true, // NUEVO CAMPO
                 updated_at: true,
                 sede: {
                     select: {
@@ -419,7 +456,7 @@ async update(req, res) {
         
         res.status(500).json({ error: error.message });
     }
-},
+  },
 
   async destroy(req, res) {
     try {
@@ -567,7 +604,9 @@ async update(req, res) {
             { apellido: { contains: query, mode: 'insensitive' } },
             { cargo: { contains: query, mode: 'insensitive' } },
             { correo: { contains: query, mode: 'insensitive' } },
-            { rdp: { contains: query, mode: 'insensitive' } }
+            { rdpfis: { contains: query, mode: 'insensitive' } },  // CAMBIO: rdp → rdpfis
+            { rdpfin: { contains: query, mode: 'insensitive' } },  // NUEVO CAMPO
+            { descripcion: { contains: query, mode: 'insensitive' } } // NUEVO CAMPO
           ]
         },
         include: {
@@ -690,7 +729,9 @@ async update(req, res) {
           apellido: true,
           cargo: true,
           correo: true,
-          rdp: true,
+          rdpfis: true,      // CAMBIO: rdp → rdpfis
+          rdpfin: true,      // NUEVO CAMPO
+          descripcion: true, // NUEVO CAMPO
           sede: {
             select: {
               id: true,
