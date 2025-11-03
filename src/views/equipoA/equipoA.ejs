@@ -1639,47 +1639,52 @@
             }
         }
 
-        async function editEquipoAsignado(id) {
-            try {
-                const response = await fetch(`/api/equipos_asignados/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar asignación');
-                }
-
-                const asignacion = await response.json();
-                
-                // Establecer valores básicos
-                document.getElementById('edit_asignacion_id').value = asignacion.id;
-                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
-                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
-                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
-                document.getElementById('edit_estado').value = asignacion.estado;
-                document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
-                document.getElementById('edit_numero_serie').value = asignacion.numero_serie || '';
-                document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
-                document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
-                
-                // Mostrar modal primero
-                $('#editEquipoAsignadoModal').modal('show');
-                
-                // Aplicar toggle de campos dinámicos después de que el modal esté visible
-                setTimeout(() => {
-                    const editSelect = document.getElementById('edit_stock_equipos_id');
-                    if (editSelect && editSelect.value) {
-                        console.log('🔄 Aplicando toggle campos en edición para equipo:', editSelect.value);
-                        toggleDynamicFieldsBasedOnSelection(editSelect, true);
-                    }
-                }, 300);
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+   async function editEquipoAsignado(id) {
+    try {
+        const response = await fetch(`/api/equipos_asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
         }
+
+        const asignacion = await response.json();
+        
+        console.log('🔍 Datos para editar:', asignacion);
+        
+        // Establecer valores básicos
+        document.getElementById('edit_asignacion_id').value = asignacion.id;
+        document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+        document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+        document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
+        document.getElementById('edit_estado').value = asignacion.estado;
+        document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
+        
+        // USAR EL CAMPO CORRECTO PARA NÚMERO DE SERIE
+        document.getElementById('edit_numero_serie').value = asignacion.numero_serie || asignacion.cereal_equipo || '';
+        
+        document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
+        document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+        
+        // Mostrar modal primero
+        $('#editEquipoAsignadoModal').modal('show');
+        
+        // Aplicar toggle de campos dinámicos después de que el modal esté visible
+        setTimeout(() => {
+            const editSelect = document.getElementById('edit_stock_equipos_id');
+            if (editSelect && editSelect.value) {
+                console.log('🔄 Aplicando toggle campos en edición para equipo:', editSelect.value);
+                toggleDynamicFieldsBasedOnSelection(editSelect, true);
+            }
+        }, 300);
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
         async function actualizarEquipoAsignado() {
             const form = document.getElementById('editEquipoAsignadoForm');
@@ -1718,90 +1723,113 @@
             }
         }
 
-        async function viewEquipoAsignado(id) {
-            try {
-                const response = await fetch(`/api/equipos_asignados/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar asignación');
-                }
+async function viewEquipoAsignado(id) {
+    try {
+        const response = await fetch(`/api/equipos_asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
+        }
 
-                const asignacion = await response.json();
-                
-                // Usar las relaciones correctas
-                const usuario = asignacion.usuarioAsignado;
-                const stockEquipo = asignacion.stockEquipo;
-                const usuarioAsignador = asignacion.usuarioAsignador;
-                
-                // Icono - usar primera letra del nombre del usuario
-                let inicial = 'A';
-                if (usuario && usuario.nombre) {
-                    inicial = usuario.nombre.charAt(0).toUpperCase();
-                }
-                document.getElementById('view_icon').textContent = inicial;
-                
-                document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
-                document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
-                document.getElementById('view_asignacion_id').textContent = asignacion.id;
-                
-                // Estado
-                const estadoClass = `estado-${asignacion.estado}`;
-                const estadoTexto = asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1);
-                document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
-                
-                // Usuario asignado
-                let usuarioTexto = 'N/A';
-                if (usuario) {
-                    usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-                    if (usuario.cargo) {
-                        usuarioTexto += ` - ${usuario.cargo}`;
-                    }
-                }
-                document.getElementById('view_usuario').textContent = usuarioTexto;
-                
-                // Equipo 
-                let equipoTexto = 'N/A';
-                if (stockEquipo) {
-                    equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
-                    
-                    // Tipo de equipo
-                    if (stockEquipo.tipoEquipo && stockEquipo.tipoEquipo.nombre) {
-                        equipoTexto += ` (${stockEquipo.tipoEquipo.nombre})`;
-                    }
-                }
-                document.getElementById('view_equipo').textContent = equipoTexto;
-                
-                // Fechas
-                document.getElementById('view_fecha_asignacion').textContent = new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES');
-                document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
-                    new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
-                
-                // IP
-                document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
-                
-                // Número de Serie
-                document.getElementById('view_numero_serie').textContent = asignacion.numero_serie || 'No asignado';
-                
-                // Asignado por
-                let asignadorTexto = 'Sistema';
-                if (usuarioAsignador) {
-                    asignadorTexto = usuarioAsignador.name || 'Usuario';
-                }
-                document.getElementById('view_asignado_por').textContent = asignadorTexto;
-                
-                // Observaciones
-                document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
-                
-                $('#viewEquipoAsignadoModal').modal('show');
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
+        const asignacion = await response.json();
+        
+        console.log('🔍 Datos de asignación cargados:', asignacion);
+        
+        // DEBUG: Verificar la estructura real de los datos
+        console.log('📋 Estructura completa:', Object.keys(asignacion));
+        console.log('👤 Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
+        console.log('💻 Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
+        console.log('👨‍💼 Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
+        console.log('🔢 Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
+        
+        // Determinar la estructura real de los datos
+        const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
+        const stockEquipo = asignacion.stock_equipos || asignacion.stockEquipo || {};
+        const usuarioAsignador = asignacion.usuario || asignacion.usuarioAsignador || { name: 'Sistema' };
+        const numeroSerie = asignacion.numero_serie || asignacion.cereal_equipo || '';
+        
+        // Icono - usar primera letra del nombre del usuario
+        let inicial = 'A';
+        if (usuario && usuario.nombre) {
+            inicial = usuario.nombre.charAt(0).toUpperCase();
+        } else if (usuario && usuario.name) {
+            inicial = usuario.name.charAt(0).toUpperCase();
+        }
+        document.getElementById('view_icon').textContent = inicial;
+        
+        document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+        document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+        document.getElementById('view_asignacion_id').textContent = asignacion.id;
+        
+        // Estado
+        const estadoClass = `estado-${asignacion.estado}`;
+        const estadoTexto = asignacion.estado ? asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1) : 'Activo';
+        document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
+        
+        // Usuario asignado
+        let usuarioTexto = 'N/A';
+        if (usuario) {
+            if (usuario.nombre && usuario.apellido) {
+                usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+            } else if (usuario.name) {
+                usuarioTexto = usuario.name;
+            }
+            if (usuario.cargo) {
+                usuarioTexto += ` - ${usuario.cargo}`;
             }
         }
+        document.getElementById('view_usuario').textContent = usuarioTexto;
+        
+        // Equipo 
+        let equipoTexto = 'N/A';
+        if (stockEquipo) {
+            if (stockEquipo.marca && stockEquipo.modelo) {
+                equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
+            } else if (stockEquipo.nombre) {
+                equipoTexto = stockEquipo.nombre;
+            }
+            
+            // Tipo de equipo
+            const tipoEquipo = stockEquipo.tipo_equipo || stockEquipo.tipoEquipo || {};
+            if (tipoEquipo.nombre) {
+                equipoTexto += ` (${tipoEquipo.nombre})`;
+            }
+        }
+        document.getElementById('view_equipo').textContent = equipoTexto;
+        
+        // Fechas
+        document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
+            new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
+        document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
+            new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
+        
+        // IP
+        document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
+        
+        // Número de Serie - USAR EL CAMPO CORRECTO
+        document.getElementById('view_numero_serie').textContent = numeroSerie || 'No asignado';
+        
+        // Asignado por
+        let asignadorTexto = 'Sistema';
+        if (usuarioAsignador) {
+            asignadorTexto = usuarioAsignador.name || 'Usuario';
+        }
+        document.getElementById('view_asignado_por').textContent = asignadorTexto;
+        
+        // Observaciones
+        document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
+        
+        $('#viewEquipoAsignadoModal').modal('show');
+        
+    } catch (error) {
+        console.error('❌ Error cargando asignación:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
         async function devolverEquipo(id) {
             const result = await Swal.fire({
