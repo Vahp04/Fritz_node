@@ -77,7 +77,7 @@ export const equipoAsignadoController = {
         stock_equipos_id,
         fecha_asignacion,
         ip_equipo,
-        numero_serie, // Este viene del frontend como "numero_serie"
+        numero_serie, 
         fecha_devolucion,
         observaciones,
         estado = 'activo'
@@ -872,7 +872,7 @@ async reactivar(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
-                numero_serie: asignacion.cereal_equipo, // USAR CEREAL_EQUIPO
+                numero_serie: asignacion.cereal_equipo, 
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 created_at: asignacion.created_at,
@@ -1015,7 +1015,8 @@ async verPdfAsignaciones(req, res) {
                             select: {
                                 id: true,
                                 nombre: true,
-                                requiere_ip: true
+                                requiere_ip: true,
+                                requiere_cereal:true,
                             }
                         }
                     }
@@ -1061,7 +1062,8 @@ async verPdfAsignaciones(req, res) {
                     tipoEquipo: {
                         id: tipoEquipo.id || 0,
                         nombre: tipoEquipo.nombre || 'Sin tipo',
-                        requiere_ip: tipoEquipo.requiere_ip || false
+                        requiere_ip: tipoEquipo.requiere_ip || false,
+                        requiere_cereal: tipoEquipo.requiere_cereal || false,
                     }
                 },
                 usuarioAsignador: {
@@ -1188,6 +1190,7 @@ async generarPdfPorUsuario(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
+                cereal_equipo: asignacion.cereal_equipo,
                 estado: asignacion.estado,
                 
                 stockEquipo: {
@@ -1219,7 +1222,7 @@ async generarPdfPorUsuario(req, res) {
             equiposDevueltos: equiposDevueltos,
             equiposObsoletos: equiposObsoletos,
             formatoDuplicado: true,
-            numeroRegistro: numeroRegistro // Agregar el número de registro
+            numeroRegistro: numeroRegistro 
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
@@ -1310,6 +1313,7 @@ async verPdfPorUsuario(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
+                cereal_equipo: asignacion.cereal_equipo,
                 estado: asignacion.estado,
                 
                 stockEquipo: {
@@ -1341,7 +1345,7 @@ async verPdfPorUsuario(req, res) {
             equiposDevueltos: equiposDevueltos,
             equiposObsoletos: equiposObsoletos,
             formatoDuplicado: true,
-            numeroRegistro: numeroRegistro // Agregar el número de registro
+            numeroRegistro: numeroRegistro
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);

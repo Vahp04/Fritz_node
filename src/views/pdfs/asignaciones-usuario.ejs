@@ -281,7 +281,7 @@
                                 -
                             <% } %>
                         </td>
-                        <td><%= asignacion.ip_equipo || '-' %></td>
+                        <td><%= asignacion.ip_equipo || '-' %> <%= asignacion.cereal_equipo || '-' %></td>
                         <td class="text-center">
                             <% if (asignacion.estado == 'activo') { %>
                                 <span class="badge badge-success">Activo</span>
@@ -391,7 +391,7 @@
                                 -
                             <% } %>
                         </td>
-                        <td><%= asignacion.ip_equipo || '-' %></td>
+                        <td><%= asignacion.ip_equipo || '-' %> <%= asignacion.cereal_equipo || '-' %></td>
                         <td class="text-center">
                             <% if (asignacion.estado == 'activo') { %>
                                 <span class="badge badge-success">Activo</span>

@@ -100,7 +100,7 @@ model equipo_asignado {
   stock_equipos_id Int
   fecha_asignacion DateTime?
   ip_equipo        String?       @db.VarChar(191)
-  cereal_equipo    String?       @db.VarChar(191)  // NUEVO CAMPO AGREGADO
+  cereal_equipo    String?       @db.VarChar(191)  
   fecha_devolucion DateTime?
   observaciones    String?       @db.VarChar(191)
   usuario_id       Int?
