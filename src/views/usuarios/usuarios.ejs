@@ -1031,6 +1031,10 @@ function renderizarSedes(preservarValores = false, selectId = null) {
             // Verificar que hay sedes para mostrar
             if (sedes.length === 0) {
                 console.warn('No hay sedes cargadas para renderizar');
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay sedes disponibles";
+                select.appendChild(option);
                 return;
             }
 
@@ -1045,6 +1049,7 @@ function renderizarSedes(preservarValores = false, selectId = null) {
             // Restaurar el valor si existe y estamos preservando valores
             if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
+                console.log(`✅ Valor restaurado en ${selectId}: ${currentValue}`);
             }
             
             console.log(`✅ Select ${selectId} renderizado con ${sedes.length} sedes`);
@@ -1054,7 +1059,6 @@ function renderizarSedes(preservarValores = false, selectId = null) {
     });
 }
 
-// Renderizar departamentos en los selects
 function renderizarDepartamentos(preservarValores = false, selectId = null) {
     const selects = selectId ? [selectId] : ['create_departamento_id', 'edit_departamento_id'];
 
@@ -1070,6 +1074,10 @@ function renderizarDepartamentos(preservarValores = false, selectId = null) {
             // Verificar que hay departamentos para mostrar
             if (departamentos.length === 0) {
                 console.warn('No hay departamentos cargados para renderizar');
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay departamentos disponibles";
+                select.appendChild(option);
                 return;
             }
 
@@ -1082,6 +1090,7 @@ function renderizarDepartamentos(preservarValores = false, selectId = null) {
             
             if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
+                console.log(`✅ Valor restaurado en ${selectId}: ${currentValue}`);
             }
             
             console.log(`✅ Select ${selectId} renderizado con ${departamentos.length} departamentos`);
@@ -1495,6 +1504,7 @@ $('#createUsuarioModal').on('show.bs.modal', function () {
     console.log('🔓 Modal abierto, estado reset');
     creandoUsuario = false;
 });
+
 async function editUsuario(id) {
     try {
         console.log(`🔍 Cargando usuario ID: ${id} para edición`);
@@ -1509,7 +1519,7 @@ async function editUsuario(id) {
         
         console.log('📋 Datos del usuario para editar:', usuario);
         
-        // Primero establecer todos los valores básicos
+        // Establecer valores básicos inmediatamente
         document.getElementById('edit_usuario_id').value = usuario.id;
         document.getElementById('edit_nombre').value = usuario.nombre || '';
         document.getElementById('edit_apellido').value = usuario.apellido || '';
@@ -1524,25 +1534,110 @@ async function editUsuario(id) {
             cargoSelect.value = usuario.cargo || '';
         }
         
-        console.log('🎯 Estableciendo valores temporales de sede y departamento...');
-        // Establecer valores de sede y departamento temporalmente
-        const sedeSelect = document.getElementById('edit_sede_id');
-        const departamentoSelect = document.getElementById('edit_departamento_id');
-        
-        if (sedeSelect) {
-            sedeSelect.value = usuario.sede_id || '';
-            console.log(`📍 Sede temporal establecida: ${sedeSelect.value}`);
-        }
-        if (departamentoSelect) {
-            departamentoSelect.value = usuario.departamento_id || '';
-            console.log(`📍 Departamento temporal establecido: ${departamentoSelect.value}`);
-        }
-        
-        // Ahora cargar y establecer sedes y departamentos
-        await cargarDatosParaEdicion(usuario);
-        
-        console.log('✅ Modal listo para mostrar');
+        // Mostrar el modal inmediatamente
         $('#editUsuarioModal').modal('show');
+        
+        // Función para establecer valores después de que los selects estén listos
+        const establecerValoresSelects = () => {
+            console.log('🎯 Estableciendo valores de sede y departamento...');
+            
+            const sedeSelect = document.getElementById('edit_sede_id');
+            const departamentoSelect = document.getElementById('edit_departamento_id');
+            
+            if (sedeSelect && sedeSelect.options.length > 1) {
+                console.log(`📍 Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
+                
+                // Buscar la opción que coincida con el valor
+                let sedeEncontrada = false;
+                for (let i = 0; i < sedeSelect.options.length; i++) {
+                    if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
+                        sedeSelect.value = usuario.sede_id;
+                        sedeEncontrada = true;
+                        console.log(`✅ Sede encontrada y establecida: ${sedeSelect.value}`);
+                        break;
+                    }
+                }
+                
+                if (!sedeEncontrada) {
+                    console.warn(`⚠️ No se encontró la sede_id: ${usuario.sede_id}`);
+                    // Si no se encuentra, establecer la primera opción disponible
+                    if (sedeSelect.options.length > 1) {
+                        sedeSelect.selectedIndex = 1;
+                        console.log(`🔄 Estableciendo primera sede disponible: ${sedeSelect.value}`);
+                    }
+                }
+            } else {
+                console.warn('❌ Select de sede no disponible o sin opciones');
+            }
+            
+            if (departamentoSelect && departamentoSelect.options.length > 1) {
+                console.log(`📍 Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
+                
+                // Buscar la opción que coincida con el valor
+                let departamentoEncontrado = false;
+                for (let i = 0; i < departamentoSelect.options.length; i++) {
+                    if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
+                        departamentoSelect.value = usuario.departamento_id;
+                        departamentoEncontrado = true;
+                        console.log(`✅ Departamento encontrado y establecido: ${departamentoSelect.value}`);
+                        break;
+                    }
+                }
+                
+                if (!departamentoEncontrado) {
+                    console.warn(`⚠️ No se encontró el departamento_id: ${usuario.departamento_id}`);
+                    // Si no se encuentra, establecer la primera opción disponible
+                    if (departamentoSelect.options.length > 1) {
+                        departamentoSelect.selectedIndex = 1;
+                        console.log(`🔄 Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
+                    }
+                }
+            } else {
+                console.warn('❌ Select de departamento no disponible o sin opciones');
+            }
+        };
+        
+        // Cargar sedes y departamentos
+        console.log('🔄 Cargando datos para edición...');
+        
+        // Verificar si ya tenemos los datos cargados
+        let sedesCargadas = sedes.length > 0;
+        let departamentosCargados = departamentos.length > 0;
+        
+        // Array de promesas para cargar datos
+        const promesasCarga = [];
+        
+        if (!sedesCargadas) {
+            console.log('📥 Cargando sedes...');
+            promesasCarga.push(cargarSedes());
+        }
+        
+        if (!departamentosCargados) {
+            console.log('📥 Cargando departamentos...');
+            promesasCarga.push(cargarDepartamentos());
+        }
+        
+        // Esperar a que se carguen los datos si es necesario
+        if (promesasCarga.length > 0) {
+            await Promise.all(promesasCarga);
+            console.log('✅ Todos los datos cargados');
+        } else {
+            console.log('✅ Datos ya cargados previamente');
+        }
+        
+        // Renderizar selects de edición específicamente
+        renderizarSedes(false, 'edit_sede_id');
+        renderizarDepartamentos(false, 'edit_departamento_id');
+        
+        // Esperar un breve momento para que el DOM se actualice
+        setTimeout(() => {
+            establecerValoresSelects();
+        }, 100);
+        
+        // También establecer después de un tiempo adicional por si acaso
+        setTimeout(() => {
+            establecerValoresSelects();
+        }, 500);
         
     } catch (error) {
         console.error('❌ Error en editUsuario:', error);

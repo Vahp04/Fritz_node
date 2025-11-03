@@ -1363,10 +1363,14 @@ function renderizarEquiposAsignados() {
         
         row.className = rowClass;
         
-        // OCULTAR POR DEFECTO LOS EQUIPOS OBSOLETOS A MENOS QUE SE FILTREN EXPLÍCITAMENTE
-        if (asignacion.estado === 'obsoleto' && estadoFilter !== 'obsoleto') {
-            row.style.display = 'none';
-        }
+       
+        if (asignacion.estado === 'obsoleto') {
+    if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
+        row.style.display = 'none';
+    } else {
+        row.style.display = '';
+    }
+}
         
         // Usar las propiedades formateadas
         const usuario = asignacion.usuarioAsignado || {};
@@ -2009,7 +2013,6 @@ async function reactivarEquipo(id) {
             }
         }
 
-        // Funciones de filtros
 function aplicarFiltros() {
     const nameFilter = document.getElementById('searchName').value.toLowerCase();
     const equipoFilter = document.getElementById('searchEquipo').value.toLowerCase();
@@ -2028,10 +2031,15 @@ function aplicarFiltros() {
         const equipoMatch = !equipoFilter || equipo.includes(equipoFilter);
         const estadoMatch = !estadoFilter || estado === estadoFilter;
         
-        // MOSTRAR EQUIPOS OBSOLETOS SOLO CUANDO SE FILTRA EXPLÍCITAMENTE
-        if (estado === 'obsoleto' && estadoFilter !== 'obsoleto') {
-            row.style.display = 'none';
+      
+        if (estado === 'obsoleto') {
+            if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
+                row.style.display = 'none';
+            } else {
+                row.style.display = (nameMatch && equipoMatch) ? '' : 'none';
+            }
         } else {
+            // Para equipos no obsoletos, aplicar filtros normales
             row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
         }
     });
