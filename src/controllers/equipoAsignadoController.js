@@ -806,10 +806,20 @@ async reactivar(req, res) {
 
    async generarPdfAsignaciones(req, res) {
     console.log('=== GENERAR PDF ASIGNACIONES INICIADO ===');
-    
-    try {
+   try {
         const equiposAsignados = await prisma.equipo_asignado.findMany({
-            include: {
+            select: { // CAMBIAR include por select para controlar explícitamente los campos
+                id: true,
+                usuarios_id: true,
+                stock_equipos_id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, // ¡IMPORTANTE! Incluir este campo
+                observaciones: true,
+                estado: true,
+                created_at: true,
+                updated_at: true,
                 usuarios: {
                     select: {
                         id: true,
@@ -872,7 +882,7 @@ async reactivar(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
-                numero_serie: asignacion.cereal_equipo, 
+                cereal_equipo: asignacion.cereal_equipo, // ¡AHORA SÍ ESTARÁ DISPONIBLE!
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 created_at: asignacion.created_at,
@@ -913,6 +923,12 @@ async reactivar(req, res) {
                     new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto'
             };
         });
+
+        // Verificar que ahora sí viene el cereal_equipo
+        console.log('🔍 Verificando cereal_equipo en datos procesados:');
+        if (asignacionesProcesadas.length > 0) {
+            console.log('Primera asignación - cereal_equipo:', asignacionesProcesadas[0].cereal_equipo);
+        }
 
         const totalAsignaciones = asignacionesProcesadas.length;
         const asignacionesActivas = asignacionesProcesadas.filter(a => a.estado === 'activo').length;
@@ -979,10 +995,18 @@ async reactivar(req, res) {
 // Aplicar la misma corrección a verPdfAsignaciones
 async verPdfAsignaciones(req, res) {
     console.log('=== VER PDF ASIGNACIONES INICIADO ===');
-    
-    try {
+  try {
         const equiposAsignados = await prisma.equipo_asignado.findMany({
-            include: {
+            select: { // CAMBIAR include por select
+                id: true,
+                usuarios_id: true,
+                stock_equipos_id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, // ¡IMPORTANTE! Incluir este campo
+                observaciones: true,
+                estado: true,
                 usuarios: {
                     select: {
                         id: true,
@@ -1016,7 +1040,7 @@ async verPdfAsignaciones(req, res) {
                                 id: true,
                                 nombre: true,
                                 requiere_ip: true,
-                                requiere_cereal:true,
+                                requiere_cereal: true
                             }
                         }
                     }
@@ -1042,6 +1066,8 @@ async verPdfAsignaciones(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
+                numero_serie: asignacion.cereal_equipo, 
+                cereal_equipo: asignacion.cereal_equipo,
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 
@@ -1163,7 +1189,13 @@ async generarPdfPorUsuario(req, res) {
 
         const equiposAsignados = await prisma.equipo_asignado.findMany({
             where: { usuarios_id: parseInt(usuarioId) },
-            include: {
+            select: { // CAMBIAR include por select
+                id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, 
+                estado: true,
                 stock_equipos: {
                     include: {
                         tipo_equipo: { select: { nombre: true } }
@@ -1190,7 +1222,7 @@ async generarPdfPorUsuario(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
-                cereal_equipo: asignacion.cereal_equipo,
+                cereal_equipo: asignacion.cereal_equipo, 
                 estado: asignacion.estado,
                 
                 stockEquipo: {
@@ -1285,9 +1317,15 @@ async verPdfPorUsuario(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        const equiposAsignados = await prisma.equipo_asignado.findMany({
+       const equiposAsignados = await prisma.equipo_asignado.findMany({
             where: { usuarios_id: parseInt(usuarioId) },
-            include: {
+            select: { // CAMBIAR include por select
+                id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, 
+                estado: true,
                 stock_equipos: {
                     include: {
                         tipo_equipo: { select: { nombre: true } }
@@ -1313,7 +1351,7 @@ async verPdfPorUsuario(req, res) {
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
-                cereal_equipo: asignacion.cereal_equipo,
+                cereal_equipo: asignacion.cereal_equipo, 
                 estado: asignacion.estado,
                 
                 stockEquipo: {

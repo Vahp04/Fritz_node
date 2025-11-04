@@ -183,71 +183,72 @@
         </div>
     </div>
 
-    <% if (equiposAsignados && equiposAsignados.length > 0) { %>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Usuario</th>
-                <th>Cargo</th>
-                <th>Sede</th>
-                <th>Departamento</th>
-                <th>Equipo</th>
-                <th>Tipo</th>
-                <th>Fecha Asignación</th>
-                <th>Fecha Devolución</th>
-                <th>IP Equipo</th>
-                <th>Asignado Por</th>
-                <th class="text-center">Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% equiposAsignados.forEach(asignacion => { %>
-            <% 
-                let estadoClass = '';
-                if (asignacion.estado == 'activo') {
-                    estadoClass = 'activo-row';
-                } else if (asignacion.estado == 'devuelto') {
-                    estadoClass = 'devuelto-row';
-                } else if (asignacion.estado == 'obsoleto') {
-                    estadoClass = 'obsoleto-row';
-                }
-            %>
-            <tr class="<%= estadoClass %>">
-             <td><%= asignacion.usuarioAsignado.nombre %> <%= asignacion.usuarioAsignado.apellido %></td>
-<td><%= asignacion.usuarioAsignado.cargo %></td>
-<td><%= asignacion.usuarioAsignado.sede.nombre %></td>
-<td><%= asignacion.usuarioAsignado.departamento.nombre %></td>
-<td><%= asignacion.stockEquipo.marca %> <%= asignacion.stockEquipo.modelo %></td>
-<td><%= asignacion.stockEquipo.tipoEquipo.nombre %></td>
-                <td><%= asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A' %></td>
-                <td>
-                    <% if (asignacion.fecha_devolucion) { %>
-                        <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
-                    <% } else { %>
-                        -
-                    <% } %>
-                </td>
-                <td><%= asignacion.ip_equipo || 'No requiere' %></td>
-                <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
-                <td class="text-center">
-                    <% 
-                        const estado = asignacion.estado || 'desconocido';
-                    %>
-                    <% if (estado == 'activo') { %>
-                        <span class="badge badge-success">Activo</span>
-                    <% } else if (estado == 'devuelto') { %>
-                        <span class="badge badge-secondary">Devuelto</span>
-                    <% } else if (estado == 'obsoleto') { %>
-                        <span class="badge badge-warning">Obsoleto</span>
-                    <% } else { %>
-                        <span class="badge badge-danger"><%= estado.charAt(0).toUpperCase() + estado.slice(1) %></span>
-                    <% } %>
-                </td>
-            </tr>
-            <% }); %>
-        </tbody>
-    </table>
-
+<% if (equiposAsignados && equiposAsignados.length > 0) { %>
+ <table class="table">
+    <thead>
+        <tr>
+            <th>Usuario</th>
+            <th>Cargo</th>
+            <th>Sede</th>
+            <th>Departamento</th>
+            <th>Equipo</th>
+            <th>Tipo</th>
+            <th>Serial</th> 
+            <th>Fecha Asignación</th>
+            <th>Fecha Devolución</th>
+            <th>IP Equipo</th>
+            <th>Asignado Por</th>
+            <th class="text-center">Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% equiposAsignados.forEach(asignacion => { %>
+        <% 
+            let estadoClass = '';
+            if (asignacion.estado == 'activo') {
+                estadoClass = 'activo-row';
+            } else if (asignacion.estado == 'devuelto') {
+                estadoClass = 'devuelto-row';
+            } else if (asignacion.estado == 'obsoleto') {
+                estadoClass = 'obsoleto-row';
+            }
+        %>
+        <tr class="<%= estadoClass %>">
+            <td><%= asignacion.usuarioAsignado.nombre %> <%= asignacion.usuarioAsignado.apellido %></td>
+            <td><%= asignacion.usuarioAsignado.cargo %></td>
+            <td><%= asignacion.usuarioAsignado.sede.nombre %></td>
+            <td><%= asignacion.usuarioAsignado.departamento.nombre %></td>
+            <td><%= asignacion.stockEquipo.marca %> <%= asignacion.stockEquipo.modelo %></td>
+            <td><%= asignacion.stockEquipo.tipoEquipo.nombre %></td>
+            <td><%= asignacion.cereal_equipo || 'N/A' %></td> 
+            <td><%= asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A' %></td>
+            <td>
+                <% if (asignacion.fecha_devolucion) { %>
+                    <%= new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') %>
+                <% } else { %>
+                    -
+                <% } %>
+            </td>
+            <td><%= asignacion.ip_equipo || 'No requiere' %></td>
+            <td><%= asignacion.usuarioAsignador.name || 'Sistema' %></td>
+            <td class="text-center">
+                <% 
+                    const estado = asignacion.estado || 'desconocido';
+                %>
+                <% if (estado == 'activo') { %>
+                    <span class="badge badge-success">Activo</span>
+                <% } else if (estado == 'devuelto') { %>
+                    <span class="badge badge-secondary">Devuelto</span>
+                <% } else if (estado == 'obsoleto') { %>
+                    <span class="badge badge-warning">Obsoleto</span>
+                <% } else { %>
+                    <span class="badge badge-danger"><%= estado.charAt(0).toUpperCase() + estado.slice(1) %></span>
+                <% } %>
+            </td>
+        </tr>
+        <% }); %>
+    </tbody>
+</table>
     <!-- Resumen final -->
     <div class="summary">
         <div class="info-row">
