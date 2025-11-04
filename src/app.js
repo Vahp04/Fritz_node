@@ -14,6 +14,8 @@ import usuarioRoutes from './routes/usuario.js';
 import tipoEquipoRoutes from './routes/tipoEquipo.js';
 import stockEquiposRoutes from './routes/stockEquipos.js';
 import equipoAsignadoRoutes from './routes/equipoAsignado.js';
+import mikrotikRoutes from './routes/mikrotik.js';
+
 
 // Importar routers para PDFs
 import pdfRoutes from './routes/pdfRoutes.js';
@@ -62,6 +64,7 @@ app.use('/api/usuario', usuarioRoutes);
 app.use('/api/tipo_equipo', tipoEquipoRoutes);
 app.use('/api/stock_equipos', stockEquiposRoutes);
 app.use('/api/equipos_asignados', equipoAsignadoRoutes);
+app.use('/api/', mikrotikRoutes);
 
 // Rutas PDF
 app.use('/api/pdf', pdfRoutes);
@@ -144,15 +147,15 @@ app.use('/api/*', (req, res) => {
       "/api/tipo_equipo",
       "/api/stock_equipos",
       "/api/equipos_asignados",
-      // PDF Endpoints - ACTUALIZADOS
+      
       "/api/pdf/usuarios",
       "/api/pdf/usuarios/ver",
       "/api/pdf/stock", 
       "/api/pdf/stock/ver",
       "/api/pdf/asignaciones",
       "/api/pdf/asignaciones/ver",
-      "/api/pdf/asignaciones/usuario/:usuarioId",        // NUEVA
-      "/api/pdf/asignaciones/usuario/:usuarioId/ver"     // NUEVA
+      "/api/pdf/asignaciones/usuario/:usuarioId",        
+      "/api/pdf/asignaciones/usuario/:usuarioId/ver"    
     ]
   });
 });

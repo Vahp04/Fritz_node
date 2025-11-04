@@ -108,6 +108,15 @@ router.get('/tipo_equipo', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/mikrotik', authenticateToken, (req, res) => {
+    res.render('mikrotik/mikrotik', {
+        title: 'Gestión de los Mikrotiks',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 // Rutas para PDFs (protegidas)
 router.get('/equipos-a/pdf', authenticateToken, (req, res) => {
     res.render('equipoA/pdf', {

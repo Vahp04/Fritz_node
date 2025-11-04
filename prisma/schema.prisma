@@ -13,6 +13,7 @@ model departamentos {
   created_at DateTime   @default(now())
   updated_at DateTime   @default(now())
   usuarios   usuarios[]
+  impresora  impresora[]
 
   @@map("departamentos")
 }
@@ -24,6 +25,8 @@ model sedes {
   created_at DateTime   @default(now())
   updated_at DateTime   @default(now())
   usuarios   usuarios[]
+  impresora  impresora[]
+  mikrotik   mikrotik[]
 
   @@map("sedes")
 }
@@ -56,6 +59,9 @@ model stock_equipos {
   created_at          DateTime          @default(now())
   updated_at          DateTime          @default(now())
   equipo_asignado     equipo_asignado[]
+  impresora           impresora?        @relation("ImpresoraPrincipal")
+  impresora_toner     impresora[]       @relation("TonerInstalado")
+  mikrotik            mikrotik?         @relation("MikrotikPrincipal")
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
 
   @@map("stock_equipos")
@@ -114,6 +120,53 @@ model equipo_asignado {
   @@map("equipo_asignado")
 }
 
+model impresora {
+  id               Int           @id @default(autoincrement())
+  stock_equipos_id Int           @unique  // AÑADIDO: @unique para relación 1:1
+  nombre           String        @db.VarChar(191)
+  descripcion      String?       @db.VarChar(191)
+  ip_impresora     String?       @db.VarChar(191)
+  cereal_impresora String?       @db.VarChar(191)
+  sede_id          Int   
+  departamento_id  Int
+  ubicacion        String?       @db.VarChar(191)
+  
+  // Relación con el toner actual (desde stock_equipos)
+  toner_actual_id  Int?         
+  fecha_instalacion_toner DateTime?
+  contador_instalacion_toner Int? @default(0)
+  
+  contador_impresiones Int       @default(0)
+  estado_impresora EstadoImpresora @default(activa)
+  
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  
+  stock_equipos    stock_equipos @relation("ImpresoraPrincipal", fields: [stock_equipos_id], references: [id], onDelete: Cascade)
+  sede             sedes         @relation(fields: [sede_id], references: [id], onDelete: Cascade)
+  departamento     departamentos @relation(fields: [departamento_id], references: [id], onDelete: Cascade)
+  toner_actual     stock_equipos? @relation("TonerInstalado", fields: [toner_actual_id], references: [id])
+
+  @@map("impresora")
+}
+
+model mikrotik {
+  id               Int           @id @default(autoincrement())
+  stock_equipos_id Int           @unique 
+  descripcion      String?       @db.VarChar(191)
+  ip_mikrotik      String?       @db.VarChar(191)
+  cereal_mikrotik  String?       @db.VarChar(191)
+  sede_id          Int
+  ubicacion        String        @db.VarChar(191)
+  estado           EstadoMikrotik @default(activo) 
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  stock_equipos    stock_equipos @relation("MikrotikPrincipal", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+  sede             sedes         @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+
+  @@map("mikrotik")
+}
+
 enum cargo {
   Gerente
   Jefe
@@ -123,6 +176,21 @@ enum cargo {
   Pasante
   Coordinador
   Supervisor
+}
+
+enum EstadoMikrotik {
+  activo
+  inactivo
+  mantenimiento
+  desuso
+}
+
+enum EstadoImpresora {
+  activa
+  inactiva
+  mantenimiento
+  sin_toner
+  obsoleta
 }
 
 model ContadorRegistros {
