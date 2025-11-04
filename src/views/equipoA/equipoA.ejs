@@ -979,64 +979,88 @@
             }
         }
 
-        // Cargar stock de equipos
-        async function cargarStockEquipos() {
-            try {
-                console.log('🔍 Cargando stock de equipos...');
-                const response = await fetch('/api/stock_equipos', {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        console.error('❌ Error 401: No autenticado');
-                        manejarErrorAutenticacion();
-                        return;
-                    }
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('📦 Respuesta stock (estructura):', data);
-                
-                // Determinar la estructura de los datos
-                let equiposArray = [];
-                
-                if (Array.isArray(data)) {
-                    equiposArray = data;
-                    console.log('✅ Datos recibidos como array directo');
-                } else if (data.stockEquipos && Array.isArray(data.stockEquipos)) {
-                    equiposArray = data.stockEquipos;
-                    console.log('✅ Datos recibidos en propiedad stockEquipos');
-                } else if (data.equipos && Array.isArray(data.equipos)) {
-                    equiposArray = data.equipos;
-                    console.log('✅ Datos recibidos en propiedad equipos');
-                } else if (data.data && Array.isArray(data.data)) {
-                    equiposArray = data.data;
-                    console.log('✅ Datos recibidos en propiedad data');
-                } else {
-                    console.warn('⚠️ Estructura de datos no reconocida:', Object.keys(data));
-                    equiposArray = [];
-                }
-                
-                stockEquipos = equiposArray;
-                console.log(`✅ ${stockEquipos.length} equipos cargados`);
-                
-                llenarSelectStockEquipos();
-                
-            } catch (error) {
-                console.error('❌ Error cargando stock:', error);
-                if (error.message.includes('401') || error.message.includes('autenticación')) {
-                    manejarErrorAutenticacion();
-                }
-                stockEquipos = [];
-                llenarSelectStockEquipos();
+  async function cargarStockEquipos() {
+    try {
+        console.log('🔍 Cargando stock de equipos...');
+        const response = await fetch('/api/stock_equipos', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.error('❌ Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('📦 Respuesta stock (estructura):', data);
+        
+        let equiposArray = [];
+        
+        if (Array.isArray(data)) {
+            equiposArray = data;
+            console.log('✅ Datos recibidos como array directo');
+        } else if (data.stockEquipos && Array.isArray(data.stockEquipos)) {
+            equiposArray = data.stockEquipos;
+            console.log('✅ Datos recibidos en propiedad stockEquipos');
+        } else if (data.equipos && Array.isArray(data.equipos)) {
+            equiposArray = data.equipos;
+            console.log('✅ Datos recibidos en propiedad equipos');
+        } else if (data.data && Array.isArray(data.data)) {
+            equiposArray = data.data;
+            console.log('✅ Datos recibidos en propiedad data');
+        } else {
+            console.warn('⚠️ Estructura de datos no reconocida:', Object.keys(data));
+            equiposArray = [];
+        }
+        
+        stockEquipos = equiposArray.filter(equipo => {
+            let tipoEquipoNombre = '';
+            
+            if (equipo.tipo_equipo && equipo.tipo_equipo.nombre) {
+                tipoEquipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            } else if (equipo.tipoEquipo && equipo.tipoEquipo.nombre) {
+                tipoEquipoNombre = equipo.tipoEquipo.nombre.toLowerCase();
+            } else if (equipo.tipo_equipo_nombre) {
+                tipoEquipoNombre = equipo.tipo_equipo_nombre.toLowerCase();
+            } else if (equipo.tipo_nombre) {
+                tipoEquipoNombre = equipo.tipo_nombre.toLowerCase();
+            }
+            
+            console.log(`🔍 Equipo ${equipo.id}: ${equipo.marca} ${equipo.modelo} - Tipo: ${tipoEquipoNombre}`);
+            
+            // Excluir equipos de tipo mikrotik e impresora
+            const excluir = tipoEquipoNombre.includes('mikrotik') || 
+                           tipoEquipoNombre.includes('impresora') ||
+                           tipoEquipoNombre.includes('printer');
+            
+            if (excluir) {
+                console.log(`🚫 Excluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoEquipoNombre})`);
+            }
+            
+            return !excluir;
+        });
+        
+        console.log(`✅ ${stockEquipos.length} equipos cargados (excluyendo mikrotiks e impresoras)`);
+        
+        llenarSelectStockEquipos();
+        
+    } catch (error) {
+        console.error('❌ Error cargando stock:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
+        stockEquipos = [];
+        llenarSelectStockEquipos();
+    }
+}
 
         // Función para manejar error de autenticación
         function manejarErrorAutenticacion() {

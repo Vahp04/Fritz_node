@@ -3,14 +3,12 @@ const prisma = new PrismaClient();
 
 export const mikrotikController = {
 
-  // Obtener todos los mikrotik
 async index(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Obtener total de registros
     const totalRecords = await prisma.mikrotik.count();
 
     const mikrotiks = await prisma.mikrotik.findMany({
@@ -90,7 +88,6 @@ async store(req, res) {
     const stockEquiposId = parseInt(stock_equipos_id);
     const sedeId = parseInt(sede_id);
 
-    // Verificar que el mikrotik existe en inventario
     const mikrotikStock = await prisma.stock_equipos.findUnique({
       where: { id: stockEquiposId }, 
       include: { tipo_equipo: true }
@@ -104,7 +101,6 @@ async store(req, res) {
       return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
     }
 
-    // Verificar que no existe ya un mikrotik con este stock_equipos_id
     const mikrotikExistente = await prisma.mikrotik.findUnique({
       where: { stock_equipos_id: stockEquiposId } 
     });
@@ -113,9 +109,7 @@ async store(req, res) {
       return res.status(400).json({ error: 'Ya existe un mikrotik configurado para este equipo' });
     }
 
-    // Crear el mikrotik usando transacción
     const resultado = await prisma.$transaction(async (tx) => {
-      // Crear registro de mikrotik
       const mikrotik = await tx.mikrotik.create({
         data: {
           stock_equipos_id: stockEquiposId, 
@@ -128,7 +122,6 @@ async store(req, res) {
         }
       });
 
-      // Actualizar stock del equipo
       await tx.stock_equipos.update({
         where: { id: stockEquiposId }, 
         data: {
@@ -151,7 +144,7 @@ async store(req, res) {
   }
 },
 
- async update(req, res) {
+async update(req, res) {
   try {
     const { id } = req.params;
     const { 
@@ -163,42 +156,135 @@ async store(req, res) {
       estado 
     } = req.body;
 
-    // ✅ Convertir IDs a números
     const mikrotikId = parseInt(id);
     const sedeId = sede_id ? parseInt(sede_id) : undefined;
 
-    const mikrotik = await prisma.mikrotik.findUnique({
-      where: { id: mikrotikId } // ✅ Usar número
+    const mikrotikActual = await prisma.mikrotik.findUnique({
+      where: { id: mikrotikId },
+      include: {
+        stock_equipos: true
+      }
     });
 
-    if (!mikrotik) {
+    if (!mikrotikActual) {
       return res.status(404).json({ error: 'Mikrotik no encontrado' });
     }
 
-    const mikrotikActualizado = await prisma.mikrotik.update({
-      where: { id: mikrotikId }, // ✅ Usar número
-      data: {
-        descripcion,
-        sede_id: sedeId, // ✅ Ya convertido
-        ubicacion,
-        ip_mikrotik,
-        cereal_mikrotik,
-        estado,
-        updated_at: new Date()
-      },
-      include: {
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
+    const resultado = await prisma.$transaction(async (tx) => {
+      const estadoAnterior = mikrotikActual.estado;
+      const estadoNuevo = estado;
+
+      console.log(`🔄 Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
+
+      if (estadoAnterior !== estadoNuevo) {
+        const stockEquipoId = mikrotikActual.stock_equipos_id;
+
+        if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
+            (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          
+          console.log(`📦 Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
+          
+          if (estadoAnterior === 'desuso') {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { increment: 1 }
+              }
+            });
+          } else {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { increment: 1 },
+                cantidad_asignada: { decrement: 1 }
+              }
+            });
           }
-        },
-        sede: true
+        }
+        
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
+                 estadoNuevo === 'activo') {
+          
+          console.log(`🔧 Asignando mikrotik desde inventario (activación)`);
+          
+          if (estadoAnterior === 'desuso') {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          } else {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          }
+        }
+        
+        else if (estadoNuevo === 'desuso') {
+          console.log(`🗑️ Marcando mikrotik como desuso - eliminando del inventario`);
+          
+          const stockActual = await tx.stock_equipos.findUnique({
+            where: { id: stockEquipoId }
+          });
+          
+          if (stockActual) {
+            if (estadoAnterior === 'activo') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_asignada: { decrement: 1 }
+                }
+              });
+            }
+            else if (estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_disponible: { decrement: 1 }
+                }
+              });
+            }
+          }
+        }
       }
+
+      const mikrotikActualizado = await tx.mikrotik.update({
+        where: { id: mikrotikId },
+        data: {
+          descripcion,
+          sede_id: sedeId,
+          ubicacion,
+          ip_mikrotik,
+          cereal_mikrotik,
+          estado,
+          updated_at: new Date()
+        },
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true
+        }
+      });
+
+      return mikrotikActualizado;
     });
 
     res.json({
       message: 'Mikrotik actualizado exitosamente',
-      mikrotik: mikrotikActualizado
+      mikrotik: resultado
     });
 
   } catch (error) {
@@ -207,68 +293,170 @@ async store(req, res) {
   }
 },
 
-  // Eliminar mikrotik (desactivar)
-  async destroy(req, res) {
-    try {
-      const { id } = req.params;
 
-      const mikrotik = await prisma.mikrotik.findUnique({
-        where: { id: parseInt(id) }
-      });
+ async destroy(req, res) {
+  try {
+    const { id } = req.params;
 
-      if (!mikrotik) {
-        return res.status(404).json({ error: 'Mikrotik no encontrado' });
+    const mikrotik = await prisma.mikrotik.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        stock_equipos: true
       }
+    });
 
-      // Usar transacción para asegurar consistencia
-      await prisma.$transaction(async (tx) => {
-        // Liberar stock del equipo
+    if (!mikrotik) {
+      return res.status(404).json({ error: 'Mikrotik no encontrado' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const stockEquipoId = mikrotik.stock_equipos_id;
+      const estadoActual = mikrotik.estado;
+
+      console.log(`🗑️ Eliminando mikrotik con estado: ${estadoActual}`);
+
+      if (estadoActual === 'activo') {
+        console.log(`📦 Devolviendo mikrotik activo al inventario`);
+        
         await tx.stock_equipos.update({
-          where: { id: mikrotik.stock_equipos_id },
+          where: { id: stockEquipoId },
           data: {
             cantidad_disponible: { increment: 1 },
             cantidad_asignada: { decrement: 1 }
           }
         });
-
-        // Eliminar el mikrotik
-        await tx.mikrotik.delete({
-          where: { id: parseInt(id) }
-        });
-      });
-
-      res.json({ message: 'Mikrotik eliminado exitosamente' });
-
-    } catch (error) {
-      console.error('Error en destroy:', error);
-      res.status(500).json({ error: error.message });
-    }
-  },
-
-  // Cambiar estado del mikrotik
-  async cambiarEstado(req, res) {
-    try {
-      const { id } = req.params;
-      const { estado } = req.body;
-
-      const estadosPermitidos = ['activo', 'inactivo', 'mantenimiento', 'desuso'];
-      
-      if (!estadosPermitidos.includes(estado)) {
-        return res.status(400).json({ 
-          error: 'Estado no válido', 
-          estados_permitidos: estadosPermitidos 
-        });
+      } 
+      else if (estadoActual === 'inactivo' || estadoActual === 'mantenimiento') {
+        console.log(`📦 Mikrotik ya estaba disponible, no se modifica inventario`);
       }
-
-      const mikrotik = await prisma.mikrotik.findUnique({
+      
+      await tx.mikrotik.delete({
         where: { id: parseInt(id) }
       });
+    });
 
-      if (!mikrotik) {
-        return res.status(404).json({ error: 'Mikrotik no encontrado' });
+    res.json({ message: 'Mikrotik eliminado exitosamente' });
+
+  } catch (error) {
+    console.error('Error en destroy:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
+
+async cambiarEstado(req, res) {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    const estadosPermitidos = ['activo', 'inactivo', 'mantenimiento', 'desuso'];
+    
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({ 
+        error: 'Estado no válido', 
+        estados_permitidos: estadosPermitidos 
+      });
+    }
+
+    const mikrotik = await prisma.mikrotik.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        stock_equipos: true
+      }
+    });
+
+    if (!mikrotik) {
+      return res.status(404).json({ error: 'Mikrotik no encontrado' });
+    }
+
+    const mikrotikActualizado = await prisma.$transaction(async (tx) => {
+      const estadoAnterior = mikrotik.estado;
+      const estadoNuevo = estado;
+      const stockEquipoId = mikrotik.stock_equipos_id;
+
+      console.log(`🔄 Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
+
+      if (estadoAnterior !== estadoNuevo) {
+        
+        if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
+            (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          
+          console.log(`📦 Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
+          
+          if (estadoAnterior === 'desuso') {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { increment: 1 }
+              }
+            });
+          } else {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { increment: 1 },
+                cantidad_asignada: { decrement: 1 }
+              }
+            });
+          }
+        }
+        
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
+                 estadoNuevo === 'activo') {
+          
+          console.log(`🔧 Asignando mikrotik desde inventario (activación)`);
+          
+          if (estadoAnterior === 'desuso') {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          } else {
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          }
+        }
+        
+        else if (estadoNuevo === 'desuso') {
+          console.log(`🗑️ Marcando mikrotik como desuso - eliminando del inventario`);
+          
+          const stockActual = await tx.stock_equipos.findUnique({
+            where: { id: stockEquipoId }
+          });
+          
+          if (stockActual) {
+            if (estadoAnterior === 'activo') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_asignada: { decrement: 1 }
+                }
+              });
+            }
+            else if (estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_disponible: { decrement: 1 }
+                }
+              });
+            }
+          }
+        }
       }
 
-      const mikrotikActualizado = await prisma.mikrotik.update({
+      const mikrotikActualizado = await tx.mikrotik.update({
         where: { id: parseInt(id) },
         data: { 
           estado,
@@ -284,17 +472,19 @@ async store(req, res) {
         }
       });
 
-      res.json({
-        message: `Estado del mikrotik cambiado a ${estado}`,
-        mikrotik: mikrotikActualizado
-      });
+      return mikrotikActualizado;
+    });
 
-    } catch (error) {
-      console.error('Error en cambiarEstado:', error);
-      res.status(500).json({ error: error.message });
-    }
-  },
+    res.json({
+      message: `Estado del mikrotik cambiado a ${estado}`,
+      mikrotik: mikrotikActualizado
+    });
 
+  } catch (error) {
+    console.error('Error en cambiarEstado:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
   // Obtener mikrotiks por sede
   async porSede(req, res) {
     try {
