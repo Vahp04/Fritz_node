@@ -15,6 +15,7 @@ import tipoEquipoRoutes from './routes/tipoEquipo.js';
 import stockEquiposRoutes from './routes/stockEquipos.js';
 import equipoAsignadoRoutes from './routes/equipoAsignado.js';
 import mikrotikRoutes from './routes/mikrotik.js';
+import impresoraRoutes from './routes/impresora.js';
 
 
 // Importar routers para PDFs
@@ -65,6 +66,7 @@ app.use('/api/tipo_equipo', tipoEquipoRoutes);
 app.use('/api/stock_equipos', stockEquiposRoutes);
 app.use('/api/equipos_asignados', equipoAsignadoRoutes);
 app.use('/api/', mikrotikRoutes);
+app.use('/', impresoraRoutes);
 
 // Rutas PDF
 app.use('/api/pdf', pdfRoutes);

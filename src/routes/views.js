@@ -117,6 +117,15 @@ router.get('/mikrotik', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/impresoras', authenticateToken, (req, res) => {
+    res.render('impresoras/impresoras', {
+        title: 'Gestión de las Impresoras',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 // Rutas para PDFs (protegidas)
 router.get('/equipos-a/pdf', authenticateToken, (req, res) => {
     res.render('equipoA/pdf', {
