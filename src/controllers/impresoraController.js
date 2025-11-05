@@ -94,7 +94,8 @@ export const impresoraController = {
         sede_id,
         departamento_id,
         ubicacion,
-        estado_impresora
+        estado_impresora,
+        toner // NUEVO: Campo toner agregado
       } = req.body;
 
       console.log('📝 Datos recibidos para crear impresora:', req.body);
@@ -135,6 +136,7 @@ export const impresoraController = {
             sede_id: sedeId,
             departamento_id: departamentoId,
             ubicacion,
+            toner, // NUEVO: Campo toner agregado
             estado_impresora: estado_impresora || 'activa',
             contador_impresiones: 0,
             contador_instalacion_toner: 0
@@ -173,146 +175,217 @@ export const impresoraController = {
   },
 
   // Actualizar impresora
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const {
-        nombre,
-        descripcion,
-        ip_impresora,
-        cereal_impresora,
-        sede_id,
-        departamento_id,
-        ubicacion,
-        estado_impresora,
-        contador_impresiones
-      } = req.body;
+// En el método update del controlador, agrega el campo contador_instalacion_toner
+async update(req, res) {
+  try {
+    const { id } = req.params;
+    const {
+      nombre,
+      descripcion,
+      ip_impresora,
+      cereal_impresora,
+      sede_id,
+      departamento_id,
+      ubicacion,
+      estado_impresora,
+      contador_impresiones,
+      toner, // Campo modelo de toner
+      contador_instalacion_toner // NUEVO: Campo contador de toner
+    } = req.body;
 
-      const impresoraId = parseInt(id);
-      const sedeId = sede_id ? parseInt(sede_id) : undefined;
-      const departamentoId = departamento_id ? parseInt(departamento_id) : undefined;
+    const impresoraId = parseInt(id);
+    const sedeId = sede_id ? parseInt(sede_id) : undefined;
+    const departamentoId = departamento_id ? parseInt(departamento_id) : undefined;
 
-      const impresoraActual = await prisma.impresora.findUnique({
-        where: { id: impresoraId },
-        include: {
-          stock_equipos: true
-        }
-      });
-
-      if (!impresoraActual) {
-        return res.status(404).json({ error: 'Impresora no encontrada' });
+    const impresoraActual = await prisma.impresora.findUnique({
+      where: { id: impresoraId },
+      include: {
+        stock_equipos: true,
+        toner_actual: true // Incluir toner actual para manejar cambios
       }
+    });
 
-      const resultado = await prisma.$transaction(async (tx) => {
-        const estadoAnterior = impresoraActual.estado_impresora;
-        const estadoNuevo = estado_impresora;
+    if (!impresoraActual) {
+      return res.status(404).json({ error: 'Impresora no encontrada' });
+    }
 
-        console.log(`🔄 Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
+    const resultado = await prisma.$transaction(async (tx) => {
+      // Manejar cambios en el contador de toner
+      const contadorAnterior = impresoraActual.contador_instalacion_toner || 0;
+      const contadorNuevo = parseInt(contador_instalacion_toner) || 0;
+      
+      console.log(`🔄 Cambio contador toner: ${contadorAnterior} -> ${contadorNuevo}`);
 
-        if (estadoAnterior !== estadoNuevo) {
-          const stockEquipoId = impresoraActual.stock_equipos_id;
-
-          if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
-              (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
-            
-            console.log(`📦 Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
-            
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { increment: 1 },
-                cantidad_asignada: { decrement: 1 }
-              }
-            });
-          }
-          
-          else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
-                   estadoNuevo === 'activa') {
-            
-            console.log(`🔧 Asignando impresora desde inventario (activación)`);
-            
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { decrement: 1 },
-                cantidad_asignada: { increment: 1 }
-              }
-            });
-          }
-          
-          else if (estadoNuevo === 'obsoleta') {
-            console.log(`🗑️ Marcando impresora como obsoleta - eliminando del inventario`);
-            
-            const stockActual = await tx.stock_equipos.findUnique({
-              where: { id: stockEquipoId }
-            });
-            
-            if (stockActual) {
-              if (estadoAnterior === 'activa') {
-                await tx.stock_equipos.update({
-                  where: { id: stockEquipoId },
-                  data: {
-                    cantidad_total: { decrement: 1 },
-                    cantidad_asignada: { decrement: 1 }
-                  }
-                });
-              }
-              else if (estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') {
-                await tx.stock_equipos.update({
-                  where: { id: stockEquipoId },
-                  data: {
-                    cantidad_total: { decrement: 1 },
-                    cantidad_disponible: { decrement: 1 }
-                  }
-                });
-              }
-            }
-          }
-        }
-
-        const impresoraActualizada = await tx.impresora.update({
-          where: { id: impresoraId },
-          data: {
-            nombre,
-            descripcion,
-            ip_impresora,
-            cereal_impresora,
-            sede_id: sedeId,
-            departamento_id: departamentoId,
-            ubicacion,
-            estado_impresora,
-            contador_impresiones: contador_impresiones ? parseInt(contador_impresiones) : undefined,
-            updated_at: new Date()
-          },
-          include: {
-            stock_equipos: {
-              include: {
-                tipo_equipo: true
+      // Si el contador aumenta, restar del inventario
+      if (contadorNuevo > contadorAnterior) {
+        const diferencia = contadorNuevo - contadorAnterior;
+        
+        // Buscar un toner compatible en el inventario
+        const tonerCompatible = await tx.stock_equipos.findFirst({
+          where: {
+            tipo_equipo: {
+              nombre: {
+                contains: 'toner',
+                mode: 'insensitive'
               }
             },
-            sede: true,
-            departamento: true,
-            toner_actual: {
-              include: {
-                tipo_equipo: true
-              }
+            cantidad_disponible: {
+              gt: 0
             }
           }
         });
 
-        return impresoraActualizada;
+        if (tonerCompatible) {
+          console.log(`📦 Restando ${diferencia} toner(s) del inventario`);
+          
+          await tx.stock_equipos.update({
+            where: { id: tonerCompatible.id },
+            data: {
+              cantidad_disponible: { decrement: diferencia },
+              cantidad_asignada: { increment: diferencia }
+            }
+          });
+
+          // Actualizar el toner actual si no hay uno asignado
+          if (!impresoraActual.toner_actual_id) {
+            await tx.impresora.update({
+              where: { id: impresoraId },
+              data: {
+                toner_actual_id: tonerCompatible.id,
+                fecha_instalacion_toner: new Date()
+              }
+            });
+          }
+        } else {
+          console.log('⚠️ No hay toners disponibles en inventario');
+        }
+      }
+      // Si el contador disminuye, devolver al inventario
+      else if (contadorNuevo < contadorAnterior && impresoraActual.toner_actual_id) {
+        const diferencia = contadorAnterior - contadorNuevo;
+        
+        console.log(`📦 Devolviendo ${diferencia} toner(s) al inventario`);
+        
+        await tx.stock_equipos.update({
+          where: { id: impresoraActual.toner_actual_id },
+          data: {
+            cantidad_disponible: { increment: diferencia },
+            cantidad_asignada: { decrement: diferencia }
+          }
+        });
+      }
+
+      // Manejar cambio de estado (código existente)
+      const estadoAnterior = impresoraActual.estado_impresora;
+      const estadoNuevo = estado_impresora;
+
+      if (estadoAnterior !== estadoNuevo) {
+        const stockEquipoId = impresoraActual.stock_equipos_id;
+
+        if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
+            (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
+          
+          console.log(`📦 Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
+          
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { increment: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+        
+        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
+                 estadoNuevo === 'activa') {
+          
+          console.log(`🔧 Asignando impresora desde inventario (activación)`);
+          
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+        
+        else if (estadoNuevo === 'obsoleta') {
+          console.log(`🗑️ Marcando impresora como obsoleta - eliminando del inventario`);
+          
+          const stockActual = await tx.stock_equipos.findUnique({
+            where: { id: stockEquipoId }
+          });
+          
+          if (stockActual) {
+            if (estadoAnterior === 'activa') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_asignada: { decrement: 1 }
+                }
+              });
+            }
+            else if (estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') {
+              await tx.stock_equipos.update({
+                where: { id: stockEquipoId },
+                data: {
+                  cantidad_total: { decrement: 1 },
+                  cantidad_disponible: { decrement: 1 }
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // Actualizar la impresora
+      const impresoraActualizada = await tx.impresora.update({
+        where: { id: impresoraId },
+        data: {
+          nombre,
+          descripcion,
+          ip_impresora,
+          cereal_impresora,
+          sede_id: sedeId,
+          departamento_id: departamentoId,
+          ubicacion,
+          toner, // Campo modelo de toner
+          contador_instalacion_toner: contadorNuevo, // NUEVO: Contador de toner
+          estado_impresora,
+          contador_impresiones: contador_impresiones ? parseInt(contador_impresiones) : undefined,
+          updated_at: new Date()
+        },
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true,
+          departamento: true,
+          toner_actual: {
+            include: {
+              tipo_equipo: true
+            }
+          }
+        }
       });
 
-      res.json({
-        message: 'Impresora actualizada exitosamente',
-        impresora: resultado
-      });
+      return impresoraActualizada;
+    });
 
-    } catch (error) {
-      console.error('Error en update impresora:', error);
-      res.status(500).json({ error: error.message });
-    }
-  },
+    res.json({
+      message: 'Impresora actualizada exitosamente',
+      impresora: resultado
+    });
+
+  } catch (error) {
+    console.error('Error en update impresora:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   // Eliminar impresora
   async destroy(req, res) {
@@ -518,7 +591,7 @@ export const impresoraController = {
   async instalarToner(req, res) {
     try {
       const { id } = req.params;
-      const { toner_actual_id } = req.body;
+      const { toner_actual_id, toner } = req.body; // NUEVO: Campo toner agregado
 
       const impresoraId = parseInt(id);
       const tonerId = parseInt(toner_actual_id);
@@ -545,6 +618,7 @@ export const impresoraController = {
           where: { id: impresoraId },
           data: {
             toner_actual_id: tonerId,
+            toner, // NUEVO: Campo toner agregado
             fecha_instalacion_toner: new Date(),
             contador_instalacion_toner: {
               increment: 1
@@ -776,7 +850,8 @@ export const impresoraController = {
             { descripcion: { contains: q, mode: 'insensitive' } },
             { ip_impresora: { contains: q, mode: 'insensitive' } },
             { cereal_impresora: { contains: q, mode: 'insensitive' } },
-            { ubicacion: { contains: q, mode: 'insensitive' } }
+            { ubicacion: { contains: q, mode: 'insensitive' } },
+            { toner: { contains: q, mode: 'insensitive' } } // NUEVO: Búsqueda por toner agregada
           ]
         },
         include: {
@@ -803,5 +878,82 @@ export const impresoraController = {
       console.error('Error en buscar impresoras:', error);
       res.status(500).json({ error: error.message });
     }
-  }
+  },
+
+  // NUEVO: Método para actualizar solo el campo toner
+  async actualizarToner(req, res) {
+    try {
+      const { id } = req.params;
+      const { toner } = req.body;
+
+      const impresora = await prisma.impresora.update({
+        where: { id: parseInt(id) },
+        data: {
+          toner,
+          updated_at: new Date()
+        },
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true,
+          departamento: true,
+          toner_actual: {
+            include: {
+              tipo_equipo: true
+            }
+          }
+        }
+      });
+
+      res.json({
+        message: 'Toner actualizado exitosamente',
+        impresora
+      });
+
+    } catch (error) {
+      console.error('Error en actualizarToner:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  async actualizarContadorToner(req, res) {
+    try {
+        const { id } = req.params;
+        const { contador_instalacion_toner } = req.body;
+
+        const impresora = await prisma.impresora.update({
+            where: { id: parseInt(id) },
+            data: {
+                contador_instalacion_toner: parseInt(contador_instalacion_toner),
+                updated_at: new Date()
+            },
+            include: {
+                stock_equipos: {
+                    include: {
+                        tipo_equipo: true
+                    }
+                },
+                sede: true,
+                departamento: true,
+                toner_actual: {
+                    include: {
+                        tipo_equipo: true
+                    }
+                }
+            }
+        });
+
+        res.json({
+            message: 'Contador de toner actualizado',
+            impresora
+        });
+
+    } catch (error) {
+        console.error('Error en actualizarContadorToner:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
 };

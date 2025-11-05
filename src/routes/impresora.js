@@ -8,7 +8,7 @@ router.get('/api/impresoras/:id', impresoraController.show);
 router.post('/api/impresoras', impresoraController.store);
 router.put('/api/impresoras/:id', impresoraController.update);
 router.delete('/api/impresoras/:id', impresoraController.destroy);
-
+router.put('/impresoras/:id/actualizar-contador-toner', impresoraController.actualizarContadorToner);
 router.post('/api/impresoras/:id/cambiar-estado', impresoraController.cambiarEstado);
 router.post('/api/impresoras/:id/instalar-toner', impresoraController.instalarToner);
 router.put('/api/impresoras/:id/contador', impresoraController.actualizarContador);

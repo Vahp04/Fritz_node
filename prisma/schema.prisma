@@ -130,8 +130,8 @@ model impresora {
   sede_id          Int   
   departamento_id  Int
   ubicacion        String?       @db.VarChar(191)
-  
-  // Relación con el toner actual (desde stock_equipos)
+
+  toner            String?       @db.VarChar(191)
   toner_actual_id  Int?         
   fecha_instalacion_toner DateTime?
   contador_instalacion_toner Int? @default(0)
