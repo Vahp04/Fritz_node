@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title || 'Fritz C.A | Gestión de Mikrotiks' %></title>
+    <title><%= title || 'Fritz C.A | Gestión de Consumibles' %></title>
 
     <script>
         (function() {
@@ -176,11 +176,11 @@
             white-space: nowrap;
         }
 
-        .mikrotik-icon {
+        .consumible-icon {
             width: 50px;
             height: 50px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #d7df91 0%, #744e09 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -189,30 +189,11 @@
             font-size: 1.2rem;
         }
 
-        .status-badge {
-            font-size: 0.75rem;
+        .cantidad-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            font-size: 0.8rem;
             padding: 0.35em 0.65em;
-            border-radius: 50px;
-        }
-        
-        .status-activo {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-        }
-        
-        .status-inactivo {
-            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-            color: white;
-        }
-        
-        .status-mantenimiento {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            color: white;
-        }
-        
-        .status-desuso {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
         }
         
         .pagination .page-link {
@@ -239,13 +220,55 @@
             transition: all 0.3s;
         }
 
-        .ip-address {
+        .fecha-badge {
             font-family: 'Courier New', monospace;
             font-weight: bold;
-            background-color: #4a7096;
+            background-color: #8b5cf6;
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.85rem;
+            color: white;
+        }
+
+        .stock-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            font-size: 0.7rem;
+        }
+
+        .equipo-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .equipo-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .remove-equipo {
+            color: #dc3545;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .remove-equipo:hover {
+            color: #b02a37;
+        }
+
+        .add-equipo-btn {
+            border: 2px dashed #dee2e6;
+            background-color: transparent;
+            color: #6c757d;
+            transition: all 0.3s;
+        }
+
+        .add-equipo-btn:hover {
+            border-color: #0d6efd;
+            color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
         }
     </style>
 </head>
@@ -366,13 +389,6 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link " href="/consumibles">
-                        <i class="bi bi-box-seam me-2"></i>
-                        <span class="sidebar-text">Consumibles</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
                     <a class="nav-link text-white sidebar-link" href="/impresoras">
                         <i class="bi bi-printer me-2"></i>
                         <span class="sidebar-text">Impresoras</span>
@@ -380,7 +396,14 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link active" href="/mikrotik">
+                    <a class="nav-link text-white sidebar-link active" href="/consumibles">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Consumibles</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/mikrotik">
                         <i class="bi bi-router me-2"></i>
                         <span class="sidebar-text">Mikrotiks</span>
                     </a>
@@ -421,7 +444,7 @@
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
-                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Mikrotiks</li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Consumibles</li>
                             </ol>
                         </nav>
                     </div>
@@ -434,30 +457,30 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
-                            <i class="bi bi-router me-2 text-danger" ></i>
-                            Gestión de Mikrotiks
+                            <i class="bi bi-box-seam me-2 text-danger"></i>
+                            Gestión de Consumibles
                         </h2>
-                        <p class="text-muted mb-0">Administra los dispositivos Mikrotik de la red</p>
+                        <p class="text-muted mb-0">Administra los consumibles de la empresa</p>
                     </div>
                     <div>
-                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createMikrotikModal">
-                            <i class="bi bi-plus-circle me-1"></i> Nuevo Mikrotik
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createConsumibleModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Consumible
                         </button>
                     </div>
                 </div>
 
-                <!-- Resumen de Mikrotiks -->
+                <!-- Resumen de Consumibles -->
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="mb-0" id="totalMikrotiks">0</h4>
-                                        <small>Total Mikrotiks</small>
+                                        <h4 class="mb-0" id="totalConsumibles">0</h4>
+                                        <small>Total Consumibles</small>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="bi bi-router fs-3"></i>
+                                        <i class="bi bi-box-seam fs-3"></i>
                                     </div>
                                 </div>
                             </div>
@@ -468,11 +491,26 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="mb-0" id="totalActivos">0</h4>
-                                        <small>Activos</small>
+                                        <h4 class="mb-0" id="totalUnidades">0</h4>
+                                        <small>Total Unidades</small>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="bi bi-check-circle fs-3"></i>
+                                        <i class="bi bi-box fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalSedes">0</h4>
+                                        <small>Sedes con Consumibles</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-building fs-3"></i>
                                     </div>
                                 </div>
                             </div>
@@ -483,26 +521,11 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div>
-                                        <h4 class="mb-0" id="totalMantenimiento">0</h4>
-                                        <small>En Mantenimiento</small>
+                                        <h4 class="mb-0" id="totalDepartamentos">0</h4>
+                                        <small>Departamentos</small>
                                     </div>
                                     <div class="align-self-center">
-                                        <i class="bi bi-tools fs-3"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-secondary text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4 class="mb-0" id="totalInactivos">0</h4>
-                                        <small>Inactivos</small>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="bi bi-pause-circle fs-3"></i>
+                                        <i class="bi bi-person-badge fs-3"></i>
                                     </div>
                                 </div>
                             </div>
@@ -510,57 +533,59 @@
                     </div>
                 </div>
                 
+                <!-- Consumibles Management Card -->
                 <div class="card border-0 shadow mb-4">
-                    <div class="card-header bg-dark text-white py-3">
+                    <div class="card-header text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i  class="bi bi-list-ul me-2 text-danger" ></i> Lista de Mikrotiks
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Consumibles
                             </h5>
                         </div>
                     </div>
                     <div class="card-body">
                         <!-- Filtros -->
                         <div class="row mb-4 g-2">
-                            <div class="col-md-4">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por IP, descripción o ubicación..." id="searchMikrotik">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre o detalles..." id="searchConsumible">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <select class="form-select form-select-sm" id="filterSede">
                                     <option value="">Todas las sedes</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <select class="form-select form-select-sm" id="filterEstado">
-                                    <option value="">Todos los estados</option>
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="desuso">Dañado</option>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterDepartamento">
+                                    <option value="">Todos los departamentos</option>
                                 </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFiltros()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Resetear
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Tabla de Mikrotiks -->
+                        <!-- Tabla de Consumibles -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
                                     <tr>
                                         <th width="50px">ID</th>
-                                        <th>Dispositivo</th>
-                                        <th>IP / Serial</th>
-                                        <th>Sede / Ubicación</th>
-                                        <th>Estado</th>
-                                        <th>Fecha Creación</th>
+                                        <th>Consumible</th>
+                                        <th>Equipo / Stock</th>
+                                        <th>Cantidad</th>
+                                        <th>Sede / Departamento</th>
+                                        <th>Fecha Envío</th>
                                         <th width="120px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="mikrotiksTableBody">
+                                <tbody id="consumiblesTableBody">
                                     <tr id="loadingRow">
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="visually-hidden">Cargando...</span>
                                             </div>
-                                            <p class="text-muted mt-2 mb-0">Cargando mikrotiks...</p>
+                                            <p class="text-muted mt-2 mb-0">Cargando consumibles...</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -570,10 +595,10 @@
                         <!-- Paginación -->
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted" id="resultCount">
-                                Mostrando 0 de 0 mikrotiks
+                                Mostrando 0 de 0 consumibles
                             </div>
                             
-                            <nav aria-label="Paginación de mikrotiks">
+                            <nav aria-label="Paginación de consumibles">
                                 <ul class="pagination pagination-sm mb-0" id="paginationContainer">
                                 </ul>
                             </nav>
@@ -584,26 +609,23 @@
         </div>
     </div>
 
-    <!-- Modal para Crear Mikrotik -->
-    <div class="modal fade" id="createMikrotikModal" tabindex="-1">
+    <!-- Modal para Crear Consumible -->
+    <div class="modal fade" id="createConsumibleModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title">
-                        <i class="bi bi-router me-2"></i> Nuevo Mikrotik
+                        <i class="bi bi-box-seam me-2"></i> Nuevo Consumible
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="createMikrotikForm">
+                <form id="createConsumibleForm">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Equipo en Inventario*</label>
-                                    <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
-                                        <option value="">Seleccione un equipo</option>
-                                    </select>
-                                    <div class="form-text">Seleccione el equipo Mikrotik del inventario</div>
+                                    <label class="form-label">Nombre del Consumible*</label>
+                                    <input type="text" class="form-control" name="nombre" required placeholder="Ej: Toner HP, Cartucho Tinta">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -618,65 +640,88 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">IP del Mikrotik</label>
-                                    <input type="text" class="form-control" name="ip_mikrotik" placeholder="Ej: 192.168.1.1">
+                                    <label class="form-label">Departamento*</label>
+                                    <select class="form-select" name="departamento_id" id="create_departamento_id" required>
+                                        <option value="">Seleccione un departamento</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Número de Serie</label>
-                                    <input type="text" class="form-control" name="cereal_mikrotik" placeholder="Serial del dispositivo">
+                                    <label class="form-label">Fecha de Envío*</label>
+                                    <input type="datetime-local" class="form-control" name="fecha_enviado" required>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label class="form-label">Ubicación*</label>
-                                    <input type="text" class="form-control" name="ubicacion" required placeholder="Ej: Sala de Servers, Piso 1">
-                                </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Equipos del Inventario</label>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Selecciona los equipos de tipo "consumible" del inventario y especifica la cantidad a solicitar
+                                </small>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Estado*</label>
-                                    <select class="form-select" name="estado" required>
-                                        <option value="activo">Activo</option>
-                                        <option value="inactivo">Inactivo</option>
-                                        <option value="mantenimiento">Mantenimiento</option>
-                                        <option value="desuso">Dañado</option>
-                                    </select>
-                                </div>
+                            
+                            <div id="equiposContainer">
                             </div>
+                            
+                            <button type="button" class="btn btn-outline-primary w-100 add-equipo-btn py-2" onclick="agregarEquipo()">
+                                <i class="bi bi-plus-circle me-2"></i> Agregar otro equipo
+                            </button>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Descripción</label>
-                            <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del dispositivo y su función"></textarea>
+                            <label class="form-label">Detalles</label>
+                            <textarea class="form-control" name="detalles" rows="3" placeholder="Detalles adicionales del consumible"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-fritz">Guardar Mikrotik</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Consumible</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Editar Mikrotik -->
-    <div class="modal fade" id="editMikrotikModal" tabindex="-1">
+    <!-- Modal para Editar Consumible -->
+    <div class="modal fade" id="editConsumibleModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-white">
                     <h5 class="modal-title">
-                        <i class="bi bi-pencil-square me-2"></i> Editar Mikrotik
+                        <i class="bi bi-pencil-square me-2"></i> Editar Consumible
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editMikrotikForm">
+                <form id="editConsumibleForm">
                     <div class="modal-body">
-                        <input type="hidden" id="edit_mikrotik_id" name="id">
+                        <input type="hidden" id="edit_consumible_id" name="id">
                         <div class="row">
                             <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre del Consumible*</label>
+                                    <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipo en Inventario*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="edit_stock_equipos_id" required>
+                                        <option value="">Seleccione un equipo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad*</label>
+                                    <input type="number" class="form-control" name="cantidad" id="edit_cantidad" required min="1">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Sede*</label>
                                     <select class="form-select" name="sede_id" id="edit_sede_id" required>
@@ -684,14 +729,11 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">Estado*</label>
-                                    <select class="form-select" name="estado" id="edit_estado" required>
-                                        <option value="activo">Activo</option>
-                                        <option value="inactivo">Inactivo</option>
-                                        <option value="mantenimiento">Mantenimiento</option>
-                                        <option value="desuso">Dañado</option>
+                                    <label class="form-label">Departamento*</label>
+                                    <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
+                                        <option value="">Seleccione un departamento</option>
                                     </select>
                                 </div>
                             </div>
@@ -699,90 +741,82 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">IP del Mikrotik</label>
-                                    <input type="text" class="form-control" name="ip_mikrotik" id="edit_ip_mikrotik" placeholder="Ej: 192.168.1.1">
+                                    <label class="form-label">Fecha de Envío*</label>
+                                    <input type="datetime-local" class="form-control" name="fecha_enviado" id="edit_fecha_enviado" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Número de Serie</label>
-                                    <input type="text" class="form-control" name="cereal_mikrotik" id="edit_cereal_mikrotik" placeholder="Serial del dispositivo">
+                                    <label class="form-label">Stock Disponible</label>
+                                    <input type="text" class="form-control" id="edit_stock_disponible" readonly style="background-color: #f8f9fa;">
+                                    <div class="form-text">Stock disponible del equipo seleccionado</div>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Ubicación*</label>
-                            <input type="text" class="form-control" name="ubicacion" id="edit_ubicacion" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Descripción</label>
-                            <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
+                            <label class="form-label">Detalles</label>
+                            <textarea class="form-control" name="detalles" id="edit_detalles" rows="3"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-warning">Actualizar Mikrotik</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Consumible</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Ver Mikrotik -->
-    <div class="modal fade" id="viewMikrotikModal" tabindex="-1">
+    <!-- Modal para Ver Consumible -->
+    <div class="modal fade" id="viewConsumibleModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="bi bi-eye me-2"></i> Detalles del Mikrotik
+                        <i class="bi bi-eye me-2"></i> Detalles del Consumible
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-4">
-                        <div class="mikrotik-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-                            <i class="bi bi-router"></i>
+                        <div class="consumible-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="bi bi-box-seam"></i>
                         </div>
-                        <h4 id="view_stock_equipo_header"></h4>
+                        <h4 id="view_nombre_header"></h4>
                         <p class="text-muted" id="view_id"></p>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <strong>ID:</strong>
-                            <p id="view_mikrotik_id" class="mb-2"></p>
+                            <p id="view_consumible_id" class="mb-2"></p>
                         </div>
                         <div class="col-md-6">
-                            <strong>Estado:</strong>
-                            <p id="view_estado" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>IP del Mikrotik:</strong>
-                            <p id="view_ip_mikrotik" class="mb-2 ip-address"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Número de Serie:</strong>
-                            <p id="view_cereal_mikrotik" class="mb-2"></p>
+                            <strong>Cantidad:</strong>
+                            <p id="view_cantidad" class="mb-2"></p>
                         </div>
                         <div class="col-md-6">
                             <strong>Sede:</strong>
                             <p id="view_sede" class="mb-2"></p>
                         </div>
                         <div class="col-md-6">
-                            <strong>Ubicación:</strong>
-                            <p id="view_ubicacion" class="mb-2"></p>
+                            <strong>Departamento:</strong>
+                            <p id="view_departamento" class="mb-2"></p>
                         </div>
-                        <div class="col-12">
-                            <strong>Descripción:</strong>
-                            <p id="view_descripcion" class="mb-2"></p>
-                        </div>
-                        
                         <div class="col-md-6">
-                            <strong>Cantidad Disponible:</strong>
-                            <p id="view_stock_equipo" class="mb-2"></p>
+                            <strong>Fecha de Envío:</strong>
+                            <p id="view_fecha_enviado" class="mb-2 fecha-badge"></p>
                         </div>
                         <div class="col-md-6">
                             <strong>Fecha de Creación:</strong>
                             <p id="view_created_at" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Equipo en Inventario:</strong>
+                            <p id="view_stock_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Detalles:</strong>
+                            <p id="view_detalles" class="mb-2"></p>
                         </div>
                     </div>
                 </div>
@@ -799,46 +833,61 @@
     
     <script>
         // Variables globales
-        let mikrotiks = [];
+        let consumibles = [];
         let sedes = [];
+        let departamentos = [];
         let stockEquipos = [];
         let currentPage = 1;
         let totalPages = 1;
         let totalRecords = 0;
+        let equipoCounter = 0;
 
-        // Enviar datos al iniciar
+        // Cargar datos al iniciar
         document.addEventListener('DOMContentLoaded', function() {
-            cargarMikrotiks();
+            cargarConsumibles();
             cargarSedes();
+            cargarDepartamentos();
             cargarStockEquipos();
             inicializarEventos();
             applySavedTheme();
             inicializarSidebar();
+            
+            // Agregar el primer equipo al cargar el modal
+            $('#createConsumibleModal').on('show.bs.modal', function () {
+                agregarEquipo();
+            });
         });
 
-        // Cargar mikrotiks
-        async function cargarMikrotiks(page = 1) {
+        // Cargar consumibles
+        async function cargarConsumibles(page = 1) {
             try {
                 currentPage = page;
-                const response = await fetch(`/api/mikrotiks?page=${page}`);
+                const search = document.getElementById('searchConsumible').value;
+                let url = `/api/consumibles?page=${page}`;
+                
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+
+                const response = await fetch(url);
                 
                 if (!response.ok) {
-                    throw new Error('Error al cargar mikrotiks');
+                    throw new Error('Error al cargar consumibles');
                 }
 
                 const data = await response.json();
                 
-                mikrotiks = data.mikrotiks || [];
+                consumibles = data.consumibles || [];
                 totalPages = data.pagination?.total || 1;
                 totalRecords = data.pagination?.totalRecords || 0;
                 
                 actualizarResumen();
-                renderizarMikrotiks();
+                renderizarConsumibles();
                 renderizarPaginacion();
                 
             } catch (error) {
                 console.error('Error:', error);
-                mostrarError('No se pudieron cargar los mikrotiks');
+                mostrarError('No se pudieron cargar los consumibles');
             }
         }
 
@@ -859,110 +908,206 @@
             }
         }
 
-        // Cargar equipos en stock para Mikrotiks
-async function cargarStockEquipos() {
-    try {
-        const response = await fetch('/api/stock_equipos');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar equipos');
+        // Cargar departamentos
+        async function cargarDepartamentos() {
+            try {
+                const response = await fetch('/api/departamentos');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar departamentos');
+                }
+
+                departamentos = await response.json();
+                renderizarDepartamentos();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
 
-        const data = await response.json();
-        
-        stockEquipos = data.stockEquipos.filter(equipo => 
-            equipo.tipo_equipo && 
-            equipo.tipo_equipo.nombre.toLowerCase() === 'mikrotik'
-        ) || [];
-        
-        renderizarStockEquipos();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar los equipos Mikrotik disponibles');
-    }
-}
+        // Cargar equipos en stock (solo consumibles)
+        async function cargarStockEquipos() {
+            try {
+                const response = await fetch('/api/stock_equipos');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipos');
+                }
+
+                const data = await response.json();
+                
+                // Filtrar solo equipos de tipo "consumible"
+                stockEquipos = data.stockEquipos.filter(equipo => 
+                    equipo.tipo_equipo && 
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('consumible')
+                ) || [];
+                
+                renderizarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los equipos disponibles');
+            }
+        }
+
+        // Agregar nuevo campo de equipo
+        function agregarEquipo() {
+            equipoCounter++;
+            const equiposContainer = document.getElementById('equiposContainer');
+            
+            const equipoDiv = document.createElement('div');
+            equipoDiv.className = 'equipo-item';
+            equipoDiv.id = `equipo-${equipoCounter}`;
+            
+            equipoDiv.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Equipo en Inventario*</label>
+                            <select class="form-select equipo-select" name="equipos[${equipoCounter}][stock_equipos_id]" required onchange="actualizarStockDisponible(this, 'stock-${equipoCounter}')">
+                                <option value="">Seleccione un equipo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad*</label>
+                            <input type="number" class="form-control" name="equipos[${equipoCounter}][cantidad]" required min="1" placeholder="Cantidad">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label text-white">.</label>
+                            <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipo(${equipoCounter})" ${equipoCounter === 1 ? 'disabled' : ''}>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <small class="text-muted" id="stock-${equipoCounter}"></small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            equiposContainer.appendChild(equipoDiv);
+            
+            // Renderizar las opciones del select
+            const select = equipoDiv.querySelector('.equipo-select');
+            renderizarOpcionesStockEquipos(select);
+        }
+
+        // Remover campo de equipo
+        function removerEquipo(id) {
+            const equipoDiv = document.getElementById(`equipo-${id}`);
+            if (equipoDiv) {
+                equipoDiv.remove();
+            }
+        }
+
+        // Renderizar opciones de stock en un select específico
+        function renderizarOpcionesStockEquipos(selectElement) {
+            if (stockEquipos.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay equipos consumibles disponibles";
+                option.disabled = true;
+                selectElement.appendChild(option);
+                return;
+            }
+
+            stockEquipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo.id;
+                option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+                selectElement.appendChild(option);
+            });
+        }
 
         // Actualizar resumen
         function actualizarResumen() {
-            const total = mikrotiks.length;
-            const activos = mikrotiks.filter(m => m.estado === 'activo').length;
-            const inactivos = mikrotiks.filter(m => m.estado === 'inactivo').length;
-            const mantenimiento = mikrotiks.filter(m => m.estado === 'mantenimiento').length;
-            const desuso = mikrotiks.filter(m => m.estado === 'desuso').length;
+            const total = consumibles.length;
+            const totalUnidades = consumibles.reduce((sum, consumible) => sum + consumible.cantidad, 0);
+            const sedesUnicas = new Set(consumibles.map(c => c.sede_id)).size;
+            const departamentosUnicos = new Set(consumibles.map(c => c.departamento_id)).size;
 
-            document.getElementById('totalMikrotiks').textContent = total;
-            document.getElementById('totalActivos').textContent = activos;
-            document.getElementById('totalInactivos').textContent = inactivos;
-            document.getElementById('totalMantenimiento').textContent = mantenimiento;
+            document.getElementById('totalConsumibles').textContent = total;
+            document.getElementById('totalUnidades').textContent = totalUnidades.toLocaleString();
+            document.getElementById('totalSedes').textContent = sedesUnicas;
+            document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
         }
 
-        // Renderizar mikrotiks en la tabla
-        function renderizarMikrotiks() {
-            const tbody = document.getElementById('mikrotiksTableBody');
+        // Renderizar consumibles en la tabla
+        function renderizarConsumibles() {
+            const tbody = document.getElementById('consumiblesTableBody');
             tbody.innerHTML = '';
 
-            if (mikrotiks.length === 0) {
+            if (consumibles.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-router display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron mikrotiks</p>
+                            <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron consumibles</p>
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            mikrotiks.forEach(mikrotik => {
+            consumibles.forEach(consumible => {
                 const row = document.createElement('tr');
                 
                 row.innerHTML = `
-                    <td class="fw-bold">${mikrotik.id}</td>
+                    <td class="fw-bold">${consumible.id}</td>
                     <td>
                         <div class="d-flex align-items-center">
-                            <div class="mikrotik-icon me-3">
-                                <i class="bi bi-router"></i>
+                            <div class="consumible-icon me-3">
+                                <i class="bi bi-box-seam"></i>
                             </div>
                             <div>
-                                <div class="fw-bold">${mikrotik.stock_equipos ? mikrotik.stock_equipos.marca + ' ' + mikrotik.stock_equipos.modelo : 'Sin información'}</div>
-                                <small class="text-muted">${mikrotik.descripcion || 'Mikrotik'}</small>
+                                <div class="fw-bold">${consumible.nombre}</div>
+                                <small class="text-muted">${consumible.detalles || 'Sin detalles'}</small>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column gap-1">
-                            ${mikrotik.ip_mikrotik ? `<span class="ip-address">${mikrotik.ip_mikrotik}</span>` : '<small class="text-muted">Sin IP</small>'}
-                            ${mikrotik.cereal_mikrotik ? `<small class="text-muted">${mikrotik.cereal_mikrotik}</small>` : ''}
                         </div>
                     </td>
                     <td>
                         <div class="d-flex flex-column">
-                            <span class="fw-bold">${mikrotik.sede ? mikrotik.sede.nombre : 'Sin sede'}</span>
-                            <small class="text-muted">${mikrotik.ubicacion}</small>
+                            <span class="fw-bold">${consumible.stock_equipos ? consumible.stock_equipos.marca + ' ' + consumible.stock_equipos.modelo : 'Sin equipo'}</span>
+                            <small class="text-muted">${consumible.stock_equipos ? consumible.stock_equipos.tipo_equipo.nombre : ''}</small>
                         </div>
                     </td>
                     <td>
-                        <span class="status-badge status-${mikrotik.estado}">
-                            ${mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1)}
+                        <span class="cantidad-badge">
+                            ${consumible.cantidad.toLocaleString()} unidades
                         </span>
                     </td>
                     <td>
-                        ${new Date(mikrotik.created_at).toLocaleDateString('es-ES')}
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
+                            <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="fecha-badge">
+                            ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}
+                        </span>
                     </td>
                     <td class="table-actions text-center">
                         <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewMikrotik(${mikrotik.id})"
+                                onclick="viewConsumible(${consumible.id})"
                                 title="Ver">
                             <i class="bi bi-eye"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editMikrotik(${mikrotik.id})"
+                                onclick="editConsumible(${consumible.id})"
                                 title="Editar">
                             <i class="bi bi-pencil"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteMikrotik(${mikrotik.id}, '${mikrotik.descripcion || 'Mikrotik'}')"
+                                onclick="deleteConsumible(${consumible.id}, '${consumible.nombre}')"
                                 title="Eliminar">
                             <i class="bi bi-trash3"></i>
                         </button>
@@ -973,7 +1118,7 @@ async function cargarStockEquipos() {
             });
 
             document.getElementById('resultCount').textContent = 
-                `Mostrando ${mikrotiks.length} de ${totalRecords} mikrotiks`;
+                `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
         }
 
         // Renderizar sedes en los selects
@@ -997,31 +1142,52 @@ async function cargarStockEquipos() {
             });
         }
 
-        // Renderizar equipos en stock
-       function renderizarStockEquipos() {
-    const select = document.getElementById('create_stock_equipos_id');
-    if (select) {
-        while (select.options.length > 1) {
-            select.remove(1);
+        // Renderizar departamentos en los selects
+        function renderizarDepartamentos() {
+            const selects = ['filterDepartamento', 'create_departamento_id', 'edit_departamento_id'];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    departamentos.forEach(departamento => {
+                        const option = document.createElement('option');
+                        option.value = departamento.id;
+                        option.textContent = departamento.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
         }
 
-        if (stockEquipos.length === 0) {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay equipos Mikrotik disponibles en inventario";
-            option.disabled = true;
-            select.appendChild(option);
-            return;
-        }
+        // Renderizar equipos en stock para edición
+        function renderizarStockEquipos() {
+            const select = document.getElementById('edit_stock_equipos_id');
+            if (select) {
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
 
-        stockEquipos.forEach(equipo => {
-            const option = document.createElement('option');
-            option.value = equipo.id;
-            option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
-            select.appendChild(option);
-        });
-    }
-}
+                if (stockEquipos.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay equipos consumibles disponibles";
+                    option.disabled = true;
+                    select.appendChild(option);
+                    return;
+                }
+
+                stockEquipos.forEach(equipo => {
+                    const option = document.createElement('option');
+                    option.value = equipo.id;
+                    option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+                    select.appendChild(option);
+                });
+            }
+        }
 
         // Renderizar paginación
         function renderizarPaginacion() {
@@ -1031,7 +1197,7 @@ async function cargarStockEquipos() {
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarMikrotiks(${currentPage - 1})" aria-label="Anterior">
+                <a class="page-link" href="#" onclick="cargarConsumibles(${currentPage - 1})" aria-label="Anterior">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             `;
@@ -1041,7 +1207,7 @@ async function cargarStockEquipos() {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
                 pageLi.innerHTML = `
-                    <a class="page-link" href="#" onclick="cargarMikrotiks(${i})">${i}</a>
+                    <a class="page-link" href="#" onclick="cargarConsumibles(${i})">${i}</a>
                 `;
                 pagination.appendChild(pageLi);
             }
@@ -1049,7 +1215,7 @@ async function cargarStockEquipos() {
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarMikrotiks(${currentPage + 1})" aria-label="Siguiente">
+                <a class="page-link" href="#" onclick="cargarConsumibles(${currentPage + 1})" aria-label="Siguiente">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             `;
@@ -1057,96 +1223,78 @@ async function cargarStockEquipos() {
         }
 
         // Funciones CRUD
-async function crearMikrotik() {
-    const form = document.getElementById('createMikrotikForm');
-    const formData = new FormData(form);
+        async function crearConsumible() {
+            const form = document.getElementById('createConsumibleForm');
+            const formData = new FormData(form);
 
-    if (stockEquipos.length === 0) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No hay equipos Mikrotik disponibles en el inventario'
-        });
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/mikrotiks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error del servidor');
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#createMikrotikModal').modal('hide');
-        form.reset();
-        
-        await cargarMikrotiks(currentPage);
-        await cargarStockEquipos(); 
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al crear el mikrotik'
-        });
-    }
-}
-
-        async function editMikrotik(id) {
-            try {
-                const response = await fetch(`/api/mikrotiks/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar mikrotik');
-                }
-
-                const mikrotik = await response.json();
-                
-                document.getElementById('edit_mikrotik_id').value = mikrotik.id;
-                document.getElementById('edit_sede_id').value = mikrotik.sede_id;
-                document.getElementById('edit_estado').value = mikrotik.estado;
-                document.getElementById('edit_ip_mikrotik').value = mikrotik.ip_mikrotik || '';
-                document.getElementById('edit_cereal_mikrotik').value = mikrotik.cereal_mikrotik || '';
-                document.getElementById('edit_ubicacion').value = mikrotik.ubicacion;
-                document.getElementById('edit_descripcion').value = mikrotik.descripcion || '';
-                
-                $('#editMikrotikModal').modal('show');
-                
-            } catch (error) {
+            // Validar que hay al menos un equipo seleccionado
+            const equiposContainer = document.getElementById('equiposContainer');
+            const equipoItems = equiposContainer.querySelectorAll('.equipo-item');
+            
+            if (equipoItems.length === 0) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message
+                    text: 'Debe agregar al menos un equipo del inventario'
                 });
+                return;
             }
-        }
 
-        async function actualizarMikrotik() {
-            const form = document.getElementById('editMikrotikForm');
-            const formData = new FormData(form);
-            const mikrotikId = formData.get('id');
+            // Recolectar datos de equipos
+            const equiposData = [];
+            let totalCantidad = 0;
+            let hayErrores = false;
+
+            equipoItems.forEach(item => {
+                const stockId = item.querySelector('[name*="[stock_equipos_id]"]').value;
+                const cantidad = parseInt(item.querySelector('[name*="[cantidad]"]').value);
+
+                if (!stockId || !cantidad) {
+                    hayErrores = true;
+                    return;
+                }
+
+                // Validar stock disponible
+                const equipo = stockEquipos.find(e => e.id == stockId);
+                if (equipo && equipo.cantidad_disponible < cantidad) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Stock insuficiente para ${equipo.marca} ${equipo.modelo}. Disponible: ${equipo.cantidad_disponible}, Solicitado: ${cantidad}`
+                    });
+                    hayErrores = true;
+                    return;
+                }
+
+                equiposData.push({
+                    stock_equipos_id: parseInt(stockId),
+                    cantidad: cantidad
+                });
+
+                totalCantidad += cantidad;
+            });
+
+            if (hayErrores) {
+                return;
+            }
+
+            const datos = {
+                nombre: formData.get('nombre'),
+                sede_id: parseInt(formData.get('sede_id')),
+                departamento_id: parseInt(formData.get('departamento_id')),
+                fecha_enviado: formData.get('fecha_enviado'),
+                detalles: formData.get('detalles'),
+                equipos: equiposData,
+                cantidad_total: totalCantidad
+            };
 
             try {
-                const response = await fetch(`/api/mikrotiks/${mikrotikId}`, {
-                    method: 'PUT',
+                const response = await fetch('/api/consumibles', {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(Object.fromEntries(formData))
+                    body: JSON.stringify(datos)
                 });
 
                 if (!response.ok) {
@@ -1161,44 +1309,52 @@ async function crearMikrotik() {
                     title: 'Éxito',
                     text: data.message
                 });
-                $('#editMikrotikModal').modal('hide');
+                $('#createConsumibleModal').modal('hide');
                 form.reset();
                 
-                await cargarMikrotiks(currentPage);
+                // Limpiar contenedor de equipos
+                document.getElementById('equiposContainer').innerHTML = '';
+                equipoCounter = 0;
+                
+                await cargarConsumibles(currentPage);
+                await cargarStockEquipos();
                 
             } catch (error) {
+                console.error('Error al crear:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message || 'Error al actualizar el mikrotik'
+                    text: error.message || 'Error al crear el consumible'
                 });
             }
         }
 
-        async function viewMikrotik(id) {
+        async function editConsumible(id) {
             try {
-                const response = await fetch(`/api/mikrotiks/${id}`);
+                const response = await fetch(`/api/consumibles/${id}`);
                 
                 if (!response.ok) {
-                    throw new Error('Error al cargar mikrotik');
+                    throw new Error('Error al cargar consumible');
                 }
 
-                const mikrotik = await response.json();
+                const consumible = await response.json();
                 
-                document.getElementById('view_descripcion').textContent = mikrotik.descripcion || 'Mikrotik';
-                document.getElementById('view_id').textContent = `ID: ${mikrotik.id}`;
-                document.getElementById('view_mikrotik_id').textContent = mikrotik.id;
-                document.getElementById('view_estado').innerHTML = `<span class="status-badge status-${mikrotik.estado}">${mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1)}</span>`;
-                document.getElementById('view_ip_mikrotik').textContent = mikrotik.ip_mikrotik || 'No asignada';
-                document.getElementById('view_cereal_mikrotik').textContent = mikrotik.cereal_mikrotik || 'No asignado';
-                document.getElementById('view_sede').textContent = mikrotik.sede ? mikrotik.sede.nombre : 'Sin sede';
-                document.getElementById('view_ubicacion').textContent = mikrotik.ubicacion;
-                document.getElementById('view_descripcion').textContent = mikrotik.descripcion || 'Sin descripción';
-                document.getElementById('view_stock_equipo_header').textContent = mikrotik.stock_equipos ? `${mikrotik.stock_equipos.marca} ${mikrotik.stock_equipos.modelo}` : 'No asignado';
-                document.getElementById('view_stock_equipo').textContent = mikrotik.stock_equipos ? `${mikrotik.stock_equipos.marca} ${mikrotik.stock_equipos.cantidad_disponible}` : 'No asignado';
-                document.getElementById('view_created_at').textContent = new Date(mikrotik.created_at).toLocaleDateString('es-ES');
+                document.getElementById('edit_consumible_id').value = consumible.id;
+                document.getElementById('edit_nombre').value = consumible.nombre;
+                document.getElementById('edit_stock_equipos_id').value = consumible.stock_equipos_id;
+                document.getElementById('edit_sede_id').value = consumible.sede_id;
+                document.getElementById('edit_departamento_id').value = consumible.departamento_id;
+                document.getElementById('edit_cantidad').value = consumible.cantidad;
+                document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
+                document.getElementById('edit_detalles').value = consumible.detalles || '';
                 
-                $('#viewMikrotikModal').modal('show');
+                // Actualizar stock disponible
+                const equipo = stockEquipos.find(e => e.id == consumible.stock_equipos_id);
+                if (equipo) {
+                    document.getElementById('edit_stock_disponible').value = `${equipo.cantidad_disponible} disponibles`;
+                }
+                
+                $('#editConsumibleModal').modal('show');
                 
             } catch (error) {
                 Swal.fire({
@@ -1209,10 +1365,94 @@ async function crearMikrotik() {
             }
         }
 
-        async function deleteMikrotik(id, nombre) {
+        async function actualizarConsumible() {
+            const form = document.getElementById('editConsumibleForm');
+            const formData = new FormData(form);
+            const consumibleId = formData.get('id');
+
+            const datos = {
+                nombre: formData.get('nombre'),
+                stock_equipos_id: parseInt(formData.get('stock_equipos_id')),
+                sede_id: parseInt(formData.get('sede_id')),
+                cantidad: parseInt(formData.get('cantidad')),
+                departamento_id: parseInt(formData.get('departamento_id')),
+                fecha_enviado: formData.get('fecha_enviado'),
+                detalles: formData.get('detalles')
+            };
+
+            try {
+                const response = await fetch(`/api/consumibles/${consumibleId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editConsumibleModal').modal('hide');
+                form.reset();
+                
+                await cargarConsumibles(currentPage);
+                
+            } catch (error) {
+                console.error('Error al actualizar:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar el consumible'
+                });
+            }
+        }
+
+        async function viewConsumible(id) {
+            try {
+                const response = await fetch(`/api/consumibles/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar consumible');
+                }
+
+                const consumible = await response.json();
+                
+                document.getElementById('view_nombre_header').textContent = consumible.nombre;
+                document.getElementById('view_id').textContent = `ID: ${consumible.id}`;
+                document.getElementById('view_consumible_id').textContent = consumible.id;
+                document.getElementById('view_cantidad').textContent = `${consumible.cantidad.toLocaleString()} unidades`;
+                document.getElementById('view_sede').textContent = consumible.sede ? consumible.sede.nombre : 'Sin sede';
+                document.getElementById('view_departamento').textContent = consumible.departamento ? consumible.departamento.nombre : 'Sin departamento';
+                document.getElementById('view_fecha_enviado').textContent = new Date(consumible.fecha_enviado).toLocaleDateString('es-ES');
+                document.getElementById('view_created_at').textContent = new Date(consumible.created_at).toLocaleDateString('es-ES');
+                document.getElementById('view_stock_equipo').textContent = consumible.stock_equipos ? 
+                    `${consumible.stock_equipos.marca} ${consumible.stock_equipos.modelo} (${consumible.stock_equipos.tipo_equipo.nombre})` : 'No asignado';
+                document.getElementById('view_detalles').textContent = consumible.detalles || 'Sin detalles';
+                
+                $('#viewConsumibleModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function deleteConsumible(id, nombre) {
             const result = await Swal.fire({
                 title: '¿Estás seguro?',
-                text: `Vas a eliminar el mikrotik "${nombre}". Esta acción no se puede deshacer.`,
+                text: `Vas a eliminar el consumible "${nombre}". Esta acción no se puede deshacer.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#DC2626',
@@ -1223,7 +1463,7 @@ async function crearMikrotik() {
 
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/api/mikrotiks/${id}`, {
+                    const response = await fetch(`/api/consumibles/${id}`, {
                         method: 'DELETE'
                     });
 
@@ -1239,47 +1479,61 @@ async function crearMikrotik() {
                         title: 'Éxito',
                         text: data.message
                     });
-                    await cargarMikrotiks(currentPage);
-                    await cargarStockEquipos(); 
+                    await cargarConsumibles(currentPage);
+                    await cargarStockEquipos();
                     
                 } catch (error) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: error.message || 'Error al eliminar el mikrotik'
+                        text: error.message || 'Error al eliminar el consumible'
                     });
                 }
             }
         }
 
+        // Actualizar stock disponible al seleccionar equipo
+        function actualizarStockDisponible(selectElement, targetId) {
+            const equipoId = selectElement.value;
+            const equipo = stockEquipos.find(e => e.id == equipoId);
+            const targetElement = document.getElementById(targetId);
+            
+            if (equipo) {
+                targetElement.textContent = `Stock disponible: ${equipo.cantidad_disponible} unidades`;
+                targetElement.className = 'text-success';
+            } else {
+                targetElement.textContent = '';
+            }
+        }
+
         // Funciones de filtrado
         function aplicarFiltros() {
-            const searchFilter = document.getElementById('searchMikrotik').value.toLowerCase();
+            const searchFilter = document.getElementById('searchConsumible').value.toLowerCase();
             const sedeFilter = document.getElementById('filterSede').value;
-            const estadoFilter = document.getElementById('filterEstado').value;
+            const departamentoFilter = document.getElementById('filterDepartamento').value;
 
-            const rows = document.querySelectorAll('#mikrotiksTableBody tr');
+            const rows = document.querySelectorAll('#consumiblesTableBody tr');
             let visibleCount = 0;
 
             rows.forEach(row => {
                 if (row.id === 'loadingRow') return;
 
-                const descripcion = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-                const ip = row.querySelector('td:nth-child(3) .ip-address')?.textContent.toLowerCase() || '';
-                const ubicacion = row.querySelector('td:nth-child(4) small').textContent.toLowerCase();
-                const sede = row.querySelector('td:nth-child(4) .fw-bold').textContent;
-                const estado = row.querySelector('td:nth-child(5) .status-badge').textContent.toLowerCase();
+                const nombre = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
+                const detalles = row.querySelector('td:nth-child(2) small').textContent.toLowerCase();
+                const sede = row.querySelector('td:nth-child(5) .fw-bold').textContent;
+                const departamento = row.querySelector('td:nth-child(5) small').textContent;
 
                 const searchMatch = !searchFilter || 
-                    descripcion.includes(searchFilter) || 
-                    ip.includes(searchFilter) ||
-                    ubicacion.includes(searchFilter);
+                    nombre.includes(searchFilter) || 
+                    detalles.includes(searchFilter);
                 const sedeMatch = !sedeFilter || sede.includes(
                     sedes.find(s => s.id == sedeFilter)?.nombre || ''
                 );
-                const estadoMatch = !estadoFilter || estado.includes(estadoFilter);
+                const departamentoMatch = !departamentoFilter || departamento.includes(
+                    departamentos.find(d => d.id == departamentoFilter)?.nombre || ''
+                );
 
-                if (searchMatch && sedeMatch && estadoMatch) {
+                if (searchMatch && sedeMatch && departamentoMatch) {
                     row.style.display = '';
                     visibleCount++;
                 } else {
@@ -1288,22 +1542,16 @@ async function crearMikrotik() {
             });
 
             document.getElementById('resultCount').textContent = 
-                `Mostrando ${visibleCount} de ${totalRecords} mikrotiks`;
-        }
-
-        function filtrarPorEstado(estado) {
-            document.getElementById('filterEstado').value = estado;
-            aplicarFiltros();
+                `Mostrando ${visibleCount} de ${totalRecords} consumibles`;
         }
 
         function resetFiltros() {
-            document.getElementById('searchMikrotik').value = '';
+            document.getElementById('searchConsumible').value = '';
             document.getElementById('filterSede').value = '';
-            document.getElementById('filterEstado').value = '';
-            aplicarFiltros();
+            document.getElementById('filterDepartamento').value = '';
+            cargarConsumibles(1);
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',
@@ -1312,7 +1560,7 @@ async function crearMikrotik() {
             });
         }
 
-        // Funciones del tema y sidebar
+        // TEMA
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -1357,7 +1605,6 @@ async function crearMikrotik() {
         }
 
         function inicializarSidebar() {
-            // Sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {
@@ -1385,25 +1632,31 @@ async function crearMikrotik() {
 
         // Inicializar eventos
         function inicializarEventos() {
-
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            document.getElementById('createMikrotikForm').addEventListener('submit', async function(e) {
+            document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                await crearMikrotik();
+                await crearConsumible();
             });
 
-            document.getElementById('editMikrotikForm').addEventListener('submit', async function(e) {
+            document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                await actualizarMikrotik();
+                await actualizarConsumible();
             });
 
-            document.getElementById('searchMikrotik').addEventListener('input', aplicarFiltros);
+            // Filtros
+            document.getElementById('searchConsumible').addEventListener('input', aplicarFiltros);
             document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
+
+            // Limpiar contenedor de equipos al cerrar el modal
+            $('#createConsumibleModal').on('hidden.bs.modal', function () {
+                document.getElementById('equiposContainer').innerHTML = '';
+                equipoCounter = 0;
+            });
         }
     </script>
 </body>

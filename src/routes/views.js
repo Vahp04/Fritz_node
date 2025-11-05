@@ -126,6 +126,15 @@ router.get('/impresoras', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/consumibles', authenticateToken, (req, res) => {
+    res.render('consumibles/consumibles', {
+        title: 'Gestión de las Impresoras',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 // Rutas para PDFs (protegidas)
 router.get('/equipos-a/pdf', authenticateToken, (req, res) => {
     res.render('equipoA/pdf', {

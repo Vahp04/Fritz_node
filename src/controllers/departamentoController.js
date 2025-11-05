@@ -16,9 +16,8 @@ export const departamentoController = {
       const departamentosConCount = departamentos.map(depto => ({
         id: depto.id,
         nombre: depto.nombre,
-        // Mapear los campos con guión bajo a camelCase para el frontend
-        createdAt: depto.created_at,  // Cambiado de created_at a createdAt
-        updatedAt: depto.updated_at,  // Cambiado de updated_at a updatedAt
+        createdAt: depto.created_at,  
+        updatedAt: depto.updated_at,  
         usuarios_count: depto.usuarios.length
       }));
 

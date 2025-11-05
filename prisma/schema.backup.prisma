@@ -8,111 +8,216 @@ datasource db {
 }
 
 model departamentos {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(191)
-  created_at DateTime @default(now()) @db.Timestamp(3)
-  updated_at DateTime @db.Timestamp(3)
-  
-  usuarios usuarios[]
-  
+  id         Int        @id @default(autoincrement())
+  nombre     String     @db.VarChar(191)
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now())
+  usuarios   usuarios[]
+  impresora  impresora[]
+  consumible consumible[]
+
   @@map("departamentos")
 }
 
 model sedes {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @db.VarChar(191)
-  ubicacion String?  @db.VarChar(191)
-  created_at DateTime @default(now()) @db.Timestamp(3)
-  updated_at DateTime @db.Timestamp(3)
-  
-  usuarios usuarios[]
-  
+  id         Int        @id @default(autoincrement())
+  nombre     String     @db.VarChar(191)
+  ubicacion  String?    @db.VarChar(191)
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now())
+  usuarios   usuarios[]
+  impresora  impresora[]
+  mikrotik   mikrotik[]
+  consumible consumible[]
+
   @@map("sedes")
 }
 
 model tipo_equipo {
-  id          Int      @id @default(autoincrement())
-  nombre      String   @db.VarChar(191)
-  descripcion String?  @db.VarChar(191)
-  requiere_ip Boolean? @default(true)
-  created_at  DateTime @default(now()) @db.Timestamp(3)
-  updated_at  DateTime @db.Timestamp(3)
-  
+  id            Int             @id @default(autoincrement())
+  nombre        String          @db.VarChar(191)
+  descripcion   String?         @db.VarChar(191)
+  requiere_ip   Boolean?        @default(true)
+  requiere_cereal Boolean?      @default(true)
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @default(now())
   stock_equipos stock_equipos[]
-  
+
   @@map("tipo_equipo")
 }
 
 model stock_equipos {
-  id                  Int      @id @default(autoincrement())
+  id                  Int               @id @default(autoincrement())
   tipo_equipo_id      Int
-  marca               String?  @db.VarChar(191)
-  modelo              String?  @db.VarChar(191)
-  descripcion         String?  @db.VarChar(191)
+  marca               String?           @db.VarChar(191)
+  modelo              String?           @db.VarChar(191)
+  descripcion         String?           @db.VarChar(191)
   cantidad_total      Int
   cantidad_disponible Int
   cantidad_asignada   Int
   minimo_stock        Int?
-  fecha_adquisicion   DateTime? @db.Timestamp(3)
+  fecha_adquisicion   DateTime?
   valor_adquisicion   Float?
-  created_at          DateTime @default(now()) @db.Timestamp(3)
-  updated_at          DateTime @db.Timestamp(3)
-  
-  tipo_equipo tipo_equipo @relation(fields: [tipo_equipo_id], references: [id], onUpdate: Cascade)
-  equipo_asignado equipo_asignado[]
-  
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @default(now())
+  equipo_asignado     equipo_asignado[]
+  impresora           impresora?        @relation("ImpresoraPrincipal")
+  impresora_toner     impresora[]       @relation("TonerInstalado")
+  mikrotik            mikrotik?         @relation("MikrotikPrincipal")
+  consumible          consumible?       
+  tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
+
   @@map("stock_equipos")
 }
 
 model usuario {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(191)
-  email     String   @unique @db.VarChar(191)
-  password  String   @db.VarChar(191)
-  activo    Boolean  @default(true)
-  created_at DateTime @default(now()) @db.Timestamp(3)
-  updated_at DateTime? @db.Timestamp(3)
-  
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(191)
+  email           String            @unique @db.VarChar(191)
+  password        String            @db.VarChar(191)
+  activo          Boolean           @default(true)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @default(now())
   equipo_asignado equipo_asignado[]
-  
+
   @@map("usuario")
 }
 
 model usuarios {
-  id              Int      @id @default(autoincrement())
-  nombre          String   @db.VarChar(191)
-  apellido        String?  @db.VarChar(191)
-  cargo           String   @db.VarChar(191)
-  correo          String?  @db.VarChar(191)
-  RDP             String?  @db.VarChar(191)
+  id              Int               @id @default(autoincrement())
+  nombre          String            @db.VarChar(191)
+  apellido        String?           @db.VarChar(191)
+  cargo           cargo
+  correo          String?           @db.VarChar(191)
+  rdpfis          String?           @db.VarChar(191)
+  rdpfin          String?           @db.VarChar(191)
+  descripcion     String?           @db.VarChar(191)
   sede_id         Int
   departamento_id Int
-  created_at      DateTime @default(now()) @db.Timestamp(3)
-  updated_at      DateTime @db.Timestamp(3)
-  
-  sede         sedes         @relation(fields: [sede_id], references: [id], onUpdate: Cascade)
-  departamento departamentos @relation(fields: [departamento_id], references: [id], onUpdate: Cascade)
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @default(now())
   equipo_asignado equipo_asignado[]
-  
+  departamento    departamentos     @relation(fields: [departamento_id], references: [id], onDelete: NoAction)
+  sede            sedes             @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+
   @@map("usuarios")
 }
 
 model equipo_asignado {
-  id               Int      @id @default(autoincrement())
+  id               Int           @id @default(autoincrement())
   usuarios_id      Int
   stock_equipos_id Int
-  fecha_asignacion DateTime? @db.Timestamp(3)
-  ip_equipo        String?   @db.VarChar(191)
-  fecha_devolucion DateTime? @db.Timestamp(3)
-  observaciones    String?   @db.VarChar(191)
+  fecha_asignacion DateTime?
+  ip_equipo        String?       @db.VarChar(191)
+  cereal_equipo    String?       @db.VarChar(191)  
+  fecha_devolucion DateTime?
+  observaciones    String?       @db.VarChar(191)
   usuario_id       Int?
-  estado           String    @default("activo") @db.VarChar(191)
-  created_at       DateTime  @default(now()) @db.Timestamp(3)
-  updated_at       DateTime  @db.Timestamp(3)
-  
-  usuarios     usuarios     @relation(fields: [usuarios_id], references: [id], onUpdate: Cascade)
-  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id], onUpdate: Cascade)
-  usuario      usuario?     @relation(fields: [usuario_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  
+  estado           String        @default("activo") @db.VarChar(191)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  stock_equipos    stock_equipos @relation(fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+  usuario          usuario?      @relation(fields: [usuario_id], references: [id])
+  usuarios         usuarios      @relation(fields: [usuarios_id], references: [id], onDelete: NoAction)
+
   @@map("equipo_asignado")
+}
+
+model impresora {
+  id               Int           @id @default(autoincrement())
+  stock_equipos_id Int           @unique 
+  nombre           String        @db.VarChar(191)
+  descripcion      String?       @db.VarChar(191)
+  ip_impresora     String?       @db.VarChar(191)
+  cereal_impresora String?       @db.VarChar(191)
+  sede_id          Int   
+  departamento_id  Int
+  ubicacion        String?       @db.VarChar(191)
+
+  toner            String?       @db.VarChar(191)
+  toner_actual_id  Int?         
+  fecha_instalacion_toner DateTime?
+  contador_instalacion_toner Int? @default(0)
+  
+  contador_impresiones Int       @default(0)
+  estado_impresora EstadoImpresora @default(activa)
+  
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  
+  stock_equipos    stock_equipos @relation("ImpresoraPrincipal", fields: [stock_equipos_id], references: [id], onDelete: Cascade)
+  sede             sedes         @relation(fields: [sede_id], references: [id], onDelete: Cascade)
+  departamento     departamentos @relation(fields: [departamento_id], references: [id], onDelete: Cascade)
+  toner_actual     stock_equipos? @relation("TonerInstalado", fields: [toner_actual_id], references: [id])
+
+  @@map("impresora")
+}
+
+model mikrotik {
+  id               Int           @id @default(autoincrement())
+  stock_equipos_id Int           @unique 
+  descripcion      String?       @db.VarChar(191)
+  ip_mikrotik      String?       @db.VarChar(191)
+  cereal_mikrotik  String?       @db.VarChar(191)
+  sede_id          Int
+  ubicacion        String        @db.VarChar(191)
+  estado           EstadoMikrotik @default(activo) 
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  stock_equipos    stock_equipos @relation("MikrotikPrincipal", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+  sede             sedes         @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+
+  @@map("mikrotik")
+}
+
+model consumible{
+  id                Int           @id @default(autoincrement())
+  nombre            String        @db.VarChar(191)
+  stock_equipos_id  Int           @unique
+  sede_id           Int           
+  cantidad          Int
+  departamento_id   Int
+  fecha_enviado     DateTime
+  detalles          String?        @db.VarChar(191)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id], onDelete: Cascade)
+  sede          sedes         @relation(fields: [sede_id], references: [id], onDelete: Cascade)
+  departamento  departamentos @relation(fields: [departamento_id], references: [id], onDelete: Cascade)
+
+  @@map("consumible")
+}
+
+enum cargo {
+  Gerente
+  Jefe
+  Analista
+  Especialista
+  Becario
+  Pasante
+  Coordinador
+  Supervisor
+}
+
+enum EstadoMikrotik {
+  activo
+  inactivo
+  mantenimiento
+  desuso
+}
+
+enum EstadoImpresora {
+  activa
+  inactiva
+  mantenimiento
+  sin_toner
+  obsoleta
+}
+
+model ContadorRegistros {
+  id        Int      @id @default(autoincrement())
+  tipo      String   @unique // Por ejemplo: "reporte_equipos"
+  ultimoNumero Int   @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

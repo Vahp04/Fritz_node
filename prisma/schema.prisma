@@ -14,6 +14,7 @@ model departamentos {
   updated_at DateTime   @default(now())
   usuarios   usuarios[]
   impresora  impresora[]
+  consumible consumible[]
 
   @@map("departamentos")
 }
@@ -27,6 +28,7 @@ model sedes {
   usuarios   usuarios[]
   impresora  impresora[]
   mikrotik   mikrotik[]
+  consumible consumible[]
 
   @@map("sedes")
 }
@@ -62,6 +64,7 @@ model stock_equipos {
   impresora           impresora?        @relation("ImpresoraPrincipal")
   impresora_toner     impresora[]       @relation("TonerInstalado")
   mikrotik            mikrotik?         @relation("MikrotikPrincipal")
+  consumible          consumible?       
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
 
   @@map("stock_equipos")
@@ -122,7 +125,7 @@ model equipo_asignado {
 
 model impresora {
   id               Int           @id @default(autoincrement())
-  stock_equipos_id Int           @unique  // AÑADIDO: @unique para relación 1:1
+  stock_equipos_id Int           @unique 
   nombre           String        @db.VarChar(191)
   descripcion      String?       @db.VarChar(191)
   ip_impresora     String?       @db.VarChar(191)
@@ -165,6 +168,24 @@ model mikrotik {
   sede             sedes         @relation(fields: [sede_id], references: [id], onDelete: NoAction)
 
   @@map("mikrotik")
+}
+
+model consumible{
+  id                Int           @id @default(autoincrement())
+  nombre            String        @db.VarChar(191)
+  stock_equipos_id  Int           @unique
+  sede_id           Int           
+  cantidad          Int
+  departamento_id   Int
+  fecha_enviado     DateTime
+  detalles          String?        @db.VarChar(191)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @default(now()) @updatedAt
+  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id], onDelete: Cascade)
+  sede          sedes         @relation(fields: [sede_id], references: [id], onDelete: Cascade)
+  departamento  departamentos @relation(fields: [departamento_id], references: [id], onDelete: Cascade)
+
+  @@map("consumible")
 }
 
 enum cargo {
