@@ -13,7 +13,6 @@
             if (savedTheme) {
                 htmlElement.setAttribute('data-bs-theme', savedTheme);
             } else {
-                // Tema por defecto
                 const defaultTheme = 'light';
                 localStorage.setItem('theme', defaultTheme);
                 htmlElement.setAttribute('data-bs-theme', defaultTheme);
@@ -421,8 +420,6 @@
                     </div>
                 </div>
 
-                
-                
                 <!-- Sede Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
@@ -447,7 +444,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="sedesTableBody">
-                                    <!-- Las sedes se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="6" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -555,7 +551,6 @@
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <div class="sede-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <!-- Icono se llena con JavaScript -->
                         </div>
                         <h4 id="view_nombre"></h4>
                         <p class="text-muted" id="view_id"></p>
@@ -642,7 +637,6 @@ function renderizarSedes() {
     sedes.forEach(sede => {
         const row = document.createElement('tr');
         
-        // Función para formatear fecha de manera segura
         const formatDate = (dateString) => {
             if (!dateString) return 'N/A';
             try {
@@ -709,7 +703,6 @@ function renderizarSedes() {
     });
 }
 
-            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
     function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
         const htmlElement = document.documentElement;
@@ -753,7 +746,6 @@ function renderizarSedes() {
         localStorage.setItem('theme', newTheme);
     }
 
-    // ===== INICIALIZACIÓN =====
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
@@ -788,19 +780,16 @@ function renderizarSedes() {
         function inicializarEventos() {
 
 
-            // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear sede
             document.getElementById('createSedeForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearSede();
             });
 
-            // Formulario de editar sede
             document.getElementById('editSedeForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarSede();
@@ -918,7 +907,6 @@ async function viewSede(id) {
 
         const sede = await response.json();
         
-        // Función para formatear fecha de manera segura
         const formatDate = (dateString) => {
             if (!dateString) return 'N/A';
             try {
@@ -999,7 +987,6 @@ async function viewSede(id) {
             }
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',

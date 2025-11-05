@@ -193,9 +193,6 @@
             transition: all 0.3s;
         }
         
-      
-        
-        /* Estilos adicionales para la tabla */
         .table th {
             border-top: none;
             font-weight: 600;
@@ -419,7 +416,6 @@
                     </div>
                 </div>
 
-                <!-- Alert Messages -->
                 <% if (success) { %>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle me-2"></i>
@@ -464,7 +460,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="usuariosTableBody">
-                                    <!-- Los usuarios se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="6" class="text-center py-4">
                                             <div class="loading-spinner mx-auto mb-2"></div>
@@ -552,7 +547,6 @@
                         <label class="form-label">Confirmar Contraseña</label>
                         <input type="password" class="form-control" name="password_confirmation" placeholder="Confirmar contraseña">
                     </div>
-                    <!-- AGREGAR ESTE CAMPO -->
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="activo" id="edit_activo">
                         <label class="form-check-label">Usuario Activo</label>
@@ -597,7 +591,7 @@
     };
 }
 
-    // Cargar usuarios desde la API
+    // Cargar usuarios 
 async function cargarUsuarios() {
     try {
         
@@ -646,7 +640,6 @@ async function cargarUsuarios() {
     const tbody = document.getElementById('usuariosTableBody');
     tbody.innerHTML = '';
 
-    // Función para formatear fecha de manera segura
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         try {
@@ -666,7 +659,6 @@ async function cargarUsuarios() {
         const isCurrentUser = usuario.id === currentUserId;
         const row = document.createElement('tr');
         
-        // Escapar comillas simples en el nombre para JavaScript
         const safeName = usuario.name ? usuario.name.replace(/'/g, "\\'") : '';
         
         row.innerHTML = `
@@ -736,7 +728,7 @@ async function cargarUsuarios() {
     });
 }
 
-        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        //  TEMA 
     function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
         const htmlElement = document.documentElement;
@@ -780,7 +772,7 @@ async function cargarUsuarios() {
         localStorage.setItem('theme', newTheme);
     }
 
-    // ===== INICIALIZACIÓN =====
+    // INICIALIZACIÓN 
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
@@ -804,7 +796,6 @@ async function cargarUsuarios() {
             });
         }
 
-        // Tema
         const themeSwitcher = document.querySelector('.theme-switcher');
         if (themeSwitcher) {
             themeSwitcher.addEventListener('click', toggleTheme);
@@ -814,20 +805,16 @@ async function cargarUsuarios() {
     // Inicializar eventos
     function inicializarEventos() {
 
-
-        // Manejar logout
         document.getElementById('logoutForm').addEventListener('submit', function(e) {
             e.preventDefault();
             this.submit();
         });
 
-        // Formulario de crear usuario
         document.getElementById('createUserForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             await crearUsuario();
         });
 
-        // Formulario de editar usuario
         document.getElementById('editUserForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             await actualizarUsuario();
@@ -841,14 +828,12 @@ async function crearUsuario() {
     const originalText = submitBtn.innerHTML;
 
     try {
-        // Mostrar loading
         submitBtn.innerHTML = '<div class="loading-spinner"></div> Guardando...';
         submitBtn.disabled = true;
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
 
-        // Validaciones
         if (data.password !== data.password_confirmation) {
             throw new Error('Las contraseñas no coinciden');
         }
@@ -875,7 +860,6 @@ async function crearUsuario() {
             throw new Error(result.error || 'Error al crear usuario');
         }
 
-        // Éxito
         Swal.fire({
             icon: 'success',
             title: 'Éxito',
@@ -894,7 +878,6 @@ async function crearUsuario() {
             text: error.message
         });
     } finally {
-        // Restaurar botón
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
@@ -917,7 +900,6 @@ async function crearUsuario() {
     const formData = new FormData(form);
     const userId = formData.get('id');
 
-    // Validar contraseñas si se proporcionan
     const password = formData.get('password');
     const passwordConfirmation = formData.get('password_confirmation');
     
@@ -931,19 +913,17 @@ async function crearUsuario() {
     }
 
     try {
-        // Preparar datos para enviar
         const data = {
             name: formData.get('name'),
             email: formData.get('email'),
             activo: formData.get('activo') === 'on'
         };
 
-        // Solo agregar password si se proporcionó
         if (password && password.trim() !== '') {
             data.password = password;
         }
 
-        console.log('Enviando datos:', data); // Para debug
+        console.log('Enviando datos:', data); 
 
         const response = await fetch(`/api/usuario/${userId}`, {
             method: 'PUT',
@@ -975,7 +955,6 @@ async function crearUsuario() {
     }
 }
 
-    // Cambiar estado de usuario
     async function cambiarEstadoUsuario(id) {
         const usuario = usuarios.find(u => u.id === id);
         if (!usuario) return;

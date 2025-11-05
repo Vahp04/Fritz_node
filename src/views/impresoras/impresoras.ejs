@@ -1578,7 +1578,6 @@ async function viewImpresora(id) {
             }
         }
 
-        // Funciones de toner
         function abrirInstalarToner(impresoraId) {
             document.getElementById('toner_impresora_id').value = impresoraId;
             renderizarToners();
@@ -1697,7 +1696,6 @@ function resetearContadorToner() {
             aplicarFiltros();
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',
@@ -1706,7 +1704,7 @@ function resetearContadorToner() {
             });
         }
 
-        // Funciones del tema y sidebar
+        // TEMA
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -1771,7 +1769,6 @@ function resetearContadorToner() {
                 });
             }
 
-            // Tema
             const themeSwitcher = document.querySelector('.theme-switcher');
             if (themeSwitcher) {
                 themeSwitcher.addEventListener('click', toggleTheme);
@@ -1780,25 +1777,21 @@ function resetearContadorToner() {
 
         // Inicializar eventos
         function inicializarEventos() {
-            // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear impresora
             document.getElementById('createImpresoraForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearImpresora();
             });
 
-            // Formulario de editar impresora
             document.getElementById('editImpresoraForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarImpresora();
             });
 
-            // Formulario de instalar toner
             document.getElementById('instalarTonerForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await instalarToner();

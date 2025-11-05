@@ -461,7 +461,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tiposEquipoTableBody">
-                                    <!-- Los tipos de equipo se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -506,7 +505,6 @@
                                     <small class="text-muted">Descripción opcional del tipo de equipo</small>
                                 </div>
                             </div>
-                            <!-- NUEVOS CAMPOS DE CONFIGURACIÓN -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">¿Requiere dirección IP?</label>
@@ -566,7 +564,6 @@
                                     <small class="text-muted">Descripción opcional del tipo de equipo</small>
                                 </div>
                             </div>
-                            <!-- NUEVOS CAMPOS DE CONFIGURACIÓN -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">¿Requiere dirección IP?</label>
@@ -611,7 +608,6 @@
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <div class="tipo-equipo-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <!-- Icono se llena con JavaScript -->
                         </div>
                         <h4 id="view_nombre"></h4>
                         <p class="text-muted" id="view_id"></p>
@@ -706,7 +702,6 @@
             tiposEquipo.forEach(tipo => {
                 const row = document.createElement('tr');
                 
-                // Función para formatear fecha de manera segura
                 const formatDate = (dateString) => {
                     if (!dateString) return 'N/A';
                     try {
@@ -722,7 +717,6 @@
                     }
                 };
 
-                // Generar badges para configuración
                 let configuracionHTML = '';
                 if (tipo.requiere_ip) {
                     configuracionHTML += `<span class="badge ip-badge me-1 mb-1" title="Requiere IP">IP</span>`;
@@ -797,7 +791,7 @@
             });
         }
 
-        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        //  TEMA 
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -841,7 +835,7 @@
             localStorage.setItem('theme', newTheme);
         }
 
-        // ===== INICIALIZACIÓN =====
+        // INICIALIZACIÓN 
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
             
@@ -874,13 +868,11 @@
 
         // Inicializar eventos
         function inicializarEventos() {
-            // Formulario de crear tipo de equipo
             document.getElementById('createTipoEquipoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearTipoEquipo();
             });
 
-            // Formulario de editar tipo de equipo
             document.getElementById('editTipoEquipoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarTipoEquipo();
@@ -998,7 +990,6 @@
 
                 const tipo = await response.json();
                 
-                // Función para formatear fecha de manera segura
                 const formatDate = (dateString) => {
                     if (!dateString) return 'N/A';
                     try {
@@ -1023,7 +1014,6 @@
                     `<span class="badge stock-badge">${tipo.stock_count} Equipos</span>` : 
                     '<span class="badge bg-secondary">0 Equipos</span>';
                 
-                // Mostrar información de configuración
                 const requiereIP = tipo.requiere_ip ? 
                     '<span class="badge bg-success">Sí</span>' : 
                     '<span class="badge bg-secondary">No</span>';
@@ -1088,7 +1078,6 @@
             }
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',

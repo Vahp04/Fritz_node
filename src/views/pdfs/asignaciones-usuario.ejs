@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Equipos Asignados - <%= usuario.nombre %></title>
     <style>
-        /* ESTILOS BASE */
+    
         body {
             font-family: 'DejaVu Sans', sans-serif;
             font-size: 12px;
@@ -13,7 +13,7 @@
             padding: 20px;
         }
         
-        /* CONTENEDOR PRINCIPAL PARA DUPLICADO */
+ 
         .contenedor-duplicado {
             display: flex;
             flex-direction: column;
@@ -23,26 +23,15 @@
         /* PRIMERA PÁGINA */
         .pagina-1 {
             flex: 1;
-            page-break-after: always; /* Forzar salto de página */
+            page-break-after: always; 
         }
         
-        /* SEGUNDA PÁGINA (COPIA) */
         .pagina-2 {
             flex: 1;
             margin-top: 50px;
         }
         
-        /* Indicador de copia */
-        .indicador-copia {
-            text-align: center;
-            background: #f8f9fa;
-            padding: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #495057;
-        }
+  
         
         .header {
             text-align: center;
@@ -136,7 +125,6 @@
         .badge-secondary { background: #e9ecef; color: #495057; }
         .text-center { text-align: center; }
         
-        /* ESTILOS PARA FIRMAS */
         .firmas-container {
             margin-top: 40px;
             width: 100%;
@@ -179,7 +167,6 @@
             color: #666;
         }
         
-        /* ESTADÍSTICAS */
         .estadisticas {
             display: flex;
             justify-content: space-around;
@@ -201,7 +188,6 @@
             color: #666;
         }
         
-        /* LOGO */
         .logo-container {
             position: absolute;
             top: 0;
@@ -213,7 +199,6 @@
             object-fit: contain;
         }
         
-        /* NÚMERO DE REGISTRO */
         .numero-registro {
             position: absolute;
             bottom: 5px;
@@ -227,11 +212,11 @@
 <body>
     <div class="contenedor-duplicado">
         
-        <!-- PRIMERA PÁGINA - ORIGINAL -->
+     
         <div class="pagina-1">
             <div class="header">
                 <div class="logo-container">
-                    <!-- Reemplaza esta URL con la ruta correcta de tu logo -->
+            
                     <img src="/public/img/logo-fritz-web.png" alt="Logo FRITZ" class="logo">
                 </div>
                 <h1>FRITZ C.A</h1>
@@ -304,11 +289,11 @@
             </div>
             <% } %>
 
-            <!-- FIRMAS PRIMERA PÁGINA -->
+            <!-- FIRMAS  -->
             <div class="firmas-container">
                 <table class="tabla-firmas">
                     <tr>
-                        <!-- Firma del Usuario -->
+                      
                         <td>
                             <div class="firma">
                                 <div class="espacio-firma"></div>
@@ -317,7 +302,6 @@
                             </div>
                         </td>
                         
-                        <!-- Firma del Departamento de Tecnología -->
                         <td>
                             <div class="firma">
                                 <div class="espacio-firma"></div>
@@ -341,7 +325,7 @@
         <div class="pagina-2">
             <div class="header">
                 <div class="logo-container">
-                    <!-- Reemplaza esta URL con la ruta correcta de tu logo -->
+                   
 <img src="/img/logo-fritz-web.webp" alt="logoo">
                 </div>
                 <h1>FRITZ C.A</h1>
@@ -414,11 +398,11 @@
             </div>
             <% } %>
 
-            <!-- FIRMAS SEGUNDA PÁGINA -->
+            <!-- FIRMAS -->
             <div class="firmas-container">
                 <table class="tabla-firmas">
                     <tr>
-                        <!-- Firma del Usuario -->
+                       
                         <td>
                             <div class="firma">
                                 <div class="espacio-firma"></div>
@@ -427,7 +411,6 @@
                             </div>
                         </td>
                         
-                        <!-- Firma del Departamento de Tecnología -->
                         <td>
                             <div class="firma">
                                 <div class="espacio-firma"></div>

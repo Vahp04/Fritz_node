@@ -13,7 +13,6 @@
             if (savedTheme) {
                 htmlElement.setAttribute('data-bs-theme', savedTheme);
             } else {
-                // Tema por defecto
                 const defaultTheme = 'light';
                 localStorage.setItem('theme', defaultTheme);
                 htmlElement.setAttribute('data-bs-theme', defaultTheme);
@@ -91,12 +90,6 @@
             background-color: var(--fritz-black) !important;
         }
         
-        .badge-notification {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 0.6rem;
-        }
         
         .user-avatar {
             width: 35px;
@@ -416,8 +409,6 @@
                     </div>
                 </div>
 
-                
-                
                 <!-- Department Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
@@ -441,7 +432,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="departamentosTableBody">
-                                    <!-- Los departamentos se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="5" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -527,7 +517,6 @@
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <div class="department-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <!-- Icono se llena con JavaScript -->
                         </div>
                         <h4 id="view_nombre"></h4>
                         <p class="text-muted" id="view_id"></p>
@@ -610,7 +599,6 @@ function renderizarDepartamentos() {
     departamentos.forEach(departamento => {
         const row = document.createElement('tr');
         
-        // Función para formatear fecha de manera segura
         const formatDate = (dateString) => {
             if (!dateString) return 'N/A';
             try {
@@ -671,7 +659,7 @@ function renderizarDepartamentos() {
     });
 }
 
-            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+            // TEMA
     function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
         const htmlElement = document.documentElement;
@@ -715,7 +703,7 @@ function renderizarDepartamentos() {
         localStorage.setItem('theme', newTheme);
     }
 
-    // ===== INICIALIZACIÓN =====
+    // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
@@ -739,7 +727,6 @@ function renderizarDepartamentos() {
             });
         }
 
-        // Tema
         const themeSwitcher = document.querySelector('.theme-switcher');
         if (themeSwitcher) {
             themeSwitcher.addEventListener('click', toggleTheme);
@@ -749,20 +736,16 @@ function renderizarDepartamentos() {
         // Inicializar eventos
         function inicializarEventos() {
 
-
-            // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear departamento
             document.getElementById('createDepartmentForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearDepartment();
             });
 
-            // Formulario de editar departamento
             document.getElementById('editDepartmentForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarDepartment();
@@ -943,7 +926,6 @@ function renderizarDepartamentos() {
             }
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',

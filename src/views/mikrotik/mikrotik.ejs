@@ -503,7 +503,6 @@
                     </div>
                 </div>
                 
-                <!-- Mikrotiks Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -521,7 +520,6 @@
                             <div class="col-md-4">
                                 <select class="form-select form-select-sm" id="filterSede">
                                     <option value="">Todas las sedes</option>
-                                    <!-- Las sedes se cargarán via JavaScript -->
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -550,7 +548,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="mikrotiksTableBody">
-                                    <!-- Los mikrotiks se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border text-primary" role="status">
@@ -571,7 +568,6 @@
                             
                             <nav aria-label="Paginación de mikrotiks">
                                 <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                                    <!-- La paginación se generará via JavaScript -->
                                 </ul>
                             </nav>
                         </div>
@@ -803,7 +799,7 @@
         let totalPages = 1;
         let totalRecords = 0;
 
-        // Cargar datos al iniciar
+        // Enviar datos al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             cargarMikrotiks();
             cargarSedes();
@@ -867,7 +863,6 @@ async function cargarStockEquipos() {
 
         const data = await response.json();
         
-        // Filtrar solo los equipos que son de tipo Mikrotik
         stockEquipos = data.stockEquipos.filter(equipo => 
             equipo.tipo_equipo && 
             equipo.tipo_equipo.nombre.toLowerCase() === 'mikrotik'
@@ -970,7 +965,6 @@ async function cargarStockEquipos() {
                 tbody.appendChild(row);
             });
 
-            // Actualizar contador de resultados
             document.getElementById('resultCount').textContent = 
                 `Mostrando ${mikrotiks.length} de ${totalRecords} mikrotiks`;
         }
@@ -982,12 +976,10 @@ async function cargarStockEquipos() {
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                    // Limpiar opciones excepto la primera
                     while (select.options.length > 1) {
                         select.remove(1);
                     }
 
-                    // Agregar opciones
                     sedes.forEach(sede => {
                         const option = document.createElement('option');
                         option.value = sede.id;
@@ -1002,7 +994,6 @@ async function cargarStockEquipos() {
        function renderizarStockEquipos() {
     const select = document.getElementById('create_stock_equipos_id');
     if (select) {
-        // Limpiar opciones excepto la primera
         while (select.options.length > 1) {
             select.remove(1);
         }
@@ -1016,7 +1007,6 @@ async function cargarStockEquipos() {
             return;
         }
 
-        // Agregar opciones
         stockEquipos.forEach(equipo => {
             const option = document.createElement('option');
             option.value = equipo.id;
@@ -1031,7 +1021,6 @@ async function cargarStockEquipos() {
             const pagination = document.getElementById('paginationContainer');
             pagination.innerHTML = '';
 
-            // Botón anterior
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
@@ -1041,7 +1030,6 @@ async function cargarStockEquipos() {
             `;
             pagination.appendChild(prevLi);
 
-            // Números de página
             for (let i = 1; i <= totalPages; i++) {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
@@ -1051,7 +1039,6 @@ async function cargarStockEquipos() {
                 pagination.appendChild(pageLi);
             }
 
-            // Botón siguiente
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
@@ -1067,7 +1054,6 @@ async function crearMikrotik() {
     const form = document.getElementById('createMikrotikForm');
     const formData = new FormData(form);
 
-    // Verificar que hay equipos disponibles
     if (stockEquipos.length === 0) {
         Swal.fire({
             icon: 'error',
@@ -1247,7 +1233,7 @@ async function crearMikrotik() {
                         text: data.message
                     });
                     await cargarMikrotiks(currentPage);
-                    await cargarStockEquipos(); // Recargar equipos disponibles
+                    await cargarStockEquipos(); 
                     
                 } catch (error) {
                     Swal.fire({
@@ -1393,25 +1379,22 @@ async function crearMikrotik() {
 
         // Inicializar eventos
         function inicializarEventos() {
-            // Manejar logout
+
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear mikrotik
             document.getElementById('createMikrotikForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearMikrotik();
             });
 
-            // Formulario de editar mikrotik
             document.getElementById('editMikrotikForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarMikrotik();
             });
 
-            // Filtros
             document.getElementById('searchMikrotik').addEventListener('input', aplicarFiltros);
             document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);

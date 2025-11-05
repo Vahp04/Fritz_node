@@ -13,7 +13,6 @@
             if (savedTheme) {
                 htmlElement.setAttribute('data-bs-theme', savedTheme);
             } else {
-                // Tema por defecto
                 const defaultTheme = 'light';
                 localStorage.setItem('theme', defaultTheme);
                 htmlElement.setAttribute('data-bs-theme', defaultTheme);
@@ -470,7 +469,6 @@
                     </div>
                 </div>
 
-                <!-- Alert Messages -->
                 <% if (success) { %>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle me-2"></i>
@@ -548,7 +546,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="usuariosTableBody">
-                                    <!-- Los usuarios se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="8" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -569,7 +566,6 @@
                             
                             <nav aria-label="Paginación de usuarios">
                                 <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                                    <!-- La paginación se generará via JavaScript -->
                                 </ul>
                             </nav>
                         </div>
@@ -653,7 +649,6 @@
                                     <label class="form-label">Sede*</label>
                                     <select class="form-select" name="sede_id" id="create_sede_id" required>
                                         <option value="">Seleccione una sede</option>
-                                        <!-- Las sedes se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -662,7 +657,6 @@
                                     <label class="form-label">Departamento*</label>
                                     <select class="form-select" name="departamento_id" id="create_departamento_id" required>
                                         <option value="">Seleccione un departamento</option>
-                                        <!-- Los departamentos se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -726,7 +720,6 @@
                                     <input type="email" class="form-control" name="correo" id="edit_correo" required>
                                 </div>
                             </div>
-                            <!-- NUEVOS CAMPOS RDP -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">RDP Fiscal*</label>
@@ -753,7 +746,6 @@
                                     <label class="form-label">Sede*</label>
                                     <select class="form-select" name="sede_id" id="edit_sede_id" required>
                                         <option value="">Seleccione una sede</option>
-                                        <!-- Las sedes se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -762,7 +754,6 @@
                                     <label class="form-label">Departamento*</label>
                                     <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
                                         <option value="">Seleccione un departamento</option>
-                                        <!-- Los departamentos se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -1014,7 +1005,6 @@
                 tbody.appendChild(row);
             });
 
-            // Actualizar contador de resultados
             document.getElementById('resultCount').textContent = 
                 `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
         }
@@ -1025,15 +1015,12 @@ function renderizarSedes(preservarValores = false, selectId = null) {
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (select) {
-            // Guardar el valor actual antes de limpiar SOLO si estamos preservando valores
             const currentValue = preservarValores ? select.value : null;
             
-            // Limpiar opciones excepto la primera
             while (select.options.length > 1) {
                 select.remove(1);
             }
 
-            // Verificar que hay sedes para mostrar
             if (sedes.length === 0) {
                 console.warn('No hay sedes cargadas para renderizar');
                 const option = document.createElement('option');
@@ -1043,7 +1030,6 @@ function renderizarSedes(preservarValores = false, selectId = null) {
                 return;
             }
 
-            // Agregar opciones
             sedes.forEach(sede => {
                 const option = document.createElement('option');
                 option.value = sede.id;
@@ -1051,7 +1037,6 @@ function renderizarSedes(preservarValores = false, selectId = null) {
                 select.appendChild(option);
             });
             
-            // Restaurar el valor si existe y estamos preservando valores
             if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
                 console.log(`✅ Valor restaurado en ${selectId}: ${currentValue}`);
@@ -1076,7 +1061,6 @@ function renderizarDepartamentos(preservarValores = false, selectId = null) {
                 select.remove(1);
             }
 
-            // Verificar que hay departamentos para mostrar
             if (departamentos.length === 0) {
                 console.warn('No hay departamentos cargados para renderizar');
                 const option = document.createElement('option');
@@ -1109,7 +1093,6 @@ async function cargarDatosParaEdicion(usuario) {
     try {
         console.log('🔄 Cargando datos para edición...');
         
-        // Verificar si ya tenemos los datos cargados
         if (sedes.length === 0) {
             console.log('📥 Cargando sedes...');
             await cargarSedes();
@@ -1122,11 +1105,9 @@ async function cargarDatosParaEdicion(usuario) {
         
         console.log(`📊 Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
         
-        // Renderizar SOLO el select de edición, preservando valores
         renderizarSedes(true, 'edit_sede_id');
         renderizarDepartamentos(true, 'edit_departamento_id');
         
-        // Establecer valores inmediatamente
         const sedeSelect = document.getElementById('edit_sede_id');
         const departamentoSelect = document.getElementById('edit_departamento_id');
         
@@ -1134,10 +1115,8 @@ async function cargarDatosParaEdicion(usuario) {
             console.log(`🎯 Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
             sedeSelect.value = usuario.sede_id || '';
             
-            // Verificar si se estableció correctamente
             if (sedeSelect.value !== usuario.sede_id?.toString()) {
                 console.warn('⚠️ No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
-                // Forzar el valor después de un breve delay
                 setTimeout(() => {
                     sedeSelect.value = usuario.sede_id || '';
                     console.log('🔄 Reintentando establecer sede_id:', sedeSelect.value);
@@ -1149,10 +1128,8 @@ async function cargarDatosParaEdicion(usuario) {
             console.log(`🎯 Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
             departamentoSelect.value = usuario.departamento_id || '';
             
-            // Verificar si se estableció correctamente
             if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
                 console.warn('⚠️ No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
-                // Forzar el valor después de un breve delay
                 setTimeout(() => {
                     departamentoSelect.value = usuario.departamento_id || '';
                     console.log('🔄 Reintentando establecer departamento_id:', departamentoSelect.value);
@@ -1211,7 +1188,6 @@ async function cargarDepartamentos() {
             const pagination = document.getElementById('paginationContainer');
             pagination.innerHTML = '';
 
-            // Botón anterior
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
@@ -1221,7 +1197,6 @@ async function cargarDepartamentos() {
             `;
             pagination.appendChild(prevLi);
 
-            // Números de página
             for (let i = 1; i <= totalPages; i++) {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
@@ -1231,7 +1206,6 @@ async function cargarDepartamentos() {
                 pagination.appendChild(pageLi);
             }
 
-            // Botón siguiente
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
@@ -1242,7 +1216,7 @@ async function cargarDepartamentos() {
             pagination.appendChild(nextLi);
         }
 
-            // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+            //  TEMA 
     function applySavedTheme() {
         const savedTheme = localStorage.getItem('theme');
         const htmlElement = document.documentElement;
@@ -1294,7 +1268,6 @@ async function cargarDepartamentos() {
 
     console.log('📝 Datos para actualizar:', datos);
 
-    // Validar datos requeridos
     if (!datos.nombre || !datos.cargo || !datos.correo || !datos.rdpfis || !datos.sede_id || !datos.departamento_id) {
         Swal.fire({
             icon: 'error',
@@ -1307,7 +1280,6 @@ async function cargarDepartamentos() {
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
     
-    // Deshabilitar el botón
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Actualizando...';
 
@@ -1342,12 +1314,11 @@ async function cargarDepartamentos() {
             text: error.message
         });
     } finally {
-        // Rehabilitar el botón
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
     }
 }
-    // ===== INICIALIZACIÓN =====
+    // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
@@ -1371,14 +1342,12 @@ async function cargarDepartamentos() {
             });
         }
 
-        // Tema
         const themeSwitcher = document.querySelector('.theme-switcher');
         if (themeSwitcher) {
             themeSwitcher.addEventListener('click', toggleTheme);
         }
     });
 
-        // Inicializar eventos
 let eventosInicializados = false;
 
 function inicializarEventos() {
@@ -1390,21 +1359,18 @@ function inicializarEventos() {
     console.log('🔄 Inicializando eventos...');
     eventosInicializados = true;
 
-    // Formulario de crear usuario
     document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
         e.preventDefault();
         console.log('📝 Evento submit del formulario crear capturado');
         crearUsuario();
     });
 
-    // Formulario de editar usuario
     document.getElementById('editUsuarioForm').addEventListener('submit', function(e) {
         e.preventDefault();
         console.log('📝 Evento submit del formulario editar capturado');
         actualizarUsuario();
     });
 
-    // Eventos de filtros
     const searchName = document.getElementById('searchName');
     const searchCargo = document.getElementById('searchCargo');
     const searchSede = document.getElementById('searchSede');
@@ -1420,11 +1386,10 @@ function inicializarEventos() {
     console.log('✅ Todos los eventos inicializados correctamente');
 }
 
-        // Funciones CRUD
+    // Funciones CRUD
 let creandoUsuario = false;
 
 async function crearUsuario() {
-    // Prevenir múltiples ejecuciones
     if (creandoUsuario) {
         console.log('🚫 Ya se está creando un usuario, ignorando...');
         return;
@@ -1442,7 +1407,6 @@ async function crearUsuario() {
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
     
-    // Deshabilitar el botón
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
 
@@ -1486,7 +1450,6 @@ async function crearUsuario() {
             text: error.message
         });
     } finally {
-        // Rehabilitar el botón y resetear estado
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
         creandoUsuario = false;
@@ -1498,7 +1461,6 @@ $('#createUsuarioModal').on('hidden.bs.modal', function () {
     console.log('🔒 Modal cerrado, reseteando estado...');
     creandoUsuario = false;
     
-    // También resetear el formulario
     const form = document.getElementById('createUsuarioForm');
     const submitButton = form.querySelector('button[type="submit"]');
     submitButton.disabled = false;
@@ -1524,7 +1486,6 @@ async function editUsuario(id) {
         
         console.log('📋 Datos del usuario para editar:', usuario);
         
-        // Establecer valores básicos inmediatamente
         document.getElementById('edit_usuario_id').value = usuario.id;
         document.getElementById('edit_nombre').value = usuario.nombre || '';
         document.getElementById('edit_apellido').value = usuario.apellido || '';
@@ -1533,16 +1494,13 @@ async function editUsuario(id) {
         document.getElementById('edit_rdpfin').value = usuario.rdpfin || '';
         document.getElementById('edit_descripcion').value = usuario.descripcion || '';
         
-        // Establecer cargo
         const cargoSelect = document.getElementById('edit_cargo');
         if (cargoSelect) {
             cargoSelect.value = usuario.cargo || '';
         }
         
-        // Mostrar el modal inmediatamente
         $('#editUsuarioModal').modal('show');
         
-        // Función para establecer valores después de que los selects estén listos
         const establecerValoresSelects = () => {
             console.log('🎯 Estableciendo valores de sede y departamento...');
             
@@ -1552,7 +1510,6 @@ async function editUsuario(id) {
             if (sedeSelect && sedeSelect.options.length > 1) {
                 console.log(`📍 Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
                 
-                // Buscar la opción que coincida con el valor
                 let sedeEncontrada = false;
                 for (let i = 0; i < sedeSelect.options.length; i++) {
                     if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
@@ -1565,7 +1522,6 @@ async function editUsuario(id) {
                 
                 if (!sedeEncontrada) {
                     console.warn(`⚠️ No se encontró la sede_id: ${usuario.sede_id}`);
-                    // Si no se encuentra, establecer la primera opción disponible
                     if (sedeSelect.options.length > 1) {
                         sedeSelect.selectedIndex = 1;
                         console.log(`🔄 Estableciendo primera sede disponible: ${sedeSelect.value}`);
@@ -1578,7 +1534,6 @@ async function editUsuario(id) {
             if (departamentoSelect && departamentoSelect.options.length > 1) {
                 console.log(`📍 Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
                 
-                // Buscar la opción que coincida con el valor
                 let departamentoEncontrado = false;
                 for (let i = 0; i < departamentoSelect.options.length; i++) {
                     if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
@@ -1591,7 +1546,6 @@ async function editUsuario(id) {
                 
                 if (!departamentoEncontrado) {
                     console.warn(`⚠️ No se encontró el departamento_id: ${usuario.departamento_id}`);
-                    // Si no se encuentra, establecer la primera opción disponible
                     if (departamentoSelect.options.length > 1) {
                         departamentoSelect.selectedIndex = 1;
                         console.log(`🔄 Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
@@ -1602,14 +1556,11 @@ async function editUsuario(id) {
             }
         };
         
-        // Cargar sedes y departamentos
         console.log('🔄 Cargando datos para edición...');
         
-        // Verificar si ya tenemos los datos cargados
         let sedesCargadas = sedes.length > 0;
         let departamentosCargados = departamentos.length > 0;
         
-        // Array de promesas para cargar datos
         const promesasCarga = [];
         
         if (!sedesCargadas) {
@@ -1622,7 +1573,6 @@ async function editUsuario(id) {
             promesasCarga.push(cargarDepartamentos());
         }
         
-        // Esperar a que se carguen los datos si es necesario
         if (promesasCarga.length > 0) {
             await Promise.all(promesasCarga);
             console.log('✅ Todos los datos cargados');
@@ -1630,16 +1580,13 @@ async function editUsuario(id) {
             console.log('✅ Datos ya cargados previamente');
         }
         
-        // Renderizar selects de edición específicamente
         renderizarSedes(false, 'edit_sede_id');
         renderizarDepartamentos(false, 'edit_departamento_id');
-        
-        // Esperar un breve momento para que el DOM se actualice
+
         setTimeout(() => {
             establecerValoresSelects();
         }, 100);
         
-        // También establecer después de un tiempo adicional por si acaso
         setTimeout(() => {
             establecerValoresSelects();
         }, 500);
@@ -1716,12 +1663,10 @@ function inicializarSelectsCargo() {
     selects.forEach(selectId => {
         const select = document.getElementById(selectId);
         if (select) {
-            // Limpiar opciones excepto la primera
             while (select.options.length > 1) {
                 select.remove(1);
             }
             
-            // Agregar opciones de cargo
             cargos.forEach(cargo => {
                 const option = document.createElement('option');
                 option.value = cargo;
@@ -1732,7 +1677,6 @@ function inicializarSelectsCargo() {
     });
 }
 
-// Llamar esta función al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     inicializarSelectsCargo();
     cargarUsuarios();
@@ -1848,7 +1792,6 @@ function aplicarFiltros() {
     console.log(`✅ Filtros aplicados: ${visibleCount} usuarios visibles`);
 }
 
-// Función mejorada para resetear filtros
 function resetFiltros() {
     console.log('🔄 Reseteando filtros...');
     
@@ -1859,7 +1802,6 @@ function resetFiltros() {
     
     aplicarFiltros();
     
-    // Mostrar mensaje de confirmación
     const toast = document.createElement('div');
     toast.className = 'position-fixed bottom-0 end-0 p-3';
     toast.style.zIndex = '11';
@@ -1885,7 +1827,6 @@ function resetFiltros() {
     }, 3000);
 }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',

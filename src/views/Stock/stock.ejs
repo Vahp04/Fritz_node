@@ -13,7 +13,6 @@
             if (savedTheme) {
                 htmlElement.setAttribute('data-bs-theme', savedTheme);
             } else {
-                // Tema por defecto
                 const defaultTheme = 'light';
                 localStorage.setItem('theme', defaultTheme);
                 htmlElement.setAttribute('data-bs-theme', defaultTheme);
@@ -570,7 +569,6 @@
                             <div class="col-md-3">
                                 <select class="form-select form-select-sm" id="filterTipo">
                                     <option value="">Todos los tipos</option>
-                                    <!-- Los tipos se cargarán via JavaScript -->
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -602,7 +600,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="stockEquiposTableBody">
-                                    <!-- Los equipos se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -623,7 +620,6 @@
                             
                             <nav aria-label="Paginación de stock de equipos">
                                 <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                                    <!-- La paginación se generará via JavaScript -->
                                 </ul>
                             </nav>
                         </div>
@@ -651,7 +647,6 @@
                                     <label class="form-label">Tipo de Equipo*</label>
                                     <select class="form-select" name="tipo_equipo_id" id="create_tipo_equipo_id" required>
                                         <option value="">Seleccione un tipo</option>
-                                        <!-- Los tipos se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -744,7 +739,6 @@
                                     <label class="form-label">Tipo de Equipo*</label>
                                     <select class="form-select" name="tipo_equipo_id" id="edit_tipo_equipo_id" required>
                                         <option value="">Seleccione un tipo</option>
-                                        <!-- Los tipos se cargarán via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -783,12 +777,12 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-    <div class="mb-3">
-        <label class="form-label">Cantidad Asignada*</label>
-        <input type="number" class="form-control" name="cantidad_asignada" required min="0" 
-               id="edit_cantidad_asignada" oninput="calcularCantidadesEdicion()">
-    </div>
-</div>
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad Asignada*</label>
+                                    <input type="number" class="form-control" name="cantidad_asignada" required min="0" 
+                                        id="edit_cantidad_asignada" oninput="calcularCantidadesEdicion()">
+                                </div>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
@@ -831,7 +825,6 @@
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <div class="equipo-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <!-- Icono se llena con JavaScript -->
                         </div>
                         <h4 id="view_marca_modelo"></h4>
                         <p class="text-muted" id="view_id"></p>
@@ -907,7 +900,7 @@
             cargarStockEquipos();
             cargarTipoEquipos();
             inicializarEventos();
-            calcularCantidadesNuevo(); // Inicializar cálculos
+            calcularCantidadesNuevo(); 
         });
 
         
@@ -980,7 +973,6 @@
                 
             } catch (error) {
                 console.error('Error completo:', error);
-                // Mostrar valores por defecto en caso de error
                 document.getElementById('totalEquipos').textContent = '0';
                 document.getElementById('totalDisponibles').textContent = '0';
                 document.getElementById('totalAsignados').textContent = '0';
@@ -1072,7 +1064,6 @@
                 tbody.appendChild(row);
             });
 
-            // Actualizar contador de resultados
             document.getElementById('resultCount').textContent = 
                 `Mostrando ${stockEquipos.length} de ${totalRecords} equipos`;
         }
@@ -1088,12 +1079,10 @@
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                    // Limpiar opciones excepto la primera
                     while (select.options.length > 1) {
                         select.remove(1);
                     }
 
-                    // Agregar opciones
                     tipoEquipos.forEach(tipo => {
                         const option = document.createElement('option');
                         option.value = tipo.id;
@@ -1109,7 +1098,6 @@
             const pagination = document.getElementById('paginationContainer');
             pagination.innerHTML = '';
 
-            // Botón anterior
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
@@ -1119,7 +1107,6 @@
             `;
             pagination.appendChild(prevLi);
 
-            // Números de página
             for (let i = 1; i <= totalPages; i++) {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
@@ -1129,7 +1116,6 @@
                 pagination.appendChild(pageLi);
             }
 
-            // Botón siguiente
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
@@ -1140,18 +1126,16 @@
             pagination.appendChild(nextLi);
         }
 
-        // ===== FUNCIONES PARA CALCULAR CANTIDADES =====
+        //  CALCULAR CANTIDADES
 function calcularCantidadesNuevo() {
     const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
     const cantidadAsignada = parseInt(document.getElementById('cantidad_asignada').value) || 0;
     
-    // Calcular disponible basado en total y asignada
     const cantidadDisponible = cantidadTotal - cantidadAsignada;
     
     if (cantidadDisponible >= 0) {
         document.getElementById('cantidad_disponible').value = cantidadDisponible;
     } else {
-        // Si la asignada es mayor que el total, mostrar error
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1162,18 +1146,15 @@ function calcularCantidadesNuevo() {
     }
 }
 
-
  function calcularCantidadesEdicion() {
     const cantidadTotal = parseInt(document.getElementById('edit_cantidad_total').value) || 0;
     const cantidadAsignada = parseInt(document.getElementById('edit_cantidad_asignada').value) || 0;
     
-    // Calcular disponible basado en total y asignada
     const cantidadDisponible = cantidadTotal - cantidadAsignada;
     
     if (cantidadDisponible >= 0) {
         document.getElementById('edit_cantidad_disponible').value = cantidadDisponible;
     } else {
-        // Si la cantidad total es menor que la asignada, mostrar error
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1184,7 +1165,7 @@ function calcularCantidadesNuevo() {
     }
 }
 
-        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        //  TEMA 
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -1228,7 +1209,7 @@ function calcularCantidadesNuevo() {
             localStorage.setItem('theme', newTheme);
         }
 
-        // ===== INICIALIZACIÓN =====
+        // INICIALIZACIÓN 
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
             
@@ -1252,7 +1233,6 @@ function calcularCantidadesNuevo() {
                 });
             }
 
-            // Tema
             const themeSwitcher = document.querySelector('.theme-switcher');
             if (themeSwitcher) {
                 themeSwitcher.addEventListener('click', toggleTheme);
@@ -1261,34 +1241,30 @@ function calcularCantidadesNuevo() {
 
         // Inicializar eventos
         function inicializarEventos() {
-            // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear equipo
             document.getElementById('createStockEquipoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearStockEquipo();
             });
 
-            // Formulario de editar equipo
             document.getElementById('editStockEquipoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarStockEquipo();
             });
 
-            // Eventos para calcular cantidades
-             document.getElementById('cantidad_total').addEventListener('input', calcularCantidadesNuevo);
-    document.getElementById('cantidad_asignada').addEventListener('input', calcularCantidadesNuevo);
-    document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
-    document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
-            // Filtros
-            document.getElementById('searchName').addEventListener('input', aplicarFiltros);
-            document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterStock').addEventListener('change', aplicarFiltros);
-            document.getElementById('resetFilters').addEventListener('click', resetFiltros);
+                document.getElementById('cantidad_total').addEventListener('input', calcularCantidadesNuevo);
+                document.getElementById('cantidad_asignada').addEventListener('input', calcularCantidadesNuevo);
+                document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
+                document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
+
+                document.getElementById('searchName').addEventListener('input', aplicarFiltros);
+                document.getElementById('filterTipo').addEventListener('change', aplicarFiltros);
+                document.getElementById('filterStock').addEventListener('change', aplicarFiltros);
+                document.getElementById('resetFilters').addEventListener('click', resetFiltros);
         }
 
         // Funciones CRUD
@@ -1360,7 +1336,6 @@ function calcularCantidadesNuevo() {
                 document.getElementById('edit_fecha_adquisicion').value = equipo.fecha_adquisicion.split('T')[0];
                 document.getElementById('edit_valor_adquisicion').value = equipo.valor_adquisicion;
                 
-                // Guardar la cantidad asignada original para validaciones
                 document.getElementById('edit_cantidad_asignada').setAttribute('data-original', equipo.cantidad_asignada);
                 
                 $('#editStockEquipoModal').modal('show');
@@ -1472,7 +1447,6 @@ function calcularCantidadesNuevo() {
         try {
             const response = await fetch(`/api/stock_equipos/${id}`, {
                 method: 'DELETE'
-                // ELIMINADO: headers con Authorization
             });
 
             console.log('Delete response status:', response.status);
@@ -1502,7 +1476,6 @@ function calcularCantidadesNuevo() {
         }
     }
 }
-
         // Funciones de filtrado
         function aplicarFiltros() {
             const nameFilter = document.getElementById('searchName').value.toLowerCase();
@@ -1551,7 +1524,6 @@ function calcularCantidadesNuevo() {
             aplicarFiltros();
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',
@@ -1561,12 +1533,10 @@ function calcularCantidadesNuevo() {
         }
 
 function generarPDFStock() {
-    // Descargar PDF
     window.location.href = '/api/pdf/stock';
 }
 
 function verPDFStock() {
-    // Ver PDF en nueva pestaña
     const link = document.createElement('a');
     link.href = '/api/pdf/stock/ver';
     link.target = '_blank';

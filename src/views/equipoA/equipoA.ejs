@@ -13,7 +13,6 @@
             if (savedTheme) {
                 htmlElement.setAttribute('data-bs-theme', savedTheme);
             } else {
-                // Tema por defecto
                 const defaultTheme = 'light';
                 localStorage.setItem('theme', defaultTheme);
                 htmlElement.setAttribute('data-bs-theme', defaultTheme);
@@ -620,7 +619,6 @@
                                     </tr>
                                 </thead>
                                 <tbody id="equiposAsignadosTableBody">
-                                    <!-- Los equipos asignados se cargarán via JavaScript -->
                                     <tr id="loadingRow">
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
@@ -656,7 +654,6 @@
                                     <label class="form-label">Usuario*</label>
                                     <select class="form-select" name="usuarios_id" id="create_usuarios_id" required>
                                         <option value="">Seleccione un usuario</option>
-                                        <!-- Se cargará via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -665,7 +662,6 @@
                                     <label class="form-label">Equipo*</label>
                                     <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
                                         <option value="">Seleccione un equipo</option>
-                                        <!-- Se cargará via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -686,7 +682,6 @@
                                 </div>
                             </div>
                             
-                            <!-- CAMPOS DINÁMICOS - IP Y CEREAL -->
                             <div class="col-md-6 ip-field-container" style="display: none;">
                                 <div class="mb-3">
                                     <label class="form-label">IP del Equipo*</label>
@@ -743,7 +738,6 @@
                                     <label class="form-label">Usuario*</label>
                                     <select class="form-select" name="usuarios_id" id="edit_usuarios_id" required>
                                         <option value="">Seleccione un usuario</option>
-                                        <!-- Se cargará via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -752,7 +746,6 @@
                                     <label class="form-label">Equipo*</label>
                                     <select class="form-select" name="stock_equipos_id" id="edit_stock_equipos_id" required>
                                         <option value="">Seleccione un equipo</option>
-                                        <!-- Se cargará via JavaScript -->
                                     </select>
                                 </div>
                             </div>
@@ -773,7 +766,6 @@
                                 </div>
                             </div>
                             
-                            <!-- CAMPOS DINÁMICOS - IP Y CEREAL -->
                             <div class="col-md-6 ip-field-container" style="display: none;">
                                 <div class="mb-3">
                                     <label class="form-label">IP del Equipo*</label>
@@ -824,7 +816,6 @@
                 <div class="modal-body">
                     <div class="text-center mb-4">
                         <div class="equipo-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <!-- Icono se llena con JavaScript -->
                         </div>
                         <h4 id="view_titulo"></h4>
                         <p class="text-muted" id="view_id"></p>
@@ -894,7 +885,6 @@
                         <label class="form-label">Seleccione un usuario:</label>
                         <select class="form-select" id="usuarioSeleccionado">
                             <option value="">Seleccione un usuario</option>
-                            <!-- Se cargará via JavaScript -->
                         </select>
                     </div>
                 </div>
@@ -953,7 +943,6 @@
                 const data = await response.json();
                 console.log('📦 Respuesta usuarios:', data);
                 
-                // Manejar diferentes estructuras de respuesta
                 if (data.success && data.usuarios) {
                     usuarios = data.usuarios;
                 } else if (Array.isArray(data)) {
@@ -1039,7 +1028,8 @@
             // Excluir equipos de tipo mikrotik e impresora
             const excluir = tipoEquipoNombre.includes('mikrotik') || 
                            tipoEquipoNombre.includes('impresora') ||
-                           tipoEquipoNombre.includes('printer');
+                           tipoEquipoNombre.includes('toner')   ||
+                           tipoEquipoNombre.includes('consumible');
             
             if (excluir) {
                 console.log(`🚫 Excluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoEquipoNombre})`);
@@ -1077,7 +1067,6 @@
             });
         }
 
-        // Función mejorada para toggle de campos dinámicos (IP y Cereal)
         function toggleDynamicFieldsBasedOnSelection(selectElement, isEditModal = false) {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const requiereIP = selectedOption.getAttribute('data-requiere-ip') === '1';
@@ -1086,7 +1075,6 @@
             
             console.log(`🔍 Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}, requiere Cereal: ${requiereCereal}`);
             
-            // Determinar qué campos usar según el modal
             let ipField, ipContainer, cerealField, cerealContainer;
             
             if (isEditModal) {
@@ -1101,7 +1089,6 @@
                 cerealContainer = cerealField ? cerealField.closest('.cereal-field-container') : null;
             }
             
-            // Manejar campo IP
             if (ipField && ipContainer) {
                 if (requiereIP) {
                     ipContainer.style.display = 'block';
@@ -1115,7 +1102,6 @@
                 }
             }
             
-            // Manejar campo Cereal (Número de Serie)
             if (cerealField && cerealContainer) {
                 if (requiereCereal) {
                     cerealContainer.style.display = 'block';
@@ -1131,7 +1117,6 @@
         }
 
         function inicializarEventosSelects() {
-            // Event listeners para los selects de equipos - CREAR
             const createSelect = document.getElementById('create_stock_equipos_id');
             if (createSelect) {
                 createSelect.addEventListener('change', function() {
@@ -1139,12 +1124,10 @@
                     toggleDynamicFieldsBasedOnSelection(this, false);
                 });
                 
-                // Aplicar estado inicial inmediatamente después de llenar
                 setTimeout(() => {
                     if (createSelect.value) {
                         toggleDynamicFieldsBasedOnSelection(createSelect, false);
                     } else {
-                        // Ocultar campos por defecto
                         const ipContainer = document.querySelector('.ip-field-container');
                         const cerealContainer = document.querySelector('.cereal-field-container');
                         if (ipContainer) ipContainer.style.display = 'none';
@@ -1153,7 +1136,6 @@
                 }, 100);
             }
 
-            // Event listeners para los selects de equipos - EDITAR
             const editSelect = document.getElementById('edit_stock_equipos_id');
             if (editSelect) {
                 editSelect.addEventListener('change', function() {
@@ -1223,7 +1205,6 @@
             const selects = [createSelect, editSelect, pdfSelect].filter(select => select !== null);
 
             selects.forEach(select => {
-                // Limpiar select
                 select.innerHTML = '<option value="">Seleccione un usuario</option>';
                 
                 if (!usuarios || usuarios.length === 0) {
@@ -1236,21 +1217,18 @@
                 
                 console.log(`📝 Llenando select con ${usuarios.length} usuarios`);
                 
-                // Llenar con usuarios
                 usuarios.forEach(usuario => {
                     if (!usuario || !usuario.id) return;
                     
                     const option = document.createElement('option');
                     option.value = usuario.id;
                     
-                    // Construir texto descriptivo
                     let texto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
                     
                     if (usuario.cargo) {
                         texto += ` - ${usuario.cargo}`;
                     }
                     
-                    // Agregar información adicional si está disponible
                     if (usuario.sede && usuario.sede.nombre) {
                         texto += ` (${usuario.sede.nombre})`;
                     }
@@ -1270,7 +1248,6 @@
             const selects = [createSelect, editSelect].filter(select => select !== null);
 
             selects.forEach(select => {
-                // Limpiar select
                 select.innerHTML = '<option value="">Seleccione un equipo</option>';
                 
                 if (!stockEquipos || stockEquipos.length === 0) {
@@ -1283,14 +1260,12 @@
                 
                 console.log(`📝 Llenando select con ${stockEquipos.length} equipos`);
                 
-                // Llenar con equipos
                 stockEquipos.forEach(equipo => {
                     if (!equipo || !equipo.id) return;
                     
                     const option = document.createElement('option');
                     option.value = equipo.id;
                     
-                    // Construir texto descriptivo
                     let texto = '';
                     if (equipo.marca && equipo.modelo) {
                         texto = `${equipo.marca} ${equipo.modelo}`;
@@ -1300,18 +1275,15 @@
                         texto = `Equipo ${equipo.id}`;
                     }
                     
-                    // Agregar disponibilidad
                     if (equipo.cantidad_disponible !== undefined) {
                         texto += ` (${equipo.cantidad_disponible} disponible${equipo.cantidad_disponible !== 1 ? 's' : ''})`;
                     }
                     
                     option.textContent = texto;
                     
-                    // DETECCIÓN DE REQUIERE_IP Y REQUIERE_CEREAL
                     let requiereIP = false;
                     let requiereCereal = false;
                     
-                    // Intentar todas las posibles formas de acceder a la información
                     if (equipo.tipo_equipo) {
                         requiereIP = Boolean(equipo.tipo_equipo.requiere_ip);
                         requiereCereal = Boolean(equipo.tipo_equipo.requiere_cereal);
@@ -1325,7 +1297,6 @@
                         requiereCereal = Boolean(equipo.requiere_cereal);
                         console.log(`✅ Equipo ${equipo.id}: directo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     } else {
-                        // Si no se encuentra, buscar en todas las propiedades del objeto
                         Object.keys(equipo).forEach(key => {
                             if (key.toLowerCase().includes('tipo') && equipo[key] && typeof equipo[key] === 'object') {
                                 if (equipo[key].requiere_ip !== undefined) {
@@ -1339,7 +1310,6 @@
                         });
                     }
                     
-                    // Si aún no se encontró, asumir false
                     if (requiereIP === undefined) {
                         console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
                         requiereIP = false;
@@ -1349,12 +1319,10 @@
                         requiereCereal = false;
                     }
                     
-                    // Establecer atributos data
                     option.setAttribute('data-requiere-ip', requiereIP ? '1' : '0');
                     option.setAttribute('data-requiere-cereal', requiereCereal ? '1' : '0');
                     option.setAttribute('data-equipo-id', equipo.id);
                     
-                    // Debug info
                     if (requiereIP || requiereCereal) {
                         console.log(`🔔 Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     }
@@ -1410,7 +1378,6 @@ function renderizarEquiposAsignados() {
     }
 }
         
-        // Usar las propiedades formateadas
         const usuario = asignacion.usuarioAsignado || {};
         const stockEquipo = asignacion.stockEquipo || {};
         const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
@@ -1534,7 +1501,7 @@ function renderizarEquiposAsignados() {
             document.getElementById('countTotal').textContent = countTotal;
         }
 
-        // ===== FUNCIONES UNIVERSALES PARA EL TEMA =====
+        //  TEMA 
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -1578,7 +1545,7 @@ function renderizarEquiposAsignados() {
             localStorage.setItem('theme', newTheme);
         }
 
-        // ===== INICIALIZACIÓN =====
+        // INICIALIZACIÓN
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
             
@@ -1602,7 +1569,6 @@ function renderizarEquiposAsignados() {
                 });
             }
 
-            // Tema
             const themeSwitcher = document.querySelector('.theme-switcher');
             if (themeSwitcher) {
                 themeSwitcher.addEventListener('click', toggleTheme);
@@ -1611,19 +1577,16 @@ function renderizarEquiposAsignados() {
 
         // Inicializar eventos
         function inicializarEventos() {
-            // Manejar logout
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 this.submit();
             });
 
-            // Formulario de crear asignación
             document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await crearEquipoAsignado();
             });
 
-            // Formulario de editar asignación
             document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 await actualizarEquipoAsignado();
@@ -1642,7 +1605,6 @@ function renderizarEquiposAsignados() {
         $('#createEquipoAsignadoModal').on('show.bs.modal', function () {
             console.log('🔄 Modal de crear abierto, forzando actualización de campos dinámicos...');
             
-            // Forzar actualización después de un pequeño delay para asegurar que el DOM esté listo
             setTimeout(() => {
                 const createSelect = document.getElementById('create_stock_equipos_id');
                 if (createSelect) {
@@ -1650,7 +1612,6 @@ function renderizarEquiposAsignados() {
                         console.log('🔍 Aplicando toggle campos con selección existente:', createSelect.value);
                         toggleDynamicFieldsBasedOnSelection(createSelect, false);
                     } else {
-                        // Ocultar campos por defecto si no hay selección
                         const ipContainer = document.querySelector('.ip-field-container');
                         const cerealContainer = document.querySelector('.cereal-field-container');
                         if (ipContainer) ipContainer.style.display = 'none';
@@ -1710,7 +1671,6 @@ function renderizarEquiposAsignados() {
         
         console.log('🔍 Datos para editar:', asignacion);
         
-        // Establecer valores básicos
         document.getElementById('edit_asignacion_id').value = asignacion.id;
         document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
         document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
@@ -1718,16 +1678,13 @@ function renderizarEquiposAsignados() {
         document.getElementById('edit_estado').value = asignacion.estado;
         document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
         
-        // USAR EL CAMPO CORRECTO PARA NÚMERO DE SERIE
         document.getElementById('edit_numero_serie').value = asignacion.numero_serie || asignacion.cereal_equipo || '';
         
         document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
         document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
         
-        // Mostrar modal primero
         $('#editEquipoAsignadoModal').modal('show');
         
-        // Aplicar toggle de campos dinámicos después de que el modal esté visible
         setTimeout(() => {
             const editSelect = document.getElementById('edit_stock_equipos_id');
             if (editSelect && editSelect.value) {
@@ -1794,20 +1751,17 @@ async function viewEquipoAsignado(id) {
         
         console.log('🔍 Datos de asignación cargados:', asignacion);
         
-        // DEBUG: Verificar la estructura real de los datos
         console.log('📋 Estructura completa:', Object.keys(asignacion));
         console.log('👤 Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
         console.log('💻 Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
         console.log('👨‍💼 Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
         console.log('🔢 Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
         
-        // Determinar la estructura real de los datos
         const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
         const stockEquipo = asignacion.stock_equipos || asignacion.stockEquipo || {};
         const usuarioAsignador = asignacion.usuario || asignacion.usuarioAsignador || { name: 'Sistema' };
         const numeroSerie = asignacion.numero_serie || asignacion.cereal_equipo || '';
         
-        // Icono - usar primera letra del nombre del usuario
         let inicial = 'A';
         if (usuario && usuario.nombre) {
             inicial = usuario.nombre.charAt(0).toUpperCase();
@@ -1820,12 +1774,12 @@ async function viewEquipoAsignado(id) {
         document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
         document.getElementById('view_asignacion_id').textContent = asignacion.id;
         
-        // Estado
+
         const estadoClass = `estado-${asignacion.estado}`;
         const estadoTexto = asignacion.estado ? asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1) : 'Activo';
         document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
         
-        // Usuario asignado
+   
         let usuarioTexto = 'N/A';
         if (usuario) {
             if (usuario.nombre && usuario.apellido) {
@@ -1839,7 +1793,7 @@ async function viewEquipoAsignado(id) {
         }
         document.getElementById('view_usuario').textContent = usuarioTexto;
         
-        // Equipo 
+
         let equipoTexto = 'N/A';
         if (stockEquipo) {
             if (stockEquipo.marca && stockEquipo.modelo) {
@@ -1848,7 +1802,7 @@ async function viewEquipoAsignado(id) {
                 equipoTexto = stockEquipo.nombre;
             }
             
-            // Tipo de equipo
+         
             const tipoEquipo = stockEquipo.tipo_equipo || stockEquipo.tipoEquipo || {};
             if (tipoEquipo.nombre) {
                 equipoTexto += ` (${tipoEquipo.nombre})`;
@@ -1856,26 +1810,26 @@ async function viewEquipoAsignado(id) {
         }
         document.getElementById('view_equipo').textContent = equipoTexto;
         
-        // Fechas
+       
         document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
             new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
         document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
             new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
         
-        // IP
+ 
         document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
         
-        // Número de Serie - USAR EL CAMPO CORRECTO
+       
         document.getElementById('view_numero_serie').textContent = numeroSerie || 'No asignado';
         
-        // Asignado por
+       
         let asignadorTexto = 'Sistema';
         if (usuarioAsignador) {
             asignadorTexto = usuarioAsignador.name || 'Usuario';
         }
         document.getElementById('view_asignado_por').textContent = asignadorTexto;
         
-        // Observaciones
+     
         document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
         
         $('#viewEquipoAsignadoModal').modal('show');
@@ -1956,7 +1910,6 @@ async function viewEquipoAsignado(id) {
                     title: 'Éxito',
                     text: data.message || 'Equipo marcado como obsoleto y eliminado del sistema'
                 });
-                // Recargar la lista para reflejar los cambios
                 await cargarEquiposAsignados();
             } else {
                 throw new Error(data.error || 'Error al marcar equipo como obsoleto');
@@ -2077,7 +2030,6 @@ function aplicarFiltros() {
                 row.style.display = (nameMatch && equipoMatch) ? '' : 'none';
             }
         } else {
-            // Para equipos no obsoletos, aplicar filtros normales
             row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
         }
     });
@@ -2090,7 +2042,6 @@ function aplicarFiltros() {
             aplicarFiltros();
         }
 
-        // Funciones de PDF
         function abrirModalSeleccionUsuario() {
             $('#seleccionUsuarioModal').modal('show');
         }
@@ -2139,7 +2090,6 @@ function aplicarFiltros() {
             window.open(url, '_blank');
         }
 
-        // Funciones de utilidad
         function mostrarError(mensaje) {
             Swal.fire({
                 icon: 'error',

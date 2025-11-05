@@ -276,7 +276,7 @@
                 <i class="bi bi-chevron-double-left"></i>
             </button>
             
-            <!-- Contenido del sidebar con scroll -->
+            <!-- Contenido del sidebar -->
             <div class="sidebar-content">
                 <!-- Brand -->
                 <div class="text-center mb-4 py-3 border-bottom border-secondary">
@@ -404,7 +404,7 @@
                 </ul>
             
 
-            <!-- Bottom -->
+            <!-- Botones -->
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -449,7 +449,7 @@
             <!-- Main Content Area -->
             <div class="container-fluid py-4">
                 <% if (user) { %>
-                    <!-- Welcome Card -->
+                    <!-- Tarjeta de bienvenida -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="col-12">
                             <div class="card welcome-card">
@@ -478,7 +478,7 @@
                         </div>
                     </div>
 
-                    <!-- Statistics Cards -->
+                    <!-- Tarjetas estáticas -->
                     <div class="row mb-4">
                         <div class="col-xl-3 col-md-6">
                             <div class="stat-card" style="background: linear-gradient(135deg, #c53541ff 0%, #c2050eff 100%);">
@@ -510,7 +510,7 @@
                         </div>
                     </div>
 
-                    <!-- Quick Actions -->
+                    <!-- Acciones rápidas -->
                     <div class="row mt-4">
                         <div class="col-12">
                             <div class="card">
@@ -541,7 +541,7 @@
                     </div>
 
                 <% } else { %>
-                    <!-- Not Authenticated Section -->
+                    <!-- Sección de "No autentificado" -->
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <div class="card">
@@ -579,7 +579,6 @@
         icon.classList.toggle('bi-chevron-double-right');
     });
 
-    // Mobile sidebar toggle
     document.getElementById('mobileSidebarToggle').addEventListener('click', function() {
         document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
     });
@@ -593,7 +592,6 @@ function applySavedTheme() {
     if (savedTheme) {
         htmlElement.setAttribute('data-bs-theme', savedTheme);
         
-        // Actualizar el icono del botón según el tema
         const themeIcon = document.querySelector('.theme-switcher i');
         if (savedTheme === 'dark') {
             themeIcon.classList.remove('bi-moon-stars');
@@ -603,7 +601,6 @@ function applySavedTheme() {
             themeIcon.classList.add('bi-moon-stars');
         }
     } else {
-        // Tema por defecto
         localStorage.setItem('theme', 'light');
     }
 }
@@ -615,10 +612,8 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     const themeIcon = document.querySelector('.theme-switcher i');
     
-    // Aplicar nuevo tema
     htmlElement.setAttribute('data-bs-theme', newTheme);
     
-    // Actualizar icono
     if (newTheme === 'dark') {
         themeIcon.classList.remove('bi-moon-stars');
         themeIcon.classList.add('bi-sun');
@@ -626,8 +621,6 @@ function toggleTheme() {
         themeIcon.classList.remove('bi-sun');
         themeIcon.classList.add('bi-moon-stars');
     }
-    
-    // Guardar preferencia
     localStorage.setItem('theme', newTheme);
 }
 
@@ -635,7 +628,6 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', function() {
     applySavedTheme();
     
-    // Asignar el evento al botón del tema
     document.querySelector('.theme-switcher').addEventListener('click', toggleTheme);
 });
 
@@ -670,11 +662,8 @@ async function verPDF() {
         }
 
         const pdfUrl = URL.createObjectURL(pdfBlob);
-        
         await Swal.close();
-        
         const newWindow = window.open(pdfUrl, '_blank');
-        
         if (!newWindow || newWindow.closed) {
             Swal.fire({
                 title: 'Ventana bloqueada',
@@ -729,7 +718,6 @@ async function verPDF() {
 }
 
 function verPDFStock() {
-    // Ver PDF en nueva pestaña
     const link = document.createElement('a');
     link.href = '/api/pdf/stock/ver';
     link.target = '_blank';
@@ -740,7 +728,6 @@ function verPDFStock() {
 }
 
 function verPDFAsignaciones() {
-    // Ver PDF en nueva pestaña
     const link = document.createElement('a');
     link.href = '/api/pdf/asignaciones/ver';
     link.target = '_blank';
