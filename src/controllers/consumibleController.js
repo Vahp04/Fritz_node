@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 export const consumibleController = {
 
-   async index(req, res) {
+  async index(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
@@ -28,9 +28,13 @@ export const consumibleController = {
         skip,
         take: limit,
         include: {
-          stock_equipos: {
+          consumible_equipos: {
             include: {
-              tipo_equipo: true
+              stock_equipos: {
+                include: {
+                  tipo_equipo: true
+                }
+              }
             }
           },
           sede: true,
@@ -65,9 +69,13 @@ export const consumibleController = {
       const consumible = await prisma.consumible.findUnique({
         where: { id: consumibleId },
         include: {
-          stock_equipos: {
+          consumible_equipos: {
             include: {
-              tipo_equipo: true
+              stock_equipos: {
+                include: {
+                  tipo_equipo: true
+                }
+              }
             }
           },
           sede: true,
@@ -94,8 +102,7 @@ export const consumibleController = {
         departamento_id,
         fecha_enviado,
         detalles,
-        equipos,
-        cantidad_total
+        equipos
       } = req.body;
 
       console.log('📝 Datos recibidos para crear consumible:', req.body);
@@ -126,15 +133,12 @@ export const consumibleController = {
         return res.status(404).json({ error: 'Departamento no encontrado' });
       }
 
-      const resultados = await prisma.$transaction(async (tx) => {
-        const consumiblesCreados = [];
-
-        // Crear un consumible por cada equipo
+      const resultado = await prisma.$transaction(async (tx) => {
+        // Validar stock disponible para todos los equipos primero
         for (const equipo of equipos) {
           const stockEquiposId = parseInt(equipo.stock_equipos_id);
           const cantidadValue = parseInt(equipo.cantidad);
 
-          // Validar que el equipo de stock existe
           const stockEquipo = await tx.stock_equipos.findUnique({
             where: { id: stockEquiposId }
           });
@@ -143,62 +147,73 @@ export const consumibleController = {
             throw new Error(`Equipo con ID ${stockEquiposId} no encontrado en inventario`);
           }
 
-          // Validar que hay suficiente stock disponible
           if (stockEquipo.cantidad_disponible < cantidadValue) {
             throw new Error(`Stock insuficiente para ${stockEquipo.marca} ${stockEquipo.modelo}. Disponible: ${stockEquipo.cantidad_disponible}, Solicitado: ${cantidadValue}`);
           }
+        }
 
-          // Crear el consumible
-          const consumible = await tx.consumible.create({
+        // Crear UN SOLO consumible
+        const consumible = await tx.consumible.create({
+          data: {
+            nombre: nombre,
+            sede_id: sedeId,
+            departamento_id: departamentoId,
+            fecha_enviado: new Date(fecha_enviado),
+            detalles: detalles
+          }
+        });
+
+        // Crear las relaciones con los equipos
+        for (const equipo of equipos) {
+          const stockEquiposId = parseInt(equipo.stock_equipos_id);
+          const cantidadValue = parseInt(equipo.cantidad);
+
+          // Crear relación consumible_equipo
+          await tx.consumibleEquipo.create({
             data: {
-              nombre: `${nombre} - ${stockEquipo.marca} ${stockEquipo.modelo}`,
+              consumible_id: consumible.id,
               stock_equipos_id: stockEquiposId,
-              sede_id: sedeId,
-              cantidad: cantidadValue,
-              departamento_id: departamentoId,
-              fecha_enviado: new Date(fecha_enviado),
-              detalles: detalles || `Consumible: ${stockEquipo.marca} ${stockEquipo.modelo}`
-            },
-            include: {
-              stock_equipos: {
-                include: {
-                  tipo_equipo: true
-                }
-              },
-              sede: true,
-              departamento: true
+              cantidad: cantidadValue
             }
           });
 
-          // ✅ SOLO RESTAR DEL STOCK DISPONIBLE - NO TOCAR CANTIDAD_ASIGNADA
+          // Restar del stock disponible
           await tx.stock_equipos.update({
             where: { id: stockEquiposId },
             data: {
               cantidad_disponible: { decrement: cantidadValue }
-              // Se elimina completamente la línea de cantidad_asignada
             }
           });
-
-          consumiblesCreados.push(consumible);
         }
 
-        return consumiblesCreados;
+        // Obtener el consumible creado con toda la información
+        const consumibleCompleto = await tx.consumible.findUnique({
+          where: { id: consumible.id },
+          include: {
+            consumible_equipos: {
+              include: {
+                stock_equipos: {
+                  include: {
+                    tipo_equipo: true
+                  }
+                }
+              }
+            },
+            sede: true,
+            departamento: true
+          }
+        });
+
+        return consumibleCompleto;
       });
 
       res.status(201).json({
-        message: `Se crearon ${resultados.length} consumibles exitosamente`,
-        consumibles: resultados
+        message: `Consumible creado exitosamente con ${equipos.length} equipos`,
+        consumible: resultado
       });
 
     } catch (error) {
       console.error('Error en store consumible:', error);
-      
-      if (error.code === 'P2002') {
-        return res.status(400).json({ 
-          error: 'Ya existe un consumible con este equipo de stock' 
-        });
-      }
-
       res.status(500).json({ error: error.message });
     }
   },
@@ -208,22 +223,26 @@ export const consumibleController = {
       const { id } = req.params;
       const {
         nombre,
-        stock_equipos_id,
         sede_id,
-        cantidad,
         departamento_id,
         fecha_enviado,
-        detalles
+        detalles,
+        equipos
       } = req.body;
 
       const consumibleId = parseInt(id);
-      const stockEquiposId = stock_equipos_id ? parseInt(stock_equipos_id) : undefined;
       const sedeId = sede_id ? parseInt(sede_id) : undefined;
       const departamentoId = departamento_id ? parseInt(departamento_id) : undefined;
-      const cantidadValue = cantidad ? parseInt(cantidad) : undefined;
 
       const consumibleActual = await prisma.consumible.findUnique({
-        where: { id: consumibleId }
+        where: { id: consumibleId },
+        include: {
+          consumible_equipos: {
+            include: {
+              stock_equipos: true
+            }
+          }
+        }
       });
 
       if (!consumibleActual) {
@@ -231,75 +250,124 @@ export const consumibleController = {
       }
 
       const resultado = await prisma.$transaction(async (tx) => {
-        // Manejar cambio de cantidad
-        if (cantidadValue !== undefined && cantidadValue !== consumibleActual.cantidad) {
-          const diferencia = cantidadValue - consumibleActual.cantidad;
-          const stockEquipoId = stock_equipos_id ? stockEquiposId : consumibleActual.stock_equipos_id;
-
-          const stockActual = await tx.stock_equipos.findUnique({
-            where: { id: stockEquipoId }
+        // Si se están actualizando los equipos
+        if (equipos && Array.isArray(equipos)) {
+          // Crear map de equipos actuales para comparación
+          const equiposActualesMap = new Map();
+          consumibleActual.consumible_equipos.forEach(ce => {
+            equiposActualesMap.set(ce.stock_equipos_id, ce);
           });
 
-          if (!stockActual) {
-            throw new Error('Equipo de stock no encontrado');
-          }
-
-          if (diferencia > 0) {
-            // Aumento de cantidad - verificar stock disponible
-            if (stockActual.cantidad_disponible < diferencia) {
-              throw new Error(`Stock insuficiente. Disponible: ${stockActual.cantidad_disponible}, Necesario: ${diferencia}`);
-            }
-
-            // ✅ SOLO RESTAR LA DIFERENCIA DEL STOCK DISPONIBLE
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { decrement: diferencia }
-              }
+          // Crear map de equipos nuevos
+          const equiposNuevosMap = new Map();
+          equipos.forEach(eq => {
+            equiposNuevosMap.set(parseInt(eq.stock_equipos_id), {
+              stock_equipos_id: parseInt(eq.stock_equipos_id),
+              cantidad: parseInt(eq.cantidad)
             });
-          } else {
-            // Disminución de cantidad - devolver la diferencia al stock
-            const diferenciaAbs = Math.abs(diferencia);
-            // ✅ SOLO INCREMENTAR STOCK DISPONIBLE
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { increment: diferenciaAbs }
-              }
+          });
+
+          // Procesar equipos eliminados
+          for (const [stockEquiposId, equipoActual] of equiposActualesMap) {
+            if (!equiposNuevosMap.has(stockEquiposId)) {
+              // Equipo fue eliminado - devolver stock
+              await tx.stock_equipos.update({
+                where: { id: stockEquiposId },
+                data: {
+                  cantidad_disponible: { increment: equipoActual.cantidad }
+                }
+              });
+
+              // Eliminar relación
+              await tx.consumibleEquipo.deleteMany({
+                where: {
+                  consumible_id: consumibleId,
+                  stock_equipos_id: stockEquiposId
+                }
+              });
+            }
+          }
+
+          // Procesar equipos nuevos y modificados
+          for (const [stockEquiposId, equipoNuevo] of equiposNuevosMap) {
+            const equipoActual = equiposActualesMap.get(stockEquiposId);
+            const cantidadNueva = equipoNuevo.cantidad;
+
+            // Validar stock disponible
+            const stockEquipo = await tx.stock_equipos.findUnique({
+              where: { id: stockEquiposId }
             });
-          }
-        }
 
-        // Manejar cambio de equipo de stock
-        if (stock_equipos_id && stockEquiposId !== consumibleActual.stock_equipos_id) {
-          // Devolver la cantidad anterior al stock original (SOLO DISPONIBLE)
-          await tx.stock_equipos.update({
-            where: { id: consumibleActual.stock_equipos_id },
-            data: {
-              cantidad_disponible: { increment: consumibleActual.cantidad }
+            if (!stockEquipo) {
+              throw new Error(`Equipo con ID ${stockEquiposId} no encontrado en inventario`);
             }
-          });
 
-          // Verificar stock disponible en el nuevo equipo
-          const nuevoStock = await tx.stock_equipos.findUnique({
-            where: { id: stockEquiposId }
-          });
+            if (equipoActual) {
+              // Equipo existente - verificar cambios en cantidad
+              const cantidadAnterior = equipoActual.cantidad;
+              
+              if (cantidadNueva !== cantidadAnterior) {
+                const diferencia = cantidadNueva - cantidadAnterior;
+                
+                if (diferencia > 0) {
+                  // Aumento de cantidad
+                  if (stockEquipo.cantidad_disponible < diferencia) {
+                    throw new Error(`Stock insuficiente para ${stockEquipo.marca} ${stockEquipo.modelo}. Disponible: ${stockEquipo.cantidad_disponible}, Necesario: ${diferencia}`);
+                  }
+                  
+                  // Restar diferencia del stock
+                  await tx.stock_equipos.update({
+                    where: { id: stockEquiposId },
+                    data: {
+                      cantidad_disponible: { decrement: diferencia }
+                    }
+                  });
+                } else {
+                  // Disminución de cantidad - devolver diferencia
+                  const diferenciaAbs = Math.abs(diferencia);
+                  await tx.stock_equipos.update({
+                    where: { id: stockEquiposId },
+                    data: {
+                      cantidad_disponible: { increment: diferenciaAbs }
+                    }
+                  });
+                }
 
-          if (!nuevoStock) {
-            throw new Error('Nuevo equipo de stock no encontrado');
-          }
+                // Actualizar cantidad en la relación
+                await tx.consumibleEquipo.updateMany({
+                  where: {
+                    consumible_id: consumibleId,
+                    stock_equipos_id: stockEquiposId
+                  },
+                  data: {
+                    cantidad: cantidadNueva
+                  }
+                });
+              }
+            } else {
+              // Equipo nuevo - validar stock y crear relación
+              if (stockEquipo.cantidad_disponible < cantidadNueva) {
+                throw new Error(`Stock insuficiente para ${stockEquipo.marca} ${stockEquipo.modelo}. Disponible: ${stockEquipo.cantidad_disponible}, Solicitado: ${cantidadNueva}`);
+              }
 
-          if (nuevoStock.cantidad_disponible < cantidadValue) {
-            throw new Error(`Stock insuficiente en nuevo equipo. Disponible: ${nuevoStock.cantidad_disponible}, Necesario: ${cantidadValue}`);
-          }
+              // Crear nueva relación
+              await tx.consumibleEquipo.create({
+                data: {
+                  consumible_id: consumibleId,
+                  stock_equipos_id: stockEquiposId,
+                  cantidad: cantidadNueva
+                }
+              });
 
-          // ✅ RESTAR SOLO DEL STOCK DISPONIBLE DEL NUEVO EQUIPO
-          await tx.stock_equipos.update({
-            where: { id: stockEquiposId },
-            data: {
-              cantidad_disponible: { decrement: cantidadValue }
+              // Restar del stock disponible
+              await tx.stock_equipos.update({
+                where: { id: stockEquiposId },
+                data: {
+                  cantidad_disponible: { decrement: cantidadNueva }
+                }
+              });
             }
-          });
+          }
         }
 
         // Actualizar el consumible
@@ -307,18 +375,20 @@ export const consumibleController = {
           where: { id: consumibleId },
           data: {
             nombre,
-            stock_equipos_id: stockEquiposId,
             sede_id: sedeId,
-            cantidad: cantidadValue,
             departamento_id: departamentoId,
             fecha_enviado: fecha_enviado ? new Date(fecha_enviado) : undefined,
             detalles,
             updated_at: new Date()
           },
           include: {
-            stock_equipos: {
+            consumible_equipos: {
               include: {
-                tipo_equipo: true
+                stock_equipos: {
+                  include: {
+                    tipo_equipo: true
+                  }
+                }
               }
             },
             sede: true,
@@ -336,13 +406,6 @@ export const consumibleController = {
 
     } catch (error) {
       console.error('Error en update consumible:', error);
-      
-      if (error.code === 'P2002') {
-        return res.status(400).json({ 
-          error: 'Ya existe un consumible con este equipo de stock' 
-        });
-      }
-
       res.status(500).json({ error: error.message });
     }
   },
@@ -352,7 +415,10 @@ export const consumibleController = {
       const { id } = req.params;
 
       const consumible = await prisma.consumible.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
+        include: {
+          consumible_equipos: true
+        }
       });
 
       if (!consumible) {
@@ -360,15 +426,17 @@ export const consumibleController = {
       }
 
       await prisma.$transaction(async (tx) => {
-        // ✅ DEVOLVER SOLO AL STOCK DISPONIBLE - NO TOCAR CANTIDAD_ASIGNADA
-        await tx.stock_equipos.update({
-          where: { id: consumible.stock_equipos_id },
-          data: {
-            cantidad_disponible: { increment: consumible.cantidad }
-          }
-        });
+        /* Devolver todo el stock de los equipos
+        for (const equipo of consumible.consumible_equipos) {
+          await tx.stock_equipos.update({
+            where: { id: equipo.stock_equipos_id },
+            data: {
+              cantidad_disponible: { increment: equipo.cantidad }
+            }
+          });
+        }*/
 
-        // Eliminar el consumible
+        // Eliminar el consumible (las relaciones se eliminarán en cascada)
         await tx.consumible.delete({
           where: { id: parseInt(id) }
         });
@@ -381,7 +449,6 @@ export const consumibleController = {
       res.status(500).json({ error: error.message });
     }
   },
-
   async porSede(req, res) {
     try {
       const { sede_id } = req.params;

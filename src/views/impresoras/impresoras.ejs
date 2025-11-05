@@ -1029,29 +1029,29 @@
         }
 
         // Cargar equipos en stock para Impresoras
-        async function cargarStockEquipos() {
-            try {
-                const response = await fetch('/api/stock_equipos');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar equipos');
-                }
-
-                const data = await response.json();
-                
-                // Filtrar solo los equipos que son de tipo Impresora
-                stockEquipos = data.stockEquipos.filter(equipo => 
-                    equipo.tipo_equipo && 
-                    equipo.tipo_equipo.nombre.toLowerCase().includes('impresora')
-                ) || [];
-                
-                renderizarStockEquipos();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar las impresoras disponibles');
-            }
+async function cargarStockEquipos() {
+    try {
+        console.log('🔍 Cargando impresoras del inventario...');
+        const response = await fetch('/api/stock_equipos/impresoras');
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar impresoras del inventario');
         }
+
+        stockEquipos = await response.json();
+        console.log(`✅ ${stockEquipos.length} impresoras cargadas del inventario`);
+        
+        renderizarStockEquipos();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar las impresoras disponibles del inventario');
+        
+        // Fallback: intentar con el endpoint general
+        await cargarStockEquiposFallback();
+    }
+}
+
 
         // Cargar toners disponibles
         async function cargarToners() {

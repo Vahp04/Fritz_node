@@ -862,26 +862,27 @@
         // Cargar equipos en stock para Mikrotiks
 async function cargarStockEquipos() {
     try {
-        const response = await fetch('/api/stock_equipos');
+        console.log('🔍 Cargando mikrotiks del inventario...');
+        const response = await fetch('/api/stock_equipos/mikrotiks');
         
         if (!response.ok) {
-            throw new Error('Error al cargar equipos');
+            throw new Error('Error al cargar mikrotiks del inventario');
         }
 
-        const data = await response.json();
-        
-        stockEquipos = data.stockEquipos.filter(equipo => 
-            equipo.tipo_equipo && 
-            equipo.tipo_equipo.nombre.toLowerCase() === 'mikrotik'
-        ) || [];
+        stockEquipos = await response.json();
+        console.log(`✅ ${stockEquipos.length} mikrotiks cargados del inventario`);
         
         renderizarStockEquipos();
         
     } catch (error) {
         console.error('Error:', error);
-        mostrarError('No se pudieron cargar los equipos Mikrotik disponibles');
+        mostrarError('No se pudieron cargar los equipos Mikrotik disponibles del inventario');
+        
+        // Fallback: intentar con el endpoint general
+        await cargarStockEquiposFallback();
     }
 }
+
 
         // Actualizar resumen
         function actualizarResumen() {

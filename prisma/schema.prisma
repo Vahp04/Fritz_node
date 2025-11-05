@@ -64,7 +64,7 @@ model stock_equipos {
   impresora           impresora?        @relation("ImpresoraPrincipal")
   impresora_toner     impresora[]       @relation("TonerInstalado")
   mikrotik            mikrotik?         @relation("MikrotikPrincipal")
-  consumible          consumible?       
+  ConsumibleEquipo    ConsumibleEquipo[]       
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
 
   @@map("stock_equipos")
@@ -170,22 +170,35 @@ model mikrotik {
   @@map("mikrotik")
 }
 
-model consumible{
-  id                Int           @id @default(autoincrement())
-  nombre            String        @db.VarChar(191)
-  stock_equipos_id  Int           @unique
-  sede_id           Int           
-  cantidad          Int
-  departamento_id   Int
-  fecha_enviado     DateTime
-  detalles          String?        @db.VarChar(191)
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @default(now()) @updatedAt
-  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id], onDelete: Cascade)
-  sede          sedes         @relation(fields: [sede_id], references: [id], onDelete: Cascade)
-  departamento  departamentos @relation(fields: [departamento_id], references: [id], onDelete: Cascade)
 
-  @@map("consumible")
+model consumible {
+  id               Int       @id @default(autoincrement())
+  nombre           String
+  sede_id          Int
+  departamento_id  Int
+  fecha_enviado    DateTime
+  detalles         String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  sede            sedes        @relation(fields: [sede_id], references: [id])
+  departamento    departamentos @relation(fields: [departamento_id], references: [id])
+  consumible_equipos ConsumibleEquipo[]
+
+  @@map("consumibles")
+}
+
+model ConsumibleEquipo {
+  id               Int      @id @default(autoincrement())
+  consumible_id    Int
+  stock_equipos_id Int
+  cantidad         Int
+
+  consumible    consumible   @relation(fields: [consumible_id], references: [id], onDelete: Cascade)
+  stock_equipos stock_equipos @relation(fields: [stock_equipos_id], references: [id])
+
+  @@unique([consumible_id, stock_equipos_id])
+  @@map("consumible_equipos")
 }
 
 enum cargo {

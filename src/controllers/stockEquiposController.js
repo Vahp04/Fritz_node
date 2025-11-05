@@ -578,5 +578,210 @@ async apiIndex(req, res) {
             });
         }
     }
-  }
+  },
+
+async equiposConsumibles(req, res) {
+    try {
+        console.log('🔍 Buscando equipos consumibles...');
+        
+        // Usa findMany, NO findUnique
+        const todosEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            },
+            orderBy: {
+                marca: 'asc'
+            }
+        });
+
+        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
+        
+        // Filtrar por tipo consumible
+        const equiposFiltrados = todosEquipos.filter(equipo => {
+            if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+                return false;
+            }
+            
+            const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            return tipoNombre.includes('consumible') || 
+                   tipoNombre.includes('toner') ||
+                   tipoNombre.includes('cartucho') ||
+                   tipoNombre.includes('tinta');
+        });
+
+        console.log(`🎯 ${equiposFiltrados.length} equipos son consumibles`);
+        
+        res.json(equiposFiltrados);
+        
+    } catch (error) {
+        console.error('💥 ERROR en equiposConsumibles:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar equipos consumibles',
+            message: error.message
+        });
+    }
+},
+
+async equiposParaAsignacion(req, res) {
+    try {
+        console.log('🔍 Cargando equipos para asignación...');
+        
+        // Primero, obtener todos los equipos sin filtros complejos
+        const todosEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        requiere_ip: true,
+                        requiere_cereal: true
+                    }
+                }
+            },
+            orderBy: { marca: 'asc' }
+        });
+
+        console.log(`📦 ${todosEquipos.length} equipos totales encontrados`);
+
+        // Filtrar en JavaScript para evitar errores de Prisma
+        const equiposFiltrados = todosEquipos.filter(equipo => {
+            if (!equipo.tipo_equipo) {
+                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, incluyendo por defecto`);
+                return true; // Incluir equipos sin tipo
+            }
+            
+            const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            const excluir = tipoNombre.includes('mikrotik') || 
+                           tipoNombre.includes('impresora') ||
+                           tipoNombre.includes('toner') ||
+                           tipoNombre.includes('consumible');
+            
+            if (excluir) {
+                console.log(`🚫 Excluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
+                return false;
+            }
+            
+            console.log(`✅ Incluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
+            return true;
+        });
+
+        console.log(`🎯 ${equiposFiltrados.length} equipos filtrados para asignación`);
+        
+        res.json(equiposFiltrados);
+        
+    } catch (error) {
+        console.error('💥 ERROR en equiposParaAsignacion:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar equipos',
+            message: error.message
+        });
+    }
+},
+
+async equiposImpresoras(req, res) {
+    try {
+        console.log('🔍 Buscando equipos de tipo impresora...');
+        
+        const todosEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        requiere_ip: true,
+                        requiere_cereal: true
+                    }
+                }
+            },
+            orderBy: {
+                marca: 'asc'
+            }
+        });
+
+        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
+        
+        // Filtrar equipos de tipo impresora
+        const equiposImpresoras = todosEquipos.filter(equipo => {
+            if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
+                return false;
+            }
+            
+            const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            const esImpresora = tipoNombre.includes('impresora') || 
+                               tipoNombre.includes('printer') ||
+                               tipoNombre.includes('print');
+            
+            console.log(`🔍 ${equipo.marca} ${equipo.modelo}: "${tipoNombre}" -> ${esImpresora ? '✅ IMPRESORA' : '❌ NO'}`);
+            return esImpresora;
+        });
+
+        console.log(`🎯 ${equiposImpresoras.length} equipos son impresoras`);
+        
+        res.json(equiposImpresoras);
+        
+    } catch (error) {
+        console.error('ERROR en equiposImpresoras:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar equipos impresoras',
+            message: error.message
+        });
+    }
+},
+
+async equiposMikrotiks(req, res) {
+    try {
+        console.log('🔍 Buscando equipos de tipo mikrotik...');
+        
+        const todosEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        requiere_ip: true,
+                        requiere_cereal: true
+                    }
+                }
+            },
+            orderBy: {
+                marca: 'asc'
+            }
+        });
+
+        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
+        
+        // Filtrar equipos de tipo mikrotik
+        const equiposMikrotiks = todosEquipos.filter(equipo => {
+            if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
+                return false;
+            }
+            
+            const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            const esMikrotik = tipoNombre.includes('mikrotik') || 
+                              tipoNombre.includes('router') ||
+                              tipoNombre.includes('switch');
+            
+            console.log(`🔍 ${equipo.marca} ${equipo.modelo}: "${tipoNombre}" -> ${esMikrotik ? '✅ MIKROTIK' : '❌ NO'}`);
+            return esMikrotik;
+        });
+
+        console.log(`🎯 ${equiposMikrotiks.length} equipos son mikrotiks`);
+        
+        res.json(equiposMikrotiks);
+        
+    } catch (error) {
+        console.error('ERROR en equiposMikrotiks:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar equipos mikrotiks',
+            message: error.message
+        });
+    }
+}
 };

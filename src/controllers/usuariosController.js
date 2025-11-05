@@ -935,5 +935,44 @@ export const usuariosController = {
         error: 'Error al cargar el PDF: ' + error.message 
       });
     }
-  }
+  },
+
+  async usuariosParaSelect(req, res) {
+    try {
+        console.log('🔍 Cargando usuarios para select...');
+        
+        const usuarios = await prisma.usuarios.findMany({
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                cargo: true,
+                correo: true,
+                sede: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                },
+                departamento: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            },
+            orderBy: { nombre: 'asc' }
+        });
+
+        console.log(`✅ ${usuarios.length} usuarios cargados para select`);
+        res.json(usuarios);
+        
+    } catch (error) {
+        console.error('💥 ERROR en usuariosParaSelect:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar usuarios',
+            message: error.message
+        });
+    }
+}
 };

@@ -180,7 +180,7 @@
             width: 50px;
             height: 50px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            background: linear-gradient(135deg, #fcfcfb 0%, #575555 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -388,17 +388,17 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link" href="/impresoras">
-                        <i class="bi bi-printer me-2"></i>
-                        <span class="sidebar-text">Impresoras</span>
+                                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/consumibles">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Consumibles</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link active" href="/consumibles">
-                        <i class="bi bi-box-seam me-2"></i>
-                        <span class="sidebar-text">Consumibles</span>
+                    <a class="nav-link text-white sidebar-link" href="/impresoras">
+                        <i class="bi bi-printer me-2"></i>
+                        <span class="sidebar-text">Impresoras</span>
                     </a>
                 </li>
 
@@ -685,87 +685,81 @@
         </div>
     </div>
 
-    <!-- Modal para Editar Consumible -->
-    <div class="modal fade" id="editConsumibleModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-pencil-square me-2"></i> Editar Consumible
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="editConsumibleForm">
-                    <div class="modal-body">
-                        <input type="hidden" id="edit_consumible_id" name="id">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Nombre del Consumible*</label>
-                                    <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Equipo en Inventario*</label>
-                                    <select class="form-select" name="stock_equipos_id" id="edit_stock_equipos_id" required>
-                                        <option value="">Seleccione un equipo</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Cantidad*</label>
-                                    <input type="number" class="form-control" name="cantidad" id="edit_cantidad" required min="1">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Sede*</label>
-                                    <select class="form-select" name="sede_id" id="edit_sede_id" required>
-                                        <option value="">Seleccione una sede</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Departamento*</label>
-                                    <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
-                                        <option value="">Seleccione un departamento</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Fecha de Envío*</label>
-                                    <input type="datetime-local" class="form-control" name="fecha_enviado" id="edit_fecha_enviado" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Stock Disponible</label>
-                                    <input type="text" class="form-control" id="edit_stock_disponible" readonly style="background-color: #f8f9fa;">
-                                    <div class="form-text">Stock disponible del equipo seleccionado</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Detalles</label>
-                            <textarea class="form-control" name="detalles" id="edit_detalles" rows="3"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-warning">Actualizar Consumible</button>
-                    </div>
-                </form>
+<div class="modal fade" id="editConsumibleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i> Editar Consumible
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+            <form id="editConsumibleForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_consumible_id" name="id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Consumible*</label>
+                                <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sede*</label>
+                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                    <option value="">Seleccione una sede</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Departamento*</label>
+                                <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
+                                    <option value="">Seleccione un departamento</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Envío*</label>
+                                <input type="datetime-local" class="form-control" name="fecha_enviado" id="edit_fecha_enviado" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Equipos del Inventario</label>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle me-1"></i>
+                                Puedes modificar las cantidades, eliminar equipos o agregar nuevos equipos
+                            </small>
+                        </div>
+                        
+                        <div id="equiposContainerEdit">
+                            <!-- Los equipos existentes se cargarán aquí dinámicamente -->
+                        </div>
+                        
+                        <button type="button" class="btn btn-outline-primary w-100 add-equipo-btn py-2 mt-3" onclick="agregarEquipoEdit()">
+                            <i class="bi bi-plus-circle me-2"></i> Agregar otro equipo
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Detalles</label>
+                        <textarea class="form-control" name="detalles" id="edit_detalles" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Actualizar Consumible</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
     <!-- Modal para Ver Consumible -->
     <div class="modal fade" id="viewConsumibleModal" tabindex="-1">
@@ -859,37 +853,40 @@
         });
 
         // Cargar consumibles
-        async function cargarConsumibles(page = 1) {
-            try {
-                currentPage = page;
-                const search = document.getElementById('searchConsumible').value;
-                let url = `/api/consumibles?page=${page}`;
-                
-                if (search) {
-                    url += `&search=${encodeURIComponent(search)}`;
-                }
-
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar consumibles');
-                }
-
-                const data = await response.json();
-                
-                consumibles = data.consumibles || [];
-                totalPages = data.pagination?.total || 1;
-                totalRecords = data.pagination?.totalRecords || 0;
-                
-                actualizarResumen();
-                renderizarConsumibles();
-                renderizarPaginacion();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los consumibles');
-            }
+async function cargarConsumibles(page = 1) {
+    try {
+        currentPage = page;
+        const search = document.getElementById('searchConsumible').value;
+        let url = `/api/consumibles?page=${page}`;
+        
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
         }
+
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar consumibles');
+        }
+
+        const data = await response.json();
+        
+        consumibles = data.consumibles || [];
+        totalPages = data.pagination?.total || 1;
+        totalRecords = data.pagination?.totalRecords || 0;
+        
+        // Debug
+        debugConsumibles();
+        
+        actualizarResumen();
+        renderizarConsumibles();
+        renderizarPaginacion();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar los consumibles');
+    }
+}
 
         // Cargar sedes
         async function cargarSedes() {
@@ -926,30 +923,44 @@
         }
 
         // Cargar equipos en stock (solo consumibles)
-        async function cargarStockEquipos() {
-            try {
-                const response = await fetch('/api/stock_equipos');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar equipos');
-                }
-
-                const data = await response.json();
-                
-                // Filtrar solo equipos de tipo "consumible"
-                stockEquipos = data.stockEquipos.filter(equipo => 
-                    equipo.tipo_equipo && 
-                    equipo.tipo_equipo.nombre.toLowerCase().includes('consumible')
-                ) || [];
-                
-                renderizarStockEquipos();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los equipos disponibles');
-            }
+  async function cargarStockEquipos() {
+    try {
+        console.log('🔍 Iniciando carga de equipos consumibles...');
+        
+        const response = await fetch('/api/stock_equipos/consumibles');
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText}`);
         }
 
+        const data = await response.json();
+        console.log('✅ Equipos cargados:', data);
+        
+        // Filtrar solo equipos de tipo consumible en el frontend por si acaso
+        stockEquipos = data.filter(equipo => {
+            const esConsumible = equipo.tipo_equipo && 
+                equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
+                 equipo.tipo_equipo.nombre.toLowerCase().includes('toners');
+            console.log(`🔍 Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
+            return esConsumible;
+        }) || [];
+        
+        console.log('🎯 Equipos consumibles filtrados:', stockEquipos.length);
+        
+        if (stockEquipos.length === 0) {
+            console.warn('⚠️ No se encontraron equipos de tipo consumible');
+            // Mostrar todos los equipos para debugging
+            console.log('📋 Todos los equipos disponibles:', data);
+        }
+        
+    } catch (error) {
+        console.error('💥 Error cargando equipos:', error);
+        mostrarError('No se pudieron cargar los equipos consumibles disponibles: ' + error.message);
+    }
+}
         // Agregar nuevo campo de equipo
         function agregarEquipo() {
             equipoCounter++;
@@ -1001,125 +1012,182 @@
         }
 
         // Remover campo de equipo
-        function removerEquipo(id) {
-            const equipoDiv = document.getElementById(`equipo-${id}`);
-            if (equipoDiv) {
-                equipoDiv.remove();
-            }
-        }
+  function removerEquipoEdit(id) {
+    const equipoDiv = document.getElementById(`equipo-edit-${id}`);
+    if (equipoDiv) {
+        equipoDiv.remove();
+    }
+}
 
         // Renderizar opciones de stock en un select específico
-        function renderizarOpcionesStockEquipos(selectElement) {
-            if (stockEquipos.length === 0) {
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No hay equipos consumibles disponibles";
-                option.disabled = true;
-                selectElement.appendChild(option);
-                return;
-            }
+function renderizarOpcionesStockEquipos(selectElement, selectedId = null) {
+    if (stockEquipos.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No hay equipos consumibles disponibles";
+        option.disabled = true;
+        selectElement.appendChild(option);
+        return;
+    }
 
-            stockEquipos.forEach(equipo => {
-                const option = document.createElement('option');
-                option.value = equipo.id;
-                option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
-                selectElement.appendChild(option);
-            });
+    stockEquipos.forEach(equipo => {
+        const option = document.createElement('option');
+        option.value = equipo.id;
+        option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+        
+        if (selectedId && equipo.id == selectedId) {
+            option.selected = true;
         }
+        
+        selectElement.appendChild(option);
+    });
+}
+function debugConsumibles() {
+    console.log('🔍 Debug consumibles:', consumibles);
+    consumibles.forEach((consumible, index) => {
+        console.log(`Consumible ${index + 1}:`, {
+            id: consumible.id,
+            nombre: consumible.nombre,
+            tieneConsumibleEquipos: !!consumible.consumible_equipos,
+            cantidadEquipos: consumible.consumible_equipos?.length || 0,
+            equipos: consumible.consumible_equipos?.map(ce => ({
+                stock_equipos_id: ce.stock_equipos_id,
+                cantidad: ce.cantidad,
+                equipo: ce.stock_equipos ? `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo}` : 'N/A'
+            })) || []
+        });
+    });
+}
+
 
         // Actualizar resumen
-        function actualizarResumen() {
-            const total = consumibles.length;
-            const totalUnidades = consumibles.reduce((sum, consumible) => sum + consumible.cantidad, 0);
-            const sedesUnicas = new Set(consumibles.map(c => c.sede_id)).size;
-            const departamentosUnicos = new Set(consumibles.map(c => c.departamento_id)).size;
-
-            document.getElementById('totalConsumibles').textContent = total;
-            document.getElementById('totalUnidades').textContent = totalUnidades.toLocaleString();
-            document.getElementById('totalSedes').textContent = sedesUnicas;
-            document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
+function actualizarResumen() {
+    const total = consumibles.length;
+    
+    // Calcular total de unidades de forma segura - SUMA LAS CANTIDADES DE LOS EQUIPOS
+    const totalUnidades = consumibles.reduce((sum, consumible) => {
+        if (!consumible || !consumible.consumible_equipos) {
+            return sum + 0;
         }
+        
+        // Sumar todas las cantidades de los equipos asociados
+        const sumaEquipos = consumible.consumible_equipos.reduce((sumEquipo, ce) => {
+            return sumEquipo + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
+        }, 0);
+        
+        return sum + sumaEquipos;
+    }, 0);
+
+    const sedesUnicas = new Set(consumibles.filter(c => c && c.sede_id).map(c => c.sede_id)).size;
+    const departamentosUnicos = new Set(consumibles.filter(c => c && c.departamento_id).map(c => c.departamento_id)).size;
+
+    document.getElementById('totalConsumibles').textContent = total;
+    document.getElementById('totalUnidades').textContent = totalUnidades.toLocaleString();
+    document.getElementById('totalSedes').textContent = sedesUnicas;
+    document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
+    
+    console.log('📊 Resumen actualizado:', {
+        totalConsumibles: total,
+        totalUnidades: totalUnidades,
+        sedesUnicas: sedesUnicas,
+        departamentosUnicos: departamentosUnicos,
+        consumiblesData: consumibles.map(c => ({
+            id: c.id,
+            nombre: c.nombre,
+            equipos: c.consumible_equipos?.map(ce => ({cantidad: ce.cantidad})) || []
+        }))
+    });
+}
 
         // Renderizar consumibles en la tabla
-        function renderizarConsumibles() {
-            const tbody = document.getElementById('consumiblesTableBody');
-            tbody.innerHTML = '';
+function renderizarConsumibles() {
+    const tbody = document.getElementById('consumiblesTableBody');
+    tbody.innerHTML = '';
 
-            if (consumibles.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron consumibles</p>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+    if (consumibles.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No se encontraron consumibles</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            consumibles.forEach(consumible => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="fw-bold">${consumible.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="consumible-icon me-3">
-                                <i class="bi bi-box-seam"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold">${consumible.nombre}</div>
-                                <small class="text-muted">${consumible.detalles || 'Sin detalles'}</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">${consumible.stock_equipos ? consumible.stock_equipos.marca + ' ' + consumible.stock_equipos.modelo : 'Sin equipo'}</span>
-                            <small class="text-muted">${consumible.stock_equipos ? consumible.stock_equipos.tipo_equipo.nombre : ''}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="cantidad-badge">
-                            ${consumible.cantidad.toLocaleString()} unidades
-                        </span>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
-                            <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="fecha-badge">
-                            ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}
-                        </span>
-                    </td>
-                    <td class="table-actions text-center">
-                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewConsumible(${consumible.id})"
-                                title="Ver">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editConsumible(${consumible.id})"
-                                title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteConsumible(${consumible.id}, '${consumible.nombre}')"
-                                title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+    consumibles.forEach(consumible => {
+        const row = document.createElement('tr');
+        
+        const cantidadTotal = consumible.consumible_equipos ? 
+    consumible.consumible_equipos.reduce((sum, ce) => {
+        return sum + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
+    }, 0) : 0;
+        
+        const equiposList = consumible.consumible_equipos.map(ce => 
+            `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} (${ce.cantidad})`
+        ).join(', ');
 
-            document.getElementById('resultCount').textContent = 
-                `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
-        }
+        row.innerHTML = `
+            <td class="fw-bold">${consumible.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="consumible-icon me-3">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold">${consumible.nombre}</div>
+                        <small class="text-muted">${consumible.detalles || 'Sin detalles'}</small>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">${equiposList || 'Sin equipos'}</span>
+                    <small class="text-muted">${consumible.consumible_equipos.length} tipo(s) de equipo</small>
+                </div>
+            </td>
+            <td> 
+                <span class="cantidad-badge text-center">
+                    ${cantidadTotal.toLocaleString()} unidades
+                </span>
+            </td>
+            <td>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
+                    <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
+                </div>
+            </td>
+            <td>
+                <span class="fecha-badge">
+                    ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}
+                </span>
+            </td>
+            <td class="table-actions text-center">
+                <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                        onclick="viewConsumible(${consumible.id})"
+                        title="Ver">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editConsumible(${consumible.id})"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger action-btn"
+                        onclick="deleteConsumible(${consumible.id}, '${consumible.nombre}')"
+                        title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+
+    document.getElementById('resultCount').textContent = 
+        `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
+}
 
         // Renderizar sedes en los selects
         function renderizarSedes() {
@@ -1329,125 +1397,342 @@
             }
         }
 
-        async function editConsumible(id) {
-            try {
-                const response = await fetch(`/api/consumibles/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar consumible');
-                }
-
-                const consumible = await response.json();
-                
-                document.getElementById('edit_consumible_id').value = consumible.id;
-                document.getElementById('edit_nombre').value = consumible.nombre;
-                document.getElementById('edit_stock_equipos_id').value = consumible.stock_equipos_id;
-                document.getElementById('edit_sede_id').value = consumible.sede_id;
-                document.getElementById('edit_departamento_id').value = consumible.departamento_id;
-                document.getElementById('edit_cantidad').value = consumible.cantidad;
-                document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
-                document.getElementById('edit_detalles').value = consumible.detalles || '';
-                
-                // Actualizar stock disponible
-                const equipo = stockEquipos.find(e => e.id == consumible.stock_equipos_id);
-                if (equipo) {
-                    document.getElementById('edit_stock_disponible').value = `${equipo.cantidad_disponible} disponibles`;
-                }
-                
-                $('#editConsumibleModal').modal('show');
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+async function editConsumible(id) {
+    try {
+        const response = await fetch(`/api/consumibles/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar consumible');
         }
 
-        async function actualizarConsumible() {
-            const form = document.getElementById('editConsumibleForm');
-            const formData = new FormData(form);
-            const consumibleId = formData.get('id');
+        const consumible = await response.json();
+        
+        console.log('Consumible cargado para edición:', consumible);
+        
+        // Llenar datos básicos del consumible
+        document.getElementById('edit_consumible_id').value = consumible.id;
+        document.getElementById('edit_nombre').value = consumible.nombre;
+        document.getElementById('edit_sede_id').value = consumible.sede_id;
+        document.getElementById('edit_departamento_id').value = consumible.departamento_id;
+        document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
+        document.getElementById('edit_detalles').value = consumible.detalles || '';
+        
+        // Limpiar y llenar el contenedor de equipos de edición
+        const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+        equiposContainerEdit.innerHTML = '';
+        equipoCounterEdit = 0;
+        
+        // Agregar cada equipo existente
+        if (consumible.consumible_equipos && consumible.consumible_equipos.length > 0) {
+            consumible.consumible_equipos.forEach(ce => {
+                agregarEquipoEdicion(ce.stock_equipos_id, ce.cantidad, ce.stock_equipos);
+            });
+        } else {
+            // Si no hay equipos, agregar uno vacío
+            agregarEquipoEdit();
+        }
+        
+        $('#editConsumibleModal').modal('show');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
-            const datos = {
-                nombre: formData.get('nombre'),
-                stock_equipos_id: parseInt(formData.get('stock_equipos_id')),
-                sede_id: parseInt(formData.get('sede_id')),
-                cantidad: parseInt(formData.get('cantidad')),
-                departamento_id: parseInt(formData.get('departamento_id')),
-                fecha_enviado: formData.get('fecha_enviado'),
-                detalles: formData.get('detalles')
-            };
 
-            try {
-                const response = await fetch(`/api/consumibles/${consumibleId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(datos)
-                });
+// Función para agregar equipo en modo edición
+function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
+    equipoCounterEdit++;
+    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+    
+    const equipoDiv = document.createElement('div');
+    equipoDiv.className = 'equipo-item';
+    equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
+    
+    // Calcular stock disponible real (sumando la cantidad actual que ya está asignada)
+    const stockDisponibleReal = stockEquipo ? 
+        (stockEquipo.cantidad_disponible + cantidad) : 
+        stockEquipos.find(e => e.id == stockEquiposId)?.cantidad_disponible || 0;
+    
+    equipoDiv.innerHTML = `
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Equipo en Inventario*</label>
+                    <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
+                        <option value="">Seleccione un equipo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="form-label">Cantidad*</label>
+                    <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" value="${cantidad}" placeholder="Cantidad">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="mb-3">
+                    <label class="form-label text-white">.</label>
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <small class="text-muted" id="stock-edit-${equipoCounterEdit}">Stock disponible: ${stockDisponibleReal} unidades</small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    equiposContainerEdit.appendChild(equipoDiv);
+    
+    // Renderizar las opciones del select y seleccionar el equipo actual
+    const select = equipoDiv.querySelector('.equipo-select-edit');
+    renderizarOpcionesStockEquiposEdit(select, stockEquiposId);
+}
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText || 'Error del servidor');
-                }
+function agregarEquipoEdit() {
+    equipoCounterEdit++;
+    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+    
+    const equipoDiv = document.createElement('div');
+    equipoDiv.className = 'equipo-item';
+    equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
+    
+    equipoDiv.innerHTML = `
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Equipo en Inventario*</label>
+                    <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
+                        <option value="">Seleccione un equipo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="form-label">Cantidad*</label>
+                    <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" placeholder="Cantidad">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="mb-3">
+                    <label class="form-label text-white">.</label>
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-2">
+                    <small class="text-muted" id="stock-edit-${equipoCounterEdit}"></small>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    equiposContainerEdit.appendChild(equipoDiv);
+    
+    // Renderizar las opciones del select
+    const select = equipoDiv.querySelector('.equipo-select-edit');
+    renderizarOpcionesStockEquiposEdit(select);
+}
 
-                const data = await response.json();
+function actualizarStockDisponibleEdit(selectElement, targetId) {
+    const equipoId = selectElement.value;
+    const equipo = stockEquipos.find(e => e.id == equipoId);
+    const targetElement = document.getElementById(targetId);
+    
+    if (equipo) {
+        targetElement.textContent = `Stock disponible: ${equipo.cantidad_disponible} unidades`;
+        targetElement.className = 'text-success';
+    } else {
+        targetElement.textContent = '';
+    }
+}
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: data.message
-                });
-                $('#editConsumibleModal').modal('hide');
-                form.reset();
-                
-                await cargarConsumibles(currentPage);
-                
-            } catch (error) {
-                console.error('Error al actualizar:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'Error al actualizar el consumible'
-                });
-            }
+function renderizarOpcionesStockEquiposEdit(selectElement, selectedId = null) {
+    if (stockEquipos.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No hay equipos consumibles disponibles";
+        option.disabled = true;
+        selectElement.appendChild(option);
+        return;
+    }
+
+    stockEquipos.forEach(equipo => {
+        const option = document.createElement('option');
+        option.value = equipo.id;
+        option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+        
+        if (selectedId && equipo.id == selectedId) {
+            option.selected = true;
+        }
+        
+        selectElement.appendChild(option);
+    });
+}
+
+
+async function actualizarConsumible() {
+    const form = document.getElementById('editConsumibleForm');
+    const formData = new FormData(form);
+    const consumibleId = formData.get('id');
+
+    // Recolectar datos de equipos del contenedor de edición
+    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+    const equipoItems = equiposContainerEdit.querySelectorAll('.equipo-item');
+    
+    if (equipoItems.length === 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Debe tener al menos un equipo del inventario'
+        });
+        return;
+    }
+
+    const equiposData = [];
+    let hayErrores = false;
+
+    equipoItems.forEach(item => {
+        const stockId = item.querySelector('.equipo-select-edit').value;
+        const cantidadInput = item.querySelector('input[name*="[cantidad]"]');
+        const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 0;
+
+        if (!stockId || !cantidad) {
+            hayErrores = true;
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Todos los campos de equipo deben estar completos'
+            });
+            return;
         }
 
-        async function viewConsumible(id) {
-            try {
-                const response = await fetch(`/api/consumibles/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar consumible');
-                }
-
-                const consumible = await response.json();
-                
-                document.getElementById('view_nombre_header').textContent = consumible.nombre;
-                document.getElementById('view_id').textContent = `ID: ${consumible.id}`;
-                document.getElementById('view_consumible_id').textContent = consumible.id;
-                document.getElementById('view_cantidad').textContent = `${consumible.cantidad.toLocaleString()} unidades`;
-                document.getElementById('view_sede').textContent = consumible.sede ? consumible.sede.nombre : 'Sin sede';
-                document.getElementById('view_departamento').textContent = consumible.departamento ? consumible.departamento.nombre : 'Sin departamento';
-                document.getElementById('view_fecha_enviado').textContent = new Date(consumible.fecha_enviado).toLocaleDateString('es-ES');
-                document.getElementById('view_created_at').textContent = new Date(consumible.created_at).toLocaleDateString('es-ES');
-                document.getElementById('view_stock_equipo').textContent = consumible.stock_equipos ? 
-                    `${consumible.stock_equipos.marca} ${consumible.stock_equipos.modelo} (${consumible.stock_equipos.tipo_equipo.nombre})` : 'No asignado';
-                document.getElementById('view_detalles').textContent = consumible.detalles || 'Sin detalles';
-                
-                $('#viewConsumibleModal').modal('show');
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+        // Validar stock disponible
+        const equipo = stockEquipos.find(e => e.id == stockId);
+        if (equipo && equipo.cantidad_disponible < cantidad) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Stock insuficiente para ${equipo.marca} ${equipo.modelo}. Disponible: ${equipo.cantidad_disponible}, Solicitado: ${cantidad}`
+            });
+            hayErrores = true;
+            return;
         }
+
+        equiposData.push({
+            stock_equipos_id: parseInt(stockId),
+            cantidad: cantidad
+        });
+    });
+
+    if (hayErrores) {
+        return;
+    }
+
+    const datos = {
+        nombre: formData.get('nombre'),
+        sede_id: parseInt(formData.get('sede_id')),
+        departamento_id: parseInt(formData.get('departamento_id')),
+        fecha_enviado: formData.get('fecha_enviado'),
+        detalles: formData.get('detalles'),
+        equipos: equiposData
+    };
+
+    console.log('Datos a enviar para actualizar:', datos);
+
+    try {
+        const response = await fetch(`/api/consumibles/${consumibleId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datos)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Error del servidor');
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.message
+        });
+        $('#editConsumibleModal').modal('hide');
+        form.reset();
+        
+        // Limpiar contenedor de equipos de edición
+        document.getElementById('equiposContainerEdit').innerHTML = '';
+        equipoCounterEdit = 0;
+        
+        await cargarConsumibles(currentPage);
+        await cargarStockEquipos();
+        
+    } catch (error) {
+        console.error('Error al actualizar:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Error al actualizar el consumible'
+        });
+    }
+}
+
+
+async function viewConsumible(id) {
+    try {
+        const response = await fetch(`/api/consumibles/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar consumible');
+        }
+
+        const consumible = await response.json();
+        
+        const cantidadTotal = consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0);
+        const equiposList = consumible.consumible_equipos.map(ce => 
+            `<li>${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} - ${ce.cantidad} unidades (${ce.stock_equipos.tipo_equipo.nombre})</li>`
+        ).join('');
+        
+        document.getElementById('view_nombre_header').textContent = consumible.nombre;
+        document.getElementById('view_id').textContent = `ID: ${consumible.id}`;
+        document.getElementById('view_consumible_id').textContent = consumible.id;
+        document.getElementById('view_cantidad').textContent = `${cantidadTotal.toLocaleString()} unidades totales`;
+        document.getElementById('view_sede').textContent = consumible.sede ? consumible.sede.nombre : 'Sin sede';
+        document.getElementById('view_departamento').textContent = consumible.departamento ? consumible.departamento.nombre : 'Sin departamento';
+        document.getElementById('view_fecha_enviado').textContent = new Date(consumible.fecha_enviado).toLocaleDateString('es-ES');
+        document.getElementById('view_created_at').textContent = new Date(consumible.created_at).toLocaleDateString('es-ES');
+        document.getElementById('view_stock_equipo').innerHTML = equiposList ? `<ul>${equiposList}</ul>` : 'No asignado';
+        document.getElementById('view_detalles').textContent = consumible.detalles || 'Sin detalles';
+        
+        $('#viewConsumibleModal').modal('show');
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
         async function deleteConsumible(id, nombre) {
             const result = await Swal.fire({
@@ -1632,20 +1917,20 @@
 
         // Inicializar eventos
         function inicializarEventos() {
-            document.getElementById('logoutForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                this.submit();
-            });
+               document.getElementById('logoutForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        this.submit();
+    });
 
-            document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await crearConsumible();
-            });
+    document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await crearConsumible();
+    });
 
-            document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await actualizarConsumible();
-            });
+    document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await actualizarConsumible();
+    });
 
             // Filtros
             document.getElementById('searchConsumible').addEventListener('input', aplicarFiltros);
@@ -1658,6 +1943,26 @@
                 equipoCounter = 0;
             });
         }
+
+        $('#editConsumibleModal').on('show.bs.modal', function () {
+    // Agregar botón para agregar más equipos en edición
+    const equiposContainer = document.getElementById('equiposContainer');
+    if (!document.querySelector('.add-equipo-btn-edicion')) {
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'btn btn-outline-primary w-100 add-equipo-btn add-equipo-btn-edicion py-2 mt-3';
+        addButton.innerHTML = '<i class="bi bi-plus-circle me-2"></i> Agregar otro equipo';
+        addButton.onclick = function() {
+            agregarEquipo();
+        };
+        equiposContainer.parentNode.appendChild(addButton);
+    }
+});
+
+$('#editConsumibleModal').on('hidden.bs.modal', function () {
+    document.getElementById('equiposContainerEdit').innerHTML = '';
+    equipoCounterEdit = 0;
+});
     </script>
 </body>
 </html>
