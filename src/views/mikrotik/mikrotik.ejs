@@ -513,11 +513,23 @@
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i  class="bi bi-list-ul me-2 text-danger" ></i> Lista de Mikrotiks
-                            </h5>
-                        </div>
-                    </div>
+    <h5 class="mb-0">
+        <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Mikrotiks
+    </h5>
+    <div class="btn-group">
+        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-file-earmark-text me-1"></i> Exportar
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="generarReporteGeneralMikrotiks()">
+                <i class="bi bi-graph-up me-2"></i>Reporte General 
+            </a></li>
+            <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSedeMikrotiks()">
+                <i class="bi bi-building me-2"></i>Reporte por Sede 
+            </a></li>
+        </ul>
+    </div>
+</div>
                     <div class="card-body">
                         <!-- Filtros -->
                         <div class="row mb-4 g-2">
@@ -792,6 +804,39 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="selectSedeMikrotikModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-building me-2"></i> Seleccionar Sede
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Seleccione una sede para generar el reporte:</label>
+                    <select class="form-select" id="select_sede_mikrotik_reporte">
+                        <option value="">Seleccione una sede</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        Se generará un reporte PDF con todos los mikrotiks de la sede seleccionada.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="generarReporteMikrotikConSedeSeleccionada()">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1406,6 +1451,123 @@ async function crearMikrotik() {
             document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
         }
+
+        async function generarReporteGeneralMikrotiks() {
+    try {
+        console.log('📊 Generando reporte general de mikrotiks...');
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Generando Reporte',
+            text: 'Por favor espere...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // **ABRIR EN NUEVA PESTAÑA EN LUGAR DE DESCARGAR**
+        window.open(`/api/mikrotiks/reporte/general`, '_blank');
+        
+        Swal.close();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Reporte Generado',
+            text: 'El reporte general se ha abierto en una nueva pestaña',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+    } catch (error) {
+        console.error('Error generando reporte:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo generar el reporte: ' + error.message
+        });
+    }
+}
+
+function abrirModalSeleccionSedeMikrotiks() {
+    // Verificar si hay sedes cargadas
+    if (sedes.length === 0) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No hay sedes',
+            text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
+        });
+        return;
+    }
+
+    // Llenar el select del modal
+    const selectSede = document.getElementById('select_sede_mikrotik_reporte');
+    selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
+    
+    sedes.forEach(sede => {
+        const option = document.createElement('option');
+        option.value = sede.id;
+        option.textContent = sede.nombre;
+        selectSede.appendChild(option);
+    });
+
+    // Mostrar el modal
+    $('#selectSedeMikrotikModal').modal('show');
+}
+
+async function generarReporteMikrotikConSedeSeleccionada() {
+    const sedeId = document.getElementById('select_sede_mikrotik_reporte').value;
+    
+    if (!sedeId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Seleccione una sede',
+            text: 'Por favor seleccione una sede para generar el reporte.'
+        });
+        return;
+    }
+
+    const sedeSelect = document.getElementById('select_sede_mikrotik_reporte');
+    const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
+
+    $('#selectSedeMikrotikModal').modal('hide');
+
+    try {
+        console.log(`📊 Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
+        
+        Swal.fire({
+            title: 'Generando Reporte',
+            text: `Generando reporte para ${sedeNombre}...`,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // **ABRIR EN NUEVA PESTAÑA EN LUGAR DE DESCARGAR**
+        window.open(`/api/mikrotiks/reporte/sede/${sedeId}`, '_blank');
+        
+        Swal.close();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Reporte Generado',
+            text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
+            timer: 3000,
+            showConfirmButton: false
+        });
+        
+    } catch (error) {
+        console.error('Error generando reporte por sede:', error);
+        Swal.close();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
+            confirmButtonText: 'Entendido'
+        });
+    }
+}
     </script>
 </body>
 </html>

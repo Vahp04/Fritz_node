@@ -17,4 +17,7 @@ router.get('/mikrotiks/estado/:estado', mikrotikController.porEstado);
 router.get('/mikrotiks/estadisticas/estadisticas', mikrotikController.estadisticas);
 router.get('/mikrotiks/buscar', mikrotikController.buscar);
 
+router.get('/mikrotiks/reporte/general', mikrotikController.generarPDFGeneral);
+router.get('/mikrotiks/reporte/sede/:sede_id', mikrotikController.generarPDFPorSede);
+
 export default router;

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= titulo %></title>
+    <style>
+        /* Estilos específicos para reporte por sede */
+        @page {
+            size: A4 landscape;
+            margin: 15mm 10mm;
+        }
+        
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #DC2626;
+            padding-bottom: 10px;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+         .header h1 {
+            color: #DC2626;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .header h2 {
+            color: #666;
+            margin: 3px 0 0 0;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .metadata {
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid #DC2626;
+        }
+        
+        .sede-info {
+            background: linear-gradient(135deg, #eb8585 0%, #aa2a2a 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .sede-nombre {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .sede-details {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 15px;
+            opacity: 1.0;
+        }
+        
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .metadata-label {
+          font-weight: bold;
+            color: #333;
+        }
+        
+        .metadata-value {
+            font-size: 11px;
+            color: #1a1a1a;
+            font-weight: bold;
+        }
+        
+        .estadisticas-grid {
+          display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .estadistica-card {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .estadistica-numero {
+              font-size: 18px;
+            font-weight: bold;
+            color: #DC2626;
+        }
+        
+        .estadistica-texto {
+            font-size: 9px;
+            opacity: 0.9;
+        }
+        
+        table {
+              width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 8px;
+            page-break-inside: auto;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: white;
+            padding: 6px 4px;
+            text-align: left;
+            border: 1px solid #B91C1C;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 5px 4px;
+            border: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 7px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            text-align: center;
+            min-width: 50px;
+        }
+        
+        .status-activo { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .status-inactivo { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+        .status-mantenimiento { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .status-desuso { background: #fce7f3; color: #be185d; border: 1px solid #f9a8d4; }
+        
+        .ubicacion-header {
+            background: #e3f2fd;
+            padding: 4px 8px;
+            margin: 8px 0 4px 0;
+            border-left: 3px solid #f32121;
+            font-weight: bold;
+            font-size: 9px;
+            color: #d21f19;
+        }
+        
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 8px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .equipo-info {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+        
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background-color: #4a7096;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 7px;
+        }
+        
+        /* Column widths optimizadas */
+        .col-equipo { width: 100px; }
+        .col-descripcion { width: 90px; }
+        .col-ip { width: 70px; }
+        .col-serial { width: 80px; }
+        .col-ubicacion { width: 80px; }
+        .col-estado { width: 50px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">
+                <div style="width: 50px; height: 40px; background: #DC2626; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; border-radius: 4px;">
+                    FRITZ
+                </div>
+            </div>
+            <div>
+                <h1><%= titulo %></h1>
+                <h2>Reporte Específico por Sede</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sede-info">
+        <div class="sede-nombre">
+             <%= sede.nombre %>
+        </div>
+        <div class="sede-details" style="font-size: 10px;">
+            <span>ID: <%= sede.id %></span>
+            <span>•</span>
+            <span>Total Mikrotiks: <%= total %></span>
+        </div>
+    </div>
+    
+    <div class="metadata">
+        <div class="metadata-item">
+            <span class="metadata-label">FECHA DE GENERACIÓN</span>
+            <span class="metadata-value"><%= fecha %></span>
+        </div>
+        <div class="metadata-item">
+            <span class="metadata-label">HORA</span>
+            <span class="metadata-value"><%= new Date().toLocaleTimeString('es-ES') %></span>
+        </div>
+        <div class="metadata-item">
+            <span class="metadata-label">UBICACIONES</span>
+            <span class="metadata-value">
+                <% 
+                const ubicacionesUnicas = [...new Set(mikrotiks.map(m => m.ubicacion).filter(Boolean))];
+                %>
+                <%= ubicacionesUnicas.length %> ubicaciones
+            </span>
+        </div>
+    </div>
+    
+    <div class="estadisticas-grid">
+        <div class="estadistica-card total">
+            <span class="estadistica-numero"><%= total %></span>
+            <span class="estadistica-texto">TOTAL</span>
+        </div>
+        <div class="estadistica-card activos">
+            <span class="estadistica-numero"><%= estadisticas.activos %></span>
+            <span class="estadistica-texto">ACTIVOS</span>
+        </div>
+        <div class="estadistica-card inactivos">
+            <span class="estadistica-numero"><%= estadisticas.inactivos %></span>
+            <span class="estadistica-texto">INACTIVOS</span>
+        </div>
+        <div class="estadistica-card mantenimiento">
+            <span class="estadistica-numero"><%= estadisticas.mantenimiento %></span>
+            <span class="estadistica-texto">MANTENIMIENTO</span>
+        </div>
+        <div class="estadistica-card desuso">
+            <span class="estadistica-numero"><%= estadisticas.desuso %></span>
+            <span class="estadistica-texto">DAÑADOS</span>
+        </div>
+    </div>
+    
+    <% if (mikrotiks && mikrotiks.length > 0) { %>
+    <table>
+        <thead>
+            <tr>
+                <th class="col-equipo">EQUIPO/MODELO</th>
+                <th class="col-descripcion">DESCRIPCIÓN</th>
+                <th class="col-ip">DIRECCIÓN IP</th>
+                <th class="col-serial">NÚMERO DE SERIE</th>
+                <th class="col-ubicacion">UBICACIÓN</th>
+                <th class="col-estado">ESTADO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% 
+            let currentUbicacion = null;
+            mikrotiks.forEach(mikrotik => { 
+                const ubicacionChanged = currentUbicacion !== mikrotik.ubicacion;
+                currentUbicacion = mikrotik.ubicacion;
+            %>
+                <% if (ubicacionChanged && mikrotik.ubicacion) { %>
+                <tr>
+                    <td colspan="6" class="ubicacion-header" style="font-size: 8px;">
+                         UBICACIÓN: <%= mikrotik.ubicacion %>
+                    </td>
+                </tr>
+                <% } %>
+                
+                <tr>
+                    <td class="col-equipo">
+                        <div class="equipo-info">
+                            <% if (mikrotik.stock_equipos) { %>
+                                <strong><%= mikrotik.stock_equipos.marca %>
+                                <%= mikrotik.stock_equipos.modelo %></strong><br>
+                                <span style="font-size: 7px; color: #666;">
+                                    <%= mikrotik.stock_equipos.tipo_equipo.nombre %>
+                                </span>
+                            <% } else { %>
+                                <em>No asignado</em>
+                            <% } %>
+                        </div>
+                    </td>
+                    <td class="col-descripcion" style="font-size: 9px;">
+                        <%= mikrotik.descripcion || 'Mikrotik' %>
+                    </td>
+                    <td class="col-ip" style="font-size: 9px;">
+                        <% if (mikrotik.ip_mikrotik) { %>
+                            <span class="ip-address"><%= mikrotik.ip_mikrotik %></span>
+                        <% } else { %>
+                            <em>-</em>
+                        <% } %>
+                    </td>
+                    <td class="col-serial" >
+                        <%= mikrotik.cereal_mikrotik || '-' %>
+                    </td>
+                    <td class="col-ubicacion" style="font-size: 9px;">
+                        <%= mikrotik.ubicacion %>
+                    </td>
+                    <td class="col-estado" style="font-size: 9px;">
+                        <span class="status-badge status-<%= mikrotik.estado %>">
+                            <%= mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1) %>
+                        </span>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+    <% } else { %>
+    <div class="no-data">
+        <h3>No se encontraron mikrotiks</h3>
+        <p>No hay mikrotiks registrados en la sede <%= sede.nombre %> para generar el reporte.</p>
+    </div>
+    <% } %>
+    
+    <div class="footer">
+        <p><strong>FRITZ C.A - Sistema de Gestión de Mikrotiks</strong> | Reporte específico por sede</p>
+        <p>Generado el <%= fecha %> a las <%= new Date().toLocaleTimeString('es-ES') %></p>
+    </div>
+</body>
+</html>

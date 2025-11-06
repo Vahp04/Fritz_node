@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import PuppeteerPDF from '../services/puppeteerPDF.js';
+import { renderTemplate } from '../helpers/renderHelper.js';
+
 const prisma = new PrismaClient();
 
 export const mikrotikController = {
@@ -635,5 +638,231 @@ async cambiarEstado(req, res) {
       console.error('Error en buscar:', error);
       res.status(500).json({ error: error.message });
     }
+  },
+
+
+async generarPDFGeneral(req, res) {
+  try {
+    console.log('📊 Generando PDF general de mikrotiks...');
+    
+    // Obtener todos los mikrotiks con sus relaciones
+    const mikrotiks = await prisma.mikrotik.findMany({
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true
+      },
+      orderBy: [
+        { sede_id: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    console.log(`✅ ${mikrotiks.length} mikrotiks encontrados`);
+
+    // Datos para el template
+    const data = {
+      titulo: 'Reporte General de Mikrotiks',
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: mikrotiks.length,
+      mikrotiks: mikrotiks,
+      estadisticas: {
+        activos: mikrotiks.filter(m => m.estado === 'activo').length,
+        inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
+        mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
+        desuso: mikrotiks.filter(m => m.estado === 'desuso').length
+      }
+    };
+
+    console.log('📝 Renderizando template...');
+    
+    // Renderizar el template HTML
+    const html = await renderTemplate(req.app, 'pdfs/reporte-general-mikrotiks', data);
+    
+    console.log('✅ Template renderizado exitosamente');
+    console.log('📄 Longitud del HTML:', html.length);
+
+    console.log('🖨️ Generando PDF...');
+    
+    // Configuración para Puppeteer
+    const pdfOptions = {
+      format: 'A4',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    };
+
+    // Generar PDF
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('✅ PDF generado exitosamente');
+    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+
+    // **SOLUCIÓN: Limpiar cualquier header previo y establecer correctamente**
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'inline; filename="reporte-general-mikrotiks.pdf"',
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    console.log(`✅ PDF general generado exitosamente - ${mikrotiks.length} mikrotiks`);
+    
+    // Enviar PDF como Buffer
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error generando PDF general:', error);
+    
+    // Asegurarse de enviar JSON en caso de error
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    }));
   }
+},
+
+async generarPDFPorSede(req, res) {
+  try {
+    const { sede_id } = req.params;
+    const sedeId = parseInt(sede_id);
+
+    console.log(`📊 Generando PDF de mikrotiks para sede ID: ${sedeId}`);
+
+    // Validar que el ID sea un número válido
+    if (isNaN(sedeId) || sedeId <= 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
+    }
+
+    // Obtener información de la sede
+    const sede = await prisma.sedes.findUnique({
+      where: { id: sedeId }
+    });
+
+    if (!sede) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
+    }
+
+    // Obtener mikrotiks de la sede específica
+    const mikrotiks = await prisma.mikrotik.findMany({
+      where: { sede_id: sedeId },
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true
+      },
+      orderBy: [
+        { ubicacion: 'asc' },
+        { id: 'asc' }
+      ]
+    });
+
+    if (mikrotiks.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ 
+        error: 'No se encontraron mikrotiks para esta sede' 
+      }));
+    }
+
+    console.log(`✅ ${mikrotiks.length} mikrotiks encontrados en ${sede.nombre}`);
+
+    // Datos para el template
+    const data = {
+      titulo: `Reporte de Mikrotiks - ${sede.nombre}`,
+      subtitulo: `Sede: ${sede.nombre}`,
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: mikrotiks.length,
+      mikrotiks: mikrotiks,
+      sede: sede,
+      estadisticas: {
+        activos: mikrotiks.filter(m => m.estado === 'activo').length,
+        inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
+        mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
+        desuso: mikrotiks.filter(m => m.estado === 'desuso').length
+      }
+    };
+
+    console.log('📝 Renderizando template para sede...');
+    
+    // Renderizar el template HTML
+    const html = await renderTemplate(req.app, 'pdfs/reporte-mikrotiks-sede', data);
+    
+    console.log('✅ Template renderizado exitosamente');
+    console.log('📄 Longitud del HTML:', html.length);
+
+    console.log('🖨️ Generando PDF para sede...');
+    
+    // Configuración para Puppeteer
+    const pdfOptions = {
+      format: 'A4',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    };
+
+    // Generar PDF
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('✅ PDF generado exitosamente');
+    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+
+    // **SOLUCIÓN: Usar writeHead en lugar de setHeader individual**
+    const filename = `reporte-mikrotiks-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
+    
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${filename}"`,
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    console.log(`✅ Enviando PDF para abrir en navegador`);
+    
+    // Enviar PDF
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error generando PDF por sede:', error);
+    
+    // Enviar error como JSON
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message 
+    }));
+  }
+}
 };
