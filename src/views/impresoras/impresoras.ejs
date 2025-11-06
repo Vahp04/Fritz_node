@@ -688,10 +688,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
+                       <div class="mb-3">
     <label class="form-label">Modelo de Toner</label>
-    <input type="text" class="form-control" name="toner" placeholder="Ej: HP 85A, Canon 045">
-    <div class="form-text">Especifica el modelo de toner compatible</div>
+    <select class="form-select" name="toner" id="create_toner">
+        <option value="">Seleccione un modelo de toner</option>
+    </select>
+    <div class="form-text">Selecciona el modelo de toner compatible del inventario</div>
 </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
@@ -781,11 +783,15 @@
                         </div>
                         <div class="row">
                              <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Modelo de Toner</label>
-                                    <input type="text" class="form-control" name="toner" id="edit_toner" placeholder="Ej: HP 85A, Canon 045">
-                                    <div class="form-text">Especifica el modelo de toner compatible</div>
-                                </div>
+                                <div class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Modelo de Toner</label>
+        <select class="form-select" name="toner" id="edit_toner">
+            <option value="">Seleccione un modelo de toner</option>
+        </select>
+        <div class="form-text">Selecciona el modelo de toner compatible</div>
+    </div>
+</div>
                             </div>
                           <!--  <div class="col-md-6">
                                      <div class="mb-3">
@@ -954,17 +960,16 @@
         let totalRecords = 0;
 
         // Cargar datos al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarImpresoras();
-            cargarSedes();
-            cargarDepartamentos();
-            cargarStockEquipos();
-            cargarToners();
-            inicializarEventos();
-            applySavedTheme();
-            inicializarSidebar();
-        });
-
+      document.addEventListener('DOMContentLoaded', function() {
+    cargarImpresoras();
+    cargarSedes();
+    cargarDepartamentos();
+    cargarStockEquipos();
+    cargarModelosToner(); 
+    inicializarEventos();
+    applySavedTheme();
+    inicializarSidebar();
+});
         // Cargar impresoras
         async function cargarImpresoras(page = 1) {
             try {
@@ -1046,6 +1051,70 @@ async function cargarStockEquipos() {
         
         await cargarStockEquiposFallback();
     }
+}
+
+async function cargarModelosToner() {
+    try {
+        console.log('🔍 Cargando modelos de toner del inventario...');
+        const response = await fetch('/api/stock_equipos');
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar equipos del inventario');
+        }
+
+        const data = await response.json();
+        
+        // Filtrar solo los equipos que son toners
+        toners = data.stockEquipos.filter(equipo => 
+            equipo.tipo_equipo && 
+            (equipo.tipo_equipo.nombre.toLowerCase().includes('toner') ||
+             equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
+             equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho'))
+        ) || [];
+        
+        console.log(`✅ ${toners.length} modelos de toner encontrados`);
+        renderizarModelosToner();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar los modelos de toner del inventario');
+        
+        // Si hay error, dejar el array vacío
+        toners = [];
+        renderizarModelosToner();
+    }
+}
+
+// Renderizar modelos de toner en los selects
+function renderizarModelosToner() {
+    const selects = ['create_toner', 'edit_toner'];
+
+    selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            // Limpiar opciones existentes (excepto la primera)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            if (toners.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay modelos de toner en el inventario";
+                option.disabled = true;
+                select.appendChild(option);
+                return;
+            }
+
+            // Agregar modelos de toner disponibles
+            toners.forEach(toner => {
+                const option = document.createElement('option');
+                option.value = `${toner.marca} ${toner.modelo}`;
+                option.textContent = `${toner.marca} ${toner.modelo}`;
+                select.appendChild(option);
+            });
+        }
+    });
 }
 
 
@@ -1175,13 +1244,13 @@ async function cargarStockEquipos() {
                                 title="Editar">
                             <i class="bi bi-pencil"></i>
                         </button>
-                        ${impresora.estado_impresora !== 'obsoleta' ? `
+                        ${/*impresora.estado_impresora !== 'obsoleta' ? `
                         <button class="btn btn-sm btn-outline-success action-btn me-1"
                                 onclick="abrirInstalarToner(${impresora.id})"
                                 title="Instalar Toner">
                             <i class="bi bi-archive"></i>
                         </button>
-                        ` : ''}
+                        ` : */''}
                         <button class="btn btn-sm btn-outline-danger action-btn"
                                 onclick="deleteImpresora(${impresora.id}, '${impresora.nombre}')"
                                 title="Eliminar">
@@ -1341,7 +1410,6 @@ async function crearImpresora() {
     const form = document.getElementById('createImpresoraForm');
     const formData = new FormData(form);
 
-   
     if (stockEquipos.length === 0) {
         Swal.fire({
             icon: 'error',
@@ -1423,7 +1491,6 @@ async function editImpresora(id) {
         document.getElementById('edit_ubicacion').value = impresora.ubicacion;
         document.getElementById('edit_descripcion').value = impresora.descripcion || '';
         document.getElementById('edit_toner').value = impresora.toner || ''; 
-       // document.getElementById('edit_contador_instalacion_toner').value = impresora.contador_instalacion_toner || 0;
         
         $('#editImpresoraModal').modal('show');
         
