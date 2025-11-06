@@ -17,4 +17,7 @@ router.get('/api/impresoras/estado/:estado', impresoraController.porEstado);
 router.get('/api/impresoras-estadisticas/estadisticas', impresoraController.estadisticas);
 router.get('/api/impresoras/buscar', impresoraController.buscar);
 
+router.get('/api/impresoras/reporte/general', impresoraController.generarPDFGeneral);
+router.get('/api/impresoras/reporte/sede/:sede_id', impresoraController.generarPDFPorSede);
+
 export default router;

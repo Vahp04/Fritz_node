@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import PuppeteerPDF from '../services/puppeteerPDF.js'; 
+import { renderTemplate } from '../helpers/renderHelper.js';
+
 const prisma = new PrismaClient();
 
 export const impresoraController = {
@@ -958,4 +961,243 @@ async update(req, res) {
     }
 },
 
-};
+async generarPDFGeneral(req, res) {
+  try {
+    console.log('📊 Generando PDF general de impresoras...');
+    
+    // Obtener todas las impresoras con sus relaciones
+    const impresoras = await prisma.impresora.findMany({
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true,
+        departamento: true,
+        toner_actual: {
+          include: {
+            tipo_equipo: true
+          }
+        }
+      },
+      orderBy: [
+        { sede_id: 'asc' },
+        { nombre: 'asc' }
+      ]
+    });
+
+    console.log(`✅ ${impresoras.length} impresoras encontradas`);
+
+    // Datos para el template
+    const data = {
+      titulo: 'Reporte General de Impresoras',
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: impresoras.length,
+      impresoras: impresoras,
+      estadisticas: {
+        activas: impresoras.filter(i => i.estado_impresora === 'activa').length,
+        inactivas: impresoras.filter(i => i.estado_impresora === 'inactiva').length,
+        mantenimiento: impresoras.filter(i => i.estado_impresora === 'mantenimiento').length,
+        obsoletas: impresoras.filter(i => i.estado_impresora === 'obsoleta').length
+      }
+    };
+
+    console.log('📝 Renderizando template...');
+    
+    // Renderizar el template HTML
+    const html = await renderTemplate(req.app, 'pdfs/reporte-general-impresoras', data);
+    
+    console.log('✅ Template renderizado exitosamente');
+    console.log('📄 Longitud del HTML:', html.length);
+
+    console.log('🖨️ Generando PDF...');
+    
+    // Configuración para Puppeteer
+    const pdfOptions = {
+      format: 'A4',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    };
+
+    // Generar PDF
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('✅ PDF generado exitosamente');
+    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+
+    // **SOLUCIÓN: Limpiar cualquier header previo y establecer correctamente**
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'inline; filename="reporte-general-impresoras.pdf"',
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    console.log(`✅ PDF general generado exitosamente - ${impresoras.length} impresoras`);
+    
+    // Enviar PDF como Buffer
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error generando PDF general:', error);
+    
+    // Asegurarse de enviar JSON en caso de error
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    }));
+  }
+},
+
+async generarPDFPorSede(req, res) {
+  try {
+    const { sede_id } = req.params;
+    const sedeId = parseInt(sede_id);
+
+    console.log(`📊 Generando PDF de impresoras para sede ID: ${sedeId}`);
+
+    // Validar que el ID sea un número válido
+    if (isNaN(sedeId) || sedeId <= 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
+    }
+
+    // Obtener información de la sede
+    const sede = await prisma.sedes.findUnique({
+      where: { id: sedeId }
+    });
+
+    if (!sede) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
+    }
+
+    // Obtener impresoras de la sede específica
+    const impresoras = await prisma.impresora.findMany({
+      where: { sede_id: sedeId },
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true,
+        departamento: true,
+        toner_actual: {
+          include: {
+            tipo_equipo: true
+          }
+        }
+      },
+      orderBy: [
+        { departamento_id: 'asc' },
+        { nombre: 'asc' }
+      ]
+    });
+
+    if (impresoras.length === 0) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ 
+        error: 'No se encontraron impresoras para esta sede' 
+      }));
+    }
+
+    console.log(`✅ ${impresoras.length} impresoras encontradas en ${sede.nombre}`);
+
+    // Datos para el template
+    const data = {
+      titulo: `Reporte de Impresoras - ${sede.nombre}`,
+      subtitulo: `Sede: ${sede.nombre}`,
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: impresoras.length,
+      impresoras: impresoras,
+      sede: sede,
+      estadisticas: {
+        activas: impresoras.filter(i => i.estado_impresora === 'activa').length,
+        inactivas: impresoras.filter(i => i.estado_impresora === 'inactiva').length,
+        mantenimiento: impresoras.filter(i => i.estado_impresora === 'mantenimiento').length,
+        obsoletas: impresoras.filter(i => i.estado_impresora === 'obsoleta').length
+      }
+    };
+
+    console.log('📝 Renderizando template para sede...');
+    
+    // Renderizar el template HTML
+    const html = await renderTemplate(req.app, 'pdfs/reporte-impresoras-sede', data);
+    
+    console.log('✅ Template renderizado exitosamente');
+    console.log('📄 Longitud del HTML:', html.length);
+
+    console.log('🖨️ Generando PDF para sede...');
+    
+    // Configuración para Puppeteer
+    const pdfOptions = {
+      format: 'A4',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '20mm',
+        right: '15mm',
+        bottom: '20mm',
+        left: '15mm'
+      }
+    };
+
+    // Generar PDF
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('✅ PDF generado exitosamente');
+    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+
+    // **SOLUCIÓN: Usar writeHead en lugar de setHeader individual**
+    const filename = `reporte-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
+    
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${filename}"`,
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    console.log(`✅ Enviando PDF para abrir en navegador`);
+    
+    // Enviar PDF
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error generando PDF por sede:', error);
+    
+    // Enviar error como JSON
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message 
+    }));
+  }
+}
+}
+
+
+

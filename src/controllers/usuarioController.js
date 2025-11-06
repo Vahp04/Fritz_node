@@ -229,8 +229,8 @@ export const usuarioController = {
         name: updated.name,
         email: updated.email,
         activo: updated.activo,
-        createdAt: updated.created_at,  // Mapear a camelCase
-        updatedAt: updated.updated_at   // Mapear a camelCase
+        createdAt: updated.created_at,  
+        updatedAt: updated.updated_at   
       };
 
       const status = updated.activo ? 'activado' : 'desactivado';

@@ -102,6 +102,11 @@ app.get("/health", (req, res) => {
         "/api/pdf/asignaciones/ver",
         "/api/pdf/asignaciones/usuario/:usuarioid",
         "/api/pdf/asignaciones/usuario/:usuarioid/ver"
+      ],
+
+      impresoras: [
+        "/reportes/general-pd",
+        '/reportes/sede-pdf/:sedeId?'
       ]
     }
   });
