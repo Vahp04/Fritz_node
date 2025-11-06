@@ -20,4 +20,5 @@ router.delete('/:id', stockEquiposController.destroy);
 router.patch('/:id/cantidades', stockEquiposController.actualizarCantidades);
 router.get('/api/:id', stockEquiposController.apiShow);
 router.get('/consumibles', stockEquiposController.equiposConsumibles);
+
 export default router;

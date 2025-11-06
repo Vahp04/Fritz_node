@@ -259,11 +259,11 @@
             font-size: 0.7rem;
         }*/
 
-        .toner-badge {
+       /* .toner-badge {
             background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
             color: white;
             font-size: 0.7rem;
-        }
+        }*/
     </style>
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
@@ -553,7 +553,6 @@
                                     <option value="activa">Activa</option>
                                     <option value="inactiva">Inactiva</option>
                                     <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="sin_toner">Sin Toner</option>
                                     <option value="obsoleta">Obsoleta</option>
                                 </select>
                             </div>
@@ -684,7 +683,6 @@
                                         <option value="activa">Activa</option>
                                         <option value="inactiva">Inactiva</option>
                                         <option value="mantenimiento">Mantenimiento</option>
-                                        <option value="sin_toner">Sin Toner</option>
                                         <option value="obsoleta">Obsoleta</option>
                                     </select>
                                 </div>
@@ -736,7 +734,6 @@
                                         <option value="activa">Activa</option>
                                         <option value="inactiva">Inactiva</option>
                                         <option value="mantenimiento">Mantenimiento</option>
-                                        <option value="sin_toner">Sin Toner</option>
                                         <option value="obsoleta">Obsoleta</option>
                                     </select>
                                 </div>
@@ -790,7 +787,7 @@
                                     <div class="form-text">Especifica el modelo de toner compatible</div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                          <!--  <div class="col-md-6">
                                      <div class="mb-3">
                                         <label class="form-label">Contador de Instalaciones de Toner</label>
                                             <div class="input-group">
@@ -805,11 +802,11 @@
                                         <div class="form-text">Número de veces que se ha cambiado el toner</div>
                                     </div>
 
-                                    <!--<div class="mb-3">
+                                    <div class="mb-3">
                                         <label class="form-label">Contador de Impresiones</label>
                                         <input type="number" class="form-control" name="contador_impresiones" id="edit_contador_impresiones" min="0">
-                                    </div>-->
-                            </div>
+                                    </div>
+                            </div>-->
                             
                         </div>
                     </div>
@@ -916,10 +913,10 @@
                             <p id="view_created_at" class="mb-2"></p>
                         </div>
                         <div class="col-md-6">
-    <strong>Modelo de Toner:</strong>
-    <p id="view_toner" class="mb-2"></p>
-</div>
-                        <div class="col-md-6">
+                            <strong>Modelo de Toner:</strong>
+                            <p id="view_toner" class="mb-2"></p>
+                        </div>
+                       <!-- <div class="col-md-6">
                             <strong>Toner Actual:</strong>
                             <p id="view_toner_actual" class="mb-2"></p>
                         </div>
@@ -930,7 +927,7 @@
                         <div class="col-md-6">
                             <strong>Contador Instalación Toner:</strong>
                             <p id="view_contador_instalacion_toner" class="mb-2"></p>
-                        </div>
+                        </div>-->
                       
                     </div>
                 </div>
@@ -1047,7 +1044,6 @@ async function cargarStockEquipos() {
         console.error('Error:', error);
         mostrarError('No se pudieron cargar las impresoras disponibles del inventario');
         
-        // Fallback: intentar con el endpoint general
         await cargarStockEquiposFallback();
     }
 }
@@ -1159,12 +1155,12 @@ async function cargarStockEquipos() {
                                     </span>
                                 ` : ''}
 
-                            ${impresora.toner_actual ? `
+                            ${/*impresora.toner_actual ? `
                             <span class="badge toner-badge">
                                 <i class="bi bi-archive me-1"></i>
                                 ${impresora.toner_actual.marca || 'Toner'} instalado
                             </span>
-                            ` : ''}
+                            ` :*/ ''}
 
                         </div>
                     </td>
@@ -1427,7 +1423,7 @@ async function editImpresora(id) {
         document.getElementById('edit_ubicacion').value = impresora.ubicacion;
         document.getElementById('edit_descripcion').value = impresora.descripcion || '';
         document.getElementById('edit_toner').value = impresora.toner || ''; 
-        document.getElementById('edit_contador_instalacion_toner').value = impresora.contador_instalacion_toner || 0;
+       // document.getElementById('edit_contador_instalacion_toner').value = impresora.contador_instalacion_toner || 0;
         
         $('#editImpresoraModal').modal('show');
         
@@ -1445,7 +1441,7 @@ async function actualizarImpresora() {
     const formData = new FormData(form);
     const impresoraId = formData.get('id');
 
-    const contadorToner = parseInt(formData.get('contador_instalacion_toner')) || 0;
+    /*const contadorToner = parseInt(formData.get('contador_instalacion_toner')) || 0;
     if (contadorToner < 0) {
         Swal.fire({
             icon: 'error',
@@ -1453,7 +1449,7 @@ async function actualizarImpresora() {
             text: 'El contador de toner no puede ser negativo'
         });
         return;
-    }
+    }*/
     const datos = {
         nombre: formData.get('nombre'),
         descripcion: formData.get('descripcion'),
@@ -1464,7 +1460,7 @@ async function actualizarImpresora() {
         ubicacion: formData.get('ubicacion'),
         estado_impresora: formData.get('estado_impresora'),
         toner: formData.get('toner'), 
-        contador_instalacion_toner: contadorToner 
+      //  contador_instalacion_toner: contadorToner 
     };
 
     console.log('📝 Datos a enviar:', datos);
@@ -1524,11 +1520,11 @@ async function viewImpresora(id) {
         document.getElementById('view_departamento').textContent = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
         document.getElementById('view_ubicacion').textContent = impresora.ubicacion;
         document.getElementById('view_descripcion').textContent = impresora.descripcion || 'Sin descripción';
-        document.getElementById('view_toner').textContent = impresora.toner || 'No especificado'; // NUEVO
+        document.getElementById('view_toner').textContent = impresora.toner || 'No especificado'; 
         document.getElementById('view_stock_equipo').textContent = impresora.stock_equipos ? `${impresora.stock_equipos.marca} ${impresora.stock_equipos.modelo}` : 'No asignado';
-        document.getElementById('view_toner_actual').textContent = impresora.toner_actual ? `${impresora.toner_actual.marca} ${impresora.toner_actual.modelo}` : 'No instalado';
-        document.getElementById('view_fecha_instalacion_toner').textContent = impresora.fecha_instalacion_toner ? new Date(impresora.fecha_instalacion_toner).toLocaleDateString('es-ES') : 'No instalado';
-        document.getElementById('view_contador_instalacion_toner').textContent = impresora.contador_instalacion_toner || 0;
+       // document.getElementById('view_toner_actual').textContent = impresora.toner_actual ? `${impresora.toner_actual.marca} ${impresora.toner_actual.modelo}` : 'No instalado';
+       // document.getElementById('view_fecha_instalacion_toner').textContent = impresora.fecha_instalacion_toner ? new Date(impresora.fecha_instalacion_toner).toLocaleDateString('es-ES') : 'No instalado';
+      //  document.getElementById('view_contador_instalacion_toner').textContent = impresora.contador_instalacion_toner || 0;
         document.getElementById('view_created_at').textContent = new Date(impresora.created_at).toLocaleDateString('es-ES');
         
         $('#viewImpresoraModal').modal('show');
@@ -1676,7 +1672,7 @@ async function viewImpresora(id) {
                 `Mostrando ${visibleCount} de ${totalRecords} impresoras`;
         }
 
-        function incrementarContadorToner() {
+    /*   function incrementarContadorToner() {
     const contadorInput = document.getElementById('edit_contador_instalacion_toner');
     const currentValue = parseInt(contadorInput.value) || 0;
     contadorInput.value = currentValue + 1;
@@ -1693,7 +1689,7 @@ function decrementarContadorToner() {
 function resetearContadorToner() {
     const contadorInput = document.getElementById('edit_contador_instalacion_toner');
     contadorInput.value = 0;
-}
+}*/
 
         function resetFiltros() {
             document.getElementById('searchImpresora').value = '';

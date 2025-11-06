@@ -95,7 +95,7 @@ export const impresoraController = {
         departamento_id,
         ubicacion,
         estado_impresora,
-        toner // NUEVO: Campo toner agregado
+        toner 
       } = req.body;
 
       console.log('📝 Datos recibidos para crear impresora:', req.body);
@@ -189,8 +189,8 @@ async update(req, res) {
       ubicacion,
       estado_impresora,
       contador_impresiones,
-      toner, // Campo modelo de toner
-      contador_instalacion_toner // NUEVO: Campo contador de toner
+      toner, 
+      contador_instalacion_toner 
     } = req.body;
 
     const impresoraId = parseInt(id);
@@ -201,7 +201,7 @@ async update(req, res) {
       where: { id: impresoraId },
       include: {
         stock_equipos: true,
-        toner_actual: true // Incluir toner actual para manejar cambios
+        toner_actual: true 
       }
     });
 
@@ -210,17 +210,17 @@ async update(req, res) {
     }
 
     const resultado = await prisma.$transaction(async (tx) => {
-      // Manejar cambios en el contador de toner
+     
       const contadorAnterior = impresoraActual.contador_instalacion_toner || 0;
       const contadorNuevo = parseInt(contador_instalacion_toner) || 0;
       
       console.log(`🔄 Cambio contador toner: ${contadorAnterior} -> ${contadorNuevo}`);
 
-      // Si el contador aumenta, restar del inventario
+      
       if (contadorNuevo > contadorAnterior) {
         const diferencia = contadorNuevo - contadorAnterior;
         
-        // Buscar un toner compatible en el inventario
+       
         const tonerCompatible = await tx.stock_equipos.findFirst({
           where: {
             tipo_equipo: {
@@ -851,7 +851,7 @@ async update(req, res) {
             { ip_impresora: { contains: q, mode: 'insensitive' } },
             { cereal_impresora: { contains: q, mode: 'insensitive' } },
             { ubicacion: { contains: q, mode: 'insensitive' } },
-            { toner: { contains: q, mode: 'insensitive' } } // NUEVO: Búsqueda por toner agregada
+            { toner: { contains: q, mode: 'insensitive' } } 
           ]
         },
         include: {
@@ -880,7 +880,6 @@ async update(req, res) {
     }
   },
 
-  // NUEVO: Método para actualizar solo el campo toner
   async actualizarToner(req, res) {
     try {
       const { id } = req.params;
@@ -919,6 +918,8 @@ async update(req, res) {
     }
   },
 
+  
+
   async actualizarContadorToner(req, res) {
     try {
         const { id } = req.params;
@@ -955,5 +956,6 @@ async update(req, res) {
         console.error('Error en actualizarContadorToner:', error);
         res.status(500).json({ error: error.message });
     }
-}
+},
+
 };
