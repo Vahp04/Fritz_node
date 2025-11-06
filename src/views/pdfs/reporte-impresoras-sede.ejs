@@ -80,8 +80,8 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            font-size: 10px;
-            opacity: 0.9;
+            font-size: 15px;
+            opacity: 1.0;
         }
         
       
@@ -202,14 +202,12 @@
         }
         
         .equipo-info {
-            font-size: 7px;
-            color: #666;
+            font-size: 10px;
             line-height: 1.2;
         }
         
         .toner-info {
-            font-size: 7px;
-            color: #666;
+            font-size: 8px;
             font-weight: bold;
         }
         
@@ -245,7 +243,7 @@
         <div class="sede-nombre">
              <%= sede.nombre %>
         </div>
-        <div class="sede-details">
+        <div class="sede-details" style="font-size: 10px;">
             <span>ID: <%= sede.id %></span>
             <span>•</span>
             <span>Total Impresoras: <%= total %></span>
@@ -299,7 +297,7 @@
     <table>
         <thead>
             <tr>
-                <th class="col-id">ID</th>
+                
                 <th class="col-nombre">IMPRESORA</th>
                 <th class="col-equipo">EQUIPO/MODELO</th>
                 <th class="col-ip">DIRECCIÓN IP</th>
@@ -308,7 +306,7 @@
                 <th class="col-ubicacion">UBICACIÓN</th>
                 <th class="col-estado">ESTADO</th>
                 <th class="col-toner">TONER</th>
-                <th class="col-contador">CONTADOR</th>
+             
             </tr>
         </thead>
         <tbody>
@@ -320,45 +318,45 @@
             %>
                 <% if (departamentoChanged && impresora.departamento) { %>
                 <tr>
-                    <td colspan="10" class="departamento-header">
+                    <td colspan="10" class="departamento-header" style="font-size: 8px;">
                          DEPARTAMENTO: <%= impresora.departamento.nombre %>
                     </td>
                 </tr>
                 <% } %>
                 
                 <tr>
-                    <td class="col-id"><strong><%= impresora.id %></strong></td>
-                    <td class="col-nombre">
+              
+                    <td class="col-nombre" style="font-size: 10px;">
                         <strong><%= impresora.nombre %></strong>
                     </td>
                     <td class="col-equipo">
                         <div class="equipo-info">
                             <% if (impresora.stock_equipos) { %>
-                                <strong><%= impresora.stock_equipos.marca %></strong><br>
+                                <strong><%= impresora.stock_equipos.marca %>
                                 <%= impresora.stock_equipos.modelo %><br>
-                                <small><%= impresora.stock_equipos.tipo_equipo.nombre %></small>
+                               <%= impresora.stock_equipos.tipo_equipo.nombre %></strong><br>
                             <% } else { %>
                                 <em>No asignado</em>
                             <% } %>
                         </div>
                     </td>
-                    <td class="col-ip">
+                    <td class="col-ip" style="font-size: 10px;">
                         <% if (impresora.ip_impresora) { %>
                             <span class="ip-address"><%= impresora.ip_impresora %></span>
                         <% } else { %>
                             <em>-</em>
                         <% } %>
                     </td>
-                    <td class="col-serial">
+                    <td class="col-serial" >
                         <%= impresora.cereal_impresora || '-' %>
                     </td>
-                    <td class="col-departamento">
+                    <td class="col-departamento" style="font-size: 10px;">
                         <%= impresora.departamento ? impresora.departamento.nombre : 'Sin depto.' %>
                     </td>
-                    <td class="col-ubicacion">
+                    <td class="col-ubicacion" style="font-size: 8px;">
                         <%= impresora.ubicacion %>
                     </td>
-                    <td class="col-estado">
+                    <td class="col-estado" style="font-size: 10px;">
                         <span class="status-badge status-<%= impresora.estado_impresora %>">
                             <%= impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1) %>
                         </span>
@@ -366,15 +364,13 @@
                     <td class="col-toner">
                         <% if (impresora.toner) { %>
                             <div class="toner-info">
-                                📄 <%= impresora.toner %>
+                                <%= impresora.toner %>
                             </div>
                         <% } else { %>
                             <em>-</em>
                         <% } %>
                     </td>
-                    <td class="col-contador">
-                        <%= (impresora.contador_impresiones || 0).toLocaleString() %>
-                    </td>
+                 
                 </tr>
             <% }); %>
         </tbody>
