@@ -1012,6 +1012,14 @@ async function cargarConsumibles(page = 1) {
         }
 
         // Remover campo de equipo
+  function removerEquipo(id) {
+    const equipoDiv = document.getElementById(`equipo-${id}`);
+    if (equipoDiv) {
+        equipoDiv.remove();
+    }
+}
+
+        // Remover campo de equipo
   function removerEquipoEdit(id) {
     const equipoDiv = document.getElementById(`equipo-edit-${id}`);
     if (equipoDiv) {
