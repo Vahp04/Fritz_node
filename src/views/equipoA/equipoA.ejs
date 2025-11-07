@@ -589,27 +589,41 @@
                     </div>
                     <div class="card-body">
                         <!-- Filtros -->
-                        <div class="row mb-4 g-2">
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por usuario ..." id="searchName">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por equipo..." id="searchEquipo">
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterEstado">
-                                    <option value="">Todos los estados</option>
-                                    <option value="activo">Activo</option>
-                                    <option value="devuelto">Devuelto</option>
-                                    <option value="obsoleto">Obsoleto</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 text-end">
-                                <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
-                                </button>
-                            </div>
-                        </div>
+                       <div class="row mb-4 g-2">
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar por usuario..." id="searchName">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-laptop"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar por equipo..." id="searchEquipo">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-tags"></i></span>
+            <select class="form-select" id="filterEstado">
+                <option value="">Todos los estados</option>
+                <option value="activo">Activo</option>
+                <option value="devuelto">Devuelto</option>
+                <option value="obsoleto">Obsoleto</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="d-flex justify-content-between align-items-center">
+           
+            <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
+            </button>
+        </div>
+    </div>
+    </div>
+
+</div>
 
                         <!-- Tabla de Equipos Asignados -->
                         <div class="table-responsive">
@@ -635,11 +649,26 @@
                                         </td>
                                     </tr>
                                 </tbody>
+                                
                             </table>
+
                         </div>
+                                                    <div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-muted" id="resultCount">
+        Mostrando 0 de 0 asignaciones
+    </div>
+    
+    <nav aria-label="Paginación de equipos asignados">
+        <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+        </ul>
+    </nav>
+</div> 
+<br>
                     </div>
                 </div>
+                           
             </main>
+
         </div>
     </div>
 
@@ -929,7 +958,7 @@
         // Cargar usuarios
 async function cargarUsuarios() {
     try {
-        console.log('🔍 Cargando usuarios para select...');
+        console.log('Cargando usuarios para select...');
         const response = await fetch('/api/usuarios/para-select', {
             credentials: 'include',
             headers: {
@@ -940,7 +969,7 @@ async function cargarUsuarios() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                console.error('❌ Error 401: No autenticado');
+                console.error('Error 401: No autenticado');
                 manejarErrorAutenticacion();
                 return;
             }
@@ -948,11 +977,11 @@ async function cargarUsuarios() {
         }
 
         usuarios = await response.json();
-        console.log(`✅ ${usuarios.length} usuarios cargados para select`);
+        console.log(`${usuarios.length} usuarios cargados para select`);
         llenarSelectUsuarios();
         
     } catch (error) {
-        console.error('❌ Error cargando usuarios:', error);
+        console.error('Error cargando usuarios:', error);
         if (error.message.includes('401') || error.message.includes('autenticación')) {
             manejarErrorAutenticacion();
         }
@@ -974,7 +1003,7 @@ async function cargarStockEquipos() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                console.error('❌ Error 401: No autenticado');
+                console.error('Error 401: No autenticado');
                 manejarErrorAutenticacion();
                 return;
             }
@@ -982,13 +1011,13 @@ async function cargarStockEquipos() {
         }
 
         stockEquipos = await response.json();
-        console.log(`✅ ${stockEquipos.length} equipos cargados para asignación`);
+        console.log(`${stockEquipos.length} equipos cargados para asignación`);
         
         llenarSelectStockEquipos();
         inicializarEventosSelects();
         
     } catch (error) {
-        console.error('❌ Error cargando equipos:', error);
+        console.error('Error cargando equipos:', error);
         if (error.message.includes('401') || error.message.includes('autenticación')) {
             manejarErrorAutenticacion();
         }
@@ -996,10 +1025,8 @@ async function cargarStockEquipos() {
         llenarSelectStockEquipos();
     }
 }
-
-        // Función para manejar error de autenticación
         function manejarErrorAutenticacion() {
-            console.log('🔐 Redirigiendo al login...');
+            console.log('Redirigiendo al login...');
             Swal.fire({
                 icon: 'warning',
                 title: 'Sesión expirada',
@@ -1018,7 +1045,7 @@ async function cargarStockEquipos() {
             const requiereCereal = selectedOption.getAttribute('data-requiere-cereal') === '1';
             const equipoId = selectedOption.value;
             
-            console.log(`🔍 Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}, requiere Cereal: ${requiereCereal}`);
+            console.log(`Cambio en select: equipo ${equipoId}, requiere IP: ${requiereIP}, requiere Cereal: ${requiereCereal}`);
             
             let ipField, ipContainer, cerealField, cerealContainer;
             
@@ -1038,12 +1065,12 @@ async function cargarStockEquipos() {
                 if (requiereIP) {
                     ipContainer.style.display = 'block';
                     ipField.required = true;
-                    console.log(`✅ Mostrando campo IP para equipo ${equipoId}`);
+                    console.log(`Mostrando campo IP para equipo ${equipoId}`);
                 } else {
                     ipContainer.style.display = 'none';
                     ipField.value = '';
                     ipField.required = false;
-                    console.log(`❌ Ocultando campo IP para equipo ${equipoId}`);
+                    console.log(`Ocultando campo IP para equipo ${equipoId}`);
                 }
             }
             
@@ -1051,12 +1078,12 @@ async function cargarStockEquipos() {
                 if (requiereCereal) {
                     cerealContainer.style.display = 'block';
                     cerealField.required = true;
-                    console.log(`✅ Mostrando campo Número de Serie para equipo ${equipoId}`);
+                    console.log(`Mostrando campo Número de Serie para equipo ${equipoId}`);
                 } else {
                     cerealContainer.style.display = 'none';
                     cerealField.value = '';
                     cerealField.required = false;
-                    console.log(`❌ Ocultando campo Número de Serie para equipo ${equipoId}`);
+                    console.log(`Ocultando campo Número de Serie para equipo ${equipoId}`);
                 }
             }
         }
@@ -1065,7 +1092,7 @@ async function cargarStockEquipos() {
             const createSelect = document.getElementById('create_stock_equipos_id');
             if (createSelect) {
                 createSelect.addEventListener('change', function() {
-                    console.log('🔄 Cambio en select de crear');
+                    console.log('Cambio en select de crear');
                     toggleDynamicFieldsBasedOnSelection(this, false);
                 });
                 
@@ -1084,63 +1111,89 @@ async function cargarStockEquipos() {
             const editSelect = document.getElementById('edit_stock_equipos_id');
             if (editSelect) {
                 editSelect.addEventListener('change', function() {
-                    console.log('🔄 Cambio en select de editar');
+                    console.log('Cambio en select de editar');
                     toggleDynamicFieldsBasedOnSelection(this, true);
                 });
             }
             
-            console.log('✅ Eventos de selects inicializados');
+            console.log('Eventos de selects inicializados');
         }
 
-        async function cargarEquiposAsignados() {
-            try {
-                console.log('🔍 Cargando equipos asignados...');
-                const response = await fetch('/api/equipos_asignados', {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        console.error('❌ Error 401: No autenticado');
-                        manejarErrorAutenticacion();
-                        return;
-                    }
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
+let filtrosActuales = {
+    usuario: '',
+    equipo: '',
+    estado: ''
+};
 
-                const data = await response.json();
-                console.log('📦 Respuesta equipos asignados:', data);
-                
-                equiposAsignados = Array.isArray(data) ? data : [];
-                
-                console.log(`✅ ${equiposAsignados.length} asignaciones cargadas`);
-                
-                if (equiposAsignados.length > 0) {
-                    console.log('📋 Primera asignación:', equiposAsignados[0]);
-                }
-                
-                renderizarEquiposAsignados();
-                actualizarContadores();
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                if (error.message.includes('401') || error.message.includes('autenticación')) {
-                    manejarErrorAutenticacion();
-                }
-                equiposAsignados = [];
-                renderizarEquiposAsignados();
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'No se pudieron cargar los equipos asignados'
-                });
+let currentPage = 1;
+let totalPages = 1;
+let totalRecords = 0;
+
+async function cargarEquiposAsignados(page = 1, filtros = {}) {
+    try {
+        currentPage = page;
+        
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: '10'
+        });
+        
+        if (filtros.usuario) params.append('usuario', filtros.usuario);
+        if (filtros.equipo) params.append('equipo', filtros.equipo);
+        if (filtros.estado) params.append('estado', filtros.estado);
+        
+        console.log('Cargando equipos asignados con filtros:', params.toString());
+        
+        const response = await fetch(`/api/equipos_asignados?${params.toString()}`, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.error('Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('Respuesta equipos asignados:', data);
+        
+        equiposAsignados = Array.isArray(data.equiposAsignados) ? data.equiposAsignados : [];
+        totalPages = data.pagination?.total || 1;
+        totalRecords = data.pagination?.totalRecords || 0;
+        
+        console.log(`${equiposAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
+        
+        if (equiposAsignados.length > 0) {
+            console.log('Primera asignación:', equiposAsignados[0]);
+        }
+        
+        renderizarEquiposAsignados();
+        actualizarContadores();
+        renderizarPaginacion();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
+        equiposAsignados = [];
+        renderizarEquiposAsignados();
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los equipos asignados'
+        });
+    }
+}
+
 
         function llenarSelectUsuarios() {
             const createSelect = document.getElementById('create_usuarios_id');
@@ -1160,7 +1213,7 @@ async function cargarStockEquipos() {
                     return;
                 }
                 
-                console.log(`📝 Llenando select con ${usuarios.length} usuarios`);
+                console.log(`Llenando select con ${usuarios.length} usuarios`);
                 
                 usuarios.forEach(usuario => {
                     if (!usuario || !usuario.id) return;
@@ -1183,7 +1236,7 @@ async function cargarStockEquipos() {
                 });
             });
             
-            console.log('✅ Selects de usuarios llenados correctamente');
+            console.log('Selects de usuarios llenados correctamente');
         }
 
         function llenarSelectStockEquipos() {
@@ -1203,7 +1256,7 @@ async function cargarStockEquipos() {
                     return;
                 }
                 
-                console.log(`📝 Llenando select con ${stockEquipos.length} equipos`);
+                console.log(`Llenando select con ${stockEquipos.length} equipos`);
                 
                 stockEquipos.forEach(equipo => {
                     if (!equipo || !equipo.id) return;
@@ -1232,15 +1285,15 @@ async function cargarStockEquipos() {
                     if (equipo.tipo_equipo) {
                         requiereIP = Boolean(equipo.tipo_equipo.requiere_ip);
                         requiereCereal = Boolean(equipo.tipo_equipo.requiere_cereal);
-                        console.log(`✅ Equipo ${equipo.id}: desde tipo_equipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                        console.log(`Equipo ${equipo.id}: desde tipo_equipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     } else if (equipo.tipoEquipo) {
                         requiereIP = Boolean(equipo.tipoEquipo.requiere_ip);
                         requiereCereal = Boolean(equipo.tipoEquipo.requiere_cereal);
-                        console.log(`✅ Equipo ${equipo.id}: desde tipoEquipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                        console.log(`Equipo ${equipo.id}: desde tipoEquipo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     } else if (equipo.requiere_ip !== undefined || equipo.requiere_cereal !== undefined) {
                         requiereIP = Boolean(equipo.requiere_ip);
                         requiereCereal = Boolean(equipo.requiere_cereal);
-                        console.log(`✅ Equipo ${equipo.id}: directo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                        console.log(`Equipo ${equipo.id}: directo - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     } else {
                         Object.keys(equipo).forEach(key => {
                             if (key.toLowerCase().includes('tipo') && equipo[key] && typeof equipo[key] === 'object') {
@@ -1250,17 +1303,17 @@ async function cargarStockEquipos() {
                                 if (equipo[key].requiere_cereal !== undefined) {
                                     requiereCereal = Boolean(equipo[key].requiere_cereal);
                                 }
-                                console.log(`✅ Equipo ${equipo.id}: desde ${key} - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                                console.log(`Equipo ${equipo.id}: desde ${key} - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                             }
                         });
                     }
                     
                     if (requiereIP === undefined) {
-                        console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
+                        console.warn(`No se pudo determinar si el equipo ${equipo.id} requiere IP, asumiendo false`);
                         requiereIP = false;
                     }
                     if (requiereCereal === undefined) {
-                        console.warn(`⚠️ No se pudo determinar si el equipo ${equipo.id} requiere cereal, asumiendo false`);
+                        console.warn(`No se pudo determinar si el equipo ${equipo.id} requiere cereal, asumiendo false`);
                         requiereCereal = false;
                     }
                     
@@ -1269,23 +1322,22 @@ async function cargarStockEquipos() {
                     option.setAttribute('data-equipo-id', equipo.id);
                     
                     if (requiereIP || requiereCereal) {
-                        console.log(`🔔 Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
+                        console.log(`Equipo ${equipo.id} (${equipo.marca} ${equipo.modelo}) - IP: ${requiereIP}, Cereal: ${requiereCereal}`);
                     }
                     
                     select.appendChild(option);
                 });
             });
             
-            console.log('✅ Selects de equipos llenados correctamente');
+            console.log('Selects de equipos llenados correctamente');
         }
 
-        // Renderizar equipos asignados en la tabla
 function renderizarEquiposAsignados() {
     const tbody = document.getElementById('equiposAsignadosTableBody');
     const estadoFilter = document.getElementById('filterEstado').value;
     
     if (!tbody) {
-        console.error('❌ No se encontró el tbody de la tabla');
+        console.error('No se encontró el tbody de la tabla');
         return;
     }
 
@@ -1433,7 +1485,64 @@ function renderizarEquiposAsignados() {
     });
 }
 
-        // Actualizar contadores
+function renderizarPaginacion() {
+    const paginationContainer = document.getElementById('paginationContainer');
+    if (!paginationContainer) {
+        console.log('No se encontró el contenedor de paginación, creándolo...');
+        crearContenedorPaginacion();
+        return;
+    }
+    
+    paginationContainer.innerHTML = '';
+
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    `;
+    paginationContainer.appendChild(prevLi);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cargarEquiposAsignados(${i}, filtrosActuales)">${i}</a>
+        `;
+        paginationContainer.appendChild(pageLi);
+    }
+
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    `;
+    paginationContainer.appendChild(nextLi);
+}
+
+function crearContenedorPaginacion() {
+    const cardBody = document.querySelector('.card-body');
+    if (!cardBody) return;
+    
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'd-flex justify-content-between align-items-center mt-4';
+    paginationDiv.innerHTML = `
+        <div class="text-muted" id="resultCount">
+            Mostrando 0 de 0 asignaciones
+        </div>
+        
+        <nav aria-label="Paginación de equipos asignados">
+            <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+            </ul>
+        </nav>
+    `;
+    
+    cardBody.appendChild(paginationDiv);
+}
+
         function actualizarContadores() {
             const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
             const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
@@ -1520,41 +1629,52 @@ function renderizarEquiposAsignados() {
             }
         });
 
-        // Inicializar eventos
-        function inicializarEventos() {
-            document.getElementById('logoutForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                this.submit();
-            });
+function inicializarEventos() {
+    document.getElementById('logoutForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        this.submit();
+    });
 
-            document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await crearEquipoAsignado();
-            });
+    document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await crearEquipoAsignado();
+    });
 
-            document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await actualizarEquipoAsignado();
-            });
+    document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await actualizarEquipoAsignado();
+    });
 
-            // Filtros
-            document.getElementById('searchName').addEventListener('input', aplicarFiltros);
-            document.getElementById('searchEquipo').addEventListener('input', aplicarFiltros);
-            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
-            document.getElementById('resetFilters').addEventListener('click', resetFiltros);
+    // Filtros con debounce
+    const searchName = document.getElementById('searchName');
+    const searchEquipo = document.getElementById('searchEquipo');
+    const filterEstado = document.getElementById('filterEstado');
+    const resetFilters = document.getElementById('resetFilters');
 
-            inicializarEventosSelects();
-        }
+    if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
+    if (searchEquipo) searchEquipo.addEventListener('input', debounce(aplicarFiltros, 500));
+    if (filterEstado) filterEstado.addEventListener('change', aplicarFiltros);
+    if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
 
-        // Evento cuando se abre el modal de crear
+    inicializarEventosSelects();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    cargarEquiposAsignados(); 
+    cargarUsuarios();
+    cargarStockEquipos();
+    inicializarEventos();
+    applySavedTheme();
+});
+
         $('#createEquipoAsignadoModal').on('show.bs.modal', function () {
-            console.log('🔄 Modal de crear abierto, forzando actualización de campos dinámicos...');
+            console.log('Modal de crear abierto, forzando actualización de campos dinámicos...');
             
             setTimeout(() => {
                 const createSelect = document.getElementById('create_stock_equipos_id');
                 if (createSelect) {
                     if (createSelect.value) {
-                        console.log('🔍 Aplicando toggle campos con selección existente:', createSelect.value);
+                        console.log('Aplicando toggle campos con selección existente:', createSelect.value);
                         toggleDynamicFieldsBasedOnSelection(createSelect, false);
                     } else {
                         const ipContainer = document.querySelector('.ip-field-container');
@@ -1614,7 +1734,7 @@ function renderizarEquiposAsignados() {
 
         const asignacion = await response.json();
         
-        console.log('🔍 Datos para editar:', asignacion);
+        console.log('Datos para editar:', asignacion);
         
         document.getElementById('edit_asignacion_id').value = asignacion.id;
         document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
@@ -1633,7 +1753,7 @@ function renderizarEquiposAsignados() {
         setTimeout(() => {
             const editSelect = document.getElementById('edit_stock_equipos_id');
             if (editSelect && editSelect.value) {
-                console.log('🔄 Aplicando toggle campos en edición para equipo:', editSelect.value);
+                console.log('Aplicando toggle campos en edición para equipo:', editSelect.value);
                 toggleDynamicFieldsBasedOnSelection(editSelect, true);
             }
         }, 300);
@@ -1694,13 +1814,13 @@ async function viewEquipoAsignado(id) {
 
         const asignacion = await response.json();
         
-        console.log('🔍 Datos de asignación cargados:', asignacion);
+        console.log('Datos de asignación cargados:', asignacion);
         
-        console.log('📋 Estructura completa:', Object.keys(asignacion));
-        console.log('👤 Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
-        console.log('💻 Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
-        console.log('👨‍💼 Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
-        console.log('🔢 Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
+        console.log('Estructura completa:', Object.keys(asignacion));
+        console.log('Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
+        console.log('Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
+        console.log('Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
+        console.log('Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
         
         const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
         const stockEquipo = asignacion.stock_equipos || asignacion.stockEquipo || {};
@@ -1950,42 +2070,80 @@ async function reactivarEquipo(id) {
         }
 
 function aplicarFiltros() {
-    const nameFilter = document.getElementById('searchName').value.toLowerCase();
-    const equipoFilter = document.getElementById('searchEquipo').value.toLowerCase();
-    const estadoFilter = document.getElementById('filterEstado').value;
+    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
     
-    const rows = document.querySelectorAll('#equiposAsignadosTableBody tr');
+    mostrarCargaFiltros();
+
+    filtrosActuales = {
+        usuario: document.getElementById('searchName').value.trim(),
+        equipo: document.getElementById('searchEquipo').value.trim(),
+        estado: document.getElementById('filterEstado').value
+    };
     
-    rows.forEach(row => {
-        if (row.id === 'loadingRow') return;
-        
-        const name = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-        const equipo = row.querySelector('td:nth-child(3) .badge.equipo-badge').textContent.toLowerCase();
-        const estado = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase().replace(/\s+/g, '');
-        
-        const nameMatch = !nameFilter || name.includes(nameFilter);
-        const equipoMatch = !equipoFilter || equipo.includes(equipoFilter);
-        const estadoMatch = !estadoFilter || estado === estadoFilter;
-        
-      
-        if (estado === 'obsoleto') {
-            if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
-                row.style.display = 'none';
-            } else {
-                row.style.display = (nameMatch && equipoMatch) ? '' : 'none';
-            }
-        } else {
-            row.style.display = (nameMatch && equipoMatch && estadoMatch) ? '' : 'none';
-        }
-    });
+    console.log('Filtros activos:', filtrosActuales);
+    
+    cargarEquiposAsignados(1, filtrosActuales);
+}
+function mostrarCargaFiltros() {
+    const tbody = document.getElementById('equiposAsignadosTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Buscando...</span>
+                </div>
+                <p class="text-muted mt-2 mb-0">Buscando asignaciones...</p>
+            </td>
+        </tr>
+    `;
 }
 
-        function resetFiltros() {
-            document.getElementById('searchName').value = '';
-            document.getElementById('searchEquipo').value = '';
-            document.getElementById('filterEstado').value = '';
-            aplicarFiltros();
-        }
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function actualizarContadores() {
+    const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
+    const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
+    const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
+    const countTotal = equiposAsignados.length;
+
+    document.getElementById('countActivos').textContent = countActivos;
+    document.getElementById('countDevueltos').textContent = countDevueltos;
+    document.getElementById('countObsoletos').textContent = countObsoletos;
+    document.getElementById('countTotal').textContent = countTotal;
+
+    const resultCount = document.getElementById('resultCount');
+    if (resultCount) {
+        resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
+    }
+}
+
+
+function resetFiltros() {
+    console.log('Reseteando filtros...');
+    
+    document.getElementById('searchName').value = '';
+    document.getElementById('searchEquipo').value = '';
+    document.getElementById('filterEstado').value = '';
+    
+    filtrosActuales = {
+        usuario: '',
+        equipo: '',
+        estado: ''
+    };
+    
+    cargarEquiposAsignados(1);
+
+}
 
         function abrirModalSeleccionUsuario() {
             $('#seleccionUsuarioModal').modal('show');

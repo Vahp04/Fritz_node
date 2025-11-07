@@ -190,8 +190,7 @@
         }
 
         .cantidad-badge {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
+       
             font-size: 0.8rem;
             padding: 0.35em 0.65em;
         }
@@ -237,11 +236,11 @@
         }
 
         .equipo-item {
-            border: 1px solid #dee2e6;
+       
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 10px;
-            background-color: #f8f9fa;
+      
         }
 
         .equipo-item:last-child {
@@ -259,7 +258,7 @@
         }
 
         .add-equipo-btn {
-            border: 2px dashed #dee2e6;
+            border: 2px dashed #3d3e3f;
             background-color: transparent;
             color: #6c757d;
             transition: all 0.3s;
@@ -324,7 +323,7 @@
             
             <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
+    
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -333,7 +332,6 @@
                     </a>
                 </li>
                 
-                <!-- Sección de Gestión -->
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -409,8 +407,7 @@
                     </a>
                 </li>
             </ul>
-            
-            <!-- Bottom -->
+
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -428,7 +425,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -440,7 +436,6 @@
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
                         
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -453,7 +448,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -469,7 +463,6 @@
                     </div>
                 </div>
 
-                <!-- Resumen de Consumibles -->
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
@@ -532,28 +525,27 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Consumibles Management Card -->
+              
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
-    <h5 class="mb-0">
-        <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Consumibles
-    </h5>
-    <div class="btn-group">
-        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="bi bi-file-earmark-text me-1"></i> Exportar
-        </button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="abrirModalOrdenSalida()">
-                <i class="bi bi-file-text me-2"></i>Orden de Salida
-            </a></li>
-        </ul>
-    </div>
-</div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Consumibles
+                            </h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-file-earmark-text me-1"></i> Exportar
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="abrirModalOrdenSalida()">
+                                <i class="bi bi-file-text me-2"></i>Orden de Salida
+                                </a></li>
+                            </ul>
+                        </div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <!-- Filtros -->
+                        
                         <div class="row mb-4 g-2">
                             <div class="col-md-3">
                                 <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre o detalles..." id="searchConsumible">
@@ -570,12 +562,11 @@
                             </div>
                             <div class="col-md-3">
                                 <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFiltros()">
-                                    <i class="bi bi-arrow-clockwise me-1"></i> Resetear
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Tabla de Consumibles -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
@@ -602,7 +593,7 @@
                             </table>
                         </div>
 
-                        <!-- Paginación -->
+                       
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted" id="resultCount">
                                 Mostrando 0 de 0 consumibles
@@ -749,7 +740,7 @@
                         </div>
                         
                         <div id="equiposContainerEdit">
-                            <!-- Los equipos existentes se cargarán aquí dinámicamente -->
+                           
                         </div>
                         
                         <button type="button" class="btn btn-outline-primary w-100 add-equipo-btn py-2 mt-3" onclick="agregarEquipoEdit()">
@@ -831,7 +822,6 @@
         </div>
     </div>
 
- <!-- Modal para Seleccionar Consumible para Orden de Salida - ACTUALIZADO -->
 <div class="modal fade" id="selectConsumibleOrdenModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -870,7 +860,6 @@
                     </small>
                 </div>
                 
-                <!-- Vista previa de la información seleccionada -->
                 <div id="consumiblePreview" class="mt-3 p-3 border rounded" style="display: none;">
                     <h6>Información de la Orden de Salida:</h6>
                     <div id="previewContent"></div>
@@ -891,7 +880,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        // Variables globales
+    
         let consumibles = [];
         let sedes = [];
         let departamentos = [];
@@ -901,7 +890,7 @@
         let totalRecords = 0;
         let equipoCounter = 0;
 
-        // Cargar datos al iniciar
+        
         document.addEventListener('DOMContentLoaded', function() {
             cargarConsumibles();
             cargarSedes();
@@ -911,13 +900,13 @@
             applySavedTheme();
             inicializarSidebar();
             
-            // Agregar el primer equipo al cargar el modal
+          
             $('#createConsumibleModal').on('show.bs.modal', function () {
                 agregarEquipo();
             });
         });
 
-        // Cargar consumibles
+
 async function cargarConsumibles(page = 1) {
     try {
         currentPage = page;
@@ -927,58 +916,45 @@ async function cargarConsumibles(page = 1) {
         if (search) {
             url += `&search=${encodeURIComponent(search)}`;
         }
-
         const response = await fetch(url);
-        
         if (!response.ok) {
             throw new Error('Error al cargar consumibles');
         }
 
         const data = await response.json();
-        
         consumibles = data.consumibles || [];
         totalPages = data.pagination?.total || 1;
         totalRecords = data.pagination?.totalRecords || 0;
         
-        // Debug
         debugConsumibles();
-        
         actualizarResumen();
         renderizarConsumibles();
         renderizarPaginacion();
-        
     } catch (error) {
         console.error('Error:', error);
         mostrarError('No se pudieron cargar los consumibles');
     }
 }
 
-        // Cargar sedes
         async function cargarSedes() {
             try {
                 const response = await fetch('/api/sedes');
-                
                 if (!response.ok) {
                     throw new Error('Error al cargar sedes');
                 }
-
                 sedes = await response.json();
                 renderizarSedes();
-                
             } catch (error) {
                 console.error('Error:', error);
             }
         }
 
-        // Cargar departamentos
         async function cargarDepartamentos() {
             try {
                 const response = await fetch('/api/departamentos');
-                
                 if (!response.ok) {
                     throw new Error('Error al cargar departamentos');
                 }
-
                 departamentos = await response.json();
                 renderizarDepartamentos();
                 
@@ -987,46 +963,43 @@ async function cargarConsumibles(page = 1) {
             }
         }
 
-        // Cargar equipos en stock (solo consumibles)
   async function cargarStockEquipos() {
     try {
-        console.log('🔍 Iniciando carga de equipos consumibles...');
+        console.log('Iniciando carga de equipos consumibles...');
         
         const response = await fetch('/api/stock_equipos/consumibles');
-        console.log('📡 Response status:', response.status);
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
+            console.error('Error response:', errorText);
             throw new Error(`Error ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
-        console.log('✅ Equipos cargados:', data);
+        console.log('Equipos cargados:', data);
         
-        // Filtrar solo equipos de tipo consumible en el frontend por si acaso
         stockEquipos = data.filter(equipo => {
             const esConsumible = equipo.tipo_equipo && 
                 equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
                  equipo.tipo_equipo.nombre.toLowerCase().includes('toners');
-            console.log(`🔍 Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
+            console.log(`Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
             return esConsumible;
         }) || [];
         
-        console.log('🎯 Equipos consumibles filtrados:', stockEquipos.length);
+        console.log('Equipos consumibles filtrados:', stockEquipos.length);
         
         if (stockEquipos.length === 0) {
-            console.warn('⚠️ No se encontraron equipos de tipo consumible');
-            // Mostrar todos los equipos para debugging
-            console.log('📋 Todos los equipos disponibles:', data);
+            console.warn('No se encontraron equipos de tipo consumible');
+            console.log('Todos los equipos disponibles:', data);
         }
         
     } catch (error) {
-        console.error('💥 Error cargando equipos:', error);
+        console.error('Error cargando equipos:', error);
         mostrarError('No se pudieron cargar los equipos consumibles disponibles: ' + error.message);
     }
 }
-        // Agregar nuevo campo de equipo
+
         function agregarEquipo() {
             equipoCounter++;
             const equiposContainer = document.getElementById('equiposContainer');
@@ -1071,12 +1044,11 @@ async function cargarConsumibles(page = 1) {
             
             equiposContainer.appendChild(equipoDiv);
             
-            // Renderizar las opciones del select
             const select = equipoDiv.querySelector('.equipo-select');
             renderizarOpcionesStockEquipos(select);
         }
 
-        // Remover campo de equipo
+      
   function removerEquipo(id) {
     const equipoDiv = document.getElementById(`equipo-${id}`);
     if (equipoDiv) {
@@ -1084,7 +1056,6 @@ async function cargarConsumibles(page = 1) {
     }
 }
 
-        // Remover campo de equipo
   function removerEquipoEdit(id) {
     const equipoDiv = document.getElementById(`equipo-edit-${id}`);
     if (equipoDiv) {
@@ -1092,7 +1063,6 @@ async function cargarConsumibles(page = 1) {
     }
 }
 
-        // Renderizar opciones de stock en un select específico
 function renderizarOpcionesStockEquipos(selectElement, selectedId = null) {
     if (stockEquipos.length === 0) {
         const option = document.createElement('option');
@@ -1116,7 +1086,7 @@ function renderizarOpcionesStockEquipos(selectElement, selectedId = null) {
     });
 }
 function debugConsumibles() {
-    console.log('🔍 Debug consumibles:', consumibles);
+    console.log('Debug consumibles:', consumibles);
     consumibles.forEach((consumible, index) => {
         console.log(`Consumible ${index + 1}:`, {
             id: consumible.id,
@@ -1133,17 +1103,14 @@ function debugConsumibles() {
 }
 
 
-        // Actualizar resumen
 function actualizarResumen() {
     const total = consumibles.length;
     
-    // Calcular total de unidades de forma segura - SUMA LAS CANTIDADES DE LOS EQUIPOS
     const totalUnidades = consumibles.reduce((sum, consumible) => {
         if (!consumible || !consumible.consumible_equipos) {
             return sum + 0;
         }
         
-        // Sumar todas las cantidades de los equipos asociados
         const sumaEquipos = consumible.consumible_equipos.reduce((sumEquipo, ce) => {
             return sumEquipo + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
         }, 0);
@@ -1159,7 +1126,7 @@ function actualizarResumen() {
     document.getElementById('totalSedes').textContent = sedesUnicas;
     document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
     
-    console.log('📊 Resumen actualizado:', {
+    console.log('Resumen actualizado:', {
         totalConsumibles: total,
         totalUnidades: totalUnidades,
         sedesUnicas: sedesUnicas,
@@ -1262,7 +1229,6 @@ function renderizarConsumibles() {
         `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
 }
 
-        // Renderizar sedes en los selects
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
 
@@ -1283,7 +1249,6 @@ function renderizarConsumibles() {
             });
         }
 
-        // Renderizar departamentos en los selects
         function renderizarDepartamentos() {
             const selects = ['filterDepartamento', 'create_departamento_id', 'edit_departamento_id'];
 
@@ -1304,7 +1269,6 @@ function renderizarConsumibles() {
             });
         }
 
-        // Renderizar equipos en stock para edición
         function renderizarStockEquipos() {
             const select = document.getElementById('edit_stock_equipos_id');
             if (select) {

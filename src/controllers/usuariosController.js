@@ -3,7 +3,6 @@ const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
-// Los cargos permitidos - definidos manualmente para evitar problemas de importación
 const CARGOS_PERMITIDOS = [
   'Gerente',
   'Jefe', 
@@ -18,111 +17,172 @@ const CARGOS_PERMITIDOS = [
 export const usuariosController = {
   async index(req, res) {
     try {
-      console.log('🔍 Iniciando carga de usuarios...');
-      
-      const usuariosCount = await prisma.usuarios.count();
-      console.log(`📊 Total de usuarios en BD: ${usuariosCount}`);
+        console.log('🔍 Iniciando carga de usuarios con filtros...');
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
 
-      const page = parseInt(req.query.page) || 1;
-      const limit = 10;
-      const skip = (page - 1) * limit;
+        const { nombre, cargo, sede, rdp } = req.query;
+        
+        console.log('Filtros recibidos:', { nombre, cargo, sede, rdp });
 
-      const usuarios = await prisma.usuarios.findMany({
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          nombre: true,
-          apellido: true,
-          cargo: true,
-          correo: true,
-          rdpfis: true,      // CAMBIO: rdp → rdpfis
-          rdpfin: true,      // NUEVO CAMPO
-          descripcion: true, // NUEVO CAMPO
-          created_at: true,
-          updated_at: true,
-          sede: {
-            select: {
-              id: true,
-              nombre: true
-            }
-          },
-          departamento: {
-            select: {
-              id: true,
-              nombre: true
-            }
-          }
-        },
-        orderBy: { id: 'asc' }
-      });
+        let whereClause = {};
 
-      console.log(`✅ Usuarios encontrados: ${usuarios.length}`);
-
-      // Contar equipos para cada usuario
-      const usuariosConCount = await Promise.all(
-        usuarios.map(async (usuario) => {
-          try {
-            const equipos_totales_count = await prisma.equipo_asignado.count({
-              where: { usuarios_id: usuario.id }
-            });
-
-            const equipos_activos_count = await prisma.equipo_asignado.count({
-              where: { 
-                usuarios_id: usuario.id,
-                estado: 'activo'
-              }
-            });
-
-            return {
-              ...usuario,
-              equipos_totales_count,
-              equipos_activos_count
-            };
-          } catch (error) {
-            console.error(`Error contando equipos para usuario ${usuario.id}:`, error);
-            return {
-              ...usuario,
-              equipos_totales_count: 0,
-              equipos_activos_count: 0
-            };
-          }
-        })
-      );
-
-      const sedes = await prisma.sedes.findMany({
-        select: { id: true, nombre: true }
-      });
-      
-      const departamentos = await prisma.departamentos.findMany({
-        select: { id: true, nombre: true }
-      });
-
-      console.log('📊 Datos cargados correctamente');
-
-      res.json({
-        usuarios: usuariosConCount,
-        sedes,
-        departamentos,
-        cargosPermitidos: CARGOS_PERMITIDOS,
-        pagination: {
-          current: page,
-          total: Math.ceil(usuariosCount / limit),
-          totalRecords: usuariosCount
+        if (nombre) {
+            whereClause.OR = [
+                { nombre: { contains: nombre, mode: 'insensitive' } },
+                { apellido: { contains: nombre, mode: 'insensitive' } }
+            ];
         }
-      });
+
+        if (cargo) {
+            const cargosCoincidentes = CARGOS_PERMITIDOS.filter(c => 
+                c.toLowerCase().includes(cargo.toLowerCase())
+            );
+            
+            if (cargosCoincidentes.length > 0) {
+                whereClause.cargo = { in: cargosCoincidentes };
+            } else {
+                whereClause.cargo = { in: [] };
+            }
+        }
+
+
+        if (sede) {
+            whereClause.sede = {
+                nombre: { contains: sede, mode: 'insensitive' }
+            };
+        }
+
+        if (rdp) {
+            whereClause.OR = [
+                ...(whereClause.OR || []),
+                { rdpfis: { contains: rdp, mode: 'insensitive' } },
+                { rdpfin: { contains: rdp, mode: 'insensitive' } }
+            ];
+            
+            if (!whereClause.OR) {
+                whereClause.OR = [
+                    { rdpfis: { contains: rdp, mode: 'insensitive' } },
+                    { rdpfin: { contains: rdp, mode: 'insensitive' } }
+                ];
+            }
+        }
+
+        console.log('Where clause:', JSON.stringify(whereClause, null, 2));
+
+        const usuariosCount = await prisma.usuarios.count({
+            where: whereClause
+        });
+
+        console.log(`Total de usuarios con filtros: ${usuariosCount}`);
+
+        const usuarios = await prisma.usuarios.findMany({
+            where: whereClause,
+            skip,
+            take: limit,
+            select: {
+                id: true,
+                nombre: true,
+                apellido: true,
+                cargo: true,
+                correo: true,
+                rdpfis: true,
+                rdpfin: true,
+                descripcion: true,
+                created_at: true,
+                updated_at: true,
+                sede: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                },
+                departamento: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            },
+            orderBy: { id: 'asc' }
+        });
+
+        console.log(`Usuarios encontrados: ${usuarios.length}`);
+
+        const usuariosConCount = await Promise.all(
+            usuarios.map(async (usuario) => {
+                try {
+                    const equipos_totales_count = await prisma.equipo_asignado.count({
+                        where: { usuarios_id: usuario.id }
+                    });
+
+                    const equipos_activos_count = await prisma.equipo_asignado.count({
+                        where: { 
+                            usuarios_id: usuario.id,
+                            estado: 'activo'
+                        }
+                    });
+
+                    const equipos_devueltos_count = await prisma.equipo_asignado.count({
+                        where: { 
+                            usuarios_id: usuario.id,
+                            estado: 'devuelto'
+                        }
+                    });
+
+                    return {
+                        ...usuario,
+                        equipos_totales_count,
+                        equipos_activos_count,
+                        equipos_devueltos_count
+                    };
+                } catch (error) {
+                    console.error(`Error contando equipos para usuario ${usuario.id}:`, error);
+                    return {
+                        ...usuario,
+                        equipos_totales_count: 0,
+                        equipos_activos_count: 0,
+                        equipos_devueltos_count: 0
+                    };
+                }
+            })
+        );
+
+        const sedes = await prisma.sedes.findMany({
+            select: { id: true, nombre: true }
+        });
+        
+        const departamentos = await prisma.departamentos.findMany({
+            select: { id: true, nombre: true }
+        });
+
+        console.log('Datos cargados correctamente con filtros');
+
+        res.json({
+            usuarios: usuariosConCount,
+            sedes,
+            departamentos,
+            cargosPermitidos: CARGOS_PERMITIDOS,
+            pagination: {
+                current: page,
+                total: Math.ceil(usuariosCount / limit),
+                totalRecords: usuariosCount
+            }
+        });
     } catch (error) {
-      console.error('💥 ERROR en index usuarios:', error);
-      res.status(500).json({ 
-        error: 'Error al cargar usuarios',
-        message: error.message,
-        details: error.code
-      });
+        console.error('ERROR en index usuarios:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar usuarios',
+            message: error.message,
+            details: error.code
+        });
     }
-  },
+},
 
   async store(req, res) {
-    console.log('🔍 === INICIANDO STORE USUARIO ===');
+    console.log('=== INICIANDO STORE USUARIO ===');
     try {
         const {
             nombre,
@@ -131,14 +191,13 @@ export const usuariosController = {
             correo,
             sede_id,
             departamento_id,
-            rdpfis,    // NUEVO CAMPO
-            rdpfin,    // NUEVO CAMPO
-            descripcion // NUEVO CAMPO
+            rdpfis,   
+            rdpfin,    
+            descripcion 
         } = req.body;
 
-        console.log('📝 Datos recibidos:', req.body);
+        console.log('Datos recibidos:', req.body);
 
-        // Validaciones básicas
         if (!nombre || !cargo || !sede_id || !departamento_id) {
             return res.status(400).json({ 
                 error: 'Campos obligatorios faltantes',
@@ -146,7 +205,6 @@ export const usuariosController = {
             });
         }
 
-        // Validar que el cargo sea uno de los valores permitidos
         if (!CARGOS_PERMITIDOS.includes(cargo)) {
             return res.status(400).json({ 
                 error: 'Cargo no válido',
@@ -167,7 +225,6 @@ export const usuariosController = {
             }
         }
 
-        // Verificar duplicados de rdpfis
         if (rdpfis) {
             const usuarioConRdpfis = await prisma.usuarios.findFirst({
                 where: { rdpfis }
@@ -180,7 +237,6 @@ export const usuariosController = {
             }
         }
 
-        // Verificar duplicados de rdpfin
         if (rdpfin) {
             const usuarioConRdpfin = await prisma.usuarios.findFirst({
                 where: { rdpfin }
@@ -193,16 +249,16 @@ export const usuariosController = {
             }
         }
 
-        console.log('✅ Creando nuevo usuario...');
+        console.log('Creando nuevo usuario...');
         const usuario = await prisma.usuarios.create({
             data: {
                 nombre: nombre.trim(),
                 apellido: apellido?.trim(),
                 cargo: cargo,
                 correo: correo?.trim(),
-                rdpfis: rdpfis?.trim(),      // NUEVO CAMPO
-                rdpfin: rdpfin?.trim(),      // NUEVO CAMPO
-                descripcion: descripcion?.trim(), // NUEVO CAMPO
+                rdpfis: rdpfis?.trim(),      
+                rdpfin: rdpfin?.trim(),      
+                descripcion: descripcion?.trim(), 
                 sede_id: parseInt(sede_id),
                 departamento_id: parseInt(departamento_id)
             },
@@ -212,9 +268,9 @@ export const usuariosController = {
                 apellido: true,
                 cargo: true,
                 correo: true,
-                rdpfis: true,      // NUEVO CAMPO
-                rdpfin: true,      // NUEVO CAMPO
-                descripcion: true, // NUEVO CAMPO
+                rdpfis: true,      
+                rdpfin: true,      
+                descripcion: true, 
                 created_at: true,
                 sede: {
                     select: {
@@ -231,16 +287,15 @@ export const usuariosController = {
             }
         });
 
-        console.log('✅ USUARIO CREADO EXITOSAMENTE - ID:', usuario.id);
+        console.log('USUARIO CREADO EXITOSAMENTE - ID:', usuario.id);
         
         res.status(201).json({
             message: 'Usuario creado exitosamente.',
             usuario
         });
     } catch (error) {
-        console.error('💥 ERROR en store:', error);
+        console.error('ERROR en store:', error);
         
-        // Manejar errores específicos de Prisma para el Enum
         if (error.code === 'P2000' || error.message.includes('enum')) {
             return res.status(400).json({ 
                 error: 'Cargo no válido',
@@ -259,7 +314,7 @@ export const usuariosController = {
   async show(req, res) {
     try {
       const { id } = req.params;
-      console.log(`🔍 Buscando usuario ID: ${id}`);
+      console.log(`Buscando usuario ID: ${id}`);
       
       const usuario = await prisma.usuarios.findUnique({
         where: { id: parseInt(id) },
@@ -269,9 +324,9 @@ export const usuariosController = {
           apellido: true,
           cargo: true,
           correo: true,
-          rdpfis: true,      // CAMBIO: rdp → rdpfis
-          rdpfin: true,      // NUEVO CAMPO
-          descripcion: true, // NUEVO CAMPO
+          rdpfis: true,      
+          rdpfin: true,      
+          descripcion: true, 
           created_at: true,
           updated_at: true,
           sede: {
@@ -293,7 +348,6 @@ export const usuariosController = {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      // Contar equipos
       const equipos_totales_count = await prisma.equipo_asignado.count({
         where: { usuarios_id: usuario.id }
       });
@@ -313,7 +367,7 @@ export const usuariosController = {
 
       res.json(usuarioConCount);
     } catch (error) {
-      console.error('💥 ERROR en show:', error);
+      console.error('ERROR en show:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -328,14 +382,13 @@ export const usuariosController = {
             correo,
             sede_id,
             departamento_id,
-            rdpfis,    // NUEVO CAMPO
-            rdpfin,    // NUEVO CAMPO
-            descripcion // NUEVO CAMPO
+            rdpfis,    
+            rdpfin,    
+            descripcion 
         } = req.body;
 
-        console.log('🔍 Actualizando usuario ID:', id, 'RDPFis:', rdpfis, 'RDPFin:', rdpfin);
+        console.log('Actualizando usuario ID:', id, 'RDPFis:', rdpfis, 'RDPFin:', rdpfin);
 
-        // Validar que el cargo sea uno de los valores permitidos (si se está actualizando)
         if (cargo && !CARGOS_PERMITIDOS.includes(cargo)) {
             return res.status(400).json({ 
                 error: 'Cargo no válido',
@@ -352,7 +405,6 @@ export const usuariosController = {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        // Verificar duplicados excluyendo el usuario actual
         if (correo) {
             const usuarioConCorreo = await prisma.usuarios.findFirst({
                 where: { 
@@ -368,7 +420,6 @@ export const usuariosController = {
             }
         }
 
-        // Verificar duplicados de rdpfis excluyendo el usuario actual
         if (rdpfis) {
             const usuarioConRdpfis = await prisma.usuarios.findFirst({
                 where: { 
@@ -384,7 +435,6 @@ export const usuariosController = {
             }
         }
 
-        // Verificar duplicados de rdpfin excluyendo el usuario actual
         if (rdpfin) {
             const usuarioConRdpfin = await prisma.usuarios.findFirst({
                 where: { 
@@ -407,9 +457,9 @@ export const usuariosController = {
                 apellido: apellido?.trim(),
                 cargo: cargo,
                 correo: correo?.trim(),
-                rdpfis: rdpfis?.trim(),      // NUEVO CAMPO
-                rdpfin: rdpfin?.trim(),      // NUEVO CAMPO
-                descripcion: descripcion?.trim(), // NUEVO CAMPO
+                rdpfis: rdpfis?.trim(),      
+                rdpfin: rdpfin?.trim(),     
+                descripcion: descripcion?.trim(), 
                 sede_id: sede_id ? parseInt(sede_id) : undefined,
                 departamento_id: departamento_id ? parseInt(departamento_id) : undefined
             },
@@ -419,9 +469,9 @@ export const usuariosController = {
                 apellido: true,
                 cargo: true,
                 correo: true,
-                rdpfis: true,      // NUEVO CAMPO
-                rdpfin: true,      // NUEVO CAMPO
-                descripcion: true, // NUEVO CAMPO
+                rdpfis: true,      
+                rdpfin: true,      
+                descripcion: true, 
                 updated_at: true,
                 sede: {
                     select: {
@@ -443,9 +493,8 @@ export const usuariosController = {
             usuario
         });
     } catch (error) {
-        console.error('💥 ERROR en update:', error);
+        console.error('ERROR en update:', error);
         
-        // Manejar errores específicos de Prisma para el Enum
         if (error.code === 'P2000' || error.message.includes('enum')) {
             return res.status(400).json({ 
                 error: 'Cargo no válido',
@@ -461,7 +510,7 @@ export const usuariosController = {
   async destroy(req, res) {
     try {
       const { id } = req.params;
-      console.log(`🗑️ Eliminando usuario ID: ${id}`);
+      console.log(`Eliminando usuario ID: ${id}`);
 
       const usuarioExistente = await prisma.usuarios.findUnique({
         where: { id: parseInt(id) }
@@ -471,7 +520,6 @@ export const usuariosController = {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      // Verificar equipos activos
       const equiposActivos = await prisma.equipo_asignado.count({
         where: { 
           usuarios_id: parseInt(id),
@@ -489,10 +537,10 @@ export const usuariosController = {
         where: { id: parseInt(id) }
       });
 
-      console.log('✅ Usuario eliminado exitosamente');
+      console.log('Usuario eliminado exitosamente');
       res.json({ message: 'Usuario eliminado exitosamente.' });
     } catch (error) {
-      console.error('💥 ERROR en destroy:', error);
+      console.error('ERROR en destroy:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -538,7 +586,7 @@ export const usuariosController = {
 
       res.json(usuariosConCount);
     } catch (error) {
-      console.error('💥 ERROR en getBySede:', error);
+      console.error('ERROR en getBySede:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -584,7 +632,7 @@ export const usuariosController = {
 
       res.json(usuariosConCount);
     } catch (error) {
-      console.error('💥 ERROR en getByDepartamento:', error);
+      console.error('ERROR en getByDepartamento:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -604,9 +652,9 @@ export const usuariosController = {
             { apellido: { contains: query, mode: 'insensitive' } },
             { cargo: { contains: query, mode: 'insensitive' } },
             { correo: { contains: query, mode: 'insensitive' } },
-            { rdpfis: { contains: query, mode: 'insensitive' } },  // CAMBIO: rdp → rdpfis
-            { rdpfin: { contains: query, mode: 'insensitive' } },  // NUEVO CAMPO
-            { descripcion: { contains: query, mode: 'insensitive' } } // NUEVO CAMPO
+            { rdpfis: { contains: query, mode: 'insensitive' } },  
+            { rdpfin: { contains: query, mode: 'insensitive' } }, 
+            { descripcion: { contains: query, mode: 'insensitive' } } 
           ]
         },
         include: {
@@ -646,7 +694,7 @@ export const usuariosController = {
 
       res.json(usuariosConCount);
     } catch (error) {
-      console.error('💥 ERROR en search:', error);
+      console.error('ERROR en search:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -715,7 +763,7 @@ export const usuariosController = {
         usuarios_por_departamento: usuariosPorDepartamentoConNombre
       });
     } catch (error) {
-      console.error('💥 ERROR en getEstadisticas:', error);
+      console.error('ERROR en getEstadisticas:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -729,9 +777,9 @@ export const usuariosController = {
           apellido: true,
           cargo: true,
           correo: true,
-          rdpfis: true,      // CAMBIO: rdp → rdpfis
-          rdpfin: true,      // NUEVO CAMPO
-          descripcion: true, // NUEVO CAMPO
+          rdpfis: true,      
+          rdpfin: true,      
+          descripcion: true, 
           sede: {
             select: {
               id: true,
@@ -964,11 +1012,11 @@ export const usuariosController = {
             orderBy: { nombre: 'asc' }
         });
 
-        console.log(`✅ ${usuarios.length} usuarios cargados para select`);
+        console.log(`${usuarios.length} usuarios cargados para select`);
         res.json(usuarios);
         
     } catch (error) {
-        console.error('💥 ERROR en usuariosParaSelect:', error);
+        console.error('ERROR en usuariosParaSelect:', error);
         res.status(500).json({ 
             error: 'Error al cargar usuarios',
             message: error.message

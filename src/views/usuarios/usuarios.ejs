@@ -520,22 +520,35 @@
                     </div>
                     <div class="card-body">
                         <!-- Filtros -->
-                        <div class="row mb-4 g-2">
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Nombre ..." id="searchName">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Cargo..." id="searchCargo">
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por Sede o Departamento..." id="searchSede">
-                            </div>
-                            <div class="col-md-3 mt-2">
-                                <button class="btn btn-sm me-2" id="resetFilters" style="float:right; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
-                                </button>
-                            </div>
-                        </div>
+                       <div class="row mb-4 g-2">
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar por nombre..." id="searchName">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar por cargo..." id="searchCargo">
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-building"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar por sede o departamento..." id="searchSede">
+        </div>
+    </div>
+ 
+    <div class="col-md-3">
+        <div class="d-flex justify-content-between align-items-center">
+           
+            <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
+            </button>
+        </div>
+    </div>
+</div>
 
                         <!-- Tabla de Usuarios -->
                         <div class="table-responsive">
@@ -864,29 +877,51 @@
             inicializarSelectsCargo();
         });
         
-        async function cargarUsuarios(page = 1) {
-            try {
-                currentPage = page;
-                const response = await fetch(`/api/usuarios?page=${page}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar usuarios');
-                }
+  let filtrosActuales = {
+    nombre: '',
+    cargo: '',
+    sede: '',
+    rdp: ''
+};
 
-                const data = await response.json();
-                
-                usuarios = data.usuarios || [];
-                totalPages = data.pagination?.total || 1;
-                totalRecords = data.pagination?.totalRecords || 0;
-                
-                renderizarUsuarios();
-                renderizarPaginacion();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los usuarios');
-            }
+// Función para cargar usuarios con filtros
+async function cargarUsuarios(page = 1, filtros = {}) {
+    try {
+        currentPage = page;
+        
+        // Construir query string con filtros
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: '10'
+        });
+        
+        // Agregar filtros si existen
+        if (filtros.nombre) params.append('nombre', filtros.nombre);
+        if (filtros.cargo) params.append('cargo', filtros.cargo);
+        if (filtros.sede) params.append('sede', filtros.sede);
+        if (filtros.rdp) params.append('rdp', filtros.rdp);
+        
+        const response = await fetch(`/api/usuarios?${params.toString()}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar usuarios');
         }
+
+        const data = await response.json();
+        
+        usuarios = data.usuarios || [];
+        totalPages = data.pagination?.total || 1;
+        totalRecords = data.pagination?.totalRecords || 0;
+        
+        renderizarUsuarios();
+        renderizarPaginacion();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar los usuarios');
+    }
+}
+
 
         function debugRDP() {
     console.log('=== DEBUG RDP ===');
@@ -1190,38 +1225,37 @@ async function cargarDepartamentos() {
     }
 }
 
-        // Renderizar paginación
-        function renderizarPaginacion() {
-            const pagination = document.getElementById('paginationContainer');
-            pagination.innerHTML = '';
+function renderizarPaginacion() {
+    const pagination = document.getElementById('paginationContainer');
+    pagination.innerHTML = '';
 
-            const prevLi = document.createElement('li');
-            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-            prevLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage - 1})" aria-label="Anterior">
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-            `;
-            pagination.appendChild(prevLi);
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    `;
+    pagination.appendChild(prevLi);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageLi = document.createElement('li');
-                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                pageLi.innerHTML = `
-                    <a class="page-link" href="#" onclick="cargarUsuarios(${i})">${i}</a>
-                `;
-                pagination.appendChild(pageLi);
-            }
+    for (let i = 1; i <= totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cargarUsuarios(${i}, filtrosActuales)">${i}</a>
+        `;
+        pagination.appendChild(pageLi);
+    }
 
-            const nextLi = document.createElement('li');
-            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-            nextLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage + 1})" aria-label="Siguiente">
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            `;
-            pagination.appendChild(nextLi);
-        }
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `
+        <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    `;
+    pagination.appendChild(nextLi);
+}
 
             //  TEMA 
     function applySavedTheme() {
@@ -1359,16 +1393,16 @@ let eventosInicializados = false;
 
 function inicializarEventos() {
     if (eventosInicializados) {
-        console.log('⚠️ Eventos ya inicializados, omitiendo...');
+        console.log('Eventos ya inicializados, omitiendo...');
         return;
     }
     
-    console.log('🔄 Inicializando eventos...');
+    console.log('Inicializando eventos...');
     eventosInicializados = true;
 
     document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        console.log('📝 Evento submit del formulario crear capturado');
+        console.log('Evento submit del formulario crear capturado');
         crearUsuario();
     });
 
@@ -1384,13 +1418,25 @@ function inicializarEventos() {
     const searchRDP = document.getElementById('searchRDP');
     const resetFilters = document.getElementById('resetFilters');
 
-    if (searchName) searchName.addEventListener('input', aplicarFiltros);
-    if (searchCargo) searchCargo.addEventListener('input', aplicarFiltros);
-    if (searchSede) searchSede.addEventListener('input', aplicarFiltros);
-    if (searchRDP) searchRDP.addEventListener('input', aplicarFiltros);
+    if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
+    if (searchCargo) searchCargo.addEventListener('input', debounce(aplicarFiltros, 500));
+    if (searchSede) searchSede.addEventListener('input', debounce(aplicarFiltros, 500));
+    if (searchRDP) searchRDP.addEventListener('input', debounce(aplicarFiltros, 500));
     if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
 
-    console.log('✅ Todos los eventos inicializados correctamente');
+    console.log('Todos los eventos inicializados correctamente');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
     // Funciones CRUD
@@ -1398,7 +1444,7 @@ let creandoUsuario = false;
 
 async function crearUsuario() {
     if (creandoUsuario) {
-        console.log('🚫 Ya se está creando un usuario, ignorando...');
+        console.log('Ya se está creando un usuario, ignorando...');
         return;
     }
     
@@ -1737,66 +1783,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Funciones de filtrado
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros...');
+    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
     
-    const nameFilter = document.getElementById('searchName').value.toLowerCase().trim();
-    const cargoFilter = document.getElementById('searchCargo').value.toLowerCase().trim();
-    const sedeFilter = document.getElementById('searchSede').value.toLowerCase().trim();
-    const rdpFilter = document.getElementById('searchRDP').value.toLowerCase().trim();
+    // Actualizar filtros actuales
+    filtrosActuales = {
+        nombre: document.getElementById('searchName').value.toLowerCase().trim(),
+        cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
+        sede: document.getElementById('searchSede').value.toLowerCase().trim(),
+        rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
+    };
+    
+    console.log('Filtros activos:', filtrosActuales);
+    
+    // Recargar usuarios desde el servidor con los filtros
+    cargarUsuarios(1, filtrosActuales);
+}
 
-    console.log('Filtros activos:', {
-        nombre: nameFilter,
-        cargo: cargoFilter,
-        sede: sedeFilter,
-        rdp: rdpFilter
-    });
+function mostrarCargaFiltros() {
+    const tbody = document.getElementById('usuariosTableBody');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="8" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Buscando...</span>
+                </div>
+                <p class="text-muted mt-2 mb-0">Buscando usuarios...</p>
+            </td>
+        </tr>
+    `;
+}
 
-    const rows = document.querySelectorAll('#usuariosTableBody tr');
-    let visibleCount = 0;
-
-    rows.forEach(row => {
-        if (row.id === 'loadingRow' || row.cells.length < 7) {
-            return;
-        }
-
-        try {
-            const name = row.querySelector('td:nth-child(2) .fw-bold')?.textContent?.toLowerCase() || '';
-            const cargo = row.querySelector('td:nth-child(3) .badge')?.textContent?.toLowerCase() || '';
-            const sedeDepto = row.querySelector('td:nth-child(6)')?.textContent?.toLowerCase() || '';
-            const rdp = row.querySelector('td:nth-child(5)')?.textContent?.toLowerCase() || '';
-
-            const nameMatch = !nameFilter || name.includes(nameFilter);
-            const cargoMatch = !cargoFilter || cargo.includes(cargoFilter);
-            const sedeMatch = !sedeFilter || sedeDepto.includes(sedeFilter);
-            const rdpMatch = !rdpFilter || rdp.includes(rdpFilter);
-
-            if (nameMatch && cargoMatch && sedeMatch && rdpMatch) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        } catch (error) {
-            console.error('Error procesando fila:', error);
-            row.style.display = 'none';
-        }
-    });
-
-    const resultCount = document.getElementById('resultCount');
-    if (resultCount) {
-        if (visibleCount === 0 && (nameFilter || cargoFilter || sedeFilter || rdpFilter)) {
-            resultCount.innerHTML = `
-                <span class="text-warning">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    No se encontraron usuarios con los filtros aplicados
-                </span>
-            `;
-        } else {
-            resultCount.textContent = `Mostrando ${visibleCount} de ${totalRecords} usuarios`;
-        }
-    }
-
-    console.log(`✅ Filtros aplicados: ${visibleCount} usuarios visibles`);
+function aplicarFiltros() {
+    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
+    
+    mostrarCargaFiltros();
+    
+    filtrosActuales = {
+        nombre: document.getElementById('searchName').value.toLowerCase().trim(),
+        cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
+        sede: document.getElementById('searchSede').value.toLowerCase().trim(),
+        rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
+    };
+    
+    console.log('Filtros activos:', filtrosActuales);
+    
+    cargarUsuarios(1, filtrosActuales);
 }
 
 function resetFiltros() {
@@ -1805,25 +1836,20 @@ function resetFiltros() {
     document.getElementById('searchName').value = '';
     document.getElementById('searchCargo').value = '';
     document.getElementById('searchSede').value = '';
-    document.getElementById('searchRDP').value = '';
+    if (document.getElementById('searchRDP')) {
+        document.getElementById('searchRDP').value = '';
+    }
     
-    aplicarFiltros();
+    filtrosActuales = {
+        nombre: '',
+        cargo: '',
+        sede: '',
+        rdp: ''
+    };
     
-    const toast = document.createElement('div');
-    toast.className = 'position-fixed bottom-0 end-0 p-3';
-    toast.style.zIndex = '11';
-    toast.innerHTML = `
-        <div class="toast show" role="alert">
-            <div class="toast-header bg-success text-white">
-                <i class="bi bi-check-circle me-2"></i>
-                <strong class="me-auto">Filtros limpiados</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">
-                Se muestran todos los usuarios nuevamente.
-            </div>
-        </div>
-    `;
+    cargarUsuarios(1);
+    
+ 
     
     document.body.appendChild(toast);
     

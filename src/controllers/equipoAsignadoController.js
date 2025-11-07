@@ -4,71 +4,131 @@ import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 export const equipoAsignadoController = {
-  async index(req, res) {
+async index(req, res) {
     try {
-      const equiposAsignados = await prisma.equipo_asignado.findMany({
-        include: {
-          usuarios: {
-            include: {
-              sede: true,
-              departamento: true
-            }
-          },
-          usuario: true,
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          }
-        },
-        orderBy: { id: 'asc' }
-      });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
 
-      console.log('🔍 Equipos asignados encontrados:', equiposAsignados.length);
-      
-      // Formatear la respuesta para el frontend - USAR CEREAL_EQUIPO
-      const response = equiposAsignados.map(asignacion => ({
-        id: asignacion.id,
-        usuarios_id: asignacion.usuarios_id,
-        stock_equipos_id: asignacion.stock_equipos_id,
-        fecha_asignacion: asignacion.fecha_asignacion,
-        fecha_devolucion: asignacion.fecha_devolucion,
-        ip_equipo: asignacion.ip_equipo,
-        numero_serie: asignacion.cereal_equipo, // CAMBIAR A cereal_equipo
-        observaciones: asignacion.observaciones,
-        estado: asignacion.estado,
-        created_at: asignacion.created_at,
-        updated_at: asignacion.updated_at,
-        // Relaciones formateadas correctamente
-        usuarioAsignado: asignacion.usuarios ? {
-          id: asignacion.usuarios.id,
-          nombre: asignacion.usuarios.nombre,
-          apellido: asignacion.usuarios.apellido,
-          cargo: asignacion.usuarios.cargo,
-          correo: asignacion.usuarios.correo,
-          sede: asignacion.usuarios.sede,
-          departamento: asignacion.usuarios.departamento
-        } : null,
-        stockEquipo: asignacion.stock_equipos ? {
-          id: asignacion.stock_equipos.id,
-          marca: asignacion.stock_equipos.marca,
-          modelo: asignacion.stock_equipos.modelo,
-          tipo_equipo: asignacion.stock_equipos.tipo_equipo
-        } : null,
-        usuarioAsignador: asignacion.usuario ? {
-          id: asignacion.usuario.id,
-          name: asignacion.usuario.name,
-          email: asignacion.usuario.email
-        } : null
-      }));
+        // Obtener filtros de la query string
+        const { usuario, equipo, estado } = req.query;
+        
+        console.log('🔍 Filtros recibidos en equipos asignados:', { usuario, equipo, estado });
 
-      res.json(response);
+        // Construir objeto where para Prisma
+        let whereClause = {};
+
+        // Filtro por usuario (nombre o apellido)
+        if (usuario) {
+            whereClause.usuarios = {
+                OR: [
+                    { nombre: { contains: usuario, mode: 'insensitive' } },
+                    { apellido: { contains: usuario, mode: 'insensitive' } }
+                ]
+            };
+        }
+
+        // Filtro por equipo (marca o modelo)
+        if (equipo) {
+            whereClause.stock_equipos = {
+                OR: [
+                    { marca: { contains: equipo, mode: 'insensitive' } },
+                    { modelo: { contains: equipo, mode: 'insensitive' } }
+                ]
+            };
+        }
+
+        // Filtro por estado
+        if (estado) {
+            whereClause.estado = estado;
+        }
+
+        console.log('📊 Where clause para equipos asignados:', JSON.stringify(whereClause, null, 2));
+
+        // Contar total de registros con filtros
+        const total = await prisma.equipo_asignado.count({
+            where: whereClause
+        });
+
+        console.log(`📦 Total de asignaciones con filtros: ${total}`);
+
+        // Obtener asignaciones con filtros y paginación
+        let equiposAsignados = [];
+        if (total > 0) {
+            equiposAsignados = await prisma.equipo_asignado.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                include: {
+                    usuarios: {
+                        include: {
+                            sede: true,
+                            departamento: true
+                        }
+                    },
+                    usuario: true,
+                    stock_equipos: {
+                        include: {
+                            tipo_equipo: true
+                        }
+                    }
+                },
+                orderBy: { id: 'asc' }
+            });
+        }
+
+        console.log('🔍 Equipos asignados encontrados:', equiposAsignados.length);
+        
+        // Formatear la respuesta para el frontend - USAR CEREAL_EQUIPO
+        const response = equiposAsignados.map(asignacion => ({
+            id: asignacion.id,
+            usuarios_id: asignacion.usuarios_id,
+            stock_equipos_id: asignacion.stock_equipos_id,
+            fecha_asignacion: asignacion.fecha_asignacion,
+            fecha_devolucion: asignacion.fecha_devolucion,
+            ip_equipo: asignacion.ip_equipo,
+            numero_serie: asignacion.cereal_equipo, // CAMBIAR A cereal_equipo
+            observaciones: asignacion.observaciones,
+            estado: asignacion.estado,
+            created_at: asignacion.created_at,
+            updated_at: asignacion.updated_at,
+            // Relaciones formateadas correctamente
+            usuarioAsignado: asignacion.usuarios ? {
+                id: asignacion.usuarios.id,
+                nombre: asignacion.usuarios.nombre,
+                apellido: asignacion.usuarios.apellido,
+                cargo: asignacion.usuarios.cargo,
+                correo: asignacion.usuarios.correo,
+                sede: asignacion.usuarios.sede,
+                departamento: asignacion.usuarios.departamento
+            } : null,
+            stockEquipo: asignacion.stock_equipos ? {
+                id: asignacion.stock_equipos.id,
+                marca: asignacion.stock_equipos.marca,
+                modelo: asignacion.stock_equipos.modelo,
+                tipo_equipo: asignacion.stock_equipos.tipo_equipo
+            } : null,
+            usuarioAsignador: asignacion.usuario ? {
+                id: asignacion.usuario.id,
+                name: asignacion.usuario.name,
+                email: asignacion.usuario.email
+            } : null
+        }));
+
+        res.json({
+            equiposAsignados: response,
+            pagination: {
+                current: page,
+                total: Math.ceil(total / limit),
+                totalRecords: total
+            }
+        });
 
     } catch (error) {
-      console.error('Error en index:', error);
-      res.status(500).json({ error: error.message });
+        console.error('Error en index:', error);
+        res.status(500).json({ error: error.message });
     }
-  },
+},
 
   async store(req, res) {
     try {

@@ -6,45 +6,85 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 export const stockEquiposController = {
   async index(req, res) {
     try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = 10;
-      const skip = (page - 1) * limit;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
 
-      const stockEquipos = await prisma.stock_equipos.findMany({
-        skip,
-        take: limit,
-        include: {
-          tipo_equipo: true
-        },
-        orderBy: { id: 'asc' }
-      });
+        const { nombre, tipo, stock } = req.query;
+        
+        console.log('Filtros recibidos en stock:', { nombre, tipo, stock });
 
-      const total = await prisma.stock_equipos.count();
-      
-      const stockBajoCount = stockEquipos.filter(equipo => 
-        equipo.cantidad_disponible < (equipo.minimo_stock || 0)
-      ).length;
+        let whereClause = {};
 
-      const tipo_equipo = await prisma.tipo_equipo.findMany();
-
-      res.json({
-        stockEquipos,
-        tipo_equipo,
-        stockBajoCount,
-        pagination: {
-          current: page,
-          total: Math.ceil(total / limit),
-          totalRecords: total
+        if (nombre) {
+            whereClause.OR = [
+                { marca: { contains: nombre, mode: 'insensitive' } },
+                { modelo: { contains: nombre, mode: 'insensitive' } },
+                { descripcion: { contains: nombre, mode: 'insensitive' } }
+            ];
         }
-      });
+
+        if (tipo) {
+            whereClause.tipo_equipo_id = parseInt(tipo);
+        }
+
+        if (stock) {
+            if (stock === 'bajo') {
+                whereClause.AND = [
+                    ...(whereClause.AND || []),
+                    { cantidad_disponible: { lte: 5 } },
+                    { cantidad_disponible: { gt: 0 } }
+                ];
+            } else if (stock === 'critico') {
+                whereClause.cantidad_disponible = 0;
+            }
+        }
+
+        console.log('Where clause para stock:', JSON.stringify(whereClause, null, 2));
+
+        const total = await prisma.stock_equipos.count({
+            where: whereClause
+        });
+
+        console.log(`Total de equipos con filtros: ${total}`);
+
+        let stockEquipos = [];
+        if (total > 0) {
+            stockEquipos = await prisma.stock_equipos.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                include: {
+                    tipo_equipo: true
+                },
+                orderBy: { id: 'asc' }
+            });
+        }
+
+        const stockBajoCount = stockEquipos.filter(equipo => 
+            equipo.cantidad_disponible < (equipo.minimo_stock || 0)
+        ).length;
+
+        const tipo_equipo = await prisma.tipo_equipo.findMany();
+
+        res.json({
+            stockEquipos,
+            tipo_equipo,
+            stockBajoCount,
+            pagination: {
+                current: page,
+                total: Math.ceil(total / limit),
+                totalRecords: total
+            }
+        });
     } catch (error) {
-      console.error('💥 ERROR en index stock:', error);
-      res.status(500).json({ 
-        error: 'Error al cargar equipos',
-        message: error.message
-      });
+        console.error('ERROR en index stock:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar equipos',
+            message: error.message
+        });
     }
-  },
+},
 
   async store(req, res) {
     try {
