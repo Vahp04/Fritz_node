@@ -1,4 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import PuppeteerPDF from '../services/puppeteerPDF.js';
+import { renderTemplate } from '../helpers/renderHelper.js';
+
 const prisma = new PrismaClient();
 
 export const consumibleController = {
@@ -110,12 +113,10 @@ export const consumibleController = {
       const sedeId = parseInt(sede_id);
       const departamentoId = parseInt(departamento_id);
 
-      // Validaciones básicas
       if (!equipos || !Array.isArray(equipos) || equipos.length === 0) {
         return res.status(400).json({ error: 'Debe seleccionar al menos un equipo' });
       }
 
-      // Validar que la sede existe
       const sede = await prisma.sedes.findUnique({
         where: { id: sedeId }
       });
@@ -124,7 +125,6 @@ export const consumibleController = {
         return res.status(404).json({ error: 'Sede no encontrada' });
       }
 
-      // Validar que el departamento existe
       const departamento = await prisma.departamentos.findUnique({
         where: { id: departamentoId }
       });
@@ -134,7 +134,6 @@ export const consumibleController = {
       }
 
       const resultado = await prisma.$transaction(async (tx) => {
-        // Validar stock disponible para todos los equipos primero
         for (const equipo of equipos) {
           const stockEquiposId = parseInt(equipo.stock_equipos_id);
           const cantidadValue = parseInt(equipo.cantidad);
@@ -152,7 +151,6 @@ export const consumibleController = {
           }
         }
 
-        // Crear UN SOLO consumible
         const consumible = await tx.consumible.create({
           data: {
             nombre: nombre,
@@ -163,12 +161,10 @@ export const consumibleController = {
           }
         });
 
-        // Crear las relaciones con los equipos
         for (const equipo of equipos) {
           const stockEquiposId = parseInt(equipo.stock_equipos_id);
           const cantidadValue = parseInt(equipo.cantidad);
 
-          // Crear relación consumible_equipo
           await tx.consumibleEquipo.create({
             data: {
               consumible_id: consumible.id,
@@ -177,7 +173,6 @@ export const consumibleController = {
             }
           });
 
-          // Restar del stock disponible
           await tx.stock_equipos.update({
             where: { id: stockEquiposId },
             data: {
@@ -186,7 +181,6 @@ export const consumibleController = {
           });
         }
 
-        // Obtener el consumible creado con toda la información
         const consumibleCompleto = await tx.consumible.findUnique({
           where: { id: consumible.id },
           include: {
@@ -250,15 +244,12 @@ export const consumibleController = {
       }
 
       const resultado = await prisma.$transaction(async (tx) => {
-        // Si se están actualizando los equipos
         if (equipos && Array.isArray(equipos)) {
-          // Crear map de equipos actuales para comparación
           const equiposActualesMap = new Map();
           consumibleActual.consumible_equipos.forEach(ce => {
             equiposActualesMap.set(ce.stock_equipos_id, ce);
           });
 
-          // Crear map de equipos nuevos
           const equiposNuevosMap = new Map();
           equipos.forEach(eq => {
             equiposNuevosMap.set(parseInt(eq.stock_equipos_id), {
@@ -267,10 +258,8 @@ export const consumibleController = {
             });
           });
 
-          // Procesar equipos eliminados
           for (const [stockEquiposId, equipoActual] of equiposActualesMap) {
             if (!equiposNuevosMap.has(stockEquiposId)) {
-              // Equipo fue eliminado - devolver stock
               await tx.stock_equipos.update({
                 where: { id: stockEquiposId },
                 data: {
@@ -278,7 +267,6 @@ export const consumibleController = {
                 }
               });
 
-              // Eliminar relación
               await tx.consumibleEquipo.deleteMany({
                 where: {
                   consumible_id: consumibleId,
@@ -288,12 +276,10 @@ export const consumibleController = {
             }
           }
 
-          // Procesar equipos nuevos y modificados
           for (const [stockEquiposId, equipoNuevo] of equiposNuevosMap) {
             const equipoActual = equiposActualesMap.get(stockEquiposId);
             const cantidadNueva = equipoNuevo.cantidad;
 
-            // Validar stock disponible
             const stockEquipo = await tx.stock_equipos.findUnique({
               where: { id: stockEquiposId }
             });
@@ -303,19 +289,16 @@ export const consumibleController = {
             }
 
             if (equipoActual) {
-              // Equipo existente - verificar cambios en cantidad
               const cantidadAnterior = equipoActual.cantidad;
               
               if (cantidadNueva !== cantidadAnterior) {
                 const diferencia = cantidadNueva - cantidadAnterior;
                 
                 if (diferencia > 0) {
-                  // Aumento de cantidad
                   if (stockEquipo.cantidad_disponible < diferencia) {
                     throw new Error(`Stock insuficiente para ${stockEquipo.marca} ${stockEquipo.modelo}. Disponible: ${stockEquipo.cantidad_disponible}, Necesario: ${diferencia}`);
                   }
                   
-                  // Restar diferencia del stock
                   await tx.stock_equipos.update({
                     where: { id: stockEquiposId },
                     data: {
@@ -323,7 +306,6 @@ export const consumibleController = {
                     }
                   });
                 } else {
-                  // Disminución de cantidad - devolver diferencia
                   const diferenciaAbs = Math.abs(diferencia);
                   await tx.stock_equipos.update({
                     where: { id: stockEquiposId },
@@ -333,7 +315,6 @@ export const consumibleController = {
                   });
                 }
 
-                // Actualizar cantidad en la relación
                 await tx.consumibleEquipo.updateMany({
                   where: {
                     consumible_id: consumibleId,
@@ -345,12 +326,10 @@ export const consumibleController = {
                 });
               }
             } else {
-              // Equipo nuevo - validar stock y crear relación
               if (stockEquipo.cantidad_disponible < cantidadNueva) {
                 throw new Error(`Stock insuficiente para ${stockEquipo.marca} ${stockEquipo.modelo}. Disponible: ${stockEquipo.cantidad_disponible}, Solicitado: ${cantidadNueva}`);
               }
 
-              // Crear nueva relación
               await tx.consumibleEquipo.create({
                 data: {
                   consumible_id: consumibleId,
@@ -359,7 +338,6 @@ export const consumibleController = {
                 }
               });
 
-              // Restar del stock disponible
               await tx.stock_equipos.update({
                 where: { id: stockEquiposId },
                 data: {
@@ -370,7 +348,6 @@ export const consumibleController = {
           }
         }
 
-        // Actualizar el consumible
         const consumibleActualizado = await tx.consumible.update({
           where: { id: consumibleId },
           data: {
@@ -436,7 +413,6 @@ export const consumibleController = {
           });
         }*/
 
-        // Eliminar el consumible (las relaciones se eliminarán en cascada)
         await tx.consumible.delete({
           where: { id: parseInt(id) }
         });
@@ -563,7 +539,6 @@ export const consumibleController = {
         }
       });
 
-      // Obtener nombres de sedes y departamentos
       const sedes = await prisma.sedes.findMany({
         select: { id: true, nombre: true }
       });
@@ -626,5 +601,133 @@ export const consumibleController = {
       console.error('Error en consumiblesRecientes:', error);
       res.status(500).json({ error: error.message });
     }
+  },
+
+
+async generarPDFOrdenSalida(req, res) {
+  try {
+    const { consumible_id, sede_origen_id } = req.params;
+    const consumibleId = parseInt(consumible_id);
+    const sedeOrigenId = parseInt(sede_origen_id);
+
+    console.log(`📊 Generando PDF de Orden de Salida para consumible ID: ${consumibleId}, sede origen: ${sedeOrigenId}`);
+
+    if (isNaN(consumibleId) || consumibleId <= 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'ID de consumible no válido' }));
+    }
+
+    if (isNaN(sedeOrigenId) || sedeOrigenId <= 0) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'ID de sede origen no válido' }));
+    }
+
+    const consumible = await prisma.consumible.findUnique({
+      where: { id: consumibleId },
+      include: {
+        consumible_equipos: {
+          include: {
+            stock_equipos: {
+              include: {
+                tipo_equipo: true
+              }
+            }
+          }
+        },
+        sede: true, 
+        departamento: true
+      }
+    });
+
+    if (!consumible) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Consumible no encontrado' }));
+    }
+
+    const sedeOrigen = await prisma.sedes.findUnique({
+      where: { id: sedeOrigenId }
+    });
+
+    if (!sedeOrigen) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Sede origen no encontrada' }));
+    }
+
+    console.log(`Consumible encontrado: ${consumible.nombre}`);
+    console.log(`Sede origen: ${sedeOrigen.nombre}`);
+    console.log(`Sede destino: ${consumible.sede.nombre}`);
+
+    const data = {
+      titulo: 'Orden de Salida',
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }),
+      consumible: consumible,
+      sedeOrigen: sedeOrigen,
+      sedeDestino: consumible.sede, 
+      equipos: consumible.consumible_equipos,
+      totalUnidades: consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0)
+    };
+
+    console.log(' Renderizando template de orden de salida...');
+    
+    // Renderizar el template HTML
+    const html = await renderTemplate(req.app, 'pdfs/orden-salida-consumible', data);
+    
+    console.log('Template renderizado exitosamente');
+    console.log('Longitud del HTML:', html.length);
+
+    console.log(' Generando PDF...');
+    
+    // Configuración para Puppeteer - A4 horizontal
+    const pdfOptions = {
+      format: 'Letter',
+      landscape: true,
+      printBackground: true,
+      margin: {
+        top: '10mm',
+        right: '10mm',
+        bottom: '10mm',
+        left: '10mm'
+      }
+    };
+
+    // Generar PDF
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('✅ PDF generado exitosamente');
+    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+
+    // **SOLUCIÓN: Usar writeHead para headers correctos**
+    const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
+    
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${filename}"`,
+      'Content-Length': pdfBuffer.length,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    console.log(`✅ Enviando PDF para abrir en navegador`);
+    
+    // Enviar PDF
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('❌ Error generando PDF de orden de salida:', error);
+    
+    // Enviar error como JSON
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message 
+    }));
   }
+}
+
 };

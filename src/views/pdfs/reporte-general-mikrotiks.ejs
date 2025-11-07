@@ -6,7 +6,7 @@
     <title><%= titulo %></title>
     <style>
         @page {
-            size: A4 landscape;
+            size: Letter landscape;
             margin: 15mm 10mm;
         }
         
@@ -187,22 +187,12 @@
             line-height: 1.2;
         }
         
-        .ip-address {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            background-color: #4a7096;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 7px;
-        }
+       
         
-        /* Mejoras para tablas grandes */
         .table-container {
             overflow: hidden;
         }
         
-        /* Column widths específicas para optimizar espacio */
         .col-equipo { width: 100px; }
         .col-descripcion { width: 90px; }
         .col-ip { width: 70px; }
@@ -306,7 +296,7 @@
                                 <% if (mikrotik.stock_equipos) { %>
                                     <strong><%= mikrotik.stock_equipos.marca %>
                                     <%= mikrotik.stock_equipos.modelo %></strong><br>
-                                    <span style="font-size: 7px; color: #666;">
+                                    <span style="font-size: 10px; color: #666;">
                                         <%= mikrotik.stock_equipos.tipo_equipo.nombre %>
                                     </span>
                                 <% } else { %>
@@ -314,26 +304,26 @@
                                 <% } %>
                             </div>
                         </td>
-                        <td class="col-descripcion" style="font-size: 9px;">
+                        <td class="col-descripcion" style="font-size: 10px;">
                             <%= mikrotik.descripcion || 'Mikrotik' %>
                         </td>
-                        <td class="col-ip" style="font-size: 9px;">
+                        <td class="col-ip" style="font-size: 10px;">
                             <% if (mikrotik.ip_mikrotik) { %>
                                 <span class="ip-address"><%= mikrotik.ip_mikrotik %></span>
                             <% } else { %>
                                 <em>-</em>
                             <% } %>
                         </td>
-                        <td class="col-serial" style="font-size: 9px;">
+                        <td class="col-serial" style="font-size: 10px;">
                             <%= mikrotik.cereal_mikrotik || '-' %>
                         </td>
-                        <td class="col-sede" style="font-size: 9px;">
+                        <td class="col-sede" style="font-size: 10px;">
                             <%= mikrotik.sede ? mikrotik.sede.nombre : 'Sin sede' %>
                         </td>
-                        <td class="col-ubicacion" style="font-size: 9px;">
+                        <td class="col-ubicacion" style="font-size: 10px;">
                             <%= mikrotik.ubicacion %>
                         </td>
-                        <td class="col-estado" style="font-size: 9px;">
+                        <td class="col-estado" style="font-size: 10px;">
                             <span class="status-badge status-<%= mikrotik.estado %>">
                                 <%= mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1) %>
                             </span>

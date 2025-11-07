@@ -967,7 +967,7 @@ async reactivar(req, res) {
         
         console.log('🖨️ Generando PDF...');
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: true
         });
 
@@ -1131,7 +1131,7 @@ async verPdfAsignaciones(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: true
         });
 
@@ -1259,7 +1259,7 @@ async generarPdfPorUsuario(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: false
         });
 
@@ -1388,7 +1388,7 @@ async verPdfPorUsuario(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: false
         });
 

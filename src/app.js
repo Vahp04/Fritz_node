@@ -107,6 +107,10 @@ app.get("/health", (req, res) => {
       impresoras: [
         "/reportes/general-pd",
         '/reportes/sede-pdf/:sedeId?'
+      ],
+
+      comsumibles:[
+        "/pdfs/orden-salida-consumible"
       ]
     }
   });
@@ -166,7 +170,7 @@ app.use('/api/*', (req, res) => {
       "/api/pdf/asignaciones",
       "/api/pdf/asignaciones/ver",
       "/api/pdf/asignaciones/usuario/:usuarioId",        
-      "/api/pdf/asignaciones/usuario/:usuarioId/ver"    
+      "/api/pdf/asignaciones/usuario/:usuarioId/ver",    
     ]
   });
 });
@@ -202,7 +206,7 @@ app.use((error, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? error : {}
   });
 });
-console.log('📋 Rutas PDF registradas:');
+console.log('Rutas PDF registradas:');
 pdfRoutes.stack.forEach(layer => {
   if (layer.route) {
     const methods = Object.keys(layer.route.methods).map(method => method.toUpperCase()).join(', ');

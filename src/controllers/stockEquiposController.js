@@ -475,7 +475,7 @@ async apiIndex(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/stock', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: true
         });
 
@@ -554,7 +554,7 @@ async apiIndex(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/stock', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+            format: 'Letter',
             landscape: true
         });
 

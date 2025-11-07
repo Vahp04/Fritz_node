@@ -7,7 +7,7 @@
     <style>
         /* Estilos específicos para reporte por sede */
         @page {
-            size: A4 landscape;
+            size: Letter landscape;
             margin: 15mm 10mm;
         }
         
@@ -202,15 +202,7 @@
             line-height: 1.2;
         }
         
-        .ip-address {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            background-color: #4a7096;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-size: 7px;
-        }
+        
         
         /* Column widths optimizadas */
         .col-equipo { width: 100px; }
@@ -311,7 +303,7 @@
             %>
                 <% if (ubicacionChanged && mikrotik.ubicacion) { %>
                 <tr>
-                    <td colspan="6" class="ubicacion-header" style="font-size: 8px;">
+                    <td colspan="6" class="ubicacion-header" style="font-size: 10px;">
                          UBICACIÓN: <%= mikrotik.ubicacion %>
                     </td>
                 </tr>
@@ -331,23 +323,23 @@
                             <% } %>
                         </div>
                     </td>
-                    <td class="col-descripcion" style="font-size: 9px;">
+                    <td class="col-descripcion" style="font-size: 10px;">
                         <%= mikrotik.descripcion || 'Mikrotik' %>
                     </td>
-                    <td class="col-ip" style="font-size: 9px;">
+                    <td class="col-ip" style="font-size: 10px;">
                         <% if (mikrotik.ip_mikrotik) { %>
                             <span class="ip-address"><%= mikrotik.ip_mikrotik %></span>
                         <% } else { %>
                             <em>-</em>
                         <% } %>
                     </td>
-                    <td class="col-serial" >
+                    <td class="col-serial" style="font-size: 10px">
                         <%= mikrotik.cereal_mikrotik || '-' %>
                     </td>
-                    <td class="col-ubicacion" style="font-size: 9px;">
+                    <td class="col-ubicacion" style="font-size: 10px;">
                         <%= mikrotik.ubicacion %>
                     </td>
-                    <td class="col-estado" style="font-size: 9px;">
+                    <td class="col-estado" style="font-size: 10px;">
                         <span class="status-badge status-<%= mikrotik.estado %>">
                             <%= mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1) %>
                         </span>

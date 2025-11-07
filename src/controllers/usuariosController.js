@@ -835,7 +835,7 @@ export const usuariosController = {
       const htmlContent = await renderTemplate(req.app, 'pdfs/usuarios', data);
       
       const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-        format: 'A4',
+        format: 'Letter',
         landscape: false
       });
 
@@ -913,7 +913,7 @@ export const usuariosController = {
 
       const htmlContent = await renderTemplate(req.app, 'pdfs/usuarios', data);
       const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-        format: 'A4',
+        format: 'Letter',
         landscape: false
       });
 

@@ -1020,7 +1020,7 @@ async generarPDFGeneral(req, res) {
     
     // Configuración para Puppeteer
     const pdfOptions = {
-      format: 'A4',
+      format: 'Letter',
       landscape: true,
       printBackground: true,
       margin: {
@@ -1152,7 +1152,7 @@ async generarPDFPorSede(req, res) {
     
     // Configuración para Puppeteer
     const pdfOptions = {
-      format: 'A4',
+      format: 'Letter',
       landscape: true,
       printBackground: true,
       margin: {
