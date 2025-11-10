@@ -971,7 +971,7 @@
         // Cargar tipos de equipo
         async function cargarTipoEquipos() {
             try {
-                const response = await fetch('/api/tipo_equipo');
+                const response = await fetch('/api/tipo_equipo?all=true');
                 
                 if (!response.ok) {
                     throw new Error('Error al cargar tipos de equipo');

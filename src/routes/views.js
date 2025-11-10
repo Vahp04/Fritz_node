@@ -158,20 +158,7 @@ router.get('/equipos-a/pdf', authenticateToken, (req, res) => {
     });
 });
 
-router.get('/pdfs/impresoras-general', authenticateToken, (req, res) => {
-    res.render('pdfs/impresoras-general', {
-        title: 'Reporte General de Impresoras',
-        user: req.user
-    });
-});
 
-router.get('/pdfs/impresoras-sede/:sedeId?', authenticateToken, (req, res) => {
-    res.render('pdfs/impresoras-sede', {
-        title: 'Reporte de Impresoras por Sede',
-        user: req.user,
-        sedeId: req.params.sedeId || null
-    });
-});
 
 // Ruta de logout
 router.post('/logout', (req, res) => {

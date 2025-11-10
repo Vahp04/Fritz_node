@@ -32,7 +32,7 @@ export const stockEquiposController = {
             if (stock === 'bajo') {
                 whereClause.AND = [
                     ...(whereClause.AND || []),
-                    { cantidad_disponible: { lte: 5 } },
+                    { cantidad_disponible: { lte: 3 } },
                     { cantidad_disponible: { gt: 0 } }
                 ];
             } else if (stock === 'critico') {

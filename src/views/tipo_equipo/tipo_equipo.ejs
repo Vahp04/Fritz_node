@@ -244,6 +244,18 @@
         .main-content {
             transition: all 0.3s;
         }
+
+                .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+                .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+    
     </style>
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
@@ -478,6 +490,8 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <div id="paginationContainer" class="mt-3">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -662,141 +676,247 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        // Variables globales
-        let tiposEquipo = [];
+         // Variables globales
+    let tiposEquipo = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let itemsPerPage = 10;
+    let totalItems = 0;
 
-        // Cargar datos al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarTiposEquipo();
-            inicializarEventos();
-        });
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarTiposEquipo();
+        inicializarEventos();
+        actualizarControlesPaginacion();
+    });
 
         // Cargar tipos de equipo
-        async function cargarTiposEquipo() {
-            try {
-                const response = await fetch('/api/tipo_equipo');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar tipos de equipo');
-                }
-
-                tiposEquipo = await response.json();
-                renderizarTiposEquipo();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los tipos de equipo');
+    async function cargarTiposEquipo(page = 1, limit = 10) {
+        try {
+            const loadingRow = document.getElementById('loadingRow');
+            if (loadingRow) {
+                loadingRow.style.display = '';
             }
+
+            const response = await fetch(`/api/tipo_equipo?page=${page}&limit=${limit}`);
+            
+            if (!response.ok) {
+                throw new Error('Error al cargar tipos de equipo');
+            }
+
+            const data = await response.json();
+            
+            // Verificar si la respuesta tiene paginación o es un array simple
+            if (data.tiposEquipo && data.pagination) {
+                // Respuesta con paginación
+                tiposEquipo = data.tiposEquipo;
+                currentPage = data.pagination.currentPage;
+                totalPages = data.pagination.totalPages;
+                itemsPerPage = data.pagination.itemsPerPage;
+                totalItems = data.pagination.totalItems;
+            } else {
+                // Respuesta sin paginación (array simple)
+                tiposEquipo = data;
+                currentPage = 1;
+                totalPages = 1;
+                itemsPerPage = tiposEquipo.length;
+                totalItems = tiposEquipo.length;
+            }
+
+            renderizarTiposEquipo();
+            actualizarControlesPaginacion();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarError('No se pudieron cargar los tipos de equipo');
+        }
+    }
+
+    function renderizarTiposEquipo() {
+        const tbody = document.getElementById('tiposEquipoTableBody');
+        tbody.innerHTML = '';
+
+        if (tiposEquipo.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="bi bi-boxes display-4 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No se encontraron tipos de equipo</p>
+                    </td>
+                </tr>
+            `;
+            return;
         }
 
-        // Renderizar tipos de equipo en la tabla
-        function renderizarTiposEquipo() {
-            const tbody = document.getElementById('tiposEquipoTableBody');
-            tbody.innerHTML = '';
+        tiposEquipo.forEach(tipo => {
+            const row = document.createElement('tr');
+            
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                try {
+                    const date = new Date(dateString);
+                    return isNaN(date.getTime()) ? 'Fecha inválida' : 
+                        date.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
+                } catch (error) {
+                    return 'Fecha inválida';
+                }
+            };
 
-            if (tiposEquipo.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-boxes display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron tipos de equipo</p>
-                        </td>
-                    </tr>
-                `;
-                return;
+            let configuracionHTML = '';
+            if (tipo.requiere_ip) {
+                configuracionHTML += `<span class="badge ip-badge me-1 mb-1" title="Requiere IP">IP</span>`;
             }
-
-            tiposEquipo.forEach(tipo => {
-                const row = document.createElement('tr');
-                
-                const formatDate = (dateString) => {
-                    if (!dateString) return 'N/A';
-                    try {
-                        const date = new Date(dateString);
-                        return isNaN(date.getTime()) ? 'Fecha inválida' : 
-                            date.toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit'
-                            });
-                    } catch (error) {
-                        return 'Fecha inválida';
-                    }
-                };
-
-                let configuracionHTML = '';
-                if (tipo.requiere_ip) {
-                    configuracionHTML += `<span class="badge ip-badge me-1 mb-1" title="Requiere IP">IP</span>`;
-                }
-                if (tipo.requiere_cereal) {
-                    configuracionHTML += `<span class="badge cereal-badge me-1 mb-1" title="Requiere Número de Serie">N° Serie</span>`;
-                }
-                if (!tipo.requiere_ip && !tipo.requiere_cereal) {
-                    configuracionHTML = '<span class="badge bg-secondary">Sin configuraciones</span>';
-                }
-                
-                row.innerHTML = `
-                    <td class="fw-bold">${tipo.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="tipo-equipo-icon me-3">
-                                ${tipo.nombre ? tipo.nombre.charAt(0).toUpperCase() : 'T'}
-                            </div>
-                            <div>
-                                <div class="fw-bold">${tipo.nombre}</div>
-                                <small class="text-muted">ID: ${tipo.id}</small>
-                            </div>
+            if (tipo.requiere_cereal) {
+                configuracionHTML += `<span class="badge cereal-badge me-1 mb-1" title="Requiere Número de Serie">N° Serie</span>`;
+            }
+            if (!tipo.requiere_ip && !tipo.requiere_cereal) {
+                configuracionHTML = '<span class="badge bg-secondary">Sin configuraciones</span>';
+            }
+            
+            row.innerHTML = `
+                <td class="fw-bold">${tipo.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="tipo-equipo-icon me-3">
+                            ${tipo.nombre ? tipo.nombre.charAt(0).toUpperCase() : 'T'}
                         </div>
-                    </td>
-                    <td>
-                        ${tipo.descripcion ? `
-                            <span class="badge description-badge rounded-pill">
-                                <i class="bi bi-card-text me-1"></i>
-                                ${tipo.descripcion.length > 30 ? tipo.descripcion.substring(0, 30) + '...' : tipo.descripcion}
-                            </span>
-                        ` : `
-                            <span class="badge bg-secondary rounded-pill">
-                                <i class="bi bi-card-text me-1"></i>
-                                Sin descripción
-                            </span>
-                        `}
-                    </td>
-                    <td>
-                        <div class="d-flex flex-wrap">
-                            ${configuracionHTML}
+                        <div>
+                            <div class="fw-bold">${tipo.nombre}</div>
+                            <small class="text-muted">ID: ${tipo.id}</small>
                         </div>
-                    </td>
-                    <td>
-                        <span class="badge stock-badge rounded-pill">
-                            <i class="bi bi-box me-1"></i>
-                            ${tipo.stock_count || 0} Equipos
+                    </div>
+                </td>
+                <td>
+                    ${tipo.descripcion ? `
+                        <span class="badge description-badge rounded-pill">
+                            <i class="bi bi-card-text me-1"></i>
+                            ${tipo.descripcion.length > 30 ? tipo.descripcion.substring(0, 30) + '...' : tipo.descripcion}
                         </span>
-                    </td>
-                    <td>
-                        ${formatDate(tipo.createdAt)}
-                    </td>
-                    <td class="table-actions text-center">
-                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewTipoEquipo(${tipo.id})"
-                                title="Ver">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editTipoEquipo(${tipo.id})"
-                                title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteTipoEquipo(${tipo.id}, '${tipo.nombre.replace(/'/g, "\\'")}')"
-                                title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
+                    ` : `
+                        <span class="badge bg-secondary rounded-pill">
+                            <i class="bi bi-card-text me-1"></i>
+                            Sin descripción
+                        </span>
+                    `}
+                </td>
+                <td>
+                    <div class="d-flex flex-wrap">
+                        ${configuracionHTML}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge stock-badge rounded-pill">
+                        <i class="bi bi-box me-1"></i>
+                        ${tipo.stock_count || 0} Equipos
+                    </span>
+                </td>
+                <td>
+                    ${formatDate(tipo.createdAt)}
+                </td>
+                <td class="table-actions text-center">
+                    <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                            onclick="viewTipoEquipo(${tipo.id})"
+                            title="Ver">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                            onclick="editTipoEquipo(${tipo.id})"
+                            title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger action-btn"
+                            onclick="deleteTipoEquipo(${tipo.id}, '${tipo.nombre.replace(/'/g, "\\'")}')"
+                            title="Eliminar">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+        function actualizarControlesPaginacion() {
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (!paginationContainer) return;
+
+        let paginationHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                    Mostrando ${((currentPage - 1) * itemsPerPage) + 1} a 
+                    ${Math.min(currentPage * itemsPerPage, totalItems)} de 
+                    ${totalItems} tipos de equipo
+                </div>
+                <div class="d-flex align-items-center">
+                  
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+        `;
+
+        // Botón anterior
+        paginationHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="cambiarPagina(${currentPage - 1})">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </li>
+        `;
+
+        // Números de página
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="cambiarPagina(${i})">${i}</button>
+                </li>
+            `;
+        }
+
+        // Botón siguiente
+        paginationHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="cambiarPagina(${currentPage + 1})">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </li>
+        `;
+
+        paginationHTML += `
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        `;
+
+        paginationContainer.innerHTML = paginationHTML;
+
+        // Agregar evento al selector de items por página
+        const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
+        if (itemsPerPageSelect) {
+            itemsPerPageSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                cargarTiposEquipo(currentPage, itemsPerPage);
             });
         }
+    }
+
+    // Cambiar página
+    function cambiarPagina(page) {
+        if (page < 1 || page > totalPages || page === currentPage) return;
+        cargarTiposEquipo(page, itemsPerPage);
+    }
 
         //  TEMA 
         function applySavedTheme() {
@@ -874,17 +994,17 @@
         });
 
         // Inicializar eventos
-        function inicializarEventos() {
-            document.getElementById('createTipoEquipoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await crearTipoEquipo();
-            });
+       function inicializarEventos() {
+        document.getElementById('createTipoEquipoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await crearTipoEquipo();
+        });
 
-            document.getElementById('editTipoEquipoForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await actualizarTipoEquipo();
-            });
-        }
+        document.getElementById('editTipoEquipoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await actualizarTipoEquipo();
+        });
+    }
 
         // Funciones CRUD
         async function crearTipoEquipo() {

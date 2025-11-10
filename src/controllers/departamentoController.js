@@ -2,16 +2,49 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const departamentoController = {
- async index(req, res) {
+  async index(req, res) {
     try {
-      const departamentos = await prisma.departamentos.findMany({
-        include: {
-          usuarios: {
-            select: { id: true }
-          }
-        },
-        orderBy: { id: 'asc' }
-      });
+      const { page = 1, limit = 10, all = false } = req.query;
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Si se solicita todos los datos (para otros lugares que usan la API)
+      if (all === 'true') {
+        const departamentos = await prisma.departamentos.findMany({
+          include: {
+            usuarios: {
+              select: { id: true }
+            }
+          },
+          orderBy: { id: 'asc' }
+        });
+
+        const departamentosConCount = departamentos.map(depto => ({
+          id: depto.id,
+          nombre: depto.nombre,
+          createdAt: depto.created_at,  
+          updatedAt: depto.updated_at,  
+          usuarios_count: depto.usuarios.length
+        }));
+
+        return res.json(departamentosConCount);
+      }
+
+      // Paginación normal
+      const [departamentos, totalCount] = await Promise.all([
+        prisma.departamentos.findMany({
+          include: {
+            usuarios: {
+              select: { id: true }
+            }
+          },
+          orderBy: { id: 'asc' },
+          skip: skip,
+          take: limitNum
+        }),
+        prisma.departamentos.count()
+      ]);
 
       const departamentosConCount = departamentos.map(depto => ({
         id: depto.id,
@@ -21,13 +54,24 @@ export const departamentoController = {
         usuarios_count: depto.usuarios.length
       }));
 
-      res.json(departamentosConCount);
+      const totalPages = Math.ceil(totalCount / limitNum);
+
+      res.json({
+        departamentos: departamentosConCount,
+        pagination: {
+          currentPage: pageNum,
+          totalPages: totalPages,
+          totalItems: totalCount,
+          itemsPerPage: limitNum,
+          hasNextPage: pageNum < totalPages,
+          hasPrevPage: pageNum > 1
+        }
+      });
     } catch (error) {
       console.error('Error en index:', error);
       res.status(500).json({ error: error.message });
     }
   },
-
   async store(req, res) {
     try {
       const { nombre } = req.body;

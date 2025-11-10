@@ -1065,7 +1065,7 @@
         // Cargar departamentos
         async function cargarDepartamentos() {
             try {
-                const response = await fetch('/api/departamentos');
+                const response = await fetch('/api/departamentos?all=true');
                 
                 if (!response.ok) {
                     throw new Error('Error al cargar departamentos');

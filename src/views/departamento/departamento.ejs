@@ -215,6 +215,16 @@
             transition: all 0.3s;
         }
         
+                .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+                .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
        
     </style>
 </head>
@@ -269,9 +279,7 @@
                 </div>
             </div>
             
-            <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -279,8 +287,7 @@
                         <span class="sidebar-text">Dashboard</span>
                     </a>
                 </li>
-                
-                <!-- Sección de Gestión -->
+
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -356,8 +363,7 @@
                     </a>
                 </li>
             </ul>
-            
-            <!-- Bottom -->
+        
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -375,7 +381,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -387,7 +392,6 @@
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
                         
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -400,7 +404,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -416,7 +419,6 @@
                     </div>
                 </div>
 
-                <!-- Department Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -426,7 +428,6 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Tabla de Departamentos -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
@@ -449,8 +450,11 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <div id="paginationContainer" class="mt-3">
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </main>
         </div>
@@ -559,112 +563,212 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script>
-        // Variables globales
-        let departamentos = [];
+  // Variables globales
+    let departamentos = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let itemsPerPage = 10;
+    let totalItems = 0;
 
-        // Cargar datos al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarDepartamentos();
-            inicializarEventos();
-        });
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarDepartamentos();
+        inicializarEventos();
+        actualizarControlesPaginacion();
+    });
 
-        // Cargar departamentos
-        async function cargarDepartamentos() {
-            try {
-                const response = await fetch('/api/departamentos');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar departamentos');
-                }
-
-                departamentos = await response.json();
-                renderizarDepartamentos();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los departamentos');
+       async function cargarDepartamentos(page = 1, limit = 10) {
+        try {
+            const loadingRow = document.getElementById('loadingRow');
+            if (loadingRow) {
+                loadingRow.style.display = '';
             }
+
+            const response = await fetch(`/api/departamentos?page=${page}&limit=${limit}`);
+            
+            if (!response.ok) {
+                throw new Error('Error al cargar departamentos');
+            }
+
+            const data = await response.json();
+            
+            if (data.departamentos && data.pagination) {
+                departamentos = data.departamentos;
+                currentPage = data.pagination.currentPage;
+                totalPages = data.pagination.totalPages;
+                itemsPerPage = data.pagination.itemsPerPage;
+                totalItems = data.pagination.totalItems;
+            } else {
+                departamentos = data;
+                currentPage = 1;
+                totalPages = 1;
+                itemsPerPage = departamentos.length;
+                totalItems = departamentos.length;
+            }
+
+            renderizarDepartamentos();
+            actualizarControlesPaginacion();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarError('No se pudieron cargar los departamentos');
         }
-
-        // Renderizar departamentos en la tabla
-function renderizarDepartamentos() {
-    const tbody = document.getElementById('departamentosTableBody');
-    tbody.innerHTML = '';
-
-    if (departamentos.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center py-4">
-                    <i class="bi bi-person-badge display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No se encontraron departamentos</p>
-                </td>
-            </tr>
-        `;
-        return;
     }
 
-    departamentos.forEach(departamento => {
-        const row = document.createElement('tr');
-        
-        const formatDate = (dateString) => {
-            if (!dateString) return 'N/A';
-            try {
-                const date = new Date(dateString);
-                return isNaN(date.getTime()) ? 'Fecha inválida' : 
-                    date.toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                    });
-            } catch (error) {
-                return 'Fecha inválida';
-            }
-        };
-        
-        row.innerHTML = `
-            <td class="fw-bold">${departamento.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="department-icon me-3">
-                        ${departamento.nombre ? departamento.nombre.charAt(0).toUpperCase() : 'D'}
+
+     function renderizarDepartamentos() {
+        const tbody = document.getElementById('departamentosTableBody');
+        tbody.innerHTML = '';
+
+        if (departamentos.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="bi bi-person-badge display-4 text-muted mb-3"></i>
+                        <p class="text-muted mb-0">No se encontraron departamentos</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        departamentos.forEach(departamento => {
+            const row = document.createElement('tr');
+            
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                try {
+                    const date = new Date(dateString);
+                    return isNaN(date.getTime()) ? 'Fecha inválida' : 
+                        date.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
+                } catch (error) {
+                    return 'Fecha inválida';
+                }
+            };
+            
+            row.innerHTML = `
+                <td class="fw-bold">${departamento.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="department-icon me-3">
+                            ${departamento.nombre ? departamento.nombre.charAt(0).toUpperCase() : 'D'}
+                        </div>
+                        <div>
+                            <div class="fw-bold">${departamento.nombre}</div>
+                            <small class="text-muted">ID: ${departamento.id}</small>
+                        </div>
                     </div>
-                    <div>
-                        <div class="fw-bold">${departamento.nombre}</div>
-                        <small class="text-muted">ID: ${departamento.id}</small>
-                    </div>
+                </td>
+                <td>
+                    <span class="badge rounded-pill bg-primary">
+                        <i class="bi bi-people me-1"></i>
+                        ${departamento.usuarios_count || 0} Usuarios
+                    </span>
+                </td>
+                <td>
+                    ${formatDate(departamento.createdAt)}
+                </td>
+                <td class="table-actions text-center">
+                    <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                            onclick="viewDepartment(${departamento.id})"
+                            title="Ver">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                            onclick="editDepartment(${departamento.id})"
+                            title="Editar">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger action-btn"
+                            onclick="deleteDepartment(${departamento.id}, '${departamento.nombre}')"
+                            title="Eliminar">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+    function actualizarControlesPaginacion() {
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (!paginationContainer) return;
+
+        let paginationHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted">
+                    Mostrando ${((currentPage - 1) * itemsPerPage) + 1} a 
+                    ${Math.min(currentPage * itemsPerPage, totalItems)} de 
+                    ${totalItems} departamentos
                 </div>
-            </td>
-            <td>
-                <span class="badge rounded-pill bg-primary">
-                    <i class="bi bi-people me-1"></i>
-                    ${departamento.usuarios_count || 0} Usuarios
-                </span>
-            </td>
-            <td>
-                ${formatDate(departamento.createdAt)}
-            </td>
-            <td class="table-actions text-center">
-                <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                        onclick="viewDepartment(${departamento.id})"
-                        title="Ver">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editDepartment(${departamento.id})"
-                        title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger action-btn"
-                        onclick="deleteDepartment(${departamento.id}, '${departamento.nombre}')"
-                        title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                </button>
-            </td>
+                <div class="d-flex align-items-center">
+                    
+                    
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
         `;
-        
-        tbody.appendChild(row);
-    });
-}
+
+        paginationHTML += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="cambiarPagina(${currentPage - 1})">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </li>
+        `;
+
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="cambiarPagina(${i})">${i}</button>
+                </li>
+            `;
+        }
+
+        paginationHTML += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="cambiarPagina(${currentPage + 1})">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </li>
+        `;
+
+        paginationHTML += `
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        `;
+
+        paginationContainer.innerHTML = paginationHTML;
+
+        const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
+        if (itemsPerPageSelect) {
+            itemsPerPageSelect.addEventListener('change', function() {
+                itemsPerPage = parseInt(this.value);
+                currentPage = 1;
+                cargarDepartamentos(currentPage, itemsPerPage);
+            });
+        }
+    }
+
+    function cambiarPagina(page) {
+        if (page < 1 || page > totalPages || page === currentPage) return;
+        cargarDepartamentos(page, itemsPerPage);
+    }
+
 
             // TEMA
     function applySavedTheme() {
@@ -710,11 +814,9 @@ function renderizarDepartamentos() {
         localStorage.setItem('theme', newTheme);
     }
 
-    // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
-        
-        // Sidebar
+  
         const sidebarToggle = document.getElementById('sidebarToggle');
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function() {
@@ -740,24 +842,22 @@ function renderizarDepartamentos() {
         }
     });
 
-        // Inicializar eventos
-        function inicializarEventos() {
+         function inicializarEventos() {
+        document.getElementById('logoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit();
+        });
 
-            document.getElementById('logoutForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                this.submit();
-            });
+        document.getElementById('createDepartmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await crearDepartment();
+        });
 
-            document.getElementById('createDepartmentForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await crearDepartment();
-            });
-
-            document.getElementById('editDepartmentForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await actualizarDepartment();
-            });
-        }
+        document.getElementById('editDepartmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await actualizarDepartment();
+        });
+    }
 
         // Funciones CRUD
         async function crearDepartment() {

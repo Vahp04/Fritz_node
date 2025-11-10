@@ -1133,10 +1133,10 @@ function renderizarDepartamentos(preservarValores = false, selectId = null) {
 
 async function cargarDatosParaEdicion(usuario) {
     try {
-        console.log('🔄 Cargando datos para edición...');
+        console.log(' Cargando datos para edición...');
         
         if (sedes.length === 0) {
-            console.log('📥 Cargando sedes...');
+            console.log(' Cargando sedes...');
             await cargarSedes();
         }
         
@@ -1145,7 +1145,7 @@ async function cargarDatosParaEdicion(usuario) {
             await cargarDepartamentos();
         }
         
-        console.log(`📊 Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
+        console.log(` Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
         
         renderizarSedes(true, 'edit_sede_id');
         renderizarDepartamentos(true, 'edit_departamento_id');
@@ -1154,11 +1154,11 @@ async function cargarDatosParaEdicion(usuario) {
         const departamentoSelect = document.getElementById('edit_departamento_id');
         
         if (sedeSelect) {
-            console.log(`🎯 Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
+            console.log(` Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
             sedeSelect.value = usuario.sede_id || '';
             
             if (sedeSelect.value !== usuario.sede_id?.toString()) {
-                console.warn('⚠️ No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
+                console.warn(' No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
                 setTimeout(() => {
                     sedeSelect.value = usuario.sede_id || '';
                     console.log('🔄 Reintentando establecer sede_id:', sedeSelect.value);
@@ -1167,20 +1167,20 @@ async function cargarDatosParaEdicion(usuario) {
         }
         
         if (departamentoSelect) {
-            console.log(`🎯 Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
+            console.log(` Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
             departamentoSelect.value = usuario.departamento_id || '';
             
             if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
-                console.warn('⚠️ No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
+                console.warn(' No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
                 setTimeout(() => {
                     departamentoSelect.value = usuario.departamento_id || '';
-                    console.log('🔄 Reintentando establecer departamento_id:', departamentoSelect.value);
+                    console.log(' Reintentando establecer departamento_id:', departamentoSelect.value);
                 }, 100);
             }
         }
         
     } catch (error) {
-        console.error('❌ Error cargando datos para edición:', error);
+        console.error(' Error cargando datos para edición:', error);
     }
 }
 
@@ -1194,12 +1194,12 @@ async function cargarSedes() {
         }
 
         sedes = await response.json();
-        console.log(`✅ ${sedes.length} sedes cargadas correctamente`);
+        console.log(` ${sedes.length} sedes cargadas correctamente`);
         renderizarSedes();
         return sedes;
         
     } catch (error) {
-        console.error('❌ Error cargando sedes:', error);
+        console.error(' Error cargando sedes:', error);
         return [];
     }
 }
@@ -1207,15 +1207,15 @@ async function cargarSedes() {
 // Cargar departamentos
 async function cargarDepartamentos() {
     try {
-        console.log('📥 Iniciando carga de departamentos...');
-        const response = await fetch('/api/departamentos');
+        console.log(' Iniciando carga de departamentos...');
+        const response = await fetch('/api/departamentos?all=true');
         
         if (!response.ok) {
             throw new Error(`Error ${response.status} al cargar departamentos`);
         }
 
         departamentos = await response.json();
-        console.log(`✅ ${departamentos.length} departamentos cargados correctamente`);
+        console.log(` ${departamentos.length} departamentos cargados correctamente`);
         renderizarDepartamentos();
         return departamentos;
         

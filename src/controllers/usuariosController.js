@@ -17,7 +17,7 @@ const CARGOS_PERMITIDOS = [
 export const usuariosController = {
   async index(req, res) {
     try {
-        console.log('🔍 Iniciando carga de usuarios con filtros...');
+        console.log(' Iniciando carga de usuarios con filtros...');
         
         const page = parseInt(req.query.page) || 1;
         const limit = 10;

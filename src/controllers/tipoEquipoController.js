@@ -2,15 +2,67 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const tipoEquipoController = {
-  async index(req, res) {
+   async index(req, res) {
     try {
-      console.log('🔍 Cargando tipos de equipo...');
-      
-      const tiposEquipo = await prisma.tipo_equipo.findMany({
-        orderBy: { id: 'asc' }
-      });
+      console.log(' Cargando tipos de equipo...');
+      const { page = 1, limit = 10, all = false } = req.query;
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const skip = (pageNum - 1) * limitNum;
 
-      console.log(`✅ ${tiposEquipo.length} tipos encontrados`);
+      if (all === 'true') {
+        const tiposEquipo = await prisma.tipo_equipo.findMany({
+          orderBy: { id: 'asc' }
+        });
+
+        console.log(` ${tiposEquipo.length} tipos encontrados`);
+
+        const tiposConConteo = await Promise.all(
+          tiposEquipo.map(async (tipo) => {
+            try {
+              const stockCount = await prisma.stock_equipos.count({
+                where: { tipo_equipo_id: tipo.id }
+              });
+              
+              return {
+                id: tipo.id,
+                nombre: tipo.nombre,
+                descripcion: tipo.descripcion,
+                requiere_ip: tipo.requiere_ip,
+                requiere_cereal: tipo.requiere_cereal,
+                createdAt: tipo.created_at,
+                updatedAt: tipo.updated_at,
+                stock_count: stockCount
+              };
+            } catch (error) {
+              console.error(`Error contando stock para tipo ${tipo.id}:`, error);
+              return {
+                id: tipo.id,
+                nombre: tipo.nombre,
+                descripcion: tipo.descripcion,
+                requiere_ip: tipo.requiere_ip,
+                requiere_cereal: tipo.requiere_cereal,
+                createdAt: tipo.created_at,
+                updatedAt: tipo.updated_at,
+                stock_count: 0
+              };
+            }
+          })
+        );
+
+        return res.json(tiposConConteo);
+      }
+
+      const [tiposEquipo, totalCount] = await Promise.all([
+        prisma.tipo_equipo.findMany({
+          orderBy: { id: 'asc' },
+          skip: skip,
+          take: limitNum
+        }),
+        prisma.tipo_equipo.count()
+      ]);
+
+      console.log(` ${tiposEquipo.length} tipos encontrados (página ${pageNum})`);
 
       const tiposConConteo = await Promise.all(
         tiposEquipo.map(async (tipo) => {
@@ -24,10 +76,9 @@ export const tipoEquipoController = {
               nombre: tipo.nombre,
               descripcion: tipo.descripcion,
               requiere_ip: tipo.requiere_ip,
-              requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
-              // Mapear los campos con guión bajo a camelCase para el frontend
-              createdAt: tipo.created_at,  // Cambiado de created_at a createdAt
-              updatedAt: tipo.updated_at,  // Cambiado de updated_at a updatedAt
+              requiere_cereal: tipo.requiere_cereal,
+              createdAt: tipo.created_at,
+              updatedAt: tipo.updated_at,
               stock_count: stockCount
             };
           } catch (error) {
@@ -37,25 +88,37 @@ export const tipoEquipoController = {
               nombre: tipo.nombre,
               descripcion: tipo.descripcion,
               requiere_ip: tipo.requiere_ip,
-              requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
-              createdAt: tipo.created_at,  // Mapear a camelCase
-              updatedAt: tipo.updated_at,  // Mapear a camelCase
+              requiere_cereal: tipo.requiere_cereal,
+              createdAt: tipo.created_at,
+              updatedAt: tipo.updated_at,
               stock_count: 0
             };
           }
         })
       );
 
-      res.json(tiposConConteo);
+      const totalPages = Math.ceil(totalCount / limitNum);
+
+      res.json({
+        tiposEquipo: tiposConConteo,
+        pagination: {
+          currentPage: pageNum,
+          totalPages: totalPages,
+          totalItems: totalCount,
+          itemsPerPage: limitNum,
+          hasNextPage: pageNum < totalPages,
+          hasPrevPage: pageNum > 1
+        }
+      });
     } catch (error) {
-      console.error('❌ ERROR en index:', error);
+      console.error(' ERROR en index:', error);
       res.status(500).json({ error: 'Error al cargar tipos de equipo: ' + error.message });
     }
   },
 
   async store(req, res) {
     try {
-      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; // NUEVO CAMPO
+      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; 
 
       const existe = await prisma.tipo_equipo.findFirst({
         where: { nombre }
@@ -70,19 +133,18 @@ export const tipoEquipoController = {
           nombre,
           descripcion,
           requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1',
-          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' // NUEVO CAMPO
+          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' 
         }
       });
 
-      // Mapear los campos de fecha
       const tipoEquipoConCamposMapeados = {
         id: tipoEquipo.id,
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
-        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
-        createdAt: tipoEquipo.created_at,  // Mapear a camelCase
-        updatedAt: tipoEquipo.updated_at   // Mapear a camelCase
+        requiere_cereal: tipoEquipo.requiere_cereal, 
+        createdAt: tipoEquipo.created_at,  
+        updatedAt: tipoEquipo.updated_at   
       };
 
       res.status(201).json({
@@ -98,7 +160,7 @@ export const tipoEquipoController = {
   async show(req, res) {
     try {
       const { id } = req.params;
-      console.log(`🔍 Cargando tipo de equipo ID: ${id}`);
+      console.log(` Cargando tipo de equipo ID: ${id}`);
       
       const tipoEquipo = await prisma.tipo_equipo.findUnique({
         where: { id: parseInt(id) }
@@ -117,14 +179,13 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
-        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
-        // Mapear los campos de fecha
-        createdAt: tipoEquipo.created_at,  // Mapear a camelCase
-        updatedAt: tipoEquipo.updated_at,  // Mapear a camelCase
+        requiere_cereal: tipoEquipo.requiere_cereal, 
+        createdAt: tipoEquipo.created_at, 
+        updatedAt: tipoEquipo.updated_at,  
         stock_count: stockCount
       };
 
-      console.log(`✅ Tipo cargado: ${tipoConConteo.nombre} con ${stockCount} equipos`);
+      console.log(` Tipo cargado: ${tipoConConteo.nombre} con ${stockCount} equipos`);
       res.json(tipoConConteo);
     } catch (error) {
       console.error('Error en show:', error);
@@ -135,7 +196,7 @@ export const tipoEquipoController = {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; // NUEVO CAMPO
+      const { nombre, descripcion, requiere_ip, requiere_cereal } = req.body; 
 
       const existe = await prisma.tipo_equipo.findFirst({
         where: { 
@@ -154,19 +215,18 @@ export const tipoEquipoController = {
           nombre,
           descripcion,
           requiere_ip: requiere_ip === 'true' || requiere_ip === true || requiere_ip === '1',
-          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' // NUEVO CAMPO
+          requiere_cereal: requiere_cereal === 'true' || requiere_cereal === true || requiere_cereal === '1' 
         }
       });
 
-      // Mapear los campos de fecha
       const tipoEquipoConCamposMapeados = {
         id: tipoEquipo.id,
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
-        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
-        createdAt: tipoEquipo.created_at,  // Mapear a camelCase
-        updatedAt: tipoEquipo.updated_at   // Mapear a camelCase
+        requiere_cereal: tipoEquipo.requiere_cereal, 
+        createdAt: tipoEquipo.created_at,  
+        updatedAt: tipoEquipo.updated_at   
       };
 
       res.json({
@@ -206,7 +266,7 @@ export const tipoEquipoController = {
 
   async apiIndex(req, res) {
     try {
-      console.log('🔍 Cargando tipos de equipo (API)...');
+      console.log(' Cargando tipos de equipo (API)...');
       
       const tiposEquipo = await prisma.tipo_equipo.findMany({
         orderBy: { id: 'asc' }
@@ -223,10 +283,9 @@ export const tipoEquipoController = {
             nombre: tipo.nombre,
             descripcion: tipo.descripcion,
             requiere_ip: tipo.requiere_ip,
-            requiere_cereal: tipo.requiere_cereal, // NUEVO CAMPO
-            // Mapear los campos de fecha
-            createdAt: tipo.created_at,  // Mapear a camelCase
-            updatedAt: tipo.updated_at,  // Mapear a camelCase
+            requiere_cereal: tipo.requiere_cereal, 
+            createdAt: tipo.created_at,  
+            updatedAt: tipo.updated_at,  
             stock_count: stockCount
           };
         })
@@ -260,10 +319,9 @@ export const tipoEquipoController = {
         nombre: tipoEquipo.nombre,
         descripcion: tipoEquipo.descripcion,
         requiere_ip: tipoEquipo.requiere_ip,
-        requiere_cereal: tipoEquipo.requiere_cereal, // NUEVO CAMPO
-        // Mapear los campos de fecha
-        createdAt: tipoEquipo.created_at,  // Mapear a camelCase
-        updatedAt: tipoEquipo.updated_at,  // Mapear a camelCase
+        requiere_cereal: tipoEquipo.requiere_cereal, 
+        createdAt: tipoEquipo.created_at,  
+        updatedAt: tipoEquipo.updated_at,  
         stock_count: stockCount
       };
 
@@ -273,11 +331,10 @@ export const tipoEquipoController = {
       res.status(500).json({ error: error.message });
     }
   },
-
-  // NUEVO: Endpoint para obtener tipos de equipo que requieren cereal
+  
   async getTiposConCereal(req, res) {
     try {
-      console.log('🔍 Cargando tipos de equipo que requieren cereal...');
+      console.log(' Cargando tipos de equipo que requieren cereal...');
       
       const tiposEquipo = await prisma.tipo_equipo.findMany({
         where: { 
@@ -305,7 +362,7 @@ export const tipoEquipoController = {
         })
       );
 
-      console.log(`✅ ${tiposConConteo.length} tipos con cereal encontrados`);
+      console.log(` ${tiposConConteo.length} tipos con cereal encontrados`);
       res.json(tiposConConteo);
     } catch (error) {
       console.error('Error en getTiposConCereal:', error);
@@ -313,10 +370,9 @@ export const tipoEquipoController = {
     }
   },
 
-  // NUEVO: Endpoint para obtener tipos de equipo que requieren IP
   async getTiposConIP(req, res) {
     try {
-      console.log('🔍 Cargando tipos de equipo que requieren IP...');
+      console.log(' Cargando tipos de equipo que requieren IP...');
       
       const tiposEquipo = await prisma.tipo_equipo.findMany({
         where: { 
@@ -344,7 +400,7 @@ export const tipoEquipoController = {
         })
       );
 
-      console.log(`✅ ${tiposConConteo.length} tipos con IP encontrados`);
+      console.log(` ${tiposConConteo.length} tipos con IP encontrados`);
       res.json(tiposConConteo);
     } catch (error) {
       console.error('Error en getTiposConIP:', error);
