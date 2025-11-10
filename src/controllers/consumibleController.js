@@ -663,10 +663,6 @@ export const consumibleController = {
         return res.end(JSON.stringify({ error: 'Sede origen no encontrada' }));
       }
 
-      console.log(`Consumible encontrado: ${consumible.nombre}`);
-      console.log(`Sede origen: ${sedeOrigen.nombre}`);
-      console.log(`Sede destino: ${consumible.sede.nombre}`);
-
       const data = {
         titulo: 'Orden de Salida',
         fecha: new Date().toLocaleDateString('es-ES', {
@@ -681,6 +677,8 @@ export const consumibleController = {
         equipos: consumible.consumible_equipos,
         totalUnidades: consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0)
       };
+
+      
 
       console.log(' Renderizando template de orden de salida...');
     

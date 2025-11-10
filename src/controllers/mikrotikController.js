@@ -16,7 +16,6 @@ async index(req, res) {
 
     let where = {};
 
-    // Construir condiciones de búsqueda
     if (search) {
       where.OR = [
         { descripcion: { contains: search, mode: 'insensitive' } },
@@ -26,12 +25,10 @@ async index(req, res) {
       ];
     }
 
-    // Filtro por sede
     if (sede_id) {
       where.sede_id = parseInt(sede_id);
     }
 
-    // Filtro por estado
     if (estado) {
       where.estado = estado;
     }

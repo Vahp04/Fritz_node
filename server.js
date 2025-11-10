@@ -3,6 +3,7 @@ import app from './src/app.js';
 
 const PORT = process.env.PORT || 3000;
 
+
 // Iniciar el servidor
 const server = app.listen(PORT, () => {
     console.log('=== FRITZ C.A - SISTEMA DE GESTIÓN ===');
