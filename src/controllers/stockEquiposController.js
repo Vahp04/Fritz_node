@@ -134,7 +134,7 @@ export const stockEquiposController = {
         stockEquipo
       });
     } catch (error) {
-      console.error('💥 ERROR en store stock:', error);
+      console.error('ERROR en store stock:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -155,7 +155,7 @@ export const stockEquiposController = {
 
       res.json(stockEquipo);
     } catch (error) {
-      console.error('💥 ERROR en show stock:', error);
+      console.error('ERROR en show stock:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -206,7 +206,7 @@ export const stockEquiposController = {
         stockEquipo
       });
     } catch (error) {
-      console.error('💥 ERROR en update stock:', error);
+      console.error('ERROR en update stock:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -231,7 +231,7 @@ export const stockEquiposController = {
 
       res.json({ message: 'Equipo en stock eliminado exitosamente.' });
     } catch (error) {
-      console.error('💥 ERROR en destroy stock:', error);
+      console.error('ERROR en destroy stock:', error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -256,24 +256,32 @@ export const stockEquiposController = {
 
         const stockBajoCount = await prisma.stock_equipos.count({
             where: {
-                cantidad_disponible: {
-                    lte: 5 // Valor fijo temporalmente para evitar problemas con minimo_stock
-                }
+                OR: [
+                    {
+                        AND: [
+                            { cantidad_disponible: { lte: 3 } },
+                            { cantidad_disponible: { gt: 0 } }
+                        ]
+                    },
+                    {
+                        cantidad_disponible: 0
+                    }
+                ]
             }
         });
 
-        console.log('Stock bajo count:', stockBajoCount);
+        console.log('Stock bajo count (corregido):', stockBajoCount);
 
         const resumen = {
             total_equipos: resultado._sum.cantidad_total || 0,
             total_disponible: resultado._sum.cantidad_disponible || 0,
             total_asignado: resultado._sum.cantidad_asignada || 0,
-            stock_bajo_count: stockBajoCount,
+            stock_bajo_count: stockBajoCount, 
             valor_total: resultado._sum.valor_adquisicion || 0,
             total_items: resultado._count.id || 0
         };
 
-        console.log('Resumen final:', resumen);
+        console.log('Resumen final (corregido):', resumen);
 
         res.json(resumen);
     } catch (error) {
@@ -283,7 +291,7 @@ export const stockEquiposController = {
             message: error.message
         });
     }
-  },
+},
 
 async apiIndex(req, res) {
     try {
@@ -293,13 +301,13 @@ async apiIndex(req, res) {
                     select: {
                         id: true,
                         nombre: true,
-                        requiere_ip: true  // Asegúrate de incluir este campo
+                        requiere_ip: true
                     }
                 }
             }
         });
 
-        console.log('🔍 Primer equipo sample:', stockEquipos[0] ? {
+        console.log('Primer equipo sample:', stockEquipos[0] ? {
             id: stockEquipos[0].id,
             marca: stockEquipos[0].marca,
             tipo_equipo: stockEquipos[0].tipo_equipo
@@ -336,7 +344,7 @@ async apiIndex(req, res) {
       const stockBajo = await prisma.stock_equipos.findMany({
         where: {
           cantidad_disponible: {
-            lte: 5 // Valor fijo temporalmente
+            lte: 5 
           }
         },
         include: {
@@ -599,7 +607,7 @@ async apiIndex(req, res) {
         });
 
         console.log('=== VER PDF STOCK GENERADO EXITOSAMENTE ===');
-        console.log('💰 Valor total del inventario calculado:', valorTotal);
+        console.log('Valor total del inventario calculado:', valorTotal);
 
         if (res.headersSent) return;
 
@@ -622,9 +630,8 @@ async apiIndex(req, res) {
 
 async equiposConsumibles(req, res) {
     try {
-        console.log('🔍 Buscando equipos consumibles...');
-        
-        // Usa findMany, NO findUnique
+        console.log('Buscando equipos consumibles...');
+
         const todosEquipos = await prisma.stock_equipos.findMany({
             include: {
                 tipo_equipo: {
@@ -639,9 +646,8 @@ async equiposConsumibles(req, res) {
             }
         });
 
-        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
-        
-        // Filtrar por tipo consumible
+        console.log(`${todosEquipos.length} equipos totales encontrados`);
+ 
         const equiposFiltrados = todosEquipos.filter(equipo => {
             if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
                 return false;
@@ -653,13 +659,11 @@ async equiposConsumibles(req, res) {
                    tipoNombre.includes('cartucho') ||
                    tipoNombre.includes('tinta');
         });
-
-        console.log(`🎯 ${equiposFiltrados.length} equipos son consumibles`);
         
         res.json(equiposFiltrados);
         
     } catch (error) {
-        console.error('💥 ERROR en equiposConsumibles:', error);
+        console.error('ERROR en equiposConsumibles:', error);
         res.status(500).json({ 
             error: 'Error al cargar equipos consumibles',
             message: error.message
@@ -669,9 +673,6 @@ async equiposConsumibles(req, res) {
 
 async equiposParaAsignacion(req, res) {
     try {
-        console.log('🔍 Cargando equipos para asignación...');
-        
-        // Primero, obtener todos los equipos sin filtros complejos
         const todosEquipos = await prisma.stock_equipos.findMany({
             include: {
                 tipo_equipo: {
@@ -686,13 +687,12 @@ async equiposParaAsignacion(req, res) {
             orderBy: { marca: 'asc' }
         });
 
-        console.log(`📦 ${todosEquipos.length} equipos totales encontrados`);
+        console.log(`${todosEquipos.length} equipos totales encontrados`);
 
-        // Filtrar en JavaScript para evitar errores de Prisma
         const equiposFiltrados = todosEquipos.filter(equipo => {
             if (!equipo.tipo_equipo) {
-                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, incluyendo por defecto`);
-                return true; // Incluir equipos sin tipo
+                console.log(`Equipo ${equipo.id} sin tipo_equipo, incluyendo por defecto`);
+                return true; 
             }
             
             const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
@@ -702,20 +702,20 @@ async equiposParaAsignacion(req, res) {
                            tipoNombre.includes('consumible');
             
             if (excluir) {
-                console.log(`🚫 Excluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
+                console.log(`Excluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
                 return false;
             }
             
-            console.log(`✅ Incluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
+            console.log(`Incluyendo equipo: ${equipo.marca} ${equipo.modelo} (Tipo: ${tipoNombre})`);
             return true;
         });
 
-        console.log(`🎯 ${equiposFiltrados.length} equipos filtrados para asignación`);
+        console.log(`${equiposFiltrados.length} equipos filtrados para asignación`);
         
         res.json(equiposFiltrados);
         
     } catch (error) {
-        console.error('💥 ERROR en equiposParaAsignacion:', error);
+        console.error('ERROR en equiposParaAsignacion:', error);
         res.status(500).json({ 
             error: 'Error al cargar equipos',
             message: error.message
@@ -725,7 +725,7 @@ async equiposParaAsignacion(req, res) {
 
 async equiposImpresoras(req, res) {
     try {
-        console.log('🔍 Buscando equipos de tipo impresora...');
+        console.log('Buscando equipos de tipo impresora...');
         
         const todosEquipos = await prisma.stock_equipos.findMany({
             include: {
@@ -743,12 +743,11 @@ async equiposImpresoras(req, res) {
             }
         });
 
-        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
+        console.log(`${todosEquipos.length} equipos totales encontrados`);
         
-        // Filtrar equipos de tipo impresora
         const equiposImpresoras = todosEquipos.filter(equipo => {
             if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
-                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
+                console.log(`Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
                 return false;
             }
             
@@ -757,11 +756,11 @@ async equiposImpresoras(req, res) {
                                tipoNombre.includes('printer') ||
                                tipoNombre.includes('print');
             
-            console.log(`🔍 ${equipo.marca} ${equipo.modelo}: "${tipoNombre}" -> ${esImpresora ? '✅ IMPRESORA' : '❌ NO'}`);
+            console.log(`${equipo.marca} ${equipo.modelo}: "${tipoNombre}" -> ${esImpresora ? 'IMPRESORA' : 'NO'}`);
             return esImpresora;
         });
 
-        console.log(`🎯 ${equiposImpresoras.length} equipos son impresoras`);
+        console.log(`${equiposImpresoras.length} equipos son impresoras`);
         
         res.json(equiposImpresoras);
         
@@ -776,7 +775,6 @@ async equiposImpresoras(req, res) {
 
 async equiposMikrotiks(req, res) {
     try {
-        console.log('🔍 Buscando equipos de tipo mikrotik...');
         
         const todosEquipos = await prisma.stock_equipos.findMany({
             include: {
@@ -794,12 +792,11 @@ async equiposMikrotiks(req, res) {
             }
         });
 
-        console.log(`✅ ${todosEquipos.length} equipos totales encontrados`);
-        
-        // Filtrar equipos de tipo mikrotik
+        console.log(`${todosEquipos.length} equipos totales encontrados`);
+
         const equiposMikrotiks = todosEquipos.filter(equipo => {
             if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
-                console.log(`⚠️ Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
+                console.log(`Equipo ${equipo.id} sin tipo_equipo, excluyendo`);
                 return false;
             }
             
@@ -808,11 +805,9 @@ async equiposMikrotiks(req, res) {
                               tipoNombre.includes('router') ||
                               tipoNombre.includes('switch');
             
-            console.log(`🔍 ${equipo.marca} ${equipo.modelo}: "${tipoNombre}" -> ${esMikrotik ? '✅ MIKROTIK' : '❌ NO'}`);
             return esMikrotik;
         });
 
-        console.log(`🎯 ${equiposMikrotiks.length} equipos son mikrotiks`);
         
         res.json(equiposMikrotiks);
         

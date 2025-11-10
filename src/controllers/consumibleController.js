@@ -6,22 +6,28 @@ const prisma = new PrismaClient();
 
 export const consumibleController = {
 
-  async index(req, res) {
+   async index(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
-      const search = req.query.search || '';
-
-      let where = {};
+    
+  const {search, sede_id, departamento_id} = req.query;
+        let where = {};
 
       if (search) {
-        where = {
-          OR: [
-            { nombre: { contains: search, mode: 'insensitive' } },
-            { detalles: { contains: search, mode: 'insensitive' } }
-          ]
-        };
+        where.OR = [
+          { nombre: { contains: search, mode: 'insensitive' } },
+          { detalles: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+
+      if (sede_id) {
+        where.sede_id = parseInt(sede_id);
+      }
+
+      if (departamento_id) {
+        where.departamento_id = parseInt(departamento_id);
       }
 
       const totalRecords = await prisma.consumible.count({ where });
@@ -56,6 +62,11 @@ export const consumibleController = {
           current: page,
           total: totalPages,
           totalRecords: totalRecords
+        },
+        filters: {
+          search: search,
+          sede_id: sede_id,
+          departamento_id: departamento_id
         }
       });
     } catch (error) {
@@ -108,7 +119,7 @@ export const consumibleController = {
         equipos
       } = req.body;
 
-      console.log('📝 Datos recibidos para crear consumible:', req.body);
+      console.log('Datos recibidos para crear consumible:', req.body);
 
       const sedeId = parseInt(sede_id);
       const departamentoId = parseInt(departamento_id);
@@ -603,131 +614,124 @@ export const consumibleController = {
     }
   },
 
+  async generarPDFOrdenSalida(req, res) {
+    try {
+      const { consumible_id, sede_origen_id } = req.params;
+      const consumibleId = parseInt(consumible_id);
+      const sedeOrigenId = parseInt(sede_origen_id);
 
-async generarPDFOrdenSalida(req, res) {
-  try {
-    const { consumible_id, sede_origen_id } = req.params;
-    const consumibleId = parseInt(consumible_id);
-    const sedeOrigenId = parseInt(sede_origen_id);
+      console.log(`Generando PDF de Orden de Salida para consumible ID: ${consumibleId}, sede origen: ${sedeOrigenId}`);
 
-    console.log(`📊 Generando PDF de Orden de Salida para consumible ID: ${consumibleId}, sede origen: ${sedeOrigenId}`);
+      if (isNaN(consumibleId) || consumibleId <= 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'ID de consumible no válido' }));
+      }
 
-    if (isNaN(consumibleId) || consumibleId <= 0) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'ID de consumible no válido' }));
-    }
+      if (isNaN(sedeOrigenId) || sedeOrigenId <= 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'ID de sede origen no válido' }));
+      }
 
-    if (isNaN(sedeOrigenId) || sedeOrigenId <= 0) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'ID de sede origen no válido' }));
-    }
-
-    const consumible = await prisma.consumible.findUnique({
-      where: { id: consumibleId },
-      include: {
-        consumible_equipos: {
-          include: {
-            stock_equipos: {
-              include: {
-                tipo_equipo: true
+      const consumible = await prisma.consumible.findUnique({
+        where: { id: consumibleId },
+        include: {
+          consumible_equipos: {
+            include: {
+              stock_equipos: {
+                include: {
+                  tipo_equipo: true
+                }
               }
             }
-          }
-        },
-        sede: true, 
-        departamento: true
+          },
+          sede: true, 
+          departamento: true
+        }
+      });
+
+      if (!consumible) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Consumible no encontrado' }));
       }
-    });
 
-    if (!consumible) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'Consumible no encontrado' }));
-    }
+      const sedeOrigen = await prisma.sedes.findUnique({
+        where: { id: sedeOrigenId }
+      });
 
-    const sedeOrigen = await prisma.sedes.findUnique({
-      where: { id: sedeOrigenId }
-    });
-
-    if (!sedeOrigen) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'Sede origen no encontrada' }));
-    }
-
-    console.log(`Consumible encontrado: ${consumible.nombre}`);
-    console.log(`Sede origen: ${sedeOrigen.nombre}`);
-    console.log(`Sede destino: ${consumible.sede.nombre}`);
-
-    const data = {
-      titulo: 'Orden de Salida',
-      fecha: new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      }),
-      consumible: consumible,
-      sedeOrigen: sedeOrigen,
-      sedeDestino: consumible.sede, 
-      equipos: consumible.consumible_equipos,
-      totalUnidades: consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0)
-    };
-
-    console.log(' Renderizando template de orden de salida...');
-    
-    // Renderizar el template HTML
-    const html = await renderTemplate(req.app, 'pdfs/orden-salida-consumible', data);
-    
-    console.log('Template renderizado exitosamente');
-    console.log('Longitud del HTML:', html.length);
-
-    console.log(' Generando PDF...');
-    
-    // Configuración para Puppeteer - A4 horizontal
-    const pdfOptions = {
-      format: 'Letter',
-      landscape: true,
-      printBackground: true,
-      margin: {
-        top: '10mm',
-        right: '10mm',
-        bottom: '10mm',
-        left: '10mm'
+      if (!sedeOrigen) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Sede origen no encontrada' }));
       }
-    };
 
-    // Generar PDF
-    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-    
-    console.log('✅ PDF generado exitosamente');
-    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+      console.log(`Consumible encontrado: ${consumible.nombre}`);
+      console.log(`Sede origen: ${sedeOrigen.nombre}`);
+      console.log(`Sede destino: ${consumible.sede.nombre}`);
 
-    // **SOLUCIÓN: Usar writeHead para headers correctos**
-    const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
-    
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${filename}"`,
-      'Content-Length': pdfBuffer.length,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
+      const data = {
+        titulo: 'Orden de Salida',
+        fecha: new Date().toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }),
+        consumible: consumible,
+        sedeOrigen: sedeOrigen,
+        sedeDestino: consumible.sede, 
+        equipos: consumible.consumible_equipos,
+        totalUnidades: consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0)
+      };
 
-    console.log(`✅ Enviando PDF para abrir en navegador`);
+      console.log(' Renderizando template de orden de salida...');
     
-    // Enviar PDF
-    res.end(pdfBuffer);
+      const html = await renderTemplate(req.app, 'pdfs/orden-salida-consumible', data);
+      
+      console.log('Template renderizado exitosamente');
+      console.log('Longitud del HTML:', html.length);
 
-  } catch (error) {
-    console.error('❌ Error generando PDF de orden de salida:', error);
-    
-    // Enviar error como JSON
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
-      error: 'Error generando PDF', 
-      detalles: error.message 
-    }));
+      console.log(' Generando PDF...');
+      
+      const pdfOptions = {
+        format: 'Letter',
+        landscape: true,
+        printBackground: true,
+        margin: {
+          top: '10mm',
+          right: '10mm',
+          bottom: '10mm',
+          left: '10mm'
+        }
+      };
+
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+      
+      console.log('PDF generado exitosamente');
+      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
+
+      const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
+      
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="${filename}"`,
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      console.log(`Enviando PDF para abrir en navegador`);
+
+      res.end(pdfBuffer);
+
+    } catch (error) {
+      console.error('Error generando PDF de orden de salida:', error);
+      
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: 'Error generando PDF', 
+        detalles: error.message 
+      }));
+    }
   }
-}
 
 };

@@ -548,20 +548,29 @@
                         
                         <div class="row mb-4 g-2">
                             <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre o detalles..." id="searchConsumible">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por nombre o detalles..." id="searchConsumible">
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterSede">
-                                    <option value="">Todas las sedes</option>
-                                </select>
+                                 <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                    <select class="form-select" id="filterSede">
+                                        <option value="">Todas las sedes</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterDepartamento">
-                                    <option value="">Todos los departamentos</option>
-                                </select>
+                                 <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-people"></i></span>
+                                    <select class="form-select form-select-sm" id="filterDepartamento">
+                                        <option value="">Todos los departamentos</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFiltros()">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="resetFiltros()">
                                     <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
                                 </button>
                             </div>
@@ -598,7 +607,6 @@
                             <div class="text-muted" id="resultCount">
                                 Mostrando 0 de 0 consumibles
                             </div>
-                            
                             <nav aria-label="Paginación de consumibles">
                                 <ul class="pagination pagination-sm mb-0" id="paginationContainer">
                                 </ul>
@@ -881,7 +889,7 @@
     
     <script>
     
-        let consumibles = [];
+         let consumibles = [];
         let sedes = [];
         let departamentos = [];
         let stockEquipos = [];
@@ -889,9 +897,14 @@
         let totalPages = 1;
         let totalRecords = 0;
         let equipoCounter = 0;
+        let currentFilters = {
+            search: '',
+            sede_id: '',
+            departamento_id: ''
+        };
 
         
-        document.addEventListener('DOMContentLoaded', function() {
+       document.addEventListener('DOMContentLoaded', function() {
             cargarConsumibles();
             cargarSedes();
             cargarDepartamentos();
@@ -899,42 +912,72 @@
             inicializarEventos();
             applySavedTheme();
             inicializarSidebar();
-            
-          
+        
             $('#createConsumibleModal').on('show.bs.modal', function () {
                 agregarEquipo();
             });
         });
 
 
-async function cargarConsumibles(page = 1) {
-    try {
-        currentPage = page;
-        const search = document.getElementById('searchConsumible').value;
-        let url = `/api/consumibles?page=${page}`;
-        
-        if (search) {
-            url += `&search=${encodeURIComponent(search)}`;
-        }
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Error al cargar consumibles');
+        async function cargarConsumibles(page = 1) {
+            try {
+                currentPage = page;
+                const params = new URLSearchParams();
+                params.append('page', page);
+            
+                if (currentFilters.search) {
+                    params.append('search', currentFilters.search);
+                }
+                if (currentFilters.sede_id) {
+                    params.append('sede_id', currentFilters.sede_id);
+                }
+                if (currentFilters.departamento_id) {
+                    params.append('departamento_id', currentFilters.departamento_id);
+                }
+            
+                const url = `/api/consumibles?${params.toString()}`;
+                console.log('Cargando consumibles con URL:', url);
+            
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Error al cargar consumibles');
+                }
+
+                const data = await response.json();
+                consumibles = data.consumibles || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+
+                if (data.filters) {
+                    currentFilters = { ...currentFilters, ...data.filters };
+                }
+            
+                debugConsumibles();
+                actualizarResumen();
+                renderizarConsumibles();
+                renderizarPaginacion();
+                actualizarEstadoFiltros();
+            
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los consumibles');
+            }
         }
 
-        const data = await response.json();
-        consumibles = data.consumibles || [];
-        totalPages = data.pagination?.total || 1;
-        totalRecords = data.pagination?.totalRecords || 0;
+        function actualizarEstadoFiltros() {
+            document.getElementById('searchConsumible').value = currentFilters.search;
+            document.getElementById('filterSede').value = currentFilters.sede_id;
+            document.getElementById('filterDepartamento').value = currentFilters.departamento_id;
         
-        debugConsumibles();
-        actualizarResumen();
-        renderizarConsumibles();
-        renderizarPaginacion();
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar los consumibles');
-    }
-}
+            const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+            const resultCount = document.getElementById('resultCount');
+        
+            if (filtrosActivos > 0) {
+                resultCount.innerHTML = `Mostrando ${consumibles.length} de ${totalRecords} consumibles `;
+            } else {
+                resultCount.textContent = `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
+            }
+        }
 
         async function cargarSedes() {
             try {
@@ -963,42 +1006,42 @@ async function cargarConsumibles(page = 1) {
             }
         }
 
-  async function cargarStockEquipos() {
-    try {
-        console.log('Iniciando carga de equipos consumibles...');
+        async function cargarStockEquipos() {
+        try {
+            console.log('Iniciando carga de equipos consumibles...');
         
-        const response = await fetch('/api/stock_equipos/consumibles');
-        console.log('Response status:', response.status);
+            const response = await fetch('/api/stock_equipos/consumibles');
+            console.log('Response status:', response.status);
         
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error(`Error ${response.status}: ${errorText}`);
-        }
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`Error ${response.status}: ${errorText}`);
+            }
 
-        const data = await response.json();
-        console.log('Equipos cargados:', data);
+            const data = await response.json();
+            console.log('Equipos cargados:', data);
         
-        stockEquipos = data.filter(equipo => {
-            const esConsumible = equipo.tipo_equipo && 
-                equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
-                 equipo.tipo_equipo.nombre.toLowerCase().includes('toners');
-            console.log(`Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
-            return esConsumible;
-        }) || [];
+            stockEquipos = data.filter(equipo => {
+                const esConsumible = equipo.tipo_equipo && 
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('toners');
+                console.log(`Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
+                return esConsumible;
+            }) || [];
         
-        console.log('Equipos consumibles filtrados:', stockEquipos.length);
+            console.log('Equipos consumibles filtrados:', stockEquipos.length);
         
-        if (stockEquipos.length === 0) {
-            console.warn('No se encontraron equipos de tipo consumible');
-            console.log('Todos los equipos disponibles:', data);
+            if (stockEquipos.length === 0) {
+                console.warn('No se encontraron equipos de tipo consumible');
+                console.log('Todos los equipos disponibles:', data);
+            }
+        
+            } catch (error) {
+            console.error('Error cargando equipos:', error);
+            mostrarError('No se pudieron cargar los equipos consumibles disponibles: ' + error.message);
+            }
         }
-        
-    } catch (error) {
-        console.error('Error cargando equipos:', error);
-        mostrarError('No se pudieron cargar los equipos consumibles disponibles: ' + error.message);
-    }
-}
 
         function agregarEquipo() {
             equipoCounter++;
@@ -1049,185 +1092,183 @@ async function cargarConsumibles(page = 1) {
         }
 
       
-  function removerEquipo(id) {
-    const equipoDiv = document.getElementById(`equipo-${id}`);
-    if (equipoDiv) {
-        equipoDiv.remove();
-    }
-}
-
-  function removerEquipoEdit(id) {
-    const equipoDiv = document.getElementById(`equipo-edit-${id}`);
-    if (equipoDiv) {
-        equipoDiv.remove();
-    }
-}
-
-function renderizarOpcionesStockEquipos(selectElement, selectedId = null) {
-    if (stockEquipos.length === 0) {
-        const option = document.createElement('option');
-        option.value = "";
-        option.textContent = "No hay equipos consumibles disponibles";
-        option.disabled = true;
-        selectElement.appendChild(option);
-        return;
-    }
-
-    stockEquipos.forEach(equipo => {
-        const option = document.createElement('option');
-        option.value = equipo.id;
-        option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
-        
-        if (selectedId && equipo.id == selectedId) {
-            option.selected = true;
+        function removerEquipo(id) {
+            const equipoDiv = document.getElementById(`equipo-${id}`);
+            if (equipoDiv) {
+                equipoDiv.remove();
+            }
         }
-        
-        selectElement.appendChild(option);
-    });
-}
-function debugConsumibles() {
-    console.log('Debug consumibles:', consumibles);
-    consumibles.forEach((consumible, index) => {
-        console.log(`Consumible ${index + 1}:`, {
-            id: consumible.id,
-            nombre: consumible.nombre,
-            tieneConsumibleEquipos: !!consumible.consumible_equipos,
-            cantidadEquipos: consumible.consumible_equipos?.length || 0,
-            equipos: consumible.consumible_equipos?.map(ce => ({
-                stock_equipos_id: ce.stock_equipos_id,
-                cantidad: ce.cantidad,
-                equipo: ce.stock_equipos ? `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo}` : 'N/A'
-            })) || []
-        });
-    });
-}
 
-
-function actualizarResumen() {
-    const total = consumibles.length;
-    
-    const totalUnidades = consumibles.reduce((sum, consumible) => {
-        if (!consumible || !consumible.consumible_equipos) {
-            return sum + 0;
+        function removerEquipoEdit(id) {
+            const equipoDiv = document.getElementById(`equipo-edit-${id}`);
+            if (equipoDiv) {
+                equipoDiv.remove();
+            }
         }
-        
-        const sumaEquipos = consumible.consumible_equipos.reduce((sumEquipo, ce) => {
-            return sumEquipo + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
-        }, 0);
-        
-        return sum + sumaEquipos;
-    }, 0);
 
-    const sedesUnicas = new Set(consumibles.filter(c => c && c.sede_id).map(c => c.sede_id)).size;
-    const departamentosUnicos = new Set(consumibles.filter(c => c && c.departamento_id).map(c => c.departamento_id)).size;
+        function renderizarOpcionesStockEquipos(selectElement, selectedId = null) {
+            if (stockEquipos.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay equipos consumibles disponibles";
+                option.disabled = true;
+                selectElement.appendChild(option);
+                return;
+            }
 
-    document.getElementById('totalConsumibles').textContent = total;
-    document.getElementById('totalUnidades').textContent = totalUnidades.toLocaleString();
-    document.getElementById('totalSedes').textContent = sedesUnicas;
-    document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
+            stockEquipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo.id;
+                option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+        
+                if (selectedId && equipo.id == selectedId) {
+                    option.selected = true;
+                }
+        
+                selectElement.appendChild(option);
+            });
+        }
+
+        function debugConsumibles() {
+            console.log('Debug consumibles:', consumibles);
+            consumibles.forEach((consumible, index) => {
+                console.log(`Consumible ${index + 1}:`, {
+                    id: consumible.id,
+                    nombre: consumible.nombre,
+                    tieneConsumibleEquipos: !!consumible.consumible_equipos,
+                    cantidadEquipos: consumible.consumible_equipos?.length || 0,
+                    equipos: consumible.consumible_equipos?.map(ce => ({
+                        stock_equipos_id: ce.stock_equipos_id,
+                        cantidad: ce.cantidad,
+                        equipo: ce.stock_equipos ? `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo}` : 'N/A'
+                    })) || []
+                });
+            }); 
+        }
+
+
+        function actualizarResumen() {
+            const total = consumibles.length;
+            const totalUnidades = consumibles.reduce((sum, consumible) => {
+                if (!consumible || !consumible.consumible_equipos) {
+                    return sum + 0;
+                }
+        
+                const sumaEquipos = consumible.consumible_equipos.reduce((sumEquipo, ce) => {
+                    return sumEquipo + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
+                }, 0);
+        
+                return sum + sumaEquipos;
+            }, 0);
+
+            const sedesUnicas = new Set(consumibles.filter(c => c && c.sede_id).map(c => c.sede_id)).size;
+            const departamentosUnicos = new Set(consumibles.filter(c => c && c.departamento_id).map(c => c.departamento_id)).size;
+
+            document.getElementById('totalConsumibles').textContent = total;
+            document.getElementById('totalUnidades').textContent = totalUnidades.toLocaleString();
+            document.getElementById('totalSedes').textContent = sedesUnicas;
+            document.getElementById('totalDepartamentos').textContent = departamentosUnicos;
     
-    console.log('Resumen actualizado:', {
-        totalConsumibles: total,
-        totalUnidades: totalUnidades,
-        sedesUnicas: sedesUnicas,
-        departamentosUnicos: departamentosUnicos,
-        consumiblesData: consumibles.map(c => ({
-            id: c.id,
-            nombre: c.nombre,
-            equipos: c.consumible_equipos?.map(ce => ({cantidad: ce.cantidad})) || []
-        }))
-    });
-}
+            console.log('Resumen actualizado:', {
+                totalConsumibles: total,
+                totalUnidades: totalUnidades,
+                sedesUnicas: sedesUnicas,
+                departamentosUnicos: departamentosUnicos,
+                consumiblesData: consumibles.map(c => ({
+                    id: c.id,
+                    nombre: c.nombre,
+                    equipos: c.consumible_equipos?.map(ce => ({cantidad: ce.cantidad})) || []
+                }))
+            });
+        }
 
-        // Renderizar consumibles en la tabla
-function renderizarConsumibles() {
-    const tbody = document.getElementById('consumiblesTableBody');
-    tbody.innerHTML = '';
+        function renderizarConsumibles() {
+            const tbody = document.getElementById('consumiblesTableBody');
+            tbody.innerHTML = '';
 
-    if (consumibles.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-4">
-                    <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No se encontraron consumibles</p>
+            if (consumibles.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-box-seam display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron consumibles</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            consumibles.forEach(consumible => {
+                const row = document.createElement('tr');
+                const cantidadTotal = consumible.consumible_equipos ? 
+                consumible.consumible_equipos.reduce((sum, ce) => {
+                    return sum + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
+                }, 0) : 0;
+        
+                const equiposList = consumible.consumible_equipos.map(ce => 
+                    `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} (${ce.cantidad})`
+                ).join(', ');
+
+                row.innerHTML = `
+                    <td class="fw-bold">${consumible.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="consumible-icon me-3">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">${consumible.nombre}</div>
+                                <small class="text-muted">${consumible.detalles || 'Sin detalles'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">${equiposList || 'Sin equipos'}</span>
+                            <small class="text-muted">${consumible.consumible_equipos.length} tipo(s) de equipo</small>
+                        </div>
+                    </td>
+                    <td> 
+                        <span class="cantidad-badge text-center">
+                            ${cantidadTotal.toLocaleString()} unidades
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
+                            <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="fecha-badge">
+                            ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}
+                        </span>
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                            onclick="viewConsumible(${consumible.id})"
+                            title="Ver">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                            onclick="editConsumible(${consumible.id})"
+                            title="Editar">
+                            <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger action-btn"
+                            onclick="deleteConsumible(${consumible.id}, '${consumible.nombre}')"
+                            title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                    </button>
                 </td>
-            </tr>
-        `;
-        return;
-    }
-
-    consumibles.forEach(consumible => {
-        const row = document.createElement('tr');
+            `;
         
-        const cantidadTotal = consumible.consumible_equipos ? 
-    consumible.consumible_equipos.reduce((sum, ce) => {
-        return sum + (ce && ce.cantidad ? parseInt(ce.cantidad) : 0);
-    }, 0) : 0;
-        
-        const equiposList = consumible.consumible_equipos.map(ce => 
-            `${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} (${ce.cantidad})`
-        ).join(', ');
+            tbody.appendChild(row);
+        });
 
-        row.innerHTML = `
-            <td class="fw-bold">${consumible.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="consumible-icon me-3">
-                        <i class="bi bi-box-seam"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold">${consumible.nombre}</div>
-                        <small class="text-muted">${consumible.detalles || 'Sin detalles'}</small>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">${equiposList || 'Sin equipos'}</span>
-                    <small class="text-muted">${consumible.consumible_equipos.length} tipo(s) de equipo</small>
-                </div>
-            </td>
-            <td> 
-                <span class="cantidad-badge text-center">
-                    ${cantidadTotal.toLocaleString()} unidades
-                </span>
-            </td>
-            <td>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
-                    <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
-                </div>
-            </td>
-            <td>
-                <span class="fecha-badge">
-                    ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}
-                </span>
-            </td>
-            <td class="table-actions text-center">
-                <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                        onclick="viewConsumible(${consumible.id})"
-                        title="Ver">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editConsumible(${consumible.id})"
-                        title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger action-btn"
-                        onclick="deleteConsumible(${consumible.id}, '${consumible.nombre}')"
-                        title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-
-    document.getElementById('resultCount').textContent = 
-        `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
-}
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${consumibles.length} de ${totalRecords} consumibles`;
+        }
 
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
@@ -1294,38 +1335,77 @@ function renderizarConsumibles() {
             }
         }
 
-        // Renderizar paginación
-        function renderizarPaginacion() {
-            const pagination = document.getElementById('paginationContainer');
-            pagination.innerHTML = '';
+       function renderizarPaginacion() {
+        const pagination = document.getElementById('paginationContainer');
+        pagination.innerHTML = '';
 
-            const prevLi = document.createElement('li');
-            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-            prevLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarConsumibles(${currentPage - 1})" aria-label="Anterior">
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-            `;
-            pagination.appendChild(prevLi);
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        `;
+        pagination.appendChild(prevLi);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageLi = document.createElement('li');
-                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                pageLi.innerHTML = `
-                    <a class="page-link" href="#" onclick="cargarConsumibles(${i})">${i}</a>
-                `;
-                pagination.appendChild(pageLi);
-            }
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-            const nextLi = document.createElement('li');
-            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-            nextLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarConsumibles(${currentPage + 1})" aria-label="Siguiente">
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            `;
-            pagination.appendChild(nextLi);
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
         }
+
+        if (startPage > 1) {
+            const firstLi = document.createElement('li');
+            firstLi.className = 'page-item';
+            firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+            pagination.appendChild(firstLi);
+            
+            if (startPage > 2) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisLi);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+            pagination.appendChild(pageLi);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const ellipsisLi = document.createElement('li');
+                ellipsisLi.className = 'page-item disabled';
+                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                pagination.appendChild(ellipsisLi);
+            }
+            
+            const lastLi = document.createElement('li');
+            lastLi.className = 'page-item';
+            lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
+            pagination.appendChild(lastLi);
+        }
+
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        `;
+        pagination.appendChild(nextLi);
+    }
+
+    function cambiarPagina(page) {
+        if (page < 1 || page > totalPages || page === currentPage) return;
+        cargarConsumibles(page);
+    }
+
 
         // Funciones CRUD
         async function crearConsumible() {
@@ -1465,7 +1545,6 @@ async function editConsumible(id) {
                 agregarEquipoEdicion(ce.stock_equipos_id, ce.cantidad, ce.stock_equipos);
             });
         } else {
-            // Si no hay equipos, agregar uno vacío
             agregarEquipoEdit();
         }
         
@@ -1481,8 +1560,6 @@ async function editConsumible(id) {
     }
 }
 
-
-// Función para agregar equipo en modo edición
 function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
     equipoCounterEdit++;
     const equiposContainerEdit = document.getElementById('equiposContainerEdit');
@@ -1491,7 +1568,6 @@ function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
     equipoDiv.className = 'equipo-item';
     equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
     
-    // Calcular stock disponible real (sumando la cantidad actual que ya está asignada)
     const stockDisponibleReal = stockEquipo ? 
         (stockEquipo.cantidad_disponible + cantidad) : 
         stockEquipos.find(e => e.id == stockEquiposId)?.cantidad_disponible || 0;
@@ -1531,8 +1607,7 @@ function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
     `;
     
     equiposContainerEdit.appendChild(equipoDiv);
-    
-    // Renderizar las opciones del select y seleccionar el equipo actual
+
     const select = equipoDiv.querySelector('.equipo-select-edit');
     renderizarOpcionesStockEquiposEdit(select, stockEquiposId);
 }
@@ -1580,8 +1655,7 @@ function agregarEquipoEdit() {
     `;
     
     equiposContainerEdit.appendChild(equipoDiv);
-    
-    // Renderizar las opciones del select
+
     const select = equipoDiv.querySelector('.equipo-select-edit');
     renderizarOpcionesStockEquiposEdit(select);
 }
@@ -1622,13 +1696,11 @@ function renderizarOpcionesStockEquiposEdit(selectElement, selectedId = null) {
     });
 }
 
-
 async function actualizarConsumible() {
     const form = document.getElementById('editConsumibleForm');
     const formData = new FormData(form);
     const consumibleId = formData.get('id');
 
-    // Recolectar datos de equipos del contenedor de edición
     const equiposContainerEdit = document.getElementById('equiposContainerEdit');
     const equipoItems = equiposContainerEdit.querySelectorAll('.equipo-item');
     
@@ -1659,7 +1731,6 @@ async function actualizarConsumible() {
             return;
         }
 
-        // Validar stock disponible
         const equipo = stockEquipos.find(e => e.id == stockId);
         if (equipo && equipo.cantidad_disponible < cantidad) {
             Swal.fire({
@@ -1716,7 +1787,6 @@ async function actualizarConsumible() {
         $('#editConsumibleModal').modal('hide');
         form.reset();
         
-        // Limpiar contenedor de equipos de edición
         document.getElementById('equiposContainerEdit').innerHTML = '';
         equipoCounterEdit = 0;
         
@@ -1814,7 +1884,6 @@ async function viewConsumible(id) {
             }
         }
 
-        // Actualizar stock disponible al seleccionar equipo
         function actualizarStockDisponible(selectElement, targetId) {
             const equipoId = selectElement.value;
             const equipo = stockEquipos.find(e => e.id == equipoId);
@@ -1828,44 +1897,38 @@ async function viewConsumible(id) {
             }
         }
 
-        // Funciones de filtrado
-        function aplicarFiltros() {
-            const searchFilter = document.getElementById('searchConsumible').value.toLowerCase();
-            const sedeFilter = document.getElementById('filterSede').value;
-            const departamentoFilter = document.getElementById('filterDepartamento').value;
+    function aplicarFiltros() {
+        currentFilters = {
+            search: document.getElementById('searchConsumible').value,
+            sede_id: document.getElementById('filterSede').value,
+            departamento_id: document.getElementById('filterDepartamento').value
+        };
+        
+        currentPage = 1;
+        cargarConsumibles(currentPage);
+    }
 
-            const rows = document.querySelectorAll('#consumiblesTableBody tr');
-            let visibleCount = 0;
+    function aplicarBusquedaRapida() {
+        currentFilters.search = document.getElementById('searchConsumible').value;
+        currentPage = 1;
+        cargarConsumibles(currentPage);
+    }
 
-            rows.forEach(row => {
-                if (row.id === 'loadingRow') return;
+    function resetFiltros() {
+        currentFilters = {
+            search: '',
+            sede_id: '',
+            departamento_id: ''
+        };
+        
+        document.getElementById('searchConsumible').value = '';
+        document.getElementById('filterSede').value = '';
+        document.getElementById('filterDepartamento').value = '';
+        
+        currentPage = 1;
+        cargarConsumibles(currentPage);
+    }
 
-                const nombre = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-                const detalles = row.querySelector('td:nth-child(2) small').textContent.toLowerCase();
-                const sede = row.querySelector('td:nth-child(5) .fw-bold').textContent;
-                const departamento = row.querySelector('td:nth-child(5) small').textContent;
-
-                const searchMatch = !searchFilter || 
-                    nombre.includes(searchFilter) || 
-                    detalles.includes(searchFilter);
-                const sedeMatch = !sedeFilter || sede.includes(
-                    sedes.find(s => s.id == sedeFilter)?.nombre || ''
-                );
-                const departamentoMatch = !departamentoFilter || departamento.includes(
-                    departamentos.find(d => d.id == departamentoFilter)?.nombre || ''
-                );
-
-                if (searchMatch && sedeMatch && departamentoMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            document.getElementById('resultCount').textContent = 
-                `Mostrando ${visibleCount} de ${totalRecords} consumibles`;
-        }
 
         function resetFiltros() {
             document.getElementById('searchConsumible').value = '';
@@ -1952,37 +2015,38 @@ async function viewConsumible(id) {
             }
         }
 
-        // Inicializar eventos
-        function inicializarEventos() {
-               document.getElementById('logoutForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
+    function inicializarEventos() {
+        document.getElementById('logoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit();
+        });
 
-    document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await crearConsumible();
-    });
+        document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await crearConsumible();
+        });
 
-    document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await actualizarConsumible();
-    });
+        document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            await actualizarConsumible();
+        });
 
-            // Filtros
-            document.getElementById('searchConsumible').addEventListener('input', aplicarFiltros);
-            document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
+        let searchTimeout;
+        document.getElementById('searchConsumible').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
+        });
 
-            // Limpiar contenedor de equipos al cerrar el modal
-            $('#createConsumibleModal').on('hidden.bs.modal', function () {
-                document.getElementById('equiposContainer').innerHTML = '';
-                equipoCounter = 0;
-            });
-        }
+        document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+        document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
+
+        $('#createConsumibleModal').on('hidden.bs.modal', function () {
+            document.getElementById('equiposContainer').innerHTML = '';
+            equipoCounter = 0;
+        });
+    }
 
         $('#editConsumibleModal').on('show.bs.modal', function () {
-    // Agregar botón para agregar más equipos en edición
     const equiposContainer = document.getElementById('equiposContainer');
     if (!document.querySelector('.add-equipo-btn-edicion')) {
         const addButton = document.createElement('button');
@@ -2002,7 +2066,6 @@ $('#editConsumibleModal').on('hidden.bs.modal', function () {
 });
 
 function abrirModalOrdenSalida() {
-    // Verificar si hay consumibles y sedes cargados
     if (consumibles.length === 0 || sedes.length === 0) {
         Swal.fire({
             icon: 'warning',
@@ -2012,7 +2075,6 @@ function abrirModalOrdenSalida() {
         return;
     }
 
-    // Llenar el select de sedes de origen
     const selectSedeOrigen = document.getElementById('select_sede_origen_orden');
     selectSedeOrigen.innerHTML = '<option value="">Seleccione una sede</option>';
     
@@ -2023,7 +2085,6 @@ function abrirModalOrdenSalida() {
         selectSedeOrigen.appendChild(option);
     });
 
-    // Llenar el select de consumibles
     const selectConsumible = document.getElementById('select_consumible_orden');
     selectConsumible.innerHTML = '<option value="">Seleccione un consumible</option>';
     
@@ -2034,17 +2095,13 @@ function abrirModalOrdenSalida() {
         selectConsumible.appendChild(option);
     });
 
-    // Agregar eventos para mostrar vista previa
     selectSedeOrigen.onchange = actualizarVistaPrevia;
     selectConsumible.onchange = actualizarVistaPrevia;
 
-    // Ocultar vista previa inicialmente
     document.getElementById('consumiblePreview').style.display = 'none';
-    
-    // Deshabilitar botón de generar inicialmente
+
     document.getElementById('btnGenerarOrden').disabled = true;
 
-    // Mostrar el modal
     $('#selectConsumibleOrdenModal').modal('show');
 }
 
@@ -2055,7 +2112,6 @@ function actualizarVistaPrevia() {
     const previewContent = document.getElementById('previewContent');
     const btnGenerar = document.getElementById('btnGenerarOrden');
 
-    // Verificar si ambos campos están completos
     if (!sedeOrigenId || !consumibleId) {
         previewDiv.style.display = 'none';
         btnGenerar.disabled = true;

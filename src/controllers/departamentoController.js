@@ -9,7 +9,6 @@ export const departamentoController = {
       const limitNum = parseInt(limit);
       const skip = (pageNum - 1) * limitNum;
 
-      // Si se solicita todos los datos (para otros lugares que usan la API)
       if (all === 'true') {
         const departamentos = await prisma.departamentos.findMany({
           include: {
@@ -31,7 +30,6 @@ export const departamentoController = {
         return res.json(departamentosConCount);
       }
 
-      // Paginación normal
       const [departamentos, totalCount] = await Promise.all([
         prisma.departamentos.findMany({
           include: {
@@ -76,7 +74,7 @@ export const departamentoController = {
     try {
       const { nombre } = req.body;
 
-      // Validar que el nombre no esté vacío
+
       if (!nombre || nombre.trim() === '') {
         return res.status(400).json({ error: 'El nombre del departamento es obligatorio' });
       }
@@ -108,8 +106,8 @@ export const departamentoController = {
       const departamentoConCount = {
         id: departamento.id,
         nombre: departamento.nombre,
-        createdAt: departamento.created_at,  // Mapear a camelCase
-        updatedAt: departamento.updated_at,  // Mapear a camelCase
+        createdAt: departamento.created_at,  
+        updatedAt: departamento.updated_at, 
         usuarios_count: departamento.usuarios.length
       };
 
@@ -146,8 +144,8 @@ export const departamentoController = {
       const departamentoConConteo = {
         id: departamento.id,
         nombre: departamento.nombre,
-        createdAt: departamento.created_at,  // Mapear a camelCase
-        updatedAt: departamento.updated_at,  // Mapear a camelCase
+        createdAt: departamento.created_at, 
+        updatedAt: departamento.updated_at, 
         usuarios_count: departamento.usuarios ? departamento.usuarios.length : 0,
         usuarios: departamento.usuarios
       };
@@ -164,7 +162,6 @@ export const departamentoController = {
       const { id } = req.params;
       const { nombre } = req.body;
 
-      // Validar que el departamento existe
       const departamentoExistente = await prisma.departamentos.findUnique({
         where: { id: parseInt(id) }
       });
@@ -173,7 +170,6 @@ export const departamentoController = {
         return res.status(404).json({ error: 'Departamento no encontrado' });
       }
 
-      // Validar que el nombre no esté vacío
       if (!nombre || nombre.trim() === '') {
         return res.status(400).json({ error: 'El nombre del departamento es obligatorio' });
       }
@@ -207,8 +203,8 @@ export const departamentoController = {
       const departamentoConCount = {
         id: departamento.id,
         nombre: departamento.nombre,
-        createdAt: departamento.created_at,  // Mapear a camelCase
-        updatedAt: departamento.updated_at,  // Mapear a camelCase
+        createdAt: departamento.created_at,  
+        updatedAt: departamento.updated_at,  
         usuarios_count: departamento.usuarios.length
       };
 
@@ -226,7 +222,6 @@ export const departamentoController = {
     try {
       const { id } = req.params;
 
-      // Verificar que el departamento existe
       const departamentoExistente = await prisma.departamentos.findUnique({
         where: { id: parseInt(id) }
       });
@@ -286,7 +281,6 @@ export const departamentoController = {
         return res.status(404).json({ error: 'Departamento no encontrado' });
       }
 
-      // Agregar conteo de equipos a cada usuario
       const usuariosConEquipos = departamento.usuarios.map(usuario => ({
         ...usuario,
         equipos_activos_count: usuario.equipo_asignado.length
@@ -296,8 +290,8 @@ export const departamentoController = {
         departamento: {
           id: departamento.id,
           nombre: departamento.nombre,
-          createdAt: departamento.created_at,  // Mapear a camelCase
-          updatedAt: departamento.updated_at,  // Mapear a camelCase
+          createdAt: departamento.created_at, 
+          updatedAt: departamento.updated_at,  
           usuarios_count: departamento.usuarios.length
         },
         usuarios: usuariosConEquipos
@@ -309,5 +303,4 @@ export const departamentoController = {
   }
 };
 
-// Exportación por defecto para compatibilidad
 export default departamentoController;

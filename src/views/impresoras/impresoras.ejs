@@ -315,10 +315,7 @@
                     <% } %>
                 </div>
             </div>
-            
-            <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -327,7 +324,6 @@
                     </a>
                 </li>
                 
-                <!-- Sección de Gestión -->
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -403,8 +399,7 @@
                     </a>
                 </li>
             </ul>
-            
-            <!-- Bottom -->
+
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -422,7 +417,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -433,8 +427,7 @@
                         <span class="navbar-brand me-3 d-none d-lg-block">
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
-                        
-                        <!-- Breadcrumb -->
+
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -447,7 +440,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -464,7 +456,6 @@
                     </div>
                 </div>
 
-                <!-- Resumen de Impresoras -->
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
@@ -512,23 +503,22 @@
                         </div>
                     </div>
                       <div class="col-md-3">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="mb-0" id="totalInactivas">0</h4>
-                        <small>Inactivas</small>
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalInactivas">0</h4>
+                                        <small>Inactivas</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-pause-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-pause-circle fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
                 </div>
                 
-                <!-- Impresoras Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header text-white py-3" >
                         <div class="d-flex justify-content-between align-items-center">
@@ -536,18 +526,18 @@
                                 <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Impresoras
                             </h5>
                                     <div class="btn-group">
-    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        <i class="bi bi-file-earmark-text me-1"></i> Exportar
-    </button>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="#" onclick="generarReporteGeneral()">
-            <i class="bi bi-graph-up me-2"></i>Reporte General 
-        </a></li>
-        <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSede()">
-            <i class="bi bi-building me-2"></i>Reporte por Sede 
-        </a></li>
-    </ul>
-</div>
+                                        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-file-earmark-text me-1"></i> Exportar
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="generarReporteGeneral()">
+                                                <i class="bi bi-graph-up me-2"></i>Reporte General 
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSede()">
+                                                <i class="bi bi-building me-2"></i>Reporte por Sede 
+                                            </a></li>
+                                        </ul>
+                                    </div>
                         </div>
                         
                     </div>
@@ -555,26 +545,38 @@
                         <!-- Filtros -->
                         <div class="row mb-4 g-2">
                             <div class="col-md-3">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por nombre, IP o ubicación..." id="searchImpresora">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por nombre, IP o ubicación..." id="searchImpresora">
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterSede">
-                                    <option value="">Todas las sedes</option>
-                                </select>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                    <select class="form-select" id="filterSede">
+                                        <option value="">Todas las sedes</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterEstado">
-                                    <option value="">Todos los estados</option>
-                                    <option value="activa">Activa</option>
-                                    <option value="inactiva">Inactiva</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="obsoleta">Obsoleta</option>
-                                </select>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                    <select class="form-select" id="filterEstado">
+                                        <option value="">Todos los estados</option>
+                                        <option value="activa">Activa</option>
+                                        <option value="inactiva">Inactiva</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="obsoleta">Obsoleta</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <select class="form-select form-select-sm" id="filterDepartamento">
-                                    <option value="">Todos los departamentos</option>
-                                </select>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-people"></i></span>
+                                    <select class="form-select form-select-sm" id="filterDepartamento">
+                                        <option value="">Todos los departamentos</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -704,12 +706,12 @@
                             </div>
                         </div>
                        <div class="mb-3">
-    <label class="form-label">Modelo de Toner</label>
-    <select class="form-select" name="toner" id="create_toner">
-        <option value="">Seleccione un modelo de toner</option>
-    </select>
-    <div class="form-text">Selecciona el modelo de toner compatible del inventario</div>
-</div>
+                            <label class="form-label">Modelo de Toner</label>
+                            <select class="form-select" name="toner" id="create_toner">
+                                <option value="">Seleccione un modelo de toner</option>
+                            </select>
+                            <div class="form-text">Selecciona el modelo de toner compatible del inventario</div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label">Descripción</label>
                             <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción de la impresora y su función"></textarea>
@@ -797,17 +799,17 @@
                             <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
                         </div>
                         <div class="row">
-                             <div class="col-md-6">
                                 <div class="col-md-6">
-    <div class="mb-3">
-        <label class="form-label">Modelo de Toner</label>
-        <select class="form-select" name="toner" id="edit_toner">
-            <option value="">Seleccione un modelo de toner</option>
-        </select>
-        <div class="form-text">Selecciona el modelo de toner compatible</div>
-    </div>
-</div>
-                            </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Modelo de Toner</label>
+                                            <select class="form-select" name="toner" id="edit_toner">
+                                                <option value="">Seleccione un modelo de toner</option>
+                                            </select>
+                                            <div class="form-text">Selecciona el modelo de toner compatible</div>
+                                        </div>
+                                    </div>
+                                </div>
                           <!--  <div class="col-md-6">
                                      <div class="mb-3">
                                         <label class="form-label">Contador de Instalaciones de Toner</label>
@@ -960,38 +962,38 @@
     </div>
 
     <!-- Modal para Seleccionar Sede para Reporte -->
-<div class="modal fade" id="selectSedeModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-building me-2"></i> Seleccionar Sede
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Seleccione una sede para generar el reporte:</label>
-                    <select class="form-select" id="select_sede_reporte">
-                        <option value="">Seleccione una sede</option>
-                    </select>
+    <div class="modal fade" id="selectSedeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-building me-2"></i> Seleccionar Sede
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="alert alert-info">
-                    <small>
-                        <i class="bi bi-info-circle me-1"></i>
-                        Se generará un reporte PDF con todas las impresoras de la sede seleccionada.
-                    </small>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione una sede para generar el reporte:</label>
+                        <select class="form-select" id="select_sede_reporte">
+                            <option value="">Seleccione una sede</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Se generará un reporte PDF con todas las impresoras de la sede seleccionada.
+                        </small>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="generarReporteConSedeSeleccionada()">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarReporteConSedeSeleccionada()">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1007,24 +1009,48 @@
         let currentPage = 1;
         let totalPages = 1;
         let totalRecords = 0;
+        let currentFilters = {
+            search: '',
+            sede_id: '',
+            departamento_id: '',
+            estado: ''
+        };
 
         // Cargar datos al iniciar
-      document.addEventListener('DOMContentLoaded', function() {
-    cargarImpresoras();
-    cargarSedes();
-    cargarDepartamentos();
-    cargarStockEquipos();
-    cargarModelosToner(); 
-    inicializarEventos();
-    applySavedTheme();
-    inicializarSidebar();
-});
-        // Cargar impresoras
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarImpresoras();
+            cargarSedes();
+            cargarDepartamentos();
+            cargarStockEquipos();
+            cargarModelosToner(); 
+            inicializarEventos();
+            applySavedTheme();
+            inicializarSidebar();
+        });
         async function cargarImpresoras(page = 1) {
             try {
                 currentPage = page;
-                const response = await fetch(`/api/impresoras?page=${page}`);
                 
+                const params = new URLSearchParams();
+                params.append('page', page);
+                
+                if (currentFilters.search) {
+                    params.append('search', currentFilters.search);
+                }
+                if (currentFilters.sede_id) {
+                    params.append('sede_id', currentFilters.sede_id);
+                }
+                if (currentFilters.departamento_id) {
+                    params.append('departamento_id', currentFilters.departamento_id);
+                }
+                if (currentFilters.estado) {
+                    params.append('estado', currentFilters.estado);
+                }
+                
+                const url = `/api/impresoras?${params.toString()}`;
+                console.log('Cargando impresoras con URL:', url);
+                
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error('Error al cargar impresoras');
                 }
@@ -1035,9 +1061,14 @@
                 totalPages = data.pagination?.total || 1;
                 totalRecords = data.pagination?.totalRecords || 0;
                 
+                if (data.filters) {
+                    currentFilters = { ...currentFilters, ...data.filters };
+                }
+                
                 actualizarResumen();
                 renderizarImpresoras();
                 renderizarPaginacion();
+                actualizarEstadoFiltros();
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -1045,24 +1076,38 @@
             }
         }
 
-        // Cargar sedes
-        async function cargarSedes() {
-            try {
-                const response = await fetch('/api/sedes');
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar sedes');
-                }
-
-                sedes = await response.json();
-                renderizarSedes();
-                
-            } catch (error) {
-                console.error('Error:', error);
+        function actualizarEstadoFiltros() {
+            document.getElementById('searchImpresora').value = currentFilters.search;
+            document.getElementById('filterSede').value = currentFilters.sede_id;
+            document.getElementById('filterDepartamento').value = currentFilters.departamento_id;
+            document.getElementById('filterEstado').value = currentFilters.estado;
+            
+            const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+            const resultCount = document.getElementById('resultCount');
+            
+            if (filtrosActivos > 0) {
+                resultCount.innerHTML = `Mostrando ${impresoras.length} de ${totalRecords} impresoras <span class="badge bg-warning ms-2">Filtrado</span>`;
+            } else {
+                resultCount.textContent = `Mostrando ${impresoras.length} de ${totalRecords} impresoras`;
             }
         }
 
-        // Cargar departamentos
+            async function cargarSedes() {
+                try {
+                    const response = await fetch('/api/sedes');
+                    
+                    if (!response.ok) {
+                        throw new Error('Error al cargar sedes');
+                    }
+
+                    sedes = await response.json();
+                    renderizarSedes();
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+
         async function cargarDepartamentos() {
             try {
                 const response = await fetch('/api/departamentos?all=true');
@@ -1079,92 +1124,87 @@
             }
         }
 
-        // Cargar equipos en stock para Impresoras
-async function cargarStockEquipos() {
-    try {
-        console.log('🔍 Cargando impresoras del inventario...');
-        const response = await fetch('/api/stock_equipos/impresoras');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar impresoras del inventario');
+        async function cargarStockEquipos() {
+            try {
+                console.log('Cargando impresoras del inventario...');
+                const response = await fetch('/api/stock_equipos/impresoras');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar impresoras del inventario');
+                }
+
+                stockEquipos = await response.json();
+                console.log(`${stockEquipos.length} impresoras cargadas del inventario`);
+                
+                renderizarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar las impresoras disponibles del inventario');
+                
+                await cargarStockEquiposFallback();
+            }
         }
 
-        stockEquipos = await response.json();
-        console.log(`✅ ${stockEquipos.length} impresoras cargadas del inventario`);
-        
-        renderizarStockEquipos();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar las impresoras disponibles del inventario');
-        
-        await cargarStockEquiposFallback();
-    }
-}
+        async function cargarModelosToner() {
+            try {
+                console.log('Cargando modelos de toner del inventario...');
+                const response = await fetch('/api/stock_equipos');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipos del inventario');
+                }
 
-async function cargarModelosToner() {
-    try {
-        console.log('🔍 Cargando modelos de toner del inventario...');
-        const response = await fetch('/api/stock_equipos');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar equipos del inventario');
+                const data = await response.json();
+
+                toners = data.stockEquipos.filter(equipo => 
+                    equipo.tipo_equipo && 
+                    (equipo.tipo_equipo.nombre.toLowerCase().includes('toner') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho'))
+                ) || [];
+                
+                console.log(`${toners.length} modelos de toner encontrados`);
+                renderizarModelosToner();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los modelos de toner del inventario');
+                
+                toners = [];
+                renderizarModelosToner();
+            }
         }
 
-        const data = await response.json();
-        
-        // Filtrar solo los equipos que son toners
-        toners = data.stockEquipos.filter(equipo => 
-            equipo.tipo_equipo && 
-            (equipo.tipo_equipo.nombre.toLowerCase().includes('toner') ||
-             equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
-             equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho'))
-        ) || [];
-        
-        console.log(`✅ ${toners.length} modelos de toner encontrados`);
-        renderizarModelosToner();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar los modelos de toner del inventario');
-        
-        // Si hay error, dejar el array vacío
-        toners = [];
-        renderizarModelosToner();
-    }
-}
+        function renderizarModelosToner() {
+            const selects = ['create_toner', 'edit_toner'];
 
-// Renderizar modelos de toner en los selects
-function renderizarModelosToner() {
-    const selects = ['create_toner', 'edit_toner'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
 
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (select) {
-            // Limpiar opciones existentes (excepto la primera)
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
+                    if (toners.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No hay modelos de toner en el inventario";
+                        option.disabled = true;
+                        select.appendChild(option);
+                        return;
+                    }
 
-            if (toners.length === 0) {
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No hay modelos de toner en el inventario";
-                option.disabled = true;
-                select.appendChild(option);
-                return;
-            }
-
-            // Agregar modelos de toner disponibles
-            toners.forEach(toner => {
-                const option = document.createElement('option');
-                option.value = `${toner.marca} ${toner.modelo}`;
-                option.textContent = `${toner.marca} ${toner.modelo}`;
-                select.appendChild(option);
+                    // Agregar modelos de toner disponibles
+                    toners.forEach(toner => {
+                        const option = document.createElement('option');
+                        option.value = `${toner.marca} ${toner.modelo}`;
+                        option.textContent = `${toner.marca} ${toner.modelo}`;
+                        select.appendChild(option);
+                    });
+                }
             });
         }
-    });
-}
 
 
         // Cargar toners disponibles
@@ -1178,7 +1218,6 @@ function renderizarModelosToner() {
 
                 const data = await response.json();
                 
-                // Filtrar solo los equipos que son de tipo Toner
                 toners = data.stockEquipos.filter(equipo => 
                     equipo.tipo_equipo && 
                     equipo.tipo_equipo.nombre.toLowerCase().includes('toner')
@@ -1189,7 +1228,6 @@ function renderizarModelosToner() {
             }
         }
 
-        // Actualizar resumen
         function actualizarResumen() {
             const total = impresoras.length;
             const activas = impresoras.filter(i => i.estado_impresora === 'activa').length;
@@ -1206,7 +1244,6 @@ function renderizarModelosToner() {
            // document.getElementById('totalImpresiones').textContent = totalImpresiones.toLocaleString();
         }
 
-        // Renderizar impresoras en la tabla
         function renderizarImpresoras() {
             const tbody = document.getElementById('impresorasTableBody');
             tbody.innerHTML = '';
@@ -1316,7 +1353,6 @@ function renderizarModelosToner() {
                 `Mostrando ${impresoras.length} de ${totalRecords} impresoras`;
         }
 
-        // Renderizar sedes en los selects
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
 
@@ -1339,7 +1375,6 @@ function renderizarModelosToner() {
             });
         }
 
-        // Renderizar departamentos en los selects
         function renderizarDepartamentos() {
             const selects = ['filterDepartamento', 'create_departamento_id', 'edit_departamento_id'];
 
@@ -1362,7 +1397,6 @@ function renderizarModelosToner() {
             });
         }
 
-        // Renderizar equipos en stock
         function renderizarStockEquipos() {
             const select = document.getElementById('create_stock_equipos_id');
             if (select) {
@@ -1390,7 +1424,6 @@ function renderizarModelosToner() {
             }
         }
 
-        // Renderizar toners
         function renderizarToners() {
             const select = document.getElementById('toner_actual_id');
             if (select) {
@@ -1408,7 +1441,6 @@ function renderizarModelosToner() {
                     return;
                 }
 
-              
                 toners.forEach(toner => {
                     const option = document.createElement('option');
                     option.value = toner.id;
@@ -1418,241 +1450,317 @@ function renderizarModelosToner() {
             }
         }
 
-        // Renderizar paginación
         function renderizarPaginacion() {
             const pagination = document.getElementById('paginationContainer');
             pagination.innerHTML = '';
 
-            
             const prevLi = document.createElement('li');
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarImpresoras(${currentPage - 1})" aria-label="Anterior">
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
                     <i class="bi bi-chevron-left"></i>
                 </a>
             `;
             pagination.appendChild(prevLi);
 
-           
-            for (let i = 1; i <= totalPages; i++) {
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+                pagination.appendChild(firstLi);
+                
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const pageLi = document.createElement('li');
                 pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-                pageLi.innerHTML = `
-                    <a class="page-link" href="#" onclick="cargarImpresoras(${i})">${i}</a>
-                `;
+                pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
                 pagination.appendChild(pageLi);
             }
 
-            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
+                
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
+                pagination.appendChild(lastLi);
+            }
+
             const nextLi = document.createElement('li');
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarImpresoras(${currentPage + 1})" aria-label="Siguiente">
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             `;
             pagination.appendChild(nextLi);
         }
 
+        function cambiarPagina(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            cargarImpresoras(page);
+        }
+
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            document.getElementById('createImpresoraForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearImpresora();
+            });
+
+            document.getElementById('editImpresoraForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarImpresora();
+            });
+
+            document.getElementById('instalarTonerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await instalarToner();
+            });
+
+            let searchTimeout;
+            document.getElementById('searchImpresora').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
+            });
+
+            document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+
+            const clearFiltersBtn = document.createElement('button');
+            clearFiltersBtn.className = 'btn btn-sm btn-outline-secondary ms-2';
+            clearFiltersBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Limpiar';
+            clearFiltersBtn.onclick = resetFiltros;
+            
+            const resultCount = document.getElementById('resultCount');
+            resultCount.parentNode.insertBefore(clearFiltersBtn, resultCount.nextSibling);
+        }
+
+
         // Funciones CRUD
-async function crearImpresora() {
-    const form = document.getElementById('createImpresoraForm');
-    const formData = new FormData(form);
+        async function crearImpresora() {
+            const form = document.getElementById('createImpresoraForm');
+            const formData = new FormData(form);
 
-    if (stockEquipos.length === 0) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No hay impresoras disponibles en el inventario'
-        });
-        return;
-    }
+            if (stockEquipos.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No hay impresoras disponibles en el inventario'
+                });
+                return;
+            }
 
-    const datos = {
-        stock_equipos_id: formData.get('stock_equipos_id'),
-        nombre: formData.get('nombre'),
-        descripcion: formData.get('descripcion'),
-        ip_impresora: formData.get('ip_impresora'),
-        cereal_impresora: formData.get('cereal_impresora'),
-        sede_id: formData.get('sede_id'),
-        departamento_id: formData.get('departamento_id'),
-        ubicacion: formData.get('ubicacion'),
-        estado_impresora: formData.get('estado_impresora'),
-        toner: formData.get('toner') 
-    };
+            const datos = {
+                stock_equipos_id: formData.get('stock_equipos_id'),
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                ip_impresora: formData.get('ip_impresora'),
+                cereal_impresora: formData.get('cereal_impresora'),
+                sede_id: formData.get('sede_id'),
+                departamento_id: formData.get('departamento_id'),
+                ubicacion: formData.get('ubicacion'),
+                estado_impresora: formData.get('estado_impresora'),
+                toner: formData.get('toner') 
+            };
 
-    console.log('📝 Datos a enviar para crear:', datos);
+            console.log('Datos a enviar para crear:', datos);
 
-    try {
-        const response = await fetch('/api/impresoras', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datos)
-        });
+            try {
+                const response = await fetch('/api/impresoras', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error del servidor');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#createImpresoraModal').modal('hide');
+                form.reset();
+                
+                await cargarImpresoras(currentPage);
+                await cargarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error al crear:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al crear la impresora'
+                });
+            }
         }
 
-        const data = await response.json();
+        async function editImpresora(id) {
+            try {
+                const response = await fetch(`/api/impresoras/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar impresora');
+                }
 
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#createImpresoraModal').modal('hide');
-        form.reset();
-        
-        await cargarImpresoras(currentPage);
-        await cargarStockEquipos();
-        
-    } catch (error) {
-        console.error('Error al crear:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al crear la impresora'
-        });
-    }
-}
-
-async function editImpresora(id) {
-    try {
-        const response = await fetch(`/api/impresoras/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar impresora');
+                const impresora = await response.json();
+                
+                document.getElementById('edit_impresora_id').value = impresora.id;
+                document.getElementById('edit_nombre').value = impresora.nombre;
+                document.getElementById('edit_sede_id').value = impresora.sede_id;
+                document.getElementById('edit_departamento_id').value = impresora.departamento_id;
+                document.getElementById('edit_estado_impresora').value = impresora.estado_impresora;
+                document.getElementById('edit_ip_impresora').value = impresora.ip_impresora || '';
+                document.getElementById('edit_cereal_impresora').value = impresora.cereal_impresora || '';
+                document.getElementById('edit_ubicacion').value = impresora.ubicacion;
+                document.getElementById('edit_descripcion').value = impresora.descripcion || '';
+                document.getElementById('edit_toner').value = impresora.toner || ''; 
+                
+                $('#editImpresoraModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
         }
 
-        const impresora = await response.json();
-        
-        document.getElementById('edit_impresora_id').value = impresora.id;
-        document.getElementById('edit_nombre').value = impresora.nombre;
-        document.getElementById('edit_sede_id').value = impresora.sede_id;
-        document.getElementById('edit_departamento_id').value = impresora.departamento_id;
-        document.getElementById('edit_estado_impresora').value = impresora.estado_impresora;
-        document.getElementById('edit_ip_impresora').value = impresora.ip_impresora || '';
-        document.getElementById('edit_cereal_impresora').value = impresora.cereal_impresora || '';
-        document.getElementById('edit_ubicacion').value = impresora.ubicacion;
-        document.getElementById('edit_descripcion').value = impresora.descripcion || '';
-        document.getElementById('edit_toner').value = impresora.toner || ''; 
-        
-        $('#editImpresoraModal').modal('show');
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
+        async function actualizarImpresora() {
+            const form = document.getElementById('editImpresoraForm');
+            const formData = new FormData(form);
+            const impresoraId = formData.get('id');
 
-async function actualizarImpresora() {
-    const form = document.getElementById('editImpresoraForm');
-    const formData = new FormData(form);
-    const impresoraId = formData.get('id');
+            /*const contadorToner = parseInt(formData.get('contador_instalacion_toner')) || 0;
+            if (contadorToner < 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'El contador de toner no puede ser negativo'
+                });
+                return;
+            }*/
+            const datos = {
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                ip_impresora: formData.get('ip_impresora'),
+                cereal_impresora: formData.get('cereal_impresora'),
+                sede_id: formData.get('sede_id'),
+                departamento_id: formData.get('departamento_id'),
+                ubicacion: formData.get('ubicacion'),
+                estado_impresora: formData.get('estado_impresora'),
+                toner: formData.get('toner'), 
+            //  contador_instalacion_toner: contadorToner 
+            };
 
-    /*const contadorToner = parseInt(formData.get('contador_instalacion_toner')) || 0;
-    if (contadorToner < 0) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'El contador de toner no puede ser negativo'
-        });
-        return;
-    }*/
-    const datos = {
-        nombre: formData.get('nombre'),
-        descripcion: formData.get('descripcion'),
-        ip_impresora: formData.get('ip_impresora'),
-        cereal_impresora: formData.get('cereal_impresora'),
-        sede_id: formData.get('sede_id'),
-        departamento_id: formData.get('departamento_id'),
-        ubicacion: formData.get('ubicacion'),
-        estado_impresora: formData.get('estado_impresora'),
-        toner: formData.get('toner'), 
-      //  contador_instalacion_toner: contadorToner 
-    };
+            console.log('Datos a enviar:', datos);
 
-    console.log('📝 Datos a enviar:', datos);
+            try {
+                const response = await fetch(`/api/impresoras/${impresoraId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
 
-    try {
-        const response = await fetch(`/api/impresoras/${impresoraId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datos)
-        });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error del servidor');
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editImpresoraModal').modal('hide');
+                form.reset();
+                
+                await cargarImpresoras(currentPage);
+                
+            } catch (error) {
+                console.error('Error al actualizar:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar la impresora'
+                });
+            }
         }
+        async function viewImpresora(id) {
+            try {
+                const response = await fetch(`/api/impresoras/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar impresora');
+                }
 
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#editImpresoraModal').modal('hide');
-        form.reset();
-        
-        await cargarImpresoras(currentPage);
-        
-    } catch (error) {
-        console.error('Error al actualizar:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al actualizar la impresora'
-        });
-    }
-}
-async function viewImpresora(id) {
-    try {
-        const response = await fetch(`/api/impresoras/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar impresora');
+                const impresora = await response.json();
+                
+                document.getElementById('view_nombre_header').textContent = impresora.nombre;
+                document.getElementById('view_id').textContent = `ID: ${impresora.id}`;
+                document.getElementById('view_impresora_id').textContent = impresora.id;
+                document.getElementById('view_estado_impresora').innerHTML = `<span class="status-badge status-${impresora.estado_impresora}">${impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1)}</span>`;
+                document.getElementById('view_ip_impresora').textContent = impresora.ip_impresora || 'No asignada';
+                document.getElementById('view_cereal_impresora').textContent = impresora.cereal_impresora || 'No asignado';
+                document.getElementById('view_sede').textContent = impresora.sede ? impresora.sede.nombre : 'Sin sede';
+                document.getElementById('view_departamento').textContent = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
+                document.getElementById('view_ubicacion').textContent = impresora.ubicacion;
+                document.getElementById('view_descripcion').textContent = impresora.descripcion || 'Sin descripción';
+                document.getElementById('view_toner').textContent = impresora.toner || 'No especificado'; 
+                document.getElementById('view_stock_equipo').textContent = impresora.stock_equipos ? `${impresora.stock_equipos.marca} ${impresora.stock_equipos.modelo}` : 'No asignado';
+            // document.getElementById('view_toner_actual').textContent = impresora.toner_actual ? `${impresora.toner_actual.marca} ${impresora.toner_actual.modelo}` : 'No instalado';
+            // document.getElementById('view_fecha_instalacion_toner').textContent = impresora.fecha_instalacion_toner ? new Date(impresora.fecha_instalacion_toner).toLocaleDateString('es-ES') : 'No instalado';
+            //  document.getElementById('view_contador_instalacion_toner').textContent = impresora.contador_instalacion_toner || 0;
+                document.getElementById('view_created_at').textContent = new Date(impresora.created_at).toLocaleDateString('es-ES');
+                
+                $('#viewImpresoraModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
         }
-
-        const impresora = await response.json();
-        
-        document.getElementById('view_nombre_header').textContent = impresora.nombre;
-        document.getElementById('view_id').textContent = `ID: ${impresora.id}`;
-        document.getElementById('view_impresora_id').textContent = impresora.id;
-        document.getElementById('view_estado_impresora').innerHTML = `<span class="status-badge status-${impresora.estado_impresora}">${impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1)}</span>`;
-        document.getElementById('view_ip_impresora').textContent = impresora.ip_impresora || 'No asignada';
-        document.getElementById('view_cereal_impresora').textContent = impresora.cereal_impresora || 'No asignado';
-        document.getElementById('view_sede').textContent = impresora.sede ? impresora.sede.nombre : 'Sin sede';
-        document.getElementById('view_departamento').textContent = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
-        document.getElementById('view_ubicacion').textContent = impresora.ubicacion;
-        document.getElementById('view_descripcion').textContent = impresora.descripcion || 'Sin descripción';
-        document.getElementById('view_toner').textContent = impresora.toner || 'No especificado'; 
-        document.getElementById('view_stock_equipo').textContent = impresora.stock_equipos ? `${impresora.stock_equipos.marca} ${impresora.stock_equipos.modelo}` : 'No asignado';
-       // document.getElementById('view_toner_actual').textContent = impresora.toner_actual ? `${impresora.toner_actual.marca} ${impresora.toner_actual.modelo}` : 'No instalado';
-       // document.getElementById('view_fecha_instalacion_toner').textContent = impresora.fecha_instalacion_toner ? new Date(impresora.fecha_instalacion_toner).toLocaleDateString('es-ES') : 'No instalado';
-      //  document.getElementById('view_contador_instalacion_toner').textContent = impresora.contador_instalacion_toner || 0;
-        document.getElementById('view_created_at').textContent = new Date(impresora.created_at).toLocaleDateString('es-ES');
-        
-        $('#viewImpresoraModal').modal('show');
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
         async function deleteImpresora(id, nombre) {
             const result = await Swal.fire({
@@ -1703,197 +1811,178 @@ async function viewImpresora(id) {
             $('#instalarTonerModal').modal('show');
         }
 
- async function instalarToner() {
-    const form = document.getElementById('instalarTonerForm');
-    const formData = new FormData(form);
-    const impresoraId = formData.get('impresora_id');
+        async function instalarToner() {
+            const form = document.getElementById('instalarTonerForm');
+            const formData = new FormData(form);
+            const impresoraId = formData.get('impresora_id');
 
-    try {
-        const response = await fetch(`/api/impresoras/${impresoraId}/instalar-toner`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        });
+            try {
+                const response = await fetch(`/api/impresoras/${impresoraId}/instalar-toner`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error del servidor');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#instalarTonerModal').modal('hide');
+                form.reset();
+                
+                await cargarImpresoras(currentPage);
+                await cargarToners();
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al instalar el toner'
+                });
+            }
         }
 
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#instalarTonerModal').modal('hide');
-        form.reset();
-        
-        await cargarImpresoras(currentPage);
-        await cargarToners();
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al instalar el toner'
-        });
-    }
-}
-
-function abrirModalSeleccionSede() {
-    // Verificar si hay sedes cargadas
-    if (sedes.length === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No hay sedes',
-            text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
-        });
-        return;
-    }
-
-    // Llenar el select del modal
-    const selectSede = document.getElementById('select_sede_reporte');
-    selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
-    
-    sedes.forEach(sede => {
-        const option = document.createElement('option');
-        option.value = sede.id;
-        option.textContent = sede.nombre;
-        selectSede.appendChild(option);
-    });
-
-    // Mostrar el modal
-    $('#selectSedeModal').modal('show');
-}
-
-async function generarReporteConSedeSeleccionada() {
-    const sedeId = document.getElementById('select_sede_reporte').value;
-    
-    if (!sedeId) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Seleccione una sede',
-            text: 'Por favor seleccione una sede para generar el reporte.'
-        });
-        return;
-    }
-
-    const sedeSelect = document.getElementById('select_sede_reporte');
-    const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
-
-    $('#selectSedeModal').modal('hide');
-
-    try {
-        console.log(`📊 Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
-        
-        Swal.fire({
-            title: 'Generando Reporte',
-            text: `Generando reporte para ${sedeNombre}...`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+        function abrirModalSeleccionSede() {
+            if (sedes.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No hay sedes',
+                    text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
+                });
+                return;
             }
-        });
 
-        // **ABRIR EN NUEVA PESTAÑA EN LUGAR DE DESCARGAR**
-        window.open(`/api/impresoras/reporte/sede/${sedeId}`, '_blank');
-        
-        Swal.close();
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Reporte Generado',
-            text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
-            timer: 3000,
-            showConfirmButton: false
-        });
-        
-    } catch (error) {
-        console.error('Error generando reporte por sede:', error);
-        Swal.close();
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
-            confirmButtonText: 'Entendido'
-        });
-    }
-}
-
-        // Funciones de filtrado
-        function aplicarFiltros() {
-            const searchFilter = document.getElementById('searchImpresora').value.toLowerCase();
-            const sedeFilter = document.getElementById('filterSede').value;
-            const estadoFilter = document.getElementById('filterEstado').value;
-            const departamentoFilter = document.getElementById('filterDepartamento').value;
-
-            const rows = document.querySelectorAll('#impresorasTableBody tr');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                if (row.id === 'loadingRow') return;
-
-                const nombre = row.querySelector('td:nth-child(2) .fw-bold').textContent.toLowerCase();
-                const ip = row.querySelector('td:nth-child(3) .ip-address')?.textContent.toLowerCase() || '';
-                const ubicacion = row.querySelector('td:nth-child(5) small').textContent.toLowerCase();
-                const sede = row.querySelector('td:nth-child(4) .fw-bold').textContent;
-                const departamento = row.querySelector('td:nth-child(4) small').textContent;
-                const estado = row.querySelector('td:nth-child(6) .status-badge').textContent.toLowerCase();
-
-                const searchMatch = !searchFilter || 
-                    nombre.includes(searchFilter) || 
-                    ip.includes(searchFilter) ||
-                    ubicacion.includes(searchFilter);
-                const sedeMatch = !sedeFilter || sede.includes(
-                    sedes.find(s => s.id == sedeFilter)?.nombre || ''
-                );
-                const departamentoMatch = !departamentoFilter || departamento.includes(
-                    departamentos.find(d => d.id == departamentoFilter)?.nombre || ''
-                );
-                const estadoMatch = !estadoFilter || estado.includes(estadoFilter);
-
-                if (searchMatch && sedeMatch && departamentoMatch && estadoMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+            const selectSede = document.getElementById('select_sede_reporte');
+            selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
+            
+            sedes.forEach(sede => {
+                const option = document.createElement('option');
+                option.value = sede.id;
+                option.textContent = sede.nombre;
+                selectSede.appendChild(option);
             });
 
-            document.getElementById('resultCount').textContent = 
-                `Mostrando ${visibleCount} de ${totalRecords} impresoras`;
+            $('#selectSedeModal').modal('show');
         }
 
-    /*   function incrementarContadorToner() {
-    const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-    const currentValue = parseInt(contadorInput.value) || 0;
-    contadorInput.value = currentValue + 1;
-}
+        async function generarReporteConSedeSeleccionada() {
+            const sedeId = document.getElementById('select_sede_reporte').value;
+            
+            if (!sedeId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Seleccione una sede',
+                    text: 'Por favor seleccione una sede para generar el reporte.'
+                });
+                return;
+            }
 
-function decrementarContadorToner() {
-    const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-    const currentValue = parseInt(contadorInput.value) || 0;
-    if (currentValue > 0) {
-        contadorInput.value = currentValue - 1;
+            const sedeSelect = document.getElementById('select_sede_reporte');
+            const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
+
+            $('#selectSedeModal').modal('hide');
+
+            try {
+                console.log(`Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: `Generando reporte para ${sedeNombre}...`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/impresoras/reporte/sede/${sedeId}`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte por sede:', error);
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+
+            function aplicarFiltros() {
+
+                currentFilters = {
+                    search: document.getElementById('searchImpresora').value,
+                    sede_id: document.getElementById('filterSede').value,
+                    departamento_id: document.getElementById('filterDepartamento').value,
+                    estado: document.getElementById('filterEstado').value
+                };
+
+                currentPage = 1;
+                cargarImpresoras(currentPage);
+            }
+
+        function aplicarBusquedaRapida() {
+                currentFilters.search = document.getElementById('searchImpresora').value;
+                currentPage = 1;
+                cargarImpresoras(currentPage);
+            }    
+
+            /*   function incrementarContadorToner() {
+            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
+            const currentValue = parseInt(contadorInput.value) || 0;
+            contadorInput.value = currentValue + 1;
+        }
+
+        function decrementarContadorToner() {
+            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
+            const currentValue = parseInt(contadorInput.value) || 0;
+            if (currentValue > 0) {
+                contadorInput.value = currentValue - 1;
+            }
+        }
+
+        function resetearContadorToner() {
+            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
+            contadorInput.value = 0;
+        }*/
+
+          function resetFiltros() {
+        currentFilters = {
+            search: '',
+            sede_id: '',
+            departamento_id: '',
+            estado: ''
+        };
+        
+        document.getElementById('searchImpresora').value = '';
+        document.getElementById('filterSede').value = '';
+        document.getElementById('filterDepartamento').value = '';
+        document.getElementById('filterEstado').value = '';
+        
+        currentPage = 1;
+        cargarImpresoras(currentPage);
     }
-}
 
-function resetearContadorToner() {
-    const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-    contadorInput.value = 0;
-}*/
-
-        function resetFiltros() {
-            document.getElementById('searchImpresora').value = '';
-            document.getElementById('filterSede').value = '';
-            document.getElementById('filterEstado').value = '';
-            document.getElementById('filterDepartamento').value = '';
-            aplicarFiltros();
-        }
 
         function mostrarError(mensaje) {
             Swal.fire({
@@ -1948,7 +2037,6 @@ function resetearContadorToner() {
         }
 
         function inicializarSidebar() {
-            // Sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {
@@ -1974,7 +2062,6 @@ function resetearContadorToner() {
             }
         }
 
-        // Inicializar eventos
         function inicializarEventos() {
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -2002,118 +2089,109 @@ function resetearContadorToner() {
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
             document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
         }
-async function generarReporteGeneral() {
-    try {
-        console.log('📊 Generando reporte general...');
-        
-        // Mostrar loading
-        Swal.fire({
-            title: 'Generando Reporte',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+        async function generarReporteGeneral() {
+            try {
+                console.log('Generando reporte general...');
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            
+                window.open(`/api/impresoras/reporte/general`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: 'El reporte general se ha abierto en una nueva pestaña',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo generar el reporte: ' + error.message
+                });
             }
-        });
-
-        // **ABRIR EN NUEVA PESTAÑA EN LUGAR DE DESCARGAR**
-        window.open(`/api/impresoras/reporte/general`, '_blank');
-        
-        Swal.close();
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Reporte Generado',
-            text: 'El reporte general se ha abierto en una nueva pestaña',
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
-    } catch (error) {
-        console.error('Error generando reporte:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo generar el reporte: ' + error.message
-        });
-    }
-}
-
-
-async function generarReportePorSede() {
-    try {
-        // Obtener la sede seleccionada en el filtro
-        const sedeId = document.getElementById('filterSede').value;
-        
-        if (!sedeId) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Selecciona una sede',
-                text: 'Por favor selecciona una sede del filtro para generar el reporte'
-            });
-            return;
         }
 
-        console.log(`📊 Generando reporte para sede ID: ${sedeId}`);
+
+        async function generarReportePorSede() {
+            try {
+                const sedeId = document.getElementById('filterSede').value;
+                
+                if (!sedeId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selecciona una sede',
+                        text: 'Por favor selecciona una sede del filtro para generar el reporte'
+                    });
+                    return;
+                }
+
+                console.log(`Generando reporte para sede ID: ${sedeId}`);
+
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const response = await fetch(`/api/impresoras/reporte/sede/${sedeId}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al generar el reporte');
+                }
+
+                const blob = await response.blob();
         
-        // Mostrar loading
-        Swal.fire({
-            title: 'Generando Reporte',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+                const sedeSelect = document.getElementById('filterSede');
+                const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `reporte-impresoras-${sedeNombre.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+                
+                document.body.appendChild(a);
+                a.click();
+        
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: `El reporte para ${sedeNombre} se ha descargado exitosamente`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte por sede:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo generar el reporte: ' + error.message
+                });
             }
-        });
-
-        // Hacer la petición para generar el PDF
-        const response = await fetch(`/api/impresoras/reporte/sede/${sedeId}`);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error al generar el reporte');
         }
-
-        // Obtener el blob del PDF
-        const blob = await response.blob();
-        
-        // Obtener nombre de la sede para el nombre del archivo
-        const sedeSelect = document.getElementById('filterSede');
-        const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
-        
-        // Crear URL para descargar
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `reporte-impresoras-${sedeNombre.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
-        
-        document.body.appendChild(a);
-        a.click();
-        
-        // Limpiar
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        Swal.close();
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Reporte Generado',
-            text: `El reporte para ${sedeNombre} se ha descargado exitosamente`,
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
-    } catch (error) {
-        console.error('Error generando reporte por sede:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo generar el reporte: ' + error.message
-        });
-    }
-}
 
     </script>
 

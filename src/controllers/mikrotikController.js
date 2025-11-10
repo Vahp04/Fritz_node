@@ -5,16 +5,41 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 const prisma = new PrismaClient();
 
 export const mikrotikController = {
-
 async index(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sede_id = req.query.sede_id || '';
+    const estado = req.query.estado || '';
 
-    const totalRecords = await prisma.mikrotik.count();
+    let where = {};
+
+    // Construir condiciones de búsqueda
+    if (search) {
+      where.OR = [
+        { descripcion: { contains: search, mode: 'insensitive' } },
+        { ip_mikrotik: { contains: search, mode: 'insensitive' } },
+        { cereal_mikrotik: { contains: search, mode: 'insensitive' } },
+        { ubicacion: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Filtro por sede
+    if (sede_id) {
+      where.sede_id = parseInt(sede_id);
+    }
+
+    // Filtro por estado
+    if (estado) {
+      where.estado = estado;
+    }
+
+    const totalRecords = await prisma.mikrotik.count({ where });
 
     const mikrotiks = await prisma.mikrotik.findMany({
+      where,
       include: {
         stock_equipos: {
           include: {
@@ -38,6 +63,11 @@ async index(req, res) {
         current: page,
         total: totalPages,
         totalRecords: totalRecords
+      },
+      filters: {
+        search: search,
+        sede_id: sede_id,
+        estado: estado
       }
     });
   } catch (error) {
@@ -86,7 +116,7 @@ async store(req, res) {
       estado 
     } = req.body;
 
-    console.log('📝 Datos recibidos para crear mikrotik:', req.body);
+    console.log('Datos recibidos para crear mikrotik:', req.body);
 
     const stockEquiposId = parseInt(stock_equipos_id);
     const sedeId = parseInt(sede_id);
@@ -177,7 +207,7 @@ async update(req, res) {
       const estadoAnterior = mikrotikActual.estado;
       const estadoNuevo = estado;
 
-      console.log(`🔄 Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
+      console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
         const stockEquipoId = mikrotikActual.stock_equipos_id;
@@ -185,7 +215,7 @@ async update(req, res) {
         if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
             (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
           
-          console.log(`📦 Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
+          console.log(`Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
           
           if (estadoAnterior === 'desuso') {
             await tx.stock_equipos.update({
@@ -209,7 +239,7 @@ async update(req, res) {
         else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
                  estadoNuevo === 'activo') {
           
-          console.log(`🔧 Asignando mikrotik desde inventario (activación)`);
+          console.log(`Asignando mikrotik desde inventario (activación)`);
           
           if (estadoAnterior === 'desuso') {
             await tx.stock_equipos.update({
@@ -232,7 +262,7 @@ async update(req, res) {
         }
         
         else if (estadoNuevo === 'desuso') {
-          console.log(`🗑️ Marcando mikrotik como desuso - eliminando del inventario`);
+          console.log(`Marcando mikrotik como desuso - eliminando del inventario`);
           
           const stockActual = await tx.stock_equipos.findUnique({
             where: { id: stockEquipoId }
@@ -316,10 +346,10 @@ async update(req, res) {
       const stockEquipoId = mikrotik.stock_equipos_id;
       const estadoActual = mikrotik.estado;
 
-      console.log(`🗑️ Eliminando mikrotik con estado: ${estadoActual}`);
+      console.log(`Eliminando mikrotik con estado: ${estadoActual}`);
 
       if (estadoActual === 'activo') {
-        console.log(`📦 Devolviendo mikrotik activo al inventario`);
+        console.log(`Devolviendo mikrotik activo al inventario`);
         
         await tx.stock_equipos.update({
           where: { id: stockEquipoId },
@@ -330,7 +360,7 @@ async update(req, res) {
         });
       } 
       else if (estadoActual === 'inactivo' || estadoActual === 'mantenimiento') {
-        console.log(`📦 Mikrotik ya estaba disponible, no se modifica inventario`);
+        console.log(`Mikrotik ya estaba disponible, no se modifica inventario`);
       }
       
       await tx.mikrotik.delete({
@@ -376,14 +406,14 @@ async cambiarEstado(req, res) {
       const estadoNuevo = estado;
       const stockEquipoId = mikrotik.stock_equipos_id;
 
-      console.log(`🔄 Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
+      console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
         
         if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
             (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
           
-          console.log(`📦 Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
+          console.log(`Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
           
           if (estadoAnterior === 'desuso') {
             await tx.stock_equipos.update({
@@ -407,7 +437,7 @@ async cambiarEstado(req, res) {
         else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
                  estadoNuevo === 'activo') {
           
-          console.log(`🔧 Asignando mikrotik desde inventario (activación)`);
+          console.log(`Asignando mikrotik desde inventario (activación)`);
           
           if (estadoAnterior === 'desuso') {
             await tx.stock_equipos.update({
@@ -430,7 +460,7 @@ async cambiarEstado(req, res) {
         }
         
         else if (estadoNuevo === 'desuso') {
-          console.log(`🗑️ Marcando mikrotik como desuso - eliminando del inventario`);
+          console.log(`Marcando mikrotik como desuso - eliminando del inventario`);
           
           const stockActual = await tx.stock_equipos.findUnique({
             where: { id: stockEquipoId }
@@ -488,7 +518,7 @@ async cambiarEstado(req, res) {
     res.status(500).json({ error: error.message });
   }
 },
-  // Obtener mikrotiks por sede
+
   async porSede(req, res) {
     try {
       const { sede_id } = req.params;
@@ -514,7 +544,6 @@ async cambiarEstado(req, res) {
     }
   },
 
-  // Obtener mikrotiks por estado
   async porEstado(req, res) {
     try {
       const { estado } = req.params;
@@ -550,7 +579,6 @@ async cambiarEstado(req, res) {
     }
   },
 
-  // Obtener estadísticas de mikrotiks
   async estadisticas(req, res) {
     try {
       const totalMikrotiks = await prisma.mikrotik.count();
@@ -569,7 +597,6 @@ async cambiarEstado(req, res) {
         }
       });
 
-      // Obtener nombres de sedes
       const sedes = await prisma.sedes.findMany({
         where: {
           id: {
@@ -602,7 +629,6 @@ async cambiarEstado(req, res) {
     }
   },
 
-  // Buscar mikrotiks por IP o descripción
   async buscar(req, res) {
     try {
       const { q } = req.query;
@@ -640,229 +666,201 @@ async cambiarEstado(req, res) {
     }
   },
 
+  async generarPDFGeneral(req, res) {
+    try {
+      console.log('Generando PDF general de mikrotiks...');
 
-async generarPDFGeneral(req, res) {
-  try {
-    console.log('📊 Generando PDF general de mikrotiks...');
-    
-    // Obtener todos los mikrotiks con sus relaciones
-    const mikrotiks = await prisma.mikrotik.findMany({
-      include: {
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
-          }
+      const mikrotiks = await prisma.mikrotik.findMany({
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true
         },
-        sede: true
-      },
-      orderBy: [
-        { sede_id: 'asc' },
-        { id: 'asc' }
-      ]
-    });
+        orderBy: [
+          { sede_id: 'asc' },
+          { id: 'asc' }
+        ]
+      });
 
-    console.log(`✅ ${mikrotiks.length} mikrotiks encontrados`);
+      console.log(`${mikrotiks.length} mikrotiks encontrados`);
 
-    // Datos para el template
-    const data = {
-      titulo: 'Reporte General de Mikrotiks',
-      fecha: new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
-      total: mikrotiks.length,
-      mikrotiks: mikrotiks,
-      estadisticas: {
-        activos: mikrotiks.filter(m => m.estado === 'activo').length,
-        inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
-        mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
-        desuso: mikrotiks.filter(m => m.estado === 'desuso').length
-      }
-    };
+      const data = {
+        titulo: 'Reporte General de Mikrotiks',
+        fecha: new Date().toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        total: mikrotiks.length,
+        mikrotiks: mikrotiks,
+        estadisticas: {
+          activos: mikrotiks.filter(m => m.estado === 'activo').length,
+          inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
+          mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
+          desuso: mikrotiks.filter(m => m.estado === 'desuso').length
+        }
+      };
 
-    console.log('📝 Renderizando template...');
-    
-    // Renderizar el template HTML
-    const html = await renderTemplate(req.app, 'pdfs/reporte-general-mikrotiks', data);
-    
-    console.log('✅ Template renderizado exitosamente');
-    console.log('📄 Longitud del HTML:', html.length);
+      const html = await renderTemplate(req.app, 'pdfs/reporte-general-mikrotiks', data);
+      
+      console.log('Generando PDF...');
 
-    console.log('🖨️ Generando PDF...');
-    
-    // Configuración para Puppeteer
-    const pdfOptions = {
-      format: 'Letter',
-      landscape: true,
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm'
-      }
-    };
+      const pdfOptions = {
+        format: 'Letter',
+        landscape: true,
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        }
+      };
 
-    // Generar PDF
-    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-    
-    console.log('✅ PDF generado exitosamente');
-    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+      console.log('PDF generado exitosamente');
+      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
 
-    // **SOLUCIÓN: Limpiar cualquier header previo y establecer correctamente**
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'inline; filename="reporte-general-mikrotiks.pdf"',
-      'Content-Length': pdfBuffer.length,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
-    
-    console.log(`✅ PDF general generado exitosamente - ${mikrotiks.length} mikrotiks`);
-    
-    // Enviar PDF como Buffer
-    res.end(pdfBuffer);
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'inline; filename="reporte-general-mikrotiks.pdf"',
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
+      console.log(`PDF general generado exitosamente - ${mikrotiks.length} mikrotiks`);
 
-  } catch (error) {
-    console.error('❌ Error generando PDF general:', error);
-    
-    // Asegurarse de enviar JSON en caso de error
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
-      error: 'Error generando PDF', 
-      detalles: error.message
-    }));
-  }
-},
+      res.end(pdfBuffer);
 
-async generarPDFPorSede(req, res) {
-  try {
-    const { sede_id } = req.params;
-    const sedeId = parseInt(sede_id);
-
-    console.log(`📊 Generando PDF de mikrotiks para sede ID: ${sedeId}`);
-
-    // Validar que el ID sea un número válido
-    if (isNaN(sedeId) || sedeId <= 0) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
-    }
-
-    // Obtener información de la sede
-    const sede = await prisma.sedes.findUnique({
-      where: { id: sedeId }
-    });
-
-    if (!sede) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
-    }
-
-    // Obtener mikrotiks de la sede específica
-    const mikrotiks = await prisma.mikrotik.findMany({
-      where: { sede_id: sedeId },
-      include: {
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
-          }
-        },
-        sede: true
-      },
-      orderBy: [
-        { ubicacion: 'asc' },
-        { id: 'asc' }
-      ]
-    });
-
-    if (mikrotiks.length === 0) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ 
-        error: 'No se encontraron mikrotiks para esta sede' 
+    } catch (error) {
+      console.error('Error generando PDF general:', error);
+      
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: 'Error generando PDF', 
+        detalles: error.message
       }));
     }
+  },
 
-    console.log(`✅ ${mikrotiks.length} mikrotiks encontrados en ${sede.nombre}`);
+  async generarPDFPorSede(req, res) {
+    try {
+      const { sede_id } = req.params;
+      const sedeId = parseInt(sede_id);
 
-    // Datos para el template
-    const data = {
-      titulo: `Reporte de Mikrotiks - ${sede.nombre}`,
-      subtitulo: `Sede: ${sede.nombre}`,
-      fecha: new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      }),
-      total: mikrotiks.length,
-      mikrotiks: mikrotiks,
-      sede: sede,
-      estadisticas: {
-        activos: mikrotiks.filter(m => m.estado === 'activo').length,
-        inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
-        mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
-        desuso: mikrotiks.filter(m => m.estado === 'desuso').length
+      console.log(`Generando PDF de mikrotiks para sede ID: ${sedeId}`);
+
+      if (isNaN(sedeId) || sedeId <= 0) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
       }
-    };
 
-    console.log('📝 Renderizando template para sede...');
-    
-    // Renderizar el template HTML
-    const html = await renderTemplate(req.app, 'pdfs/reporte-mikrotiks-sede', data);
-    
-    console.log('✅ Template renderizado exitosamente');
-    console.log('📄 Longitud del HTML:', html.length);
+      const sede = await prisma.sedes.findUnique({
+        where: { id: sedeId }
+      });
 
-    console.log('🖨️ Generando PDF para sede...');
-    
-    // Configuración para Puppeteer
-    const pdfOptions = {
-      format: 'Letter',
-      landscape: true,
-      printBackground: true,
-      margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm'
+      if (!sede) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
       }
-    };
 
-    // Generar PDF
-    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-    
-    console.log('✅ PDF generado exitosamente');
-    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+      const mikrotiks = await prisma.mikrotik.findMany({
+        where: { sede_id: sedeId },
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true
+        },
+        orderBy: [
+          { ubicacion: 'asc' },
+          { id: 'asc' }
+        ]
+      });
 
-    // **SOLUCIÓN: Usar writeHead en lugar de setHeader individual**
-    const filename = `reporte-mikrotiks-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
-    
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${filename}"`,
-      'Content-Length': pdfBuffer.length,
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    });
+      if (mikrotiks.length === 0) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ 
+          error: 'No se encontraron mikrotiks para esta sede' 
+        }));
+      }
 
-    console.log(`✅ Enviando PDF para abrir en navegador`);
-    
-    // Enviar PDF
-    res.end(pdfBuffer);
+      console.log(`${mikrotiks.length} mikrotiks encontrados en ${sede.nombre}`);
 
-  } catch (error) {
-    console.error('❌ Error generando PDF por sede:', error);
-    
-    // Enviar error como JSON
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
-      error: 'Error generando PDF', 
-      detalles: error.message 
-    }));
+      const data = {
+        titulo: `Reporte de Mikrotiks - ${sede.nombre}`,
+        subtitulo: `Sede: ${sede.nombre}`,
+        fecha: new Date().toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        total: mikrotiks.length,
+        mikrotiks: mikrotiks,
+        sede: sede,
+        estadisticas: {
+          activos: mikrotiks.filter(m => m.estado === 'activo').length,
+          inactivos: mikrotiks.filter(m => m.estado === 'inactivo').length,
+          mantenimiento: mikrotiks.filter(m => m.estado === 'mantenimiento').length,
+          desuso: mikrotiks.filter(m => m.estado === 'desuso').length
+        }
+      };
+
+      console.log('Renderizando template para sede...');
+      
+      const html = await renderTemplate(req.app, 'pdfs/reporte-mikrotiks-sede', data);
+
+      console.log(' Generando PDF para sede...');
+      
+      const pdfOptions = {
+        format: 'Letter',
+        landscape: true,
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        }
+      };
+
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+      
+      console.log('PDF generado exitosamente');
+      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
+
+
+      const filename = `reporte-mikrotiks-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
+      
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="${filename}"`,
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
+      res.end(pdfBuffer);
+
+    } catch (error) {
+      console.error('Error generando PDF por sede:', error);
+      
+
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        error: 'Error generando PDF', 
+        detalles: error.message 
+      }));
+    }
   }
-}
 };

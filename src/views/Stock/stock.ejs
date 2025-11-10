@@ -569,41 +569,40 @@
                     </div>
                     <div class="card-body">
                         <!-- Filtros -->
-<div class="row mb-4 g-2">
-    <div class="col-md-4">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" placeholder="Buscar por marca, modelo..." id="searchName">
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-tags"></i></span>
-            <select class="form-select" id="filterTipo">
-                <option value="">Todos los tipos</option>
-            </select>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-exclamation-triangle"></i></span>
-            <select class="form-select" id="filterStock">
-                <option value="">Todo el stock</option>
-                <option value="bajo">Stock Bajo</option>
-                <option value="critico">Stock Crítico</option>
-            </select>
-        </div>
-    </div>
-    <div class="col-md-2">
-               <div class="d-flex justify-content-between align-items-center">
-           
-            <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
-            </button>
-        </div>
-    </div>
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por marca, modelo..." id="searchName">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                    <select class="form-select" id="filterTipo">
+                                        <option value="">Todos los tipos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-exclamation-triangle"></i></span>
+                                    <select class="form-select" id="filterStock">
+                                        <option value="">Todo el stock</option>
+                                        <option value="bajo">Stock Bajo</option>
+                                        <option value="critico">Stock Crítico</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
+                                    </button>
+                                </div>
+                            </div>
   
-</div>
+                        </div>
 
                         <!-- Tabla de Stock de Equipos -->
                         <div class="table-responsive">
@@ -929,18 +928,15 @@
            stock: ''
         };
         
-        // Cargar equipos en stock
-       async function cargarStockEquipos(page = 1, filtros = {}) {
+async function cargarStockEquipos(page = 1, filtros = {}) {
     try {
         currentPage = page;
         
-        // Construir query string con filtros
         const params = new URLSearchParams({
             page: page.toString(),
             limit: '10'
         });
         
-        // Agregar filtros si existen
         if (filtros.nombre) params.append('nombre', filtros.nombre);
         if (filtros.tipo) params.append('tipo', filtros.tipo);
         if (filtros.stock) params.append('stock', filtros.stock);
@@ -957,7 +953,7 @@
         totalPages = data.pagination?.total || 1;
         totalRecords = data.pagination?.totalRecords || 0;
         
-        actualizarResumen(data);
+        await actualizarResumen();
         renderizarStockEquipos();
         renderizarPaginacion();
         
@@ -967,8 +963,6 @@
     }
 }
 
-
-        // Cargar tipos de equipo
         async function cargarTipoEquipos() {
             try {
                 const response = await fetch('/api/tipo_equipo?all=true');
@@ -985,7 +979,6 @@
             }
         }
 
-        // Actualizar resumen
         async function actualizarResumen() {
             try {
                 console.log('Intentando cargar resumen...');
@@ -1017,7 +1010,12 @@
             }
         }
 
-        // Renderizar equipos en la tabla
+        async function forzarActualizacionResumen() {
+    console.log('Forzando actualización del resumen...');
+    await actualizarResumen();
+    await cargarStockEquipos(1);
+}
+
         function renderizarStockEquipos() {
             const tbody = document.getElementById('stockEquiposTableBody');
             tbody.innerHTML = '';
@@ -1105,7 +1103,6 @@
                 `Mostrando ${stockEquipos.length} de ${totalRecords} equipos`;
         }
 
-        // Renderizar tipos de equipo en los selects
         function renderizarTipoEquipos() {
             const selects = [
                 'filterTipo',
@@ -1130,7 +1127,6 @@
             });
         }
 
-        // Renderizar paginación
   function renderizarPaginacion() {
     const pagination = document.getElementById('paginationContainer');
     pagination.innerHTML = '';
@@ -1163,7 +1159,6 @@
     pagination.appendChild(nextLi);
 }
 
-        //  CALCULAR CANTIDADES
 function calcularCantidadesNuevo() {
     const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
     const cantidadAsignada = parseInt(document.getElementById('cantidad_asignada').value) || 0;
@@ -1250,7 +1245,6 @@ function calcularCantidadesNuevo() {
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
             
-            // Sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {
@@ -1297,7 +1291,6 @@ function inicializarEventos() {
     document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
     document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
 
-    // Usar debounce para evitar muchas llamadas al servidor
     const searchName = document.getElementById('searchName');
     const filterTipo = document.getElementById('filterTipo');
     const filterStock = document.getElementById('filterStock');
@@ -1518,14 +1511,12 @@ function inicializarEventos() {
         }
     }
 }
-        // Funciones de filtrado
+
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
-    
-    // Mostrar indicador de carga
+    console.log('Aplicando filtros con búsqueda en servidor...');
+ 
     mostrarCargaFiltros();
-    
-    // Actualizar filtros actuales
+
     filtrosActuales = {
         nombre: document.getElementById('searchName').value.trim(),
         tipo: document.getElementById('filterTipo').value,
@@ -1533,8 +1524,7 @@ function aplicarFiltros() {
     };
     
     console.log('Filtros activos:', filtrosActuales);
-    
-    // Recargar equipos desde el servidor con los filtros
+
     cargarStockEquipos(1, filtrosActuales);
 }
 
@@ -1566,7 +1556,7 @@ function debounce(func, wait) {
 
 // Función para resetear filtros
 function resetFiltros() {
-    console.log('🔄 Reseteando filtros...');
+    console.log('Reseteando filtros...');
     
     document.getElementById('searchName').value = '';
     document.getElementById('filterTipo').value = '';

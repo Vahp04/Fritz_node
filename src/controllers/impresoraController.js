@@ -11,10 +11,40 @@ export const impresoraController = {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
+      const search = req.query.search || '';
+      const sede_id = req.query.sede_id || '';
+      const departamento_id = req.query.departamento_id || '';
+      const estado = req.query.estado || '';
 
-      const totalRecords = await prisma.impresora.count();
+      let where = {};
+
+      if (search) {
+        where.OR = [
+          { nombre: { contains: search, mode: 'insensitive' } },
+          { descripcion: { contains: search, mode: 'insensitive' } },
+          { ip_impresora: { contains: search, mode: 'insensitive' } },
+          { cereal_impresora: { contains: search, mode: 'insensitive' } },
+          { ubicacion: { contains: search, mode: 'insensitive' } },
+          { toner: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+
+      if (sede_id) {
+        where.sede_id = parseInt(sede_id);
+      }
+
+      if (departamento_id) {
+        where.departamento_id = parseInt(departamento_id);
+      }
+
+      if (estado) {
+        where.estado_impresora = estado;
+      }
+
+      const totalRecords = await prisma.impresora.count({ where });
 
       const impresoras = await prisma.impresora.findMany({
+        where,
         skip,
         take: limit,
         include: {
@@ -44,6 +74,12 @@ export const impresoraController = {
           current: page,
           total: totalPages,
           totalRecords: totalRecords
+        },
+        filters: {
+          search: search,
+          sede_id: sede_id,
+          departamento_id: departamento_id,
+          estado: estado
         }
       });
     } catch (error) {
@@ -101,7 +137,7 @@ export const impresoraController = {
         toner 
       } = req.body;
 
-      console.log('📝 Datos recibidos para crear impresora:', req.body);
+      console.log('Datos recibidos para crear impresora:', req.body);
 
       const stockEquiposId = parseInt(stock_equipos_id);
       const sedeId = parseInt(sede_id);
@@ -139,7 +175,7 @@ export const impresoraController = {
             sede_id: sedeId,
             departamento_id: departamentoId,
             ubicacion,
-            toner, // NUEVO: Campo toner agregado
+            toner, 
             estado_impresora: estado_impresora || 'activa',
             contador_impresiones: 0,
             contador_instalacion_toner: 0
@@ -177,8 +213,6 @@ export const impresoraController = {
     }
   },
 
-  // Actualizar impresora
-// En el método update del controlador, agrega el campo contador_instalacion_toner
 async update(req, res) {
   try {
     const { id } = req.params;
@@ -217,7 +251,7 @@ async update(req, res) {
       const contadorAnterior = impresoraActual.contador_instalacion_toner || 0;
       const contadorNuevo = parseInt(contador_instalacion_toner) || 0;
       
-      console.log(`🔄 Cambio contador toner: ${contadorAnterior} -> ${contadorNuevo}`);
+      console.log(`Cambio contador toner: ${contadorAnterior} -> ${contadorNuevo}`);
 
       
       if (contadorNuevo > contadorAnterior) {
@@ -239,7 +273,7 @@ async update(req, res) {
         });
 
         if (tonerCompatible) {
-          console.log(`📦 Restando ${diferencia} toner(s) del inventario`);
+          console.log(`Restando ${diferencia} toner(s) del inventario`);
           
           await tx.stock_equipos.update({
             where: { id: tonerCompatible.id },
@@ -249,7 +283,6 @@ async update(req, res) {
             }
           });
 
-          // Actualizar el toner actual si no hay uno asignado
           if (!impresoraActual.toner_actual_id) {
             await tx.impresora.update({
               where: { id: impresoraId },
@@ -260,14 +293,13 @@ async update(req, res) {
             });
           }
         } else {
-          console.log('⚠️ No hay toners disponibles en inventario');
+          console.log('No hay toners disponibles en inventario');
         }
       }
-      // Si el contador disminuye, devolver al inventario
       else if (contadorNuevo < contadorAnterior && impresoraActual.toner_actual_id) {
         const diferencia = contadorAnterior - contadorNuevo;
         
-        console.log(`📦 Devolviendo ${diferencia} toner(s) al inventario`);
+        console.log(`Devolviendo ${diferencia} toner(s) al inventario`);
         
         await tx.stock_equipos.update({
           where: { id: impresoraActual.toner_actual_id },
@@ -278,7 +310,6 @@ async update(req, res) {
         });
       }
 
-      // Manejar cambio de estado (código existente)
       const estadoAnterior = impresoraActual.estado_impresora;
       const estadoNuevo = estado_impresora;
 
@@ -288,7 +319,7 @@ async update(req, res) {
         if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
             (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
           
-          console.log(`📦 Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
+          console.log(`Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
           
           await tx.stock_equipos.update({
             where: { id: stockEquipoId },
@@ -302,7 +333,7 @@ async update(req, res) {
         else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
                  estadoNuevo === 'activa') {
           
-          console.log(`🔧 Asignando impresora desde inventario (activación)`);
+          console.log(`Asignando impresora desde inventario (activación)`);
           
           await tx.stock_equipos.update({
             where: { id: stockEquipoId },
@@ -314,7 +345,7 @@ async update(req, res) {
         }
         
         else if (estadoNuevo === 'obsoleta') {
-          console.log(`🗑️ Marcando impresora como obsoleta - eliminando del inventario`);
+          console.log(`Marcando impresora como obsoleta - eliminando del inventario`);
           
           const stockActual = await tx.stock_equipos.findUnique({
             where: { id: stockEquipoId }
@@ -343,7 +374,6 @@ async update(req, res) {
         }
       }
 
-      // Actualizar la impresora
       const impresoraActualizada = await tx.impresora.update({
         where: { id: impresoraId },
         data: {
@@ -354,8 +384,8 @@ async update(req, res) {
           sede_id: sedeId,
           departamento_id: departamentoId,
           ubicacion,
-          toner, // Campo modelo de toner
-          contador_instalacion_toner: contadorNuevo, // NUEVO: Contador de toner
+          toner, 
+          contador_instalacion_toner: contadorNuevo, 
           estado_impresora,
           contador_impresiones: contador_impresiones ? parseInt(contador_impresiones) : undefined,
           updated_at: new Date()
@@ -390,7 +420,6 @@ async update(req, res) {
   }
 },
 
-  // Eliminar impresora
   async destroy(req, res) {
     try {
       const { id } = req.params;
@@ -410,10 +439,10 @@ async update(req, res) {
         const stockEquipoId = impresora.stock_equipos_id;
         const estadoActual = impresora.estado_impresora;
 
-        console.log(`🗑️ Eliminando impresora con estado: ${estadoActual}`);
+        console.log(`Eliminando impresora con estado: ${estadoActual}`);
 
         if (estadoActual === 'activa') {
-          console.log(`📦 Devolviendo impresora activa al inventario`);
+          console.log(`Devolviendo impresora activa al inventario`);
           
           await tx.stock_equipos.update({
             where: { id: stockEquipoId },
@@ -424,10 +453,9 @@ async update(req, res) {
           });
         } 
         else if (estadoActual === 'inactiva' || estadoActual === 'mantenimiento') {
-          console.log(`📦 Impresora ya estaba disponible, no se modifica inventario`);
+          console.log(`Impresora ya estaba disponible, no se modifica inventario`);
         }
         
-        // Eliminar la impresora
         await tx.impresora.delete({
           where: { id: parseInt(id) }
         });
@@ -441,7 +469,6 @@ async update(req, res) {
     }
   },
 
-  // Cambiar estado de la impresora
   async cambiarEstado(req, res) {
     try {
       const { id } = req.params;
@@ -472,14 +499,14 @@ async update(req, res) {
         const estadoNuevo = estado_impresora;
         const stockEquipoId = impresora.stock_equipos_id;
 
-        console.log(`🔄 Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
+        console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
 
         if (estadoAnterior !== estadoNuevo) {
           
           if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
               (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
             
-            console.log(`📦 Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
+            console.log(`Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
             
             if (estadoAnterior === 'obsoleta') {
               await tx.stock_equipos.update({
@@ -503,7 +530,7 @@ async update(req, res) {
           else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
                    estadoNuevo === 'activa') {
             
-            console.log(`🔧 Asignando impresora desde inventario (activación)`);
+            console.log(`Asignando impresora desde inventario (activación)`);
             
             if (estadoAnterior === 'obsoleta') {
               await tx.stock_equipos.update({
@@ -525,7 +552,7 @@ async update(req, res) {
             }
           }
           else if (estadoNuevo === 'obsoleta') {
-            console.log(`🗑️ Marcando impresora como obsoleta - eliminando del inventario`);
+            console.log(`Marcando impresora como obsoleta - eliminando del inventario`);
             
             const stockActual = await tx.stock_equipos.findUnique({
               where: { id: stockEquipoId }
@@ -590,11 +617,10 @@ async update(req, res) {
     }
   },
 
-  // Instalar toner en impresora
   async instalarToner(req, res) {
     try {
       const { id } = req.params;
-      const { toner_actual_id, toner } = req.body; // NUEVO: Campo toner agregado
+      const { toner_actual_id, toner } = req.body; 
 
       const impresoraId = parseInt(id);
       const tonerId = parseInt(toner_actual_id);
@@ -621,7 +647,7 @@ async update(req, res) {
           where: { id: impresoraId },
           data: {
             toner_actual_id: tonerId,
-            toner, // NUEVO: Campo toner agregado
+            toner, 
             fecha_instalacion_toner: new Date(),
             contador_instalacion_toner: {
               increment: 1
@@ -665,7 +691,6 @@ async update(req, res) {
     }
   },
 
-  // Actualizar contador de impresiones
   async actualizarContador(req, res) {
     try {
       const { id } = req.params;
@@ -704,7 +729,6 @@ async update(req, res) {
     }
   },
 
-  // Obtener impresoras por sede
   async porSede(req, res) {
     try {
       const { sede_id } = req.params;
@@ -737,7 +761,6 @@ async update(req, res) {
     }
   },
 
-  // Obtener impresoras por estado
   async porEstado(req, res) {
     try {
       const { estado } = req.params;
@@ -779,7 +802,6 @@ async update(req, res) {
     }
   },
 
-  // Obtener estadísticas de impresoras
   async estadisticas(req, res) {
     try {
       const totalImpresoras = await prisma.impresora.count();
@@ -837,7 +859,6 @@ async update(req, res) {
     }
   },
 
-  // Buscar impresoras
   async buscar(req, res) {
     try {
       const { q } = req.query;
@@ -921,8 +942,6 @@ async update(req, res) {
     }
   },
 
-  
-
   async actualizarContadorToner(req, res) {
     try {
         const { id } = req.params;
@@ -963,9 +982,8 @@ async update(req, res) {
 
 async generarPDFGeneral(req, res) {
   try {
-    console.log('📊 Generando PDF general de impresoras...');
+    console.log('Generando PDF general de impresoras...');
     
-    // Obtener todas las impresoras con sus relaciones
     const impresoras = await prisma.impresora.findMany({
       include: {
         stock_equipos: {
@@ -987,9 +1005,8 @@ async generarPDFGeneral(req, res) {
       ]
     });
 
-    console.log(`✅ ${impresoras.length} impresoras encontradas`);
+    console.log(`${impresoras.length} impresoras encontradas`);
 
-    // Datos para el template
     const data = {
       titulo: 'Reporte General de Impresoras',
       fecha: new Date().toLocaleDateString('es-ES', {
@@ -1007,18 +1024,14 @@ async generarPDFGeneral(req, res) {
         obsoletas: impresoras.filter(i => i.estado_impresora === 'obsoleta').length
       }
     };
-
-    console.log('📝 Renderizando template...');
     
-    // Renderizar el template HTML
     const html = await renderTemplate(req.app, 'pdfs/reporte-general-impresoras', data);
     
-    console.log('✅ Template renderizado exitosamente');
-    console.log('📄 Longitud del HTML:', html.length);
+    console.log('Template renderizado exitosamente');
+    console.log('Longitud del HTML:', html.length);
 
-    console.log('🖨️ Generando PDF...');
+    console.log('Generando PDF...');
     
-    // Configuración para Puppeteer
     const pdfOptions = {
       format: 'Letter',
       landscape: true,
@@ -1031,13 +1044,8 @@ async generarPDFGeneral(req, res) {
       }
     };
 
-    // Generar PDF
     const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-    
-    console.log('✅ PDF generado exitosamente');
-    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
-
-    // **SOLUCIÓN: Limpiar cualquier header previo y establecer correctamente**
+    console.log('PDF generado exitosamente');
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'inline; filename="reporte-general-impresoras.pdf"',
@@ -1047,15 +1055,13 @@ async generarPDFGeneral(req, res) {
       'Expires': '0'
     });
     
-    console.log(`✅ PDF general generado exitosamente - ${impresoras.length} impresoras`);
-    
-    // Enviar PDF como Buffer
+    console.log(`PDF general generado exitosamente - ${impresoras.length} impresoras`);
+
     res.end(pdfBuffer);
 
   } catch (error) {
-    console.error('❌ Error generando PDF general:', error);
+    console.error('Error generando PDF general:', error);
     
-    // Asegurarse de enviar JSON en caso de error
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ 
       error: 'Error generando PDF', 
@@ -1069,15 +1075,13 @@ async generarPDFPorSede(req, res) {
     const { sede_id } = req.params;
     const sedeId = parseInt(sede_id);
 
-    console.log(`📊 Generando PDF de impresoras para sede ID: ${sedeId}`);
+    console.log(`Generando PDF de impresoras para sede ID: ${sedeId}`);
 
-    // Validar que el ID sea un número válido
     if (isNaN(sedeId) || sedeId <= 0) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
     }
 
-    // Obtener información de la sede
     const sede = await prisma.sedes.findUnique({
       where: { id: sedeId }
     });
@@ -1087,7 +1091,6 @@ async generarPDFPorSede(req, res) {
       return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
     }
 
-    // Obtener impresoras de la sede específica
     const impresoras = await prisma.impresora.findMany({
       where: { sede_id: sedeId },
       include: {
@@ -1117,9 +1120,8 @@ async generarPDFPorSede(req, res) {
       }));
     }
 
-    console.log(`✅ ${impresoras.length} impresoras encontradas en ${sede.nombre}`);
+    console.log(`${impresoras.length} impresoras encontradas en ${sede.nombre}`);
 
-    // Datos para el template
     const data = {
       titulo: `Reporte de Impresoras - ${sede.nombre}`,
       subtitulo: `Sede: ${sede.nombre}`,
@@ -1140,17 +1142,12 @@ async generarPDFPorSede(req, res) {
       }
     };
 
-    console.log('📝 Renderizando template para sede...');
-    
-    // Renderizar el template HTML
     const html = await renderTemplate(req.app, 'pdfs/reporte-impresoras-sede', data);
     
-    console.log('✅ Template renderizado exitosamente');
-    console.log('📄 Longitud del HTML:', html.length);
+    console.log('Longitud del HTML:', html.length);
 
-    console.log('🖨️ Generando PDF para sede...');
-    
-    // Configuración para Puppeteer
+    console.log('Generando PDF para sede...');
+
     const pdfOptions = {
       format: 'Letter',
       landscape: true,
@@ -1163,13 +1160,10 @@ async generarPDFPorSede(req, res) {
       }
     };
 
-    // Generar PDF
     const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
     
-    console.log('✅ PDF generado exitosamente');
-    console.log('📦 Tamaño del buffer PDF:', pdfBuffer.length);
+    console.log('PDF generado exitosamente');
 
-    // **SOLUCIÓN: Usar writeHead en lugar de setHeader individual**
     const filename = `reporte-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
     
     res.writeHead(200, {
@@ -1181,15 +1175,13 @@ async generarPDFPorSede(req, res) {
       'Expires': '0'
     });
 
-    console.log(`✅ Enviando PDF para abrir en navegador`);
-    
-    // Enviar PDF
+    console.log(`Enviando PDF para abrir en navegador`);
+
     res.end(pdfBuffer);
 
   } catch (error) {
-    console.error('❌ Error generando PDF por sede:', error);
-    
-    // Enviar error como JSON
+    console.error('Error generando PDF por sede:', error);
+
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ 
       error: 'Error generando PDF', 

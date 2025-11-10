@@ -10,15 +10,15 @@ async index(req, res) {
         const limit = 10;
         const skip = (page - 1) * limit;
 
-        // Obtener filtros de la query string
+   
         const { usuario, equipo, estado } = req.query;
         
-        console.log('🔍 Filtros recibidos en equipos asignados:', { usuario, equipo, estado });
+        console.log(' Filtros recibidos en equipos asignados:', { usuario, equipo, estado });
 
-        // Construir objeto where para Prisma
+ 
         let whereClause = {};
 
-        // Filtro por usuario (nombre o apellido)
+       
         if (usuario) {
             whereClause.usuarios = {
                 OR: [
@@ -28,7 +28,7 @@ async index(req, res) {
             };
         }
 
-        // Filtro por equipo (marca o modelo)
+
         if (equipo) {
             whereClause.stock_equipos = {
                 OR: [
@@ -38,21 +38,21 @@ async index(req, res) {
             };
         }
 
-        // Filtro por estado
+
         if (estado) {
             whereClause.estado = estado;
         }
 
-        console.log('📊 Where clause para equipos asignados:', JSON.stringify(whereClause, null, 2));
+        console.log(' Where clause para equipos asignados:', JSON.stringify(whereClause, null, 2));
 
-        // Contar total de registros con filtros
+
         const total = await prisma.equipo_asignado.count({
             where: whereClause
         });
 
-        console.log(`📦 Total de asignaciones con filtros: ${total}`);
+        console.log(` Total de asignaciones con filtros: ${total}`);
 
-        // Obtener asignaciones con filtros y paginación
+ 
         let equiposAsignados = [];
         if (total > 0) {
             equiposAsignados = await prisma.equipo_asignado.findMany({
@@ -77,9 +77,9 @@ async index(req, res) {
             });
         }
 
-        console.log('🔍 Equipos asignados encontrados:', equiposAsignados.length);
+        console.log('Equipos asignados encontrados:', equiposAsignados.length);
         
-        // Formatear la respuesta para el frontend - USAR CEREAL_EQUIPO
+
         const response = equiposAsignados.map(asignacion => ({
             id: asignacion.id,
             usuarios_id: asignacion.usuarios_id,
@@ -87,12 +87,11 @@ async index(req, res) {
             fecha_asignacion: asignacion.fecha_asignacion,
             fecha_devolucion: asignacion.fecha_devolucion,
             ip_equipo: asignacion.ip_equipo,
-            numero_serie: asignacion.cereal_equipo, // CAMBIAR A cereal_equipo
+            numero_serie: asignacion.cereal_equipo,
             observaciones: asignacion.observaciones,
             estado: asignacion.estado,
             created_at: asignacion.created_at,
             updated_at: asignacion.updated_at,
-            // Relaciones formateadas correctamente
             usuarioAsignado: asignacion.usuarios ? {
                 id: asignacion.usuarios.id,
                 nombre: asignacion.usuarios.nombre,
@@ -143,7 +142,7 @@ async index(req, res) {
         estado = 'activo'
       } = req.body;
 
-      console.log('📝 Datos recibidos para crear asignación:', {
+      console.log('Datos recibidos para crear asignación:', {
         usuarios_id,
         stock_equipos_id,
         fecha_asignacion,
@@ -171,14 +170,13 @@ async index(req, res) {
         return res.status(400).json({ error: 'El equipo seleccionado no tiene stock disponible' });
       }
 
-      // USAR CEREAL_EQUIPO en la base de datos
       const equipoAsignado = await prisma.equipo_asignado.create({
         data: {
           usuarios_id: parseInt(usuarios_id),
           stock_equipos_id: parseInt(stock_equipos_id),
           fecha_asignacion: new Date(fecha_asignacion),
           ip_equipo,
-          cereal_equipo: numero_serie, // Mapear numero_serie a cereal_equipo
+          cereal_equipo: numero_serie, 
           fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
           observaciones,
           usuario_id: req.user.id,
@@ -262,10 +260,9 @@ async index(req, res) {
         return res.status(404).json({ error: 'Asignación no encontrada' });
       }
 
-      // Formatear respuesta para mantener consistencia con el frontend
       const response = {
         ...equipoAsignado,
-        numero_serie: equipoAsignado.cereal_equipo || null // Mapear cereal_equipo a numero_serie para el frontend
+        numero_serie: equipoAsignado.cereal_equipo || null 
       };
 
       res.json(response);
@@ -289,7 +286,7 @@ async update(req, res) {
       estado
     } = req.body;
 
-    console.log('📝 Datos recibidos para actualizar asignación:', {
+    console.log('Datos recibidos para actualizar asignación:', {
       usuarios_id,
       stock_equipos_id,
       fecha_asignacion,
@@ -311,10 +308,7 @@ async update(req, res) {
     const nuevoEstado = estado;
     const estadoAnterior = equipoAsignado.estado;
 
-    // ELIMINAR LA LÓGICA QUE BORRA EQUIPOS OBSOLETOS
-    // Solo actualizar el estado sin eliminar el registro
     if (nuevoEstado === 'obsoleto' && estadoAnterior !== 'obsoleto') {
-      // Actualizar el stock cuando se marca como obsoleto
       const stockEquipo = await prisma.stock_equipos.findUnique({
         where: { id: parseInt(stock_equipos_id) }
       });
@@ -335,7 +329,6 @@ async update(req, res) {
           data: updateData
         });
 
-        // Verificar si hay que eliminar el stock
         const stockActualizado = await prisma.stock_equipos.findUnique({
           where: { id: stockEquipo.id }
         });
@@ -348,7 +341,6 @@ async update(req, res) {
       }
     }
 
-    // LÓGICA ORIGINAL PARA OTROS CAMBIOS DE ESTADO
     if (estadoAnterior === 'devuelto' && nuevoEstado === 'activo') {
       const stockEquipo = await prisma.stock_equipos.findUnique({
         where: { id: parseInt(stock_equipos_id) }
@@ -379,7 +371,6 @@ async update(req, res) {
       }
     }
 
-    // USAR CEREAL_EQUIPO en la base de datos
     const updated = await prisma.equipo_asignado.update({
       where: { id: parseInt(id) },
       data: {
@@ -448,7 +439,6 @@ async destroy(req, res) {
       return res.status(404).json({ error: 'Asignación no encontrada' });
     }
 
-    // PERMITIR ELIMINAR EQUIPOS OBSOLETOS
     if (equipoAsignado.estado === 'obsoleto') {
       await prisma.equipo_asignado.delete({
         where: { id: parseInt(id) }
@@ -459,7 +449,6 @@ async destroy(req, res) {
       });
     }
 
-    // Para equipos no obsoletos, mantener la lógica actual
     if (equipoAsignado.estado !== 'devuelto') {
       const stockEquipo = await prisma.stock_equipos.findUnique({
         where: { id: equipoAsignado.stock_equipos_id }
@@ -558,16 +547,13 @@ async marcarObsoleto(req, res) {
       return res.status(400).json({ error: 'El equipo ya está marcado como obsoleto' });
     }
 
-    // SOLO ACTUALIZAR EL ESTADO, NO ELIMINAR
     const updated = await prisma.equipo_asignado.update({
       where: { id: parseInt(id) },
       data: {
         estado: 'obsoleto',
-        fecha_devolucion: new Date() // Opcional: establecer fecha de devolución
+        fecha_devolucion: new Date() 
       }
     });
-
-    // ACTUALIZAR EL STOCK - REDUCIR CANTIDADES
     const stockEquipo = await prisma.stock_equipos.findUnique({
       where: { id: equipoAsignado.stock_equipos_id }
     });
@@ -588,7 +574,6 @@ async marcarObsoleto(req, res) {
         data: updateData
       });
 
-      // Si después de esta operación el stock queda en 0, eliminar el registro del stock
       const stockActualizado = await prisma.stock_equipos.findUnique({
         where: { id: stockEquipo.id }
       });
@@ -597,7 +582,7 @@ async marcarObsoleto(req, res) {
         await prisma.stock_equipos.delete({
           where: { id: stockEquipo.id }
         });
-        console.log(`🗑️ Equipo de stock ${stockEquipo.id} eliminado por cantidad total 0`);
+        console.log(`Equipo de stock ${stockEquipo.id} eliminado por cantidad total 0`);
       }
     }
 
@@ -636,7 +621,6 @@ async reactivar(req, res) {
       }
     });
 
-    // Actualizar el stock
     const stockEquipo = await prisma.stock_equipos.findUnique({
       where: { id: equipoAsignado.stock_equipos_id }
     });
@@ -868,14 +852,14 @@ async reactivar(req, res) {
     console.log('=== GENERAR PDF ASIGNACIONES INICIADO ===');
    try {
         const equiposAsignados = await prisma.equipo_asignado.findMany({
-            select: { // CAMBIAR include por select para controlar explícitamente los campos
+            select: {
                 id: true,
                 usuarios_id: true,
                 stock_equipos_id: true,
                 fecha_asignacion: true,
                 fecha_devolucion: true,
                 ip_equipo: true,
-                cereal_equipo: true, // ¡IMPORTANTE! Incluir este campo
+                cereal_equipo: true, 
                 observaciones: true,
                 estado: true,
                 created_at: true,
@@ -925,9 +909,9 @@ async reactivar(req, res) {
             ]
         });
 
-        console.log(`📊 ${equiposAsignados.length} asignaciones encontradas`);
+        console.log(`${equiposAsignados.length} asignaciones encontradas`);
         
-        // Formatear los datos para la plantilla EJS
+
         const asignacionesProcesadas = equiposAsignados.map(asignacion => {
             const usuario = asignacion.usuarios || {};
             const stock = asignacion.stock_equipos || {};
@@ -935,20 +919,18 @@ async reactivar(req, res) {
             const asignador = asignacion.usuario || {};
             
             return {
-                // Propiedades básicas
                 id: asignacion.id,
                 usuarios_id: asignacion.usuarios_id,
                 stock_equipos_id: asignacion.stock_equipos_id,
                 fecha_asignacion: asignacion.fecha_asignacion,
                 fecha_devolucion: asignacion.fecha_devolucion,
                 ip_equipo: asignacion.ip_equipo,
-                cereal_equipo: asignacion.cereal_equipo, // ¡AHORA SÍ ESTARÁ DISPONIBLE!
+                cereal_equipo: asignacion.cereal_equipo, 
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 created_at: asignacion.created_at,
                 updated_at: asignacion.updated_at,
                 
-                // Relaciones
                 usuarioAsignado: {
                     id: usuario.id || 0,
                     nombre: usuario.nombre || 'N/A',
@@ -976,7 +958,6 @@ async reactivar(req, res) {
                     email: asignador.email || 'N/A'
                 },
                 
-                // Propiedades formateadas
                 fecha_asignacion_formateada: asignacion.fecha_asignacion ? 
                     new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A',
                 fecha_devolucion_formateada: asignacion.fecha_devolucion ? 
@@ -984,8 +965,7 @@ async reactivar(req, res) {
             };
         });
 
-        // Verificar que ahora sí viene el cereal_equipo
-        console.log('🔍 Verificando cereal_equipo en datos procesados:');
+        console.log('Verificando cereal_equipo en datos procesados:');
         if (asignacionesProcesadas.length > 0) {
             console.log('Primera asignación - cereal_equipo:', asignacionesProcesadas[0].cereal_equipo);
         }
@@ -1014,24 +994,15 @@ async reactivar(req, res) {
             asignacionesPorTipo: asignacionesPorTipo
         };
 
-        console.log('📄 Generando HTML para PDF...');
-        console.log('📋 Datos para la plantilla:', {
-            total: data.equiposAsignados.length,
-            primeraAsignacion: data.equiposAsignados[0] ? {
-                usuario: data.equiposAsignados[0].usuarioAsignado,
-                equipo: data.equiposAsignados[0].stockEquipo
-            } : 'No hay asignaciones'
-        });
-
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones', data);
         
-        console.log('🖨️ Generando PDF...');
+        console.log('Generando PDF...');
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
             format: 'Letter',
             landscape: true
         });
 
-        console.log('✅ PDF generado exitosamente');
+        console.log('PDF generado exitosamente');
 
         if (res.headersSent) return;
 
@@ -1043,7 +1014,7 @@ async reactivar(req, res) {
         res.end(pdfBuffer);
 
     } catch (error) {
-        console.error('❌ ERROR generando PDF de asignaciones:', error);
+        console.error('ERROR generando PDF de asignaciones:', error);
         if (!res.headersSent) {
             res.status(500).json({ 
                 error: 'Error al generar el PDF: ' + error.message
@@ -1052,19 +1023,18 @@ async reactivar(req, res) {
     }
 },
 
-// Aplicar la misma corrección a verPdfAsignaciones
 async verPdfAsignaciones(req, res) {
     console.log('=== VER PDF ASIGNACIONES INICIADO ===');
   try {
         const equiposAsignados = await prisma.equipo_asignado.findMany({
-            select: { // CAMBIAR include por select
+            select: {
                 id: true,
                 usuarios_id: true,
                 stock_equipos_id: true,
                 fecha_asignacion: true,
                 fecha_devolucion: true,
                 ip_equipo: true,
-                cereal_equipo: true, // ¡IMPORTANTE! Incluir este campo
+                cereal_equipo: true, 
                 observaciones: true,
                 estado: true,
                 usuarios: {
@@ -1112,7 +1082,6 @@ async verPdfAsignaciones(req, res) {
             ]
         });
 
-        // CORREGIR: Usar el mismo formateo que en generarPdfAsignaciones
         const asignacionesProcesadas = equiposAsignados.map(asignacion => {
             const usuario = asignacion.usuarios || {};
             const stock = asignacion.stock_equipos || {};
@@ -1131,7 +1100,6 @@ async verPdfAsignaciones(req, res) {
                 observaciones: asignacion.observaciones,
                 estado: asignacion.estado,
                 
-                // NOMBRES CORRECTOS para la plantilla
                 usuarioAsignado: {
                     id: usuario.id || 0,
                     nombre: usuario.nombre || 'N/A',
@@ -1222,7 +1190,6 @@ async generarPdfPorUsuario(req, res) {
     try {
         const { usuarioId } = req.params;
 
-        // Obtener o crear el contador de registros
         let contador = await prisma.contadorRegistros.upsert({
             where: { tipo: 'reporte_equipos' },
             update: { ultimoNumero: { increment: 1 } },
@@ -1232,7 +1199,6 @@ async generarPdfPorUsuario(req, res) {
             }
         });
 
-        // Formatear el número de registro (T0001, T0002, etc.)
         const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
 
         const usuario = await prisma.usuarios.findUnique({
@@ -1249,7 +1215,7 @@ async generarPdfPorUsuario(req, res) {
 
         const equiposAsignados = await prisma.equipo_asignado.findMany({
             where: { usuarios_id: parseInt(usuarioId) },
-            select: { // CAMBIAR include por select
+            select: { 
                 id: true,
                 fecha_asignacion: true,
                 fecha_devolucion: true,
@@ -1271,7 +1237,6 @@ async generarPdfPorUsuario(req, res) {
             ]
         });
 
-        // Formatear los datos para la plantilla
         const equiposProcesados = equiposAsignados.map(asignacion => {
             const stock = asignacion.stock_equipos || {};
             const tipoEquipo = stock.tipo_equipo || {};
@@ -1353,12 +1318,10 @@ async verPdfPorUsuario(req, res) {
     try {
         const { usuarioId } = req.params;
 
-        // Obtener el contador actual sin incrementarlo (solo para visualización)
         let contador = await prisma.contadorRegistros.findUnique({
             where: { tipo: 'reporte_equipos' }
         });
 
-        // Si no existe el contador, crear uno temporal
         if (!contador) {
             contador = { ultimoNumero: 1 };
         }
@@ -1379,7 +1342,7 @@ async verPdfPorUsuario(req, res) {
 
        const equiposAsignados = await prisma.equipo_asignado.findMany({
             where: { usuarios_id: parseInt(usuarioId) },
-            select: { // CAMBIAR include por select
+            select: {
                 id: true,
                 fecha_asignacion: true,
                 fecha_devolucion: true,
