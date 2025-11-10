@@ -30,7 +30,7 @@
         .body {
             background-color: var(--fritz-gray);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
         
         .sidebar {
@@ -41,10 +41,6 @@
             background-position: center;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
-            position: fixed;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column; 
         }
         
         .sidebar-collapsed {
@@ -56,8 +52,9 @@
         }
         
         .main-content {
-            margin-left: 280px;
             transition: all 0.3s;
+             min-height: 100vh; 
+            overflow-y: auto;
         }
         
         .main-content-expanded {
@@ -182,7 +179,7 @@
             transform: translateY(-2px);
         }
 
-                .table-responsive {
+        .table-responsive {
             border-radius: 10px;
         }
         
@@ -263,7 +260,10 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+
+
          }
+         
 
     </style>
 </head>
