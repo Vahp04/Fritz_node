@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Gestión de Servidores' %></title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .servidor-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .status-activo {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+        
+        .status-inactivo {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .status-mantenimiento {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+        
+        .status-desuso {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .main-content {
+            transition: all 0.3s;
+        }
+
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background-color: #4a7096;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <div class="sidebar text-white p-3 position-relative">
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>            
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/consumibles">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Consumibles</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/impresoras">
+                        <i class="bi bi-printer me-2"></i>
+                        <span class="sidebar-text">Impresoras</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/mikrotik">
+                        <i class="bi bi-router me-2"></i>
+                        <span class="sidebar-text">Mikrotiks</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/servidores">
+                        <i class="bi bi-server me-2"></i>
+                        <span class="sidebar-text">Servidores</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Servidores</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            <main class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-server me-2 text-danger" ></i>
+                            Gestión de Servidores
+                        </h2>
+                        <p class="text-muted mb-0">Administra los servidores de la red</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createServidorModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo Servidor
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalServidores">0</h4>
+                                        <small>Total Servidores</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-server fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalActivos">0</h4>
+                                        <small>Activos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-check-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalMantenimiento">0</h4>
+                                        <small>En Mantenimiento</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-tools fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalInactivos">0</h4>
+                                        <small>Inactivos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-pause-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Servidores
+                            </h5>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="generarReporteGeneralServidores()">
+                                        <i class="bi bi-graph-up me-2"></i>Reporte General 
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSedeServidores()">
+                                        <i class="bi bi-building me-2"></i>Reporte por Sede 
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por IP, descripción o ubicación..." id="searchServidor">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterSede">
+                                    <option value="">Todas las sedes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterEstado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="mantenimiento">Mantenimiento</option>
+                                    <option value="desuso">Dañado</option>
+                                </select>
+                            </div>
+                             <div class="col-md-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="resetFiltros()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Dispositivo</th>
+                                        <th>IP / Serial</th>
+                                        <th>Sede / Ubicación</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Creación</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="servidoresTableBody">
+                                    <tr id="loadingRow">
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando servidores...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted" id="resultCount">
+                                Mostrando 0 de 0 servidores
+                            </div>
+                            
+                            <nav aria-label="Paginación de servidores">
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear Servidor -->
+    <div class="modal fade" id="createServidorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-server me-2"></i> Nuevo Servidor
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createServidorForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipo en Inventario*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
+                                        <option value="">Seleccione un equipo</option>
+                                    </select>
+                                    <div class="form-text">Seleccione el equipo Servidor del inventario</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="create_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Servidor</label>
+                                    <input type="text" class="form-control" name="ip_servidores" placeholder="Ej: 192.168.1.10">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" name="cereal_servidores" placeholder="Serial del servidor">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Ubicación*</label>
+                                    <input type="text" class="form-control" name="ubicacion" required placeholder="Ej: Sala de Servers, Rack 1">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="desuso">Dañado</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del servidor y su función"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Servidor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Servidor -->
+    <div class="modal fade" id="editServidorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Servidor
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editServidorForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_servidor_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" id="edit_estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="desuso">Dañado</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Servidor</label>
+                                    <input type="text" class="form-control" name="ip_servidores" id="edit_ip_servidores" placeholder="Ej: 192.168.1.10">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" name="cereal_servidores" id="edit_cereal_servidores" placeholder="Serial del servidor">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ubicación*</label>
+                            <input type="text" class="form-control" name="ubicacion" id="edit_ubicacion" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Servidor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Servidor -->
+    <div class="modal fade" id="viewServidorModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles del Servidor
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="servidor-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="bi bi-server"></i>
+                        </div>
+                        <h4 id="view_stock_equipo_header"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ID:</strong>
+                            <p id="view_servidor_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Estado:</strong>
+                            <p id="view_estado" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>IP del Servidor:</strong>
+                            <p id="view_ip_servidores" class="mb-2 ip-address"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Número de Serie:</strong>
+                            <p id="view_cereal_servidores" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Sede:</strong>
+                            <p id="view_sede" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Ubicación:</strong>
+                            <p id="view_ubicacion" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Descripción:</strong>
+                            <p id="view_descripcion" class="mb-2"></p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <strong>Cantidad Disponible:</strong>
+                            <p id="view_stock_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Creación:</strong>
+                            <p id="view_created_at" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="selectSedeServidorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-building me-2"></i> Seleccionar Sede
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Seleccione una sede para generar el reporte:</label>
+                    <select class="form-select" id="select_sede_servidor_reporte">
+                        <option value="">Seleccione una sede</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <small>
+                        <i class="bi bi-info-circle me-1"></i>
+                        Se generará un reporte PDF con todos los servidores de la sede seleccionada.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="generarReporteServidorConSedeSeleccionada()">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let servidores = [];
+        let sedes = [];
+        let stockEquipos = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+        let currentFilters = {
+            search: '',
+            sede_id: '',
+            estado: ''
+        };
+        // Enviar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarServidores();
+            cargarSedes();
+            cargarStockEquipos();
+            inicializarEventos();
+            applySavedTheme();
+            inicializarSidebar();
+        });
+
+  
+        async function cargarServidores(page = 1) {
+            try {
+                currentPage = page;
+                
+                const params = new URLSearchParams();
+                params.append('page', page);
+                
+                if (currentFilters.search) {
+                    params.append('search', currentFilters.search);
+                }
+                if (currentFilters.sede_id) {
+                    params.append('sede_id', currentFilters.sede_id);
+                }
+                if (currentFilters.estado) {
+                    params.append('estado', currentFilters.estado);
+                }
+                
+                const url = `/api/servidores?${params.toString()}`;
+                console.log('Cargando servidores con URL:', url);
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Error al cargar servidores');
+                }
+
+                const data = await response.json();
+                
+                servidores = data.servidores || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+
+                if (data.filters) {
+                    currentFilters = { ...currentFilters, ...data.filters };
+                }
+                
+                actualizarResumen();
+                renderizarServidores();
+                renderizarPaginacion();
+                actualizarEstadoFiltros();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los servidores');
+            }
+        }
+
+        function actualizarEstadoFiltros() {
+            document.getElementById('searchServidor').value = currentFilters.search;
+            document.getElementById('filterSede').value = currentFilters.sede_id;
+            document.getElementById('filterEstado').value = currentFilters.estado;
+            
+            const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+            const resultCount = document.getElementById('resultCount');
+            
+            if (filtrosActivos > 0) {
+                resultCount.innerHTML = `Mostrando ${servidores.length} de ${totalRecords} servidores <span class="badge bg-warning ms-2"></span>`;
+            } else {
+                resultCount.textContent = `Mostrando ${servidores.length} de ${totalRecords} servidores`;
+            }
+        }
+
+        async function cargarSedes() {
+            try {
+                const response = await fetch('/api/sedes');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar sedes');
+                }
+
+                sedes = await response.json();
+                renderizarSedes();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+async function cargarStockEquipos() {
+    try {
+    
+        let allEquipos = [];
+        let page = 1;
+        let hasMore = true;
+        
+        while (hasMore) {
+            const response = await fetch(`/api/stock_equipos?page=${page}&limit=100`);
+            
+            if (!response.ok) {
+                throw new Error('Error al cargar equipos del inventario');
+            }
+            
+            const data = await response.json();
+            const equipos = data.stockEquipos || data;
+            
+            if (!equipos || equipos.length === 0) {
+                hasMore = false;
+            } else {
+                allEquipos = allEquipos.concat(equipos);
+                page++;
+                
+                if (page > 10) {
+                    hasMore = false;
+                    console.warn('Límite de páginas alcanzado');
+                }
+            }
+        }
+        
+        console.log(`${allEquipos.length} equipos totales cargados (de ${page-1} páginas)`);
+        
+        stockEquipos = allEquipos.filter(equipo => {
+            const tipoNombre = (equipo.tipo_equipo?.nombre || '').toLowerCase();
+            const esServidor = tipoNombre.includes('servidor') 
+                             tipoNombre.includes('server')|| 
+                             tipoNombre.includes('servidores');
+            
+            if (esServidor) {
+                console.log(`SERVIDOR: ${equipo.marca} ${equipo.modelo} (${tipoNombre})`);
+            }
+            
+            return esServidor;
+        });
+        
+        console.log(`${stockEquipos.length} servidores encontrados`);
+        
+        renderizarStockEquipos();
+        
+    } catch (error) {
+        console.error('Error cargando stock equipos:', error);
+        mostrarError('No se pudieron cargar los servidores del inventario');
+        stockEquipos = [];
+        renderizarStockEquipos();
+    }
+}
+        function actualizarResumen() {
+            const total = servidores.length;
+            const activos = servidores.filter(s => s.estado === 'activo').length;
+            const inactivos = servidores.filter(s => s.estado === 'inactivo').length;
+            const mantenimiento = servidores.filter(s => s.estado === 'mantenimiento').length;
+            const desuso = servidores.filter(s => s.estado === 'desuso').length;
+
+            document.getElementById('totalServidores').textContent = total;
+            document.getElementById('totalActivos').textContent = activos;
+            document.getElementById('totalInactivos').textContent = inactivos;
+            document.getElementById('totalMantenimiento').textContent = mantenimiento;
+        }
+
+        function renderizarServidores() {
+            const tbody = document.getElementById('servidoresTableBody');
+            tbody.innerHTML = '';
+
+            if (servidores.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-server display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron servidores</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            servidores.forEach(servidor => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="fw-bold">${servidor.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="servidor-icon me-3">
+                                <i class="bi bi-server"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">${servidor.stock_equipos ? servidor.stock_equipos.marca + ' ' + servidor.stock_equipos.modelo : 'Sin información'}</div>
+                                <small class="text-muted">${servidor.descripcion || 'Servidor'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            ${servidor.ip_servidores ? `<span class="ip-address">${servidor.ip_servidores}</span>` : '<small class="text-muted">Sin IP</small>'}
+                            ${servidor.cereal_servidores ? `<small class="text-muted">${servidor.cereal_servidores}</small>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">${servidor.sede ? servidor.sede.nombre : 'Sin sede'}</span>
+                            <small class="text-muted">${servidor.ubicacion}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${servidor.estado}">
+                            ${servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        ${new Date(servidor.created_at).toLocaleDateString('es-ES')}
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewServidor(${servidor.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editServidor(${servidor.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteServidor(${servidor.id}, '${servidor.descripcion || 'Servidor'}')"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('resultCount').textContent = 
+                `Mostrando ${servidores.length} de ${totalRecords} servidores`;
+        }
+
+        function renderizarSedes() {
+            const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    sedes.forEach(sede => {
+                        const option = document.createElement('option');
+                        option.value = sede.id;
+                        option.textContent = sede.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+function renderizarStockEquipos() {
+    const select = document.getElementById('create_stock_equipos_id');
+    if (select) {
+        while (select.options.length > 1) {
+            select.remove(1);
+        }
+
+        if (stockEquipos.length === 0) {
+            const option = document.createElement('option');
+            option.value = "";
+            option.textContent = "No hay servidores disponibles en inventario";
+            option.disabled = true;
+            select.appendChild(option);
+            return;
+        }
+
+        stockEquipos.forEach(equipo => {
+            const option = document.createElement('option');
+            option.value = equipo.id;
+            option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles (${equipo.tipo_equipo?.nombre || 'Sin tipo'})`;
+            option.setAttribute('data-tipo', equipo.tipo_equipo?.nombre || '');
+            select.appendChild(option);
+        });
+        
+        console.log(`${stockEquipos.length} servidores renderizados en el select`);
+    }
+}
+       
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+                pagination.innerHTML = '';
+
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+                prevLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                `;
+                pagination.appendChild(prevLi);
+
+                const maxPagesToShow = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+                let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                if (endPage - startPage + 1 < maxPagesToShow) {
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+
+                if (startPage > 1) {
+                    const firstLi = document.createElement('li');
+                    firstLi.className = 'page-item';
+                    firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+                    pagination.appendChild(firstLi);
+                    
+                    if (startPage > 2) {
+                        const ellipsisLi = document.createElement('li');
+                        ellipsisLi.className = 'page-item disabled';
+                        ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                        pagination.appendChild(ellipsisLi);
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const pageLi = document.createElement('li');
+                    pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+                    pagination.appendChild(pageLi);
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const ellipsisLi = document.createElement('li');
+                        ellipsisLi.className = 'page-item disabled';
+                        ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                        pagination.appendChild(ellipsisLi);
+                    }
+                    
+                    const lastLi = document.createElement('li');
+                    lastLi.className = 'page-item';
+                    lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
+                    pagination.appendChild(lastLi);
+                }
+
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+                nextLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                `;
+                pagination.appendChild(nextLi);
+            }
+
+            function cambiarPagina(page) {
+                if (page < 1 || page > totalPages || page === currentPage) return;
+                cargarServidores(page);
+        }
+
+        // Funciones CRUD
+        async function crearServidor() {
+            const form = document.getElementById('createServidorForm');
+            const formData = new FormData(form);
+
+            if (stockEquipos.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No hay equipos Servidor disponibles en el inventario'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/servidores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#createServidorModal').modal('hide');
+                form.reset();
+                
+                await cargarServidores(currentPage);
+                await cargarStockEquipos(); 
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al crear el servidor'
+                });
+            }
+        }
+
+      async function editServidor(id) {
+            try {
+                console.log('Cargando servidor con ID:', id);
+                const response = await fetch(`/api/servidores/${id}`);
+                
+                if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al cargar servidor');
+                }
+
+                const servidor = await response.json();
+                console.log('Datos recibidos:', servidor);
+                
+                // Verificar que los datos se estén recibiendo correctamente
+                if (!servidor) {
+                throw new Error('No se recibieron datos del servidor');
+                }
+                
+                // Llenar el formulario con los datos
+                document.getElementById('edit_servidor_id').value = servidor.id;
+                document.getElementById('edit_sede_id').value = servidor.sede_id;
+                document.getElementById('edit_estado').value = servidor.estado;
+                document.getElementById('edit_ip_servidores').value = servidor.ip_servidores || '';
+                document.getElementById('edit_cereal_servidores').value = servidor.cereal_servidores || '';
+                document.getElementById('edit_ubicacion').value = servidor.ubicacion;
+                document.getElementById('edit_descripcion').value = servidor.descripcion || '';
+                
+                console.log('Formulario llenado con datos');
+                $('#editServidorModal').modal('show');
+                
+            } catch (error) {
+                console.error('Error al cargar servidor:', error);
+                Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Error al cargar los datos del servidor'
+                });
+            }
+        }
+
+        async function actualizarServidor() {
+            const form = document.getElementById('editServidorForm');
+            const formData = new FormData(form);
+            const servidorId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/servidores/${servidorId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editServidorModal').modal('hide');
+                form.reset();
+                    
+                await cargarServidores(currentPage);
+                    
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar el servidor'
+                });
+            }
+        }
+
+        async function viewServidor(id) {
+            try {
+                const response = await fetch(`/api/servidores/${id}`);
+                    
+                if (!response.ok) {
+                    throw new Error('Error al cargar servidor');
+                }
+
+                const servidor = await response.json();
+                    
+                document.getElementById('view_descripcion').textContent = servidor.descripcion || 'Servidor';
+                document.getElementById('view_id').textContent = `ID: ${servidor.id}`;
+                document.getElementById('view_servidor_id').textContent = servidor.id;
+                document.getElementById('view_estado').innerHTML = `<span class="status-badge status-${servidor.estado}">${servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1)}</span>`;
+                document.getElementById('view_ip_servidores').textContent = servidor.ip_servidores || 'No asignada';
+                document.getElementById('view_cereal_servidores').textContent = servidor.cereal_servidores || 'No asignado';
+                document.getElementById('view_sede').textContent = servidor.sede ? servidor.sede.nombre : 'Sin sede';
+                document.getElementById('view_ubicacion').textContent = servidor.ubicacion;
+                document.getElementById('view_descripcion').textContent = servidor.descripcion || 'Sin descripción';
+                document.getElementById('view_stock_equipo_header').textContent = servidor.stock_equipos ? `${servidor.stock_equipos.marca} ${servidor.stock_equipos.modelo}` : 'No asignado';
+                document.getElementById('view_stock_equipo').textContent = servidor.stock_equipos ? `${servidor.stock_equipos.marca} ${servidor.stock_equipos.cantidad_disponible}` : 'No asignado';
+                document.getElementById('view_created_at').textContent = new Date(servidor.created_at).toLocaleDateString('es-ES');
+                    
+                $('#viewServidorModal').modal('show');
+                    
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function deleteServidor(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar el servidor "${nombre}". Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/servidores/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error del servidor');
+                    }
+
+                    const data = await response.json();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    await cargarServidores(currentPage);
+                    await cargarStockEquipos(); 
+                        
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Error al eliminar el servidor'
+                    });
+                }
+            }
+        }
+
+        function aplicarFiltros() {
+            currentFilters = {
+                search: document.getElementById('searchServidor').value,
+                sede_id: document.getElementById('filterSede').value,
+                estado: document.getElementById('filterEstado').value
+            };
+            
+            currentPage = 1;
+            cargarServidores(currentPage);
+        }
+
+        function aplicarBusquedaRapida() {
+            currentFilters.search = document.getElementById('searchServidor').value;
+            currentPage = 1;
+            cargarServidores(currentPage);
+        }
+
+        function resetFiltros() {
+            currentFilters = {
+                search: '',
+                sede_id: '',
+                estado: ''
+            };
+            
+            document.getElementById('searchServidor').value = '';
+            document.getElementById('filterSede').value = '';
+            document.getElementById('filterEstado').value = '';
+            
+            currentPage = 1;
+            cargarServidores(currentPage);
+        }
+
+        function filtrarPorEstado(estado) {
+            document.getElementById('filterEstado').value = estado;
+            aplicarFiltros();
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+                
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                    
+                const themeIcon = document.querySelector('.theme-switcher i');
+                if (themeIcon) {
+                    if (savedTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeIcon = document.querySelector('.theme-switcher i');
+                
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+                
+            if (themeIcon) {
+                if (newTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+                
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function inicializarSidebar() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function() {
+                        const sidebar = document.querySelector('.sidebar');
+                        sidebar.classList.toggle('sidebar-collapsed');
+                        
+                        const icon = this.querySelector('i');
+                        icon.classList.toggle('bi-chevron-double-left');
+                        icon.classList.toggle('bi-chevron-double-right');
+                    });
+                }
+
+                const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+                if (mobileSidebarToggle) {
+                    mobileSidebarToggle.addEventListener('click', function() {
+                        document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                    });
+                }
+
+                const themeSwitcher = document.querySelector('.theme-switcher');
+                if (themeSwitcher) {
+                    themeSwitcher.addEventListener('click', toggleTheme);
+                }
+        }
+
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            document.getElementById('createServidorForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearServidor();
+            });
+
+            document.getElementById('editServidorForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarServidor();
+            });
+
+            let searchTimeout;
+            document.getElementById('searchServidor').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
+            });
+
+            document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+
+
+            
+        
+        }
+
+        async function generarReporteGeneralServidores() {
+            try {
+                console.log('Generando reporte general de servidores...');
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/servidores/reporte/general`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: 'El reporte general se ha abierto en una nueva pestaña',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo generar el reporte: ' + error.message
+                });
+            }
+        }
+
+        function abrirModalSeleccionSedeServidores() {
+            if (sedes.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No hay sedes',
+                    text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
+                });
+                return;
+            }
+
+            const selectSede = document.getElementById('select_sede_servidor_reporte');
+            selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
+            
+            sedes.forEach(sede => {
+                const option = document.createElement('option');
+                option.value = sede.id;
+                option.textContent = sede.nombre;
+                selectSede.appendChild(option);
+            });
+
+            $('#selectSedeServidorModal').modal('show');
+        }
+
+        async function generarReporteServidorConSedeSeleccionada() {
+            const sedeId = document.getElementById('select_sede_servidor_reporte').value;
+            
+            if (!sedeId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Seleccione una sede',
+                    text: 'Por favor seleccione una sede para generar el reporte.'
+                });
+                return;
+            }
+
+            const sedeSelect = document.getElementById('select_sede_servidor_reporte');
+            const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
+
+            $('#selectSedeServidorModal').modal('hide');
+
+            try {
+                console.log(`Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: `Generando reporte para ${sedeNombre}...`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/servidores/reporte/sede/${sedeId}`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte por sede:', error);
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+ 
+
+    </script>
+</body>
+</html>

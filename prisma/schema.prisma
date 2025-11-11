@@ -29,6 +29,7 @@ model sedes {
   impresora  impresora[]
   mikrotik   mikrotik[]
   consumible consumible[]
+  servidores servidores[]
 
   @@map("sedes")
 }
@@ -66,6 +67,7 @@ model stock_equipos {
   mikrotik            mikrotik[]         @relation("MikrotikPrincipal")
   ConsumibleEquipo    ConsumibleEquipo[]       
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
+  servidores          servidores[]      @relation("ServidoresPrincipal")
 
   @@map("stock_equipos")
 }
@@ -200,6 +202,23 @@ model ConsumibleEquipo {
   @@map("consumible_equipos")
 }
 
+model servidores {
+  id                Int           @id @default(autoincrement())
+  stock_equipos_id  Int           
+  descripcion       String?       
+  ip_servidores     String?       @db.VarChar(191)
+  cereal_servidores String?       @db.VarChar(191)
+  sede_id           Int
+  ubicacion         String        @db.VarChar(191)
+  estado            EstadoServidor @default(activo) 
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @default(now()) @updatedAt
+  stock_equipos     stock_equipos @relation("ServidoresPrincipal", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+  sede              sedes         @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+
+  @@map("servidores")
+}
+
 enum cargo {
   Gerente
   Jefe
@@ -224,6 +243,13 @@ enum EstadoImpresora {
   mantenimiento
   sin_toner
   obsoleta
+}
+
+enum EstadoServidor {
+  activo
+  inactivo
+  mantenimiento
+  desuso
 }
 
 model ContadorRegistros {

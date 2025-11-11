@@ -862,6 +862,51 @@ async todosLosToners(req, res) {
       message: error.message
     });
   }
-}
+},
 
+
+async servidores(req, res) {
+    try {
+        console.log('Buscando servidores en el inventario...');
+        
+        
+        const todosEquipos = await prisma.stock_equipos.findMany({
+            include: {
+                tipo_equipo: {
+                    select: {
+                        id: true,
+                        nombre: true
+                    }
+                }
+            },
+            orderBy: {
+                marca: 'asc'
+            }
+        });
+
+        console.log(`${todosEquipos.length} equipos totales encontrados`);
+
+        // Filtrar servidores
+        const servidores = todosEquipos.filter(equipo => {
+            if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+                return false;
+            }
+            
+            const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+            return tipoNombre.includes('servidor') || 
+                   tipoNombre.includes('servidores');
+        });
+
+        console.log(`${servidores.length} servidores filtrados`);
+        
+        res.json(servidores);
+        
+    } catch (error) {
+        console.error('ERROR en servidores:', error);
+        res.status(500).json({ 
+            error: 'Error al cargar servidores del inventario',
+            message: error.message
+        });
+    }
+}
 };

@@ -112,6 +112,15 @@ router.get('/mikrotik', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/servidores', authenticateToken, (req, res) => {
+    res.render('servidores/servidores', {
+        title: 'Gestión de los Mikrotiks',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 router.get('/impresoras', authenticateToken, (req, res) => {
     res.render('impresoras/impresoras', {
         title: 'Gestión de las Impresoras',

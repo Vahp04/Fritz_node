@@ -17,7 +17,7 @@ import equipoAsignadoRoutes from './routes/equipoAsignado.js';
 import mikrotikRoutes from './routes/mikrotik.js';
 import impresoraRoutes from './routes/impresora.js';
 import consumibleRoutes from './routes/consumible.js'
-
+import servidoresRoutes from './routes/servidores.js'
 
 import pdfRoutes from './routes/pdfRoutes.js';
 
@@ -66,7 +66,7 @@ app.use('/api/equipos_asignados', equipoAsignadoRoutes);
 app.use('/api/', mikrotikRoutes);
 app.use('/', impresoraRoutes);
 app.use('/api/consumibles', consumibleRoutes);
-
+app.use('/api/servidores', servidoresRoutes);
 
 
 app.use('/api/pdf', pdfRoutes);
