@@ -61,9 +61,9 @@ model stock_equipos {
   created_at          DateTime          @default(now())
   updated_at          DateTime          @default(now())
   equipo_asignado     equipo_asignado[]
-  impresoras          impresora[]       @relation("ImpresoraPrincipal") // Cambiado a array
+  impresoras          impresora[]       @relation("ImpresoraPrincipal") 
   impresora_toner     impresora[]       @relation("TonerInstalado")
-  mikrotik            mikrotik?         @relation("MikrotikPrincipal")
+  mikrotik            mikrotik[]         @relation("MikrotikPrincipal")
   ConsumibleEquipo    ConsumibleEquipo[]       
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
 
@@ -155,7 +155,7 @@ model impresora {
 
 model mikrotik {
   id               Int           @id @default(autoincrement())
-  stock_equipos_id Int           @unique 
+  stock_equipos_id Int           
   descripcion      String?       @db.VarChar(191)
   ip_mikrotik      String?       @db.VarChar(191)
   cereal_mikrotik  String?       @db.VarChar(191)

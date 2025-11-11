@@ -78,7 +78,7 @@ async show(req, res) {
     const { id } = req.params;
     const mikrotikId = parseInt(id); 
 
-    const mikrotik = await prisma.mikrotik.findUnique({
+    const mikrotik = await prisma.mikrotik.findMany({
       where: { id: mikrotikId }, 
       include: {
         stock_equipos: {
@@ -118,7 +118,7 @@ async store(req, res) {
     const stockEquiposId = parseInt(stock_equipos_id);
     const sedeId = parseInt(sede_id);
 
-    const mikrotikStock = await prisma.stock_equipos.findUnique({
+    const mikrotikStock = await prisma.stock_equipos.findMany({
       where: { id: stockEquiposId }, 
       include: { tipo_equipo: true }
     });
@@ -131,13 +131,7 @@ async store(req, res) {
       return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
     }
 
-    const mikrotikExistente = await prisma.mikrotik.findUnique({
-      where: { stock_equipos_id: stockEquiposId } 
-    });
 
-    if (mikrotikExistente) {
-      return res.status(400).json({ error: 'Ya existe un mikrotik configurado para este equipo' });
-    }
 
     const resultado = await prisma.$transaction(async (tx) => {
       const mikrotik = await tx.mikrotik.create({
@@ -189,7 +183,7 @@ async update(req, res) {
     const mikrotikId = parseInt(id);
     const sedeId = sede_id ? parseInt(sede_id) : undefined;
 
-    const mikrotikActual = await prisma.mikrotik.findUnique({
+    const mikrotikActual = await prisma.mikrotik.findMany({
       where: { id: mikrotikId },
       include: {
         stock_equipos: true
@@ -261,7 +255,7 @@ async update(req, res) {
         else if (estadoNuevo === 'desuso') {
           console.log(`Marcando mikrotik como desuso - eliminando del inventario`);
           
-          const stockActual = await tx.stock_equipos.findUnique({
+          const stockActual = await tx.stock_equipos.findMany({
             where: { id: stockEquipoId }
           });
           
