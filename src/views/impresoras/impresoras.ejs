@@ -252,6 +252,7 @@
             border-radius: 4px;
             font-size: 0.85rem;
         }
+
     </style>
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
@@ -787,11 +788,62 @@
                                         </div>
                                     </div>
                                 </div>
+                          <!--  <div class="col-md-6">
+                                     <div class="mb-3">
+                                        <label class="form-label">Contador de Instalaciones de Toner</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" name="contador_instalacion_toner" id="edit_contador_instalacion_toner" min="0">
+                                                    <button type="button" class="btn btn-outline-primary" onclick="incrementarContadorToner()" title="Incrementar contador">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="decrementarContadorToner()" title="Decrementar contador">
+                                                        <i class="bi bi-dash-lg"></i>
+                                                    </button>
+                                            </div>
+                                        <div class="form-text">Número de veces que se ha cambiado el toner</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Contador de Impresiones</label>
+                                        <input type="number" class="form-control" name="contador_impresiones" id="edit_contador_impresiones" min="0">
+                                    </div>
+                            </div>-->
+                            
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-warning">Actualizar Impresora</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Instalar Toner -->
+    <div class="modal fade" id="instalarTonerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-archive me-2"></i> Instalar Toner
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="instalarTonerForm">
+                    <input type="hidden" id="toner_impresora_id" name="impresora_id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Seleccionar Toner*</label>
+                            <select class="form-select" name="toner_actual_id" id="toner_actual_id" required>
+                                <option value="">Seleccione un toner</option>
+                            </select>
+                            <div class="form-text">Seleccione un toner disponible del inventario</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-info text-white">Instalar Toner</button>
                     </div>
                 </form>
             </div>
@@ -845,6 +897,10 @@
                             <strong>Ubicación:</strong>
                             <p id="view_ubicacion" class="mb-2"></p>
                         </div>
+                        <!--<div class="col-md-6">
+                            <strong>Contador de Impresiones:</strong>
+                            <p id="view_contador_impresiones" class="mb-2"></p>
+                        </div>-->
                         <div class="col-12">
                             <strong>Descripción:</strong>
                             <p id="view_descripcion" class="mb-2"></p>
@@ -861,6 +917,19 @@
                             <strong>Modelo de Toner:</strong>
                             <p id="view_toner" class="mb-2"></p>
                         </div>
+                       <!-- <div class="col-md-6">
+                            <strong>Toner Actual:</strong>
+                            <p id="view_toner_actual" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha Instalación Toner:</strong>
+                            <p id="view_fecha_instalacion_toner" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Contador Instalación Toner:</strong>
+                            <p id="view_contador_instalacion_toner" class="mb-2"></p>
+                        </div>-->
+                      
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -995,7 +1064,7 @@
             const resultCount = document.getElementById('resultCount');
             
             if (filtrosActivos > 0) {
-                resultCount.innerHTML = `Mostrando ${impresoras.length} de ${totalRecords} impresoras <span class="badge bg-warning ms-2">Filtrado</span>`;
+                resultCount.innerHTML = `Mostrando ${impresoras.length} de ${totalRecords} impresoras <span class="badge bg-warning ms-2"></span>`;
             } else {
                 resultCount.textContent = `Mostrando ${impresoras.length} de ${totalRecords} impresoras`;
             }
@@ -1059,6 +1128,7 @@
             try {
                 console.log('Cargando TODOS los modelos de toner del inventario...');
                 
+                // Usar el nuevo endpoint que devuelve todos los toners sin paginación
                 const response = await fetch('/api/stock_equipos/toners/todos');
                 
                 if (!response.ok) {
@@ -1074,6 +1144,7 @@
                 console.error('Error:', error);
                 mostrarError('No se pudieron cargar los modelos de toner del inventario');
                 
+                // Fallback: intentar con el endpoint normal (pero puede tener paginación)
                 try {
                 console.log('Intentando fallback con endpoint normal...');
                 const response = await fetch('/api/stock_equipos');
@@ -1098,34 +1169,31 @@
                 }
             }
         }
-
         function renderizarModelosToner() {
             const selects = ['create_toner', 'edit_toner'];
 
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                while (select.options.length > 1) {
-                    select.remove(1);
-                }
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
 
-                if (toners.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = "";
-                    option.textContent = "No hay toners disponibles en inventario";
-                    option.disabled = true;
-                    select.appendChild(option);
-                    return;
-                }
+                    if (toners.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No hay modelos de toner en el inventario";
+                        option.disabled = true;
+                        select.appendChild(option);
+                        return;
+                    }
 
-                toners.forEach(toner => {
-                    const option = document.createElement('option');
-                    const displayText = `${toner.marca} ${toner.modelo} - ${toner.cantidad_disponible} disponibles`;
-                    option.value = `${toner.marca} ${toner.modelo}`;
-                    option.textContent = displayText;
-                    option.setAttribute('data-stock', toner.cantidad_disponible);
-                    select.appendChild(option);
-                });
+                    toners.forEach(toner => {
+                        const option = document.createElement('option');
+                        option.value = `${toner.marca} ${toner.modelo}`;
+                        option.textContent = `${toner.marca} ${toner.modelo}`;
+                        select.appendChild(option);
+                    });
                 }
             });
         }
