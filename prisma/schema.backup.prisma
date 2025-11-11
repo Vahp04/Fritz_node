@@ -61,7 +61,7 @@ model stock_equipos {
   created_at          DateTime          @default(now())
   updated_at          DateTime          @default(now())
   equipo_asignado     equipo_asignado[]
-  impresora           impresora?        @relation("ImpresoraPrincipal")
+  impresoras          impresora[]       @relation("ImpresoraPrincipal") // Cambiado a array
   impresora_toner     impresora[]       @relation("TonerInstalado")
   mikrotik            mikrotik?         @relation("MikrotikPrincipal")
   ConsumibleEquipo    ConsumibleEquipo[]       
@@ -125,7 +125,7 @@ model equipo_asignado {
 
 model impresora {
   id               Int           @id @default(autoincrement())
-  stock_equipos_id Int           @unique 
+  stock_equipos_id Int           
   nombre           String        @db.VarChar(191)
   descripcion      String?       @db.VarChar(191)
   ip_impresora     String?       @db.VarChar(191)
@@ -169,7 +169,6 @@ model mikrotik {
 
   @@map("mikrotik")
 }
-
 
 model consumible {
   id               Int       @id @default(autoincrement())

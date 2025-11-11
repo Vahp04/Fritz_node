@@ -156,13 +156,7 @@ export const impresoraController = {
         return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
       }
 
-      const impresoraExistente = await prisma.impresora.findUnique({
-        where: { stock_equipos_id: stockEquiposId }
-      });
 
-      if (impresoraExistente) {
-        return res.status(400).json({ error: 'Ya existe una impresora configurada para este equipo' });
-      }
 
           if (toner) {
       const tonerExistente = await prisma.stock_equipos.findFirst({
