@@ -1128,7 +1128,6 @@
             try {
                 console.log('Cargando TODOS los modelos de toner del inventario...');
                 
-                // Usar el nuevo endpoint que devuelve todos los toners sin paginación
                 const response = await fetch('/api/stock_equipos/toners/todos');
                 
                 if (!response.ok) {
@@ -1144,7 +1143,6 @@
                 console.error('Error:', error);
                 mostrarError('No se pudieron cargar los modelos de toner del inventario');
                 
-                // Fallback: intentar con el endpoint normal (pero puede tener paginación)
                 try {
                 console.log('Intentando fallback con endpoint normal...');
                 const response = await fetch('/api/stock_equipos');
@@ -1155,8 +1153,7 @@
                     const tipoNombre = equipo.tipo_equipo?.nombre?.toLowerCase() || '';
                     return tipoNombre.includes('toner') ||
                             tipoNombre.includes('tinta') ||
-                            tipoNombre.includes('cartucho') ||
-                            tipoNombre.includes('consumible');
+                            tipoNombre.includes('cartucho');
                     }) || [];
                     
                     console.log(`${toners.length} toners cargados en fallback`);

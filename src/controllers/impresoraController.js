@@ -285,7 +285,6 @@ async update(req, res) {
     }
 
     const resultado = await prisma.$transaction(async (tx) => {
-      // Lógica para manejo de toner (se mantiene igual)
       const contadorAnterior = impresoraActual.contador_instalacion_toner || 0;
       const contadorNuevo = parseInt(contador_instalacion_toner) || 0;
       
@@ -346,7 +345,6 @@ async update(req, res) {
         });
       }
 
-      // LÓGICA CORREGIDA PARA ESTADOS DE IMPRESORA
       const estadoAnterior = impresoraActual.estado_impresora;
       const estadoNuevo = estado_impresora;
       const stockEquipoId = impresoraActual.stock_equipos_id;
@@ -354,7 +352,6 @@ async update(req, res) {
       console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
-        // Obtener stock actual para validaciones
         const stockActual = await tx.stock_equipos.findUnique({
           where: { id: stockEquipoId }
         });
@@ -363,9 +360,6 @@ async update(req, res) {
           throw new Error('Stock de equipo no encontrado');
         }
 
-        // LÓGICA CORREGIDA - TRANSICIONES DE ESTADO
-
-        // 1. Si estaba ACTIVA y pasa a INACTIVA o MANTENIMIENTO
         if (estadoAnterior === 'activa' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
           console.log('Devolviendo impresora activa al inventario');
           await tx.stock_equipos.update({
@@ -377,10 +371,8 @@ async update(req, res) {
           });
         }
 
-        // 2. Si estaba INACTIVA o MANTENIMIENTO y pasa a ACTIVA
         else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activa') {
           console.log('Asignando impresora desde inventario a activa');
-          // Validar que hay stock disponible
           if (stockActual.cantidad_disponible <= 0) {
             throw new Error('No hay stock disponible para activar esta impresora');
           }
@@ -393,7 +385,6 @@ async update(req, res) {
           });
         }
 
-        // 3. Si estaba ACTIVA y pasa a OBSOLETA
         else if (estadoAnterior === 'activa' && estadoNuevo === 'obsoleta') {
           console.log('Marcando impresora activa como obsoleta - reduciendo inventario');
           await tx.stock_equipos.update({
@@ -405,7 +396,6 @@ async update(req, res) {
           });
         }
 
-        // 4. Si estaba INACTIVA o MANTENIMIENTO y pasa a OBSOLETA
         else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'obsoleta') {
           console.log('Marcando impresora inactiva/mantenimiento como obsoleta - reduciendo inventario');
           await tx.stock_equipos.update({
@@ -417,7 +407,6 @@ async update(req, res) {
           });
         }
 
-        // 5. Si estaba OBSOLETA y pasa a ACTIVA
         else if (estadoAnterior === 'obsoleta' && estadoNuevo === 'activa') {
           console.log('Reactivar impresora desde obsoleta');
           await tx.stock_equipos.update({
@@ -430,7 +419,6 @@ async update(req, res) {
           });
         }
 
-        // 6. Si estaba OBSOLETA y pasa a INACTIVA o MANTENIMIENTO
         else if (estadoAnterior === 'obsoleta' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
           console.log('Mover impresora de obsoleta a inventario disponible');
           await tx.stock_equipos.update({
@@ -442,7 +430,6 @@ async update(req, res) {
           });
         }
 
-        // 7. Estado SIN_TONER - no afecta el inventario de la impresora
         else if (estadoNuevo === 'sin_toner' || estadoAnterior === 'sin_toner') {
           console.log('Cambio a/desde estado sin_toner - no afecta inventario de impresora');
         }
@@ -452,7 +439,6 @@ async update(req, res) {
         console.log('No hay cambio de estado, omitiendo actualización de stock');
       }
 
-      // Actualizar la impresora
       const impresoraActualizada = await tx.impresora.update({
         where: { id: impresoraId },
         data: {
@@ -581,7 +567,6 @@ async cambiarEstado(req, res) {
       console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
-        // Obtener stock actual para validaciones
         const stockActual = await tx.stock_equipos.findUnique({
           where: { id: stockEquipoId }
         });
@@ -590,7 +575,6 @@ async cambiarEstado(req, res) {
           throw new Error('Stock de equipo no encontrado');
         }
 
-        // Misma lógica corregida que en el método update
         if (estadoAnterior === 'activa' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
           console.log('Devolviendo impresora activa al inventario');
           await tx.stock_equipos.update({
@@ -655,7 +639,6 @@ async cambiarEstado(req, res) {
             }
           });
         }
-        // Estado SIN_TONER no afecta inventario
         else if (estadoNuevo === 'sin_toner' || estadoAnterior === 'sin_toner') {
           console.log('Cambio a/desde estado sin_toner - no afecta inventario');
         }

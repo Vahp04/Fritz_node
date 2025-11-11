@@ -848,8 +848,7 @@ async todosLosToners(req, res) {
       const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
       return tipoNombre.includes('toner') ||
              tipoNombre.includes('tinta') ||
-             tipoNombre.includes('cartucho') ||
-             tipoNombre.includes('consumible');
+             tipoNombre.includes('cartucho');
     });
 
     console.log(`${toners.length} toners encontrados (sin paginación)`);

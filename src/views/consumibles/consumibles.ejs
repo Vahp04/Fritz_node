@@ -1015,7 +1015,9 @@
             stockEquipos = data.filter(equipo => {
                 const esConsumible = equipo.tipo_equipo && 
                     equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
-                    equipo.tipo_equipo.nombre.toLowerCase().includes('toners');
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('toners') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho');
                 console.log(`Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
                 return esConsumible;
             }) || [];
