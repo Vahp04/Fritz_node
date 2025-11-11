@@ -5,9 +5,8 @@ const prisma = new PrismaClient();
 export const dashboardController = {
     async getDashboardStats() {
         try {
-            console.log('🔍 Iniciando obtención de estadísticas...');
+            console.log('Iniciando obtención de estadísticas...');
             
-            // Verificar que prisma esté inicializado correctamente
             if (!prisma) {
                 throw new Error('Prisma Client no está inicializado');
             }
@@ -18,7 +17,6 @@ export const dashboardController = {
                 totalDepartamentos,
                 totalEquiposAsignados
             ] = await Promise.all([
-                // Usar try-catch individual para cada consulta
                 (async () => {
                     try {
                         return await prisma.usuarios.count();
@@ -62,13 +60,12 @@ export const dashboardController = {
                 totalEquiposAsignados: totalEquiposAsignados || 0
             };
 
-            console.log('📈 Estadísticas obtenidas exitosamente:', stats);
+            console.log('Estadísticas obtenidas exitosamente:', stats);
             return stats;
 
         } catch (error) {
-            console.error('💥 Error crítico obteniendo estadísticas:', error);
+            console.error('Error crítico obteniendo estadísticas:', error);
             
-            // Retornar valores por defecto para que el dashboard no falle completamente
             return {
                 totalUsuarios: 0,
                 totalSedes: 0,

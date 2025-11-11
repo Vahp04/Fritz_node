@@ -894,8 +894,7 @@ async function cargarUsuarios(page = 1, filtros = {}) {
             page: page.toString(),
             limit: '10'
         });
-        
-        // Agregar filtros si existen
+
         if (filtros.nombre) params.append('nombre', filtros.nombre);
         if (filtros.cargo) params.append('cargo', filtros.cargo);
         if (filtros.sede) params.append('sede', filtros.sede);
@@ -1081,12 +1080,12 @@ function renderizarSedes(preservarValores = false, selectId = null) {
             
             if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
-                console.log(`✅ Valor restaurado en ${selectId}: ${currentValue}`);
+                console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
             }
             
-            console.log(`✅ Select ${selectId} renderizado con ${sedes.length} sedes`);
+            console.log(`Select ${selectId} renderizado con ${sedes.length} sedes`);
         } else {
-            console.warn(`❌ No se encontró el select: ${selectId}`);
+            console.warn(`No se encontró el select: ${selectId}`);
         }
     });
 }
@@ -1121,12 +1120,12 @@ function renderizarDepartamentos(preservarValores = false, selectId = null) {
             
             if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
                 select.value = currentValue;
-                console.log(`✅ Valor restaurado en ${selectId}: ${currentValue}`);
+                console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
             }
             
-            console.log(`✅ Select ${selectId} renderizado con ${departamentos.length} departamentos`);
+            console.log(`Select ${selectId} renderizado con ${departamentos.length} departamentos`);
         } else {
-            console.warn(`❌ No se encontró el select: ${selectId}`);
+            console.warn(`No se encontró el select: ${selectId}`);
         }
     });
 }
@@ -1141,7 +1140,7 @@ async function cargarDatosParaEdicion(usuario) {
         }
         
         if (departamentos.length === 0) {
-            console.log('📥 Cargando departamentos...');
+            console.log('Cargando departamentos...');
             await cargarDepartamentos();
         }
         
@@ -1161,7 +1160,7 @@ async function cargarDatosParaEdicion(usuario) {
                 console.warn(' No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
                 setTimeout(() => {
                     sedeSelect.value = usuario.sede_id || '';
-                    console.log('🔄 Reintentando establecer sede_id:', sedeSelect.value);
+                    console.log('Reintentando establecer sede_id:', sedeSelect.value);
                 }, 100);
             }
         }
@@ -1220,7 +1219,7 @@ async function cargarDepartamentos() {
         return departamentos;
         
     } catch (error) {
-        console.error('❌ Error cargando departamentos:', error);
+        console.error('Error cargando departamentos:', error);
         return [];
     }
 }
@@ -1307,7 +1306,7 @@ function renderizarPaginacion() {
     const datos = Object.fromEntries(formData);
     const usuarioId = datos.id;
 
-    console.log('📝 Datos para actualizar:', datos);
+    console.log('Datos para actualizar:', datos);
 
     if (!datos.nombre || !datos.cargo || !datos.correo || !datos.rdpfis || !datos.sede_id || !datos.departamento_id) {
         Swal.fire({
@@ -1362,8 +1361,7 @@ function renderizarPaginacion() {
     // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
-        
-        // Sidebar
+
         const sidebarToggle = document.getElementById('sidebarToggle');
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function() {
@@ -1408,7 +1406,7 @@ function inicializarEventos() {
 
     document.getElementById('editUsuarioForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        console.log('📝 Evento submit del formulario editar capturado');
+        console.log('Evento submit del formulario editar capturado');
         actualizarUsuario();
     });
 
@@ -1448,14 +1446,14 @@ async function crearUsuario() {
         return;
     }
     
-    console.log('🖱️ === INICIANDO CREACIÓN DE USUARIO ===');
+    console.log('=== INICIANDO CREACIÓN DE USUARIO ===');
     creandoUsuario = true;
     
     const form = document.getElementById('createUsuarioForm');
     const formData = new FormData(form);
     const datos = Object.fromEntries(formData);
     
-    console.log('📋 Datos del formulario:', datos);
+    console.log('Datos del formulario:', datos);
 
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
@@ -1474,14 +1472,14 @@ async function crearUsuario() {
         });
 
         const tiempo = Date.now() - inicio;
-        console.log(`⏱️ Tiempo de respuesta: ${tiempo}ms`);
-        console.log('📨 Estado de respuesta:', response.status);
+        console.log(`Tiempo de respuesta: ${tiempo}ms`);
+        console.log('Estado de respuesta:', response.status);
 
         const data = await response.json();
-        console.log('📦 Respuesta del servidor:', data);
+        console.log('Respuesta del servidor:', data);
 
         if (response.ok) {
-            console.log('✅ Usuario creado exitosamente');
+            console.log('Usuario creado exitosamente');
             Swal.fire({
                 icon: 'success',
                 title: 'Éxito',
@@ -1492,11 +1490,11 @@ async function crearUsuario() {
             form.reset();
             await cargarUsuarios(currentPage);
         } else {
-            console.error('❌ Error del servidor:', data.error);
+            console.error('Error del servidor:', data.error);
             throw new Error(data.error);
         }
     } catch (error) {
-        console.error('💥 Error en crearUsuario:', error);
+        console.error('Error en crearUsuario:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1506,12 +1504,12 @@ async function crearUsuario() {
         submitButton.disabled = false;
         submitButton.innerHTML = originalText;
         creandoUsuario = false;
-        console.log('🔚 === FIN DE CREAR USUARIO ===');
+        console.log('=== FIN DE CREAR USUARIO ===');
     }
 }
 
 $('#createUsuarioModal').on('hidden.bs.modal', function () {
-    console.log('🔒 Modal cerrado, reseteando estado...');
+    console.log('Modal cerrado, reseteando estado...');
     creandoUsuario = false;
     
     const form = document.getElementById('createUsuarioForm');
@@ -1521,13 +1519,13 @@ $('#createUsuarioModal').on('hidden.bs.modal', function () {
 });
 
 $('#createUsuarioModal').on('show.bs.modal', function () {
-    console.log('🔓 Modal abierto, estado reset');
+    console.log('Modal abierto, estado reset');
     creandoUsuario = false;
 });
 
 async function editUsuario(id) {
     try {
-        console.log(`🔍 Cargando usuario ID: ${id} para edición`);
+        console.log(`Cargando usuario ID: ${id} para edición`);
         
         const response = await fetch(`/api/usuarios/${id}`);
         
@@ -1537,7 +1535,7 @@ async function editUsuario(id) {
 
         const usuario = await response.json();
         
-        console.log('📋 Datos del usuario para editar:', usuario);
+        console.log('Datos del usuario para editar:', usuario);
         
         document.getElementById('edit_usuario_id').value = usuario.id;
         document.getElementById('edit_nombre').value = usuario.nombre || '';
@@ -1555,61 +1553,61 @@ async function editUsuario(id) {
         $('#editUsuarioModal').modal('show');
         
         const establecerValoresSelects = () => {
-            console.log('🎯 Estableciendo valores de sede y departamento...');
+            console.log('Estableciendo valores de sede y departamento...');
             
             const sedeSelect = document.getElementById('edit_sede_id');
             const departamentoSelect = document.getElementById('edit_departamento_id');
             
             if (sedeSelect && sedeSelect.options.length > 1) {
-                console.log(`📍 Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
+                console.log(`Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
                 
                 let sedeEncontrada = false;
                 for (let i = 0; i < sedeSelect.options.length; i++) {
                     if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
                         sedeSelect.value = usuario.sede_id;
                         sedeEncontrada = true;
-                        console.log(`✅ Sede encontrada y establecida: ${sedeSelect.value}`);
+                        console.log(`Sede encontrada y establecida: ${sedeSelect.value}`);
                         break;
                     }
                 }
                 
                 if (!sedeEncontrada) {
-                    console.warn(`⚠️ No se encontró la sede_id: ${usuario.sede_id}`);
+                    console.warn(`No se encontró la sede_id: ${usuario.sede_id}`);
                     if (sedeSelect.options.length > 1) {
                         sedeSelect.selectedIndex = 1;
-                        console.log(`🔄 Estableciendo primera sede disponible: ${sedeSelect.value}`);
+                        console.log(`Estableciendo primera sede disponible: ${sedeSelect.value}`);
                     }
                 }
             } else {
-                console.warn('❌ Select de sede no disponible o sin opciones');
+                console.warn('Select de sede no disponible o sin opciones');
             }
             
             if (departamentoSelect && departamentoSelect.options.length > 1) {
-                console.log(`📍 Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
+                console.log(`Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
                 
                 let departamentoEncontrado = false;
                 for (let i = 0; i < departamentoSelect.options.length; i++) {
                     if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
                         departamentoSelect.value = usuario.departamento_id;
                         departamentoEncontrado = true;
-                        console.log(`✅ Departamento encontrado y establecido: ${departamentoSelect.value}`);
+                        console.log(`Departamento encontrado y establecido: ${departamentoSelect.value}`);
                         break;
                     }
                 }
                 
                 if (!departamentoEncontrado) {
-                    console.warn(`⚠️ No se encontró el departamento_id: ${usuario.departamento_id}`);
+                    console.warn(`No se encontró el departamento_id: ${usuario.departamento_id}`);
                     if (departamentoSelect.options.length > 1) {
                         departamentoSelect.selectedIndex = 1;
-                        console.log(`🔄 Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
+                        console.log(`Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
                     }
                 }
             } else {
-                console.warn('❌ Select de departamento no disponible o sin opciones');
+                console.warn('Select de departamento no disponible o sin opciones');
             }
         };
         
-        console.log('🔄 Cargando datos para edición...');
+        console.log('Cargando datos para edición...');
         
         let sedesCargadas = sedes.length > 0;
         let departamentosCargados = departamentos.length > 0;
@@ -1617,20 +1615,20 @@ async function editUsuario(id) {
         const promesasCarga = [];
         
         if (!sedesCargadas) {
-            console.log('📥 Cargando sedes...');
+            console.log('Cargando sedes...');
             promesasCarga.push(cargarSedes());
         }
         
         if (!departamentosCargados) {
-            console.log('📥 Cargando departamentos...');
+            console.log('Cargando departamentos...');
             promesasCarga.push(cargarDepartamentos());
         }
         
         if (promesasCarga.length > 0) {
             await Promise.all(promesasCarga);
-            console.log('✅ Todos los datos cargados');
+            console.log('Todos los datos cargados');
         } else {
-            console.log('✅ Datos ya cargados previamente');
+            console.log('Datos ya cargados previamente');
         }
         
         renderizarSedes(false, 'edit_sede_id');
@@ -1645,7 +1643,7 @@ async function editUsuario(id) {
         }, 500);
         
     } catch (error) {
-        console.error('❌ Error en editUsuario:', error);
+        console.error('Error en editUsuario:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1781,11 +1779,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Funciones de filtrado
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
-    
-    // Actualizar filtros actuales
+    console.log('Aplicando filtros con búsqueda en servidor...');
+
     filtrosActuales = {
         nombre: document.getElementById('searchName').value.toLowerCase().trim(),
         cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
@@ -1794,8 +1790,7 @@ function aplicarFiltros() {
     };
     
     console.log('Filtros activos:', filtrosActuales);
-    
-    // Recargar usuarios desde el servidor con los filtros
+
     cargarUsuarios(1, filtrosActuales);
 }
 
@@ -1814,7 +1809,7 @@ function mostrarCargaFiltros() {
 }
 
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
+    console.log('Aplicando filtros con búsqueda en servidor...');
     
     mostrarCargaFiltros();
     
@@ -1831,7 +1826,7 @@ function aplicarFiltros() {
 }
 
 function resetFiltros() {
-    console.log('🔄 Reseteando filtros...');
+    console.log('Reseteando filtros...');
     
     document.getElementById('searchName').value = '';
     document.getElementById('searchCargo').value = '';

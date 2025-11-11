@@ -4,9 +4,7 @@ import { dashboardController } from '../controllers/dashboardController.js';
 
 const router = express.Router();
 
-// Ruta de login (pública)
 router.get('/login', (req, res) => {
-    // Si ya está autenticado, redirigir al dashboard
     if (req.cookies.token) {
         return res.redirect('/dashboard');
     }
@@ -19,7 +17,6 @@ router.get('/login', (req, res) => {
     });
 });
 
-// Ruta del dashboard (protegida)
 router.get('/dashboard', authenticateToken, async (req, res) => {
     try {
         const stats = await dashboardController.getDashboardStats();
@@ -37,12 +34,11 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     }
 });
 
-// Ruta raíz redirige al login
+
 router.get('/', (req, res) => {
     res.redirect('/login');
 });
 
-// Middleware para verificar autenticación en rutas protegidas
 const requireAuth = (req, res, next) => {
     if (!req.headers.authorization) {
         return res.redirect('/login?error=Debes iniciar sesión');
@@ -50,7 +46,6 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-// Todas las demás rutas requieren autenticación
 router.get('/usuario', authenticateToken, (req, res) => {
     res.render('usuario/usuario', {
         title: 'Gestión de Usuarios - TIC',
@@ -158,9 +153,6 @@ router.get('/equipos-a/pdf', authenticateToken, (req, res) => {
     });
 });
 
-
-
-// Ruta de logout
 router.post('/logout', (req, res) => {
     res.clearCookie('token');
     res.redirect('/login?success=Sesión cerrada correctamente');

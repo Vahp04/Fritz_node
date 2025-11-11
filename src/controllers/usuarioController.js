@@ -15,15 +15,13 @@ export const usuarioController = {
             }
         });
 
-        // Mapear los campos de fecha a camelCase
         const usuariosConCamposMapeados = usuarios.map(usuario => ({
             id: usuario.id,
             name: usuario.name,
             email: usuario.email,
             activo: usuario.activo,
-            // Mapear los campos con guión bajo a camelCase para el frontend
-            createdAt: usuario.created_at,  // Cambiado de created_at a createdAt
-            updatedAt: usuario.updated_at   // Cambiado de updated_at a updatedAt
+            createdAt: usuario.created_at,  
+            updatedAt: usuario.updated_at   
         }));
 
         res.json(usuariosConCamposMapeados);
@@ -58,14 +56,13 @@ export const usuarioController = {
         }
       });
 
-      // Mapear los campos de fecha
       const usuarioConCamposMapeados = {
         id: usuario.id,
         name: usuario.name,
         email: usuario.email,
         activo: usuario.activo,
-        createdAt: usuario.created_at,  // Mapear a camelCase
-        updatedAt: usuario.updated_at   // Mapear a camelCase
+        createdAt: usuario.created_at,  
+        updatedAt: usuario.updated_at   
       };
 
       res.status(201).json({
@@ -111,14 +108,13 @@ export const usuarioController = {
             data
         });
 
-        // Mapear los campos de fecha
         const usuarioConCamposMapeados = {
             id: usuario.id,
             name: usuario.name,
             email: usuario.email,
             activo: usuario.activo,
-            createdAt: usuario.created_at,  // Mapear a camelCase
-            updatedAt: usuario.updated_at   // Mapear a camelCase
+            createdAt: usuario.created_at, 
+            updatedAt: usuario.updated_at   
         };
 
         res.json({
@@ -163,14 +159,13 @@ export const usuarioController = {
             data: { activo: !usuario.activo }
         });
 
-        // Mapear los campos de fecha
         const usuarioConCamposMapeados = {
             id: updated.id,
             name: updated.name,
             email: updated.email,
             activo: updated.activo,
-            createdAt: updated.created_at,  // Mapear a camelCase
-            updatedAt: updated.updated_at   // Mapear a camelCase
+            createdAt: updated.created_at,  
+            updatedAt: updated.updated_at   
         };
 
         const status = updated.activo ? 'activado' : 'desactivado';
@@ -223,7 +218,6 @@ export const usuarioController = {
         data: { activo: !usuario.activo }
       });
 
-      // Mapear los campos de fecha
       const usuarioConCamposMapeados = {
         id: updated.id,
         name: updated.name,

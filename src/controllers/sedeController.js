@@ -44,7 +44,6 @@ export const sedeController = {
         data: { nombre, ubicacion }
       });
 
-      // Mapear los campos de fecha
       const sedeConCamposMapeados = {
         id: sede.id,
         nombre: sede.nombre,
@@ -113,7 +112,6 @@ export const sedeController = {
         data: { nombre, ubicacion }
       });
 
-      // Mapear los campos de fecha
       const sedeConCamposMapeados = {
         id: sede.id,
         nombre: sede.nombre,
@@ -169,7 +167,6 @@ export const sedeController = {
         return res.status(404).json({ error: 'Sede no encontrada' });
       }
 
-      // Mapear los campos de fecha
       const sedeConCamposMapeados = {
         id: sede.id,
         nombre: sede.nombre,

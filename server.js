@@ -1,10 +1,9 @@
-// server.js
 import app from './src/app.js';
 
 const PORT = process.env.PORT || 3000;
 
 
-// Iniciar el servidor
+// Iniciar  servidor
 const server = app.listen(PORT, () => {
     console.log('=== FRITZ C.A - SISTEMA DE GESTIÓN ===');
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
@@ -16,7 +15,7 @@ const server = app.listen(PORT, () => {
     console.log('Presiona Ctrl+C para detener el servidor');
 });
 
-// Manejo graceful de shutdown
+// Apagar servidor
 process.on('SIGINT', () => {
     console.log('\nRecibida señal de interrupción (SIGINT)');
     console.log('Cerrando servidor gracefulmente...');

@@ -589,11 +589,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
    <script>
-    // Variable global para almacenar usuarios
+
      let usuarios = [];
         let currentUserId = parseInt(document.body.getAttribute('data-user-id') || '0');
 
-    // Cargar usuarios al iniciar la página
     document.addEventListener('DOMContentLoaded', function() {
         cargarUsuarios();
         inicializarEventos();
@@ -614,7 +613,6 @@
     };
 }
 
-    // Cargar usuarios 
 async function cargarUsuarios() {
     try {
         
@@ -658,7 +656,6 @@ async function cargarUsuarios() {
     }
 }
 
-    // Renderizar usuarios en la tabla
  function renderizarUsuarios() {
     const tbody = document.getElementById('usuariosTableBody');
     tbody.innerHTML = '';
@@ -799,7 +796,6 @@ async function cargarUsuarios() {
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
-        // Sidebar
         const sidebarToggle = document.getElementById('sidebarToggle');
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function() {
@@ -825,7 +821,7 @@ async function cargarUsuarios() {
         }
     });
 
-    // Inicializar eventos
+
     function inicializarEventos() {
 
         document.getElementById('logoutForm').addEventListener('submit', function(e) {
@@ -844,7 +840,7 @@ async function cargarUsuarios() {
         });
     }
 
-    // Crear usuario
+
 async function crearUsuario() {
     const form = document.getElementById('createUserForm');
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -905,7 +901,7 @@ async function crearUsuario() {
         submitBtn.disabled = false;
     }
 }
-    // Editar usuario
+
    function editarUsuario(id) {
     const usuario = usuarios.find(u => u.id === id);
     if (usuario) {
@@ -917,7 +913,6 @@ async function crearUsuario() {
     }
 }
 
-    // Actualizar usuario
     async function actualizarUsuario() {
     const form = document.getElementById('editUserForm');
     const formData = new FormData(form);
@@ -1022,7 +1017,6 @@ async function crearUsuario() {
         }
     }
 
-    // Eliminar usuario
     async function eliminarUsuario(id, nombre) {
         const result = await Swal.fire({
             title: '¿Estás seguro?',

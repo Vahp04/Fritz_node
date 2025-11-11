@@ -241,23 +241,20 @@
         </div>
     </div>
 
-    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-// En tu vista login - actualiza el script
+
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const loginBtn = document.getElementById('loginBtn');
     const originalText = loginBtn.innerHTML;
     
-    // Obtener datos del formulario
     const formData = {
         name: document.getElementById('name').value.trim(),
         password: document.getElementById('password').value.trim()
     };
 
-    // Validaciones básicas
     if (!formData.name || !formData.password) {
         Swal.fire({
             icon: 'warning',
@@ -293,7 +290,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 timer: 1500,
                 showConfirmButton: false
             }).then(() => {
-                // Redirigir al dashboard - la cookie ya está establecida
                 window.location.href = '/dashboard';
             });
             
@@ -302,7 +298,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         }
 
     } catch (error) {
-        console.error('❌ Error en login:', error);
+        console.error('Error en login:', error);
         
         let errorMessage = 'Error en el servidor';
         let errorTitle = 'Error';
@@ -335,7 +331,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 document.addEventListener('DOMContentLoaded', function() {
    
-    console.log('🔐 Página de login cargada');
+    console.log('Página de login cargada');
     document.getElementById('name').focus();
 });
     </script>

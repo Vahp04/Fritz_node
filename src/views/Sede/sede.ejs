@@ -232,9 +232,7 @@
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
@@ -243,9 +241,7 @@
                 <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
                 <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
-            </div>
-            
-            <!-- User Profile -->
+            </div>            
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -282,16 +278,13 @@
             
             <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
                         <i class="bi bi-speedometer2 me-2"></i> 
                         <span class="sidebar-text">Dashboard</span>
                     </a>
-                </li>
-                
-                <!-- Sección de Gestión -->
+                </li>                
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -366,9 +359,7 @@
                         <span class="sidebar-text">Mikrotiks</span>
                     </a>
                 </li>
-            </ul>
-            
-            <!-- Bottom -->
+            </ul>            
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -383,10 +374,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -396,9 +384,7 @@
                     <div class="d-flex align-items-center">
                         <span class="navbar-brand me-3 d-none d-lg-block">
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
-                        </span>
-                        
-                        <!-- Breadcrumb -->
+                        </span>                        
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -411,7 +397,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -606,7 +591,6 @@
             inicializarEventos();
         });
 
-        // Cargar sedes
         async function cargarSedes() {
             try {
                 const response = await fetch('/api/sedes');
@@ -624,7 +608,6 @@
             }
         }
 
-        // Renderizar sedes en la tabla
 function renderizarSedes() {
     const tbody = document.getElementById('sedesTableBody');
     tbody.innerHTML = '';
@@ -756,7 +739,6 @@ function renderizarSedes() {
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
         
-        // Sidebar
         const sidebarToggle = document.getElementById('sidebarToggle');
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function() {

@@ -292,21 +292,15 @@
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
-            
-            <!-- Brand -->
             <div class="text-center mb-4 py-3 border-bottom border-secondary">
                 <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
                 <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
             </div>
-            
-            <!-- User Profile -->
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -343,7 +337,6 @@
             
             <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -351,8 +344,6 @@
                         <span class="sidebar-text">Dashboard</span>
                     </a>
                 </li>
-                
-                <!-- Sección de Gestión -->
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -590,40 +581,40 @@
                     <div class="card-body">
                         <!-- Filtros -->
                        <div class="row mb-4 g-2">
-    <div class="col-md-3">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-person"></i></span>
-            <input type="text" class="form-control" placeholder="Buscar por usuario..." id="searchName">
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-laptop"></i></span>
-            <input type="text" class="form-control" placeholder="Buscar por equipo..." id="searchEquipo">
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="bi bi-tags"></i></span>
-            <select class="form-select" id="filterEstado">
-                <option value="">Todos los estados</option>
-                <option value="activo">Activo</option>
-                <option value="devuelto">Devuelto</option>
-                <option value="obsoleto">Obsoleto</option>
-            </select>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="d-flex justify-content-between align-items-center">
-           
-            <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
-            </button>
-        </div>
-    </div>
-    </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por usuario..." id="searchName">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-laptop"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por equipo..." id="searchEquipo">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-tags"></i></span>
+                                    <select class="form-select" id="filterEstado">
+                                        <option value="">Todos los estados</option>
+                                        <option value="activo">Activo</option>
+                                        <option value="devuelto">Devuelto</option>
+                                        <option value="obsoleto">Obsoleto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                
+                                    <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
+                                    </button>
+                                </div>
+                            </div>
+                            </div>
 
-</div>
+                        </div>
 
                         <!-- Tabla de Equipos Asignados -->
                         <div class="table-responsive">
@@ -653,17 +644,16 @@
                             </table>
 
                         </div>
-                                                    <div class="d-flex justify-content-between align-items-center mt-4">
-    <div class="text-muted" id="resultCount">
-        Mostrando 0 de 0 asignaciones
-    </div>
-    
-    <nav aria-label="Paginación de equipos asignados">
-        <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-        </ul>
-    </nav>
-</div> 
-<br>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <div class="text-muted" id="resultCount">
+                                    Mostrando 0 de 0 asignaciones
+                                </div>
+                                <nav aria-label="Paginación de equipos asignados">
+                                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                    </ul>
+                                </nav>
+                            </div> 
+                            <br>
                     </div>
                 </div>
                            
@@ -955,7 +945,6 @@
             inicializarEventos();
         });
 
-        // Cargar usuarios
 async function cargarUsuarios() {
     try {
         console.log('Cargando usuarios para select...');
@@ -1603,7 +1592,6 @@ function crearContenedorPaginacion() {
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
             
-            // Sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {
@@ -1681,7 +1669,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const cerealContainer = document.querySelector('.cereal-field-container');
                         if (ipContainer) ipContainer.style.display = 'none';
                         if (cerealContainer) cerealContainer.style.display = 'none';
-                        console.log('🔍 Campos dinámicos ocultos por defecto (sin selección)');
+                        console.log('Campos dinámicos ocultos por defecto (sin selección)');
                     }
                 }
             }, 150);
@@ -2070,7 +2058,7 @@ async function reactivarEquipo(id) {
         }
 
 function aplicarFiltros() {
-    console.log('🔍 Aplicando filtros con búsqueda en servidor...');
+    console.log('Aplicando filtros con búsqueda en servidor...');
     
     mostrarCargaFiltros();
 
@@ -2171,25 +2159,25 @@ function resetFiltros() {
 
         function generarPDFUsuario(usuarioId) {
             const url = `/api/pdf/asignaciones/usuario/${usuarioId}`;
-            console.log(`📥 Descargando PDF para usuario ${usuarioId}: ${url}`);
+            console.log(`Descargando PDF para usuario ${usuarioId}: ${url}`);
             window.location.href = url;
         }
 
         function verPDFUsuario(usuarioId) {
             const url = `/api/pdf/asignaciones/usuario/${usuarioId}/ver`;
-            console.log(`👁️ Viendo PDF para usuario ${usuarioId}: ${url}`);
+            console.log(`Viendo PDF para usuario ${usuarioId}: ${url}`);
             window.open(url, '_blank');
         }
 
         function generarPDFAsignaciones() {
             const url = '/api/pdf/asignaciones';
-            console.log('📥 Descargando PDF general de asignaciones');
+            console.log('Descargando PDF general de asignaciones');
             window.location.href = url;
         }
 
         function verPDFAsignaciones() {
             const url = '/api/pdf/asignaciones/ver';
-            console.log('👁️ Viendo PDF general de asignaciones');
+            console.log('Viendo PDF general de asignaciones');
             window.open(url, '_blank');
         }
 

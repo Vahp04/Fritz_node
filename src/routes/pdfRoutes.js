@@ -80,7 +80,7 @@ router.get('/usuarios-alt', async (req, res) => {
 
         console.log('PDF alternativo generado:', pdfBuffer.length, 'bytes');
 
-        // Método alternativo: write + end
+        // Método alternativo
         res.writeHead(200, {
             'Content-Type': 'application/pdf',
             'Content-Disposition': 'attachment; filename="usuarios-alt.pdf"',
@@ -121,9 +121,9 @@ router.get('/verificar-buffer', async (req, res) => {
         console.log('PDF header:', pdfHeader);
         
         if (pdfHeader === '%PDF') {
-            console.log('✅ PDF válido detectado');
+            console.log('PDF válido detectado');
         } else {
-            console.log('❌ PDF inválido - header incorrecto:', pdfHeader);
+            console.log('PDF inválido - header incorrecto:', pdfHeader);
         }
 
         res.json({

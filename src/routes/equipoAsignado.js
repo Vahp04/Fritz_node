@@ -4,7 +4,6 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Aplicar authMiddleware a TODAS las rutas que requieran autenticación
 router.get('/', authenticateToken, equipoAsignadoController.index);
 router.post('/', authenticateToken, equipoAsignadoController.store);
 router.get('/estadisticas', authenticateToken, equipoAsignadoController.estadisticas);

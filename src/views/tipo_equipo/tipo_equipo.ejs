@@ -690,7 +690,6 @@
         actualizarControlesPaginacion();
     });
 
-        // Cargar tipos de equipo
     async function cargarTiposEquipo(page = 1, limit = 10) {
         try {
             const loadingRow = document.getElementById('loadingRow');
@@ -706,16 +705,13 @@
 
             const data = await response.json();
             
-            // Verificar si la respuesta tiene paginación o es un array simple
             if (data.tiposEquipo && data.pagination) {
-                // Respuesta con paginación
                 tiposEquipo = data.tiposEquipo;
                 currentPage = data.pagination.currentPage;
                 totalPages = data.pagination.totalPages;
                 itemsPerPage = data.pagination.itemsPerPage;
                 totalItems = data.pagination.totalItems;
             } else {
-                // Respuesta sin paginación (array simple)
                 tiposEquipo = data;
                 currentPage = 1;
                 totalPages = 1;
@@ -857,7 +853,6 @@
                         <ul class="pagination pagination-sm mb-0">
         `;
 
-        // Botón anterior
         paginationHTML += `
             <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                 <button class="page-link" onclick="cambiarPagina(${currentPage - 1})">
@@ -866,7 +861,6 @@
             </li>
         `;
 
-        // Números de página
         const maxPagesToShow = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
         let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
@@ -883,7 +877,6 @@
             `;
         }
 
-        // Botón siguiente
         paginationHTML += `
             <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                 <button class="page-link" onclick="cambiarPagina(${currentPage + 1})">
@@ -901,7 +894,6 @@
 
         paginationContainer.innerHTML = paginationHTML;
 
-        // Agregar evento al selector de items por página
         const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
         if (itemsPerPageSelect) {
             itemsPerPageSelect.addEventListener('change', function() {
@@ -912,7 +904,6 @@
         }
     }
 
-    // Cambiar página
     function cambiarPagina(page) {
         if (page < 1 || page > totalPages || page === currentPage) return;
         cargarTiposEquipo(page, itemsPerPage);
@@ -965,8 +956,7 @@
         // INICIALIZACIÓN 
         document.addEventListener('DOMContentLoaded', function() {
             applySavedTheme();
-            
-            // Sidebar
+
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {

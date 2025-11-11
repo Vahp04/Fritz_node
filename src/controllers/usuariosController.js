@@ -987,7 +987,7 @@ export const usuariosController = {
 
   async usuariosParaSelect(req, res) {
     try {
-        console.log('🔍 Cargando usuarios para select...');
+        console.log('Cargando usuarios para select...');
         
         const usuarios = await prisma.usuarios.findMany({
             select: {

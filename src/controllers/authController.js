@@ -8,7 +8,7 @@ export const authController = {
     try {
       const { name, password } = req.body;
 
-      console.log('🔐 Login attempt for user:', name);
+      console.log('Login attempt for user:', name);
 
       if (!name || !password) {
         return res.status(400).json({ 
@@ -22,7 +22,7 @@ export const authController = {
       });
 
       if (!usuario) {
-        console.log('❌ User not found:', name);
+        console.log('User not found:', name);
         return res.status(401).json({ 
           success: false,
           error: 'Las credenciales no coinciden con nuestros registros.' 
@@ -30,7 +30,7 @@ export const authController = {
       }
 
       if (password.trim() !== usuario.password) {
-        console.log('❌ Invalid password for user:', name);
+        console.log('Invalid password for user:', name);
         return res.status(401).json({ 
           success: false,
           error: 'Las credenciales no coinciden con nuestros registros.' 
@@ -38,7 +38,7 @@ export const authController = {
       }
 
       if (!usuario.activo) {
-        console.log('❌ User inactive:', name);
+        console.log('User inactive:', name);
         return res.status(401).json({ 
           success: false,
           error: 'Tu cuenta está desactivada. Contacta al administrador.' 
@@ -55,7 +55,7 @@ export const authController = {
         { expiresIn: '8h' }
       );
 
-      console.log('✅ Login successful for user:', name);
+      console.log('Login successful for user:', name);
 
       res.cookie('token', token, {
         httpOnly: true, 
@@ -75,7 +75,7 @@ export const authController = {
       });
 
     } catch (error) {
-      console.error('❌ Error en login:', error);
+      console.error('Error en login:', error);
       return res.status(500).json({ 
         success: false,
         error: 'Error interno del servidor. Intenta nuevamente.' 
@@ -110,7 +110,7 @@ export const authController = {
         })
       ]);
 
-      console.log('📊 Dashboard accessed by user:', usuario.name);
+      console.log('Dashboard accessed by user:', usuario.name);
 
       return res.render('dashboard', {
         title: 'Dashboard',

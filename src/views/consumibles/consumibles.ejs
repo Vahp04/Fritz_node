@@ -273,20 +273,15 @@
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
-            
             <div class="text-center mb-4 py-3 border-bottom border-secondary">
                 <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
                 <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
-            </div>
-            
-            <!-- User Profile -->
+            </div>            
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -445,8 +440,6 @@
                     </div>
                 </div>
             </nav>
-            
-            <!-- Main Content Area -->
             <main class="p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -462,7 +455,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
@@ -601,8 +593,6 @@
                                 </tbody>
                             </table>
                         </div>
-
-                       
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted" id="resultCount">
                                 Mostrando 0 de 0 consumibles
@@ -693,7 +683,7 @@
             </div>
         </div>
     </div>
-
+<!-- Modal para Editar consumible-->
 <div class="modal fade" id="editConsumibleModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1412,7 +1402,6 @@
             const form = document.getElementById('createConsumibleForm');
             const formData = new FormData(form);
 
-            // Validar que hay al menos un equipo seleccionado
             const equiposContainer = document.getElementById('equiposContainer');
             const equipoItems = equiposContainer.querySelectorAll('.equipo-item');
             
@@ -1425,7 +1414,6 @@
                 return;
             }
 
-            // Recolectar datos de equipos
             const equiposData = [];
             let totalCantidad = 0;
             let hayErrores = false;
@@ -1439,7 +1427,6 @@
                     return;
                 }
 
-                // Validar stock disponible
                 const equipo = stockEquipos.find(e => e.id == stockId);
                 if (equipo && equipo.cantidad_disponible < cantidad) {
                     Swal.fire({
@@ -1497,7 +1484,6 @@
                 $('#createConsumibleModal').modal('hide');
                 form.reset();
                 
-                // Limpiar contenedor de equipos
                 document.getElementById('equiposContainer').innerHTML = '';
                 equipoCounter = 0;
                 
@@ -1526,7 +1512,6 @@ async function editConsumible(id) {
         
         console.log('Consumible cargado para edición:', consumible);
         
-        // Llenar datos básicos del consumible
         document.getElementById('edit_consumible_id').value = consumible.id;
         document.getElementById('edit_nombre').value = consumible.nombre;
         document.getElementById('edit_sede_id').value = consumible.sede_id;
@@ -1534,12 +1519,10 @@ async function editConsumible(id) {
         document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
         document.getElementById('edit_detalles').value = consumible.detalles || '';
         
-        // Limpiar y llenar el contenedor de equipos de edición
         const equiposContainerEdit = document.getElementById('equiposContainerEdit');
         equiposContainerEdit.innerHTML = '';
         equipoCounterEdit = 0;
         
-        // Agregar cada equipo existente
         if (consumible.consumible_equipos && consumible.consumible_equipos.length > 0) {
             consumible.consumible_equipos.forEach(ce => {
                 agregarEquipoEdicion(ce.stock_equipos_id, ce.cantidad, ce.stock_equipos);
@@ -2175,7 +2158,7 @@ async function generarOrdenSalida() {
     $('#selectConsumibleOrdenModal').modal('hide');
 
     try {
-        console.log(`📊 Generando orden de salida para consumible ID: ${consumibleId}, sede origen ID: ${sedeOrigenId}`);
+        console.log(`Generando orden de salida para consumible ID: ${consumibleId}, sede origen ID: ${sedeOrigenId}`);
         
         Swal.fire({
             title: 'Generando Orden de Salida',

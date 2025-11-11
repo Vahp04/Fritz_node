@@ -252,25 +252,11 @@
             border-radius: 4px;
             font-size: 0.85rem;
         }
-
-       /* .contador-badge {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            font-size: 0.7rem;
-        }*/
-
-       /* .toner-badge {
-            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-            color: white;
-            font-size: 0.7rem;
-        }*/
     </style>
 </head>
 <body data-user-id="<%= user ? user.id : 0 %>">
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
@@ -280,8 +266,6 @@
                 <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
             </div>
-            
-            <!-- User Profile -->
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -436,9 +420,7 @@
                         </nav>
                     </div>
                 </div>
-            </nav>
-            
-            <!-- Main Content Area -->
+            </nav>            
             <main class="p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -455,7 +437,6 @@
                         </button>
                     </div>
                 </div>
-
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
@@ -579,8 +560,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Tabla de Impresoras -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
@@ -607,8 +586,6 @@
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- Paginación -->
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted" id="resultCount">
                                 Mostrando 0 de 0 impresoras
@@ -810,62 +787,11 @@
                                         </div>
                                     </div>
                                 </div>
-                          <!--  <div class="col-md-6">
-                                     <div class="mb-3">
-                                        <label class="form-label">Contador de Instalaciones de Toner</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" name="contador_instalacion_toner" id="edit_contador_instalacion_toner" min="0">
-                                                    <button type="button" class="btn btn-outline-primary" onclick="incrementarContadorToner()" title="Incrementar contador">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-outline-secondary" onclick="decrementarContadorToner()" title="Decrementar contador">
-                                                        <i class="bi bi-dash-lg"></i>
-                                                    </button>
-                                            </div>
-                                        <div class="form-text">Número de veces que se ha cambiado el toner</div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Contador de Impresiones</label>
-                                        <input type="number" class="form-control" name="contador_impresiones" id="edit_contador_impresiones" min="0">
-                                    </div>
-                            </div>-->
-                            
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-warning">Actualizar Impresora</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Instalar Toner -->
-    <div class="modal fade" id="instalarTonerModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-archive me-2"></i> Instalar Toner
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="instalarTonerForm">
-                    <input type="hidden" id="toner_impresora_id" name="impresora_id">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Seleccionar Toner*</label>
-                            <select class="form-select" name="toner_actual_id" id="toner_actual_id" required>
-                                <option value="">Seleccione un toner</option>
-                            </select>
-                            <div class="form-text">Seleccione un toner disponible del inventario</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-info text-white">Instalar Toner</button>
                     </div>
                 </form>
             </div>
@@ -919,10 +845,6 @@
                             <strong>Ubicación:</strong>
                             <p id="view_ubicacion" class="mb-2"></p>
                         </div>
-                        <!--<div class="col-md-6">
-                            <strong>Contador de Impresiones:</strong>
-                            <p id="view_contador_impresiones" class="mb-2"></p>
-                        </div>-->
                         <div class="col-12">
                             <strong>Descripción:</strong>
                             <p id="view_descripcion" class="mb-2"></p>
@@ -939,19 +861,6 @@
                             <strong>Modelo de Toner:</strong>
                             <p id="view_toner" class="mb-2"></p>
                         </div>
-                       <!-- <div class="col-md-6">
-                            <strong>Toner Actual:</strong>
-                            <p id="view_toner_actual" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Fecha Instalación Toner:</strong>
-                            <p id="view_fecha_instalacion_toner" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Contador Instalación Toner:</strong>
-                            <p id="view_contador_instalacion_toner" class="mb-2"></p>
-                        </div>-->
-                      
                     </div>
                 </div>
                 <div class="modal-footer">

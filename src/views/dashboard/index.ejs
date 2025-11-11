@@ -548,7 +548,7 @@
                     </div>
 
                 <% } else { %>
-                    <!-- Sección de "No autentificado" -->
+
                     <div class="row justify-content-center">
                         <div class="col-md-6">
                             <div class="card">
@@ -591,7 +591,6 @@
     });
 
   
-// Función para aplicar el tema guardado
 function applySavedTheme() {
     const savedTheme = localStorage.getItem('theme');
     const htmlElement = document.documentElement;
@@ -611,8 +610,6 @@ function applySavedTheme() {
         localStorage.setItem('theme', 'light');
     }
 }
-
-// Función para cambiar y guardar el tema
 function toggleTheme() {
     const htmlElement = document.documentElement;
     const currentTheme = htmlElement.getAttribute('data-bs-theme');
@@ -631,7 +628,6 @@ function toggleTheme() {
     localStorage.setItem('theme', newTheme);
 }
 
-// Aplicar el tema guardado cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     applySavedTheme();
     
