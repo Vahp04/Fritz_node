@@ -78,7 +78,7 @@ async show(req, res) {
     const { id } = req.params;
     const mikrotikId = parseInt(id); 
 
-    const mikrotik = await prisma.mikrotik.findMany({
+    const mikrotik = await prisma.mikrotik.findUnique({
       where: { id: mikrotikId }, 
       include: {
         stock_equipos: {
@@ -180,10 +180,13 @@ async update(req, res) {
       estado 
     } = req.body;
 
+    console.log('Datos recibidos para actualizar:', req.body);
+
     const mikrotikId = parseInt(id);
     const sedeId = sede_id ? parseInt(sede_id) : undefined;
 
-    const mikrotikActual = await prisma.mikrotik.findMany({
+    // CORREGIR: Cambiar findMany por findUnique
+    const mikrotikActual = await prisma.mikrotik.findUnique({
       where: { id: mikrotikId },
       include: {
         stock_equipos: true
@@ -194,94 +197,113 @@ async update(req, res) {
       return res.status(404).json({ error: 'Mikrotik no encontrado' });
     }
 
+    console.log(`Mikrotik actual - Estado: ${mikrotikActual.estado}, Stock ID: ${mikrotikActual.stock_equipos_id}`);
+
     const resultado = await prisma.$transaction(async (tx) => {
       const estadoAnterior = mikrotikActual.estado;
       const estadoNuevo = estado;
+      const stockEquipoId = mikrotikActual.stock_equipos_id;
 
       console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
 
+      // Solo procesar cambios si el estado realmente cambió
       if (estadoAnterior !== estadoNuevo) {
-        const stockEquipoId = mikrotikActual.stock_equipos_id;
+        console.log('Procesando cambio de estado...');
 
-        if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
-            (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
-          
-          console.log(`Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
-          
-          if (estadoAnterior === 'desuso') {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_total: { increment: 1 },
-                cantidad_disponible: { increment: 1 }
-              }
-            });
-          } else {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { increment: 1 },
-                cantidad_asignada: { decrement: 1 }
-              }
-            });
-          }
+        // Obtener el stock actual para validaciones
+        const stockActual = await tx.stock_equipos.findUnique({
+          where: { id: stockEquipoId }
+        });
+
+        if (!stockActual) {
+          throw new Error('Stock de equipo no encontrado');
         }
-        
-        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
-                 estadoNuevo === 'activo') {
-          
-          console.log(`Asignando mikrotik desde inventario (activación)`);
-          
-          if (estadoAnterior === 'desuso') {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_total: { increment: 1 },
-                cantidad_disponible: { decrement: 1 },
-                cantidad_asignada: { increment: 1 }
-              }
-            });
-          } else {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { decrement: 1 },
-                cantidad_asignada: { increment: 1 }
-              }
-            });
-          }
-        }
-        
-        else if (estadoNuevo === 'desuso') {
-          console.log(`Marcando mikrotik como desuso - eliminando del inventario`);
-          
-          const stockActual = await tx.stock_equipos.findMany({
-            where: { id: stockEquipoId }
+
+        // LÓGICA CORREGIDA - TRANSICIONES DE ESTADO
+
+        // 1. Si estaba ACTIVO y pasa a INACTIVO o MANTENIMIENTO
+        if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          console.log('Devolviendo equipo activo al inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { increment: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
           });
-          
-          if (stockActual) {
-            if (estadoAnterior === 'activo') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_asignada: { decrement: 1 }
-                }
-              });
-            }
-            else if (estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_disponible: { decrement: 1 }
-                }
-              });
-            }
-          }
         }
+
+        // 2. Si estaba INACTIVO o MANTENIMIENTO y pasa a ACTIVO
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activo') {
+          console.log('Asignando equipo desde inventario a activo');
+          // Validar que hay stock disponible
+          if (stockActual.cantidad_disponible <= 0) {
+            throw new Error('No hay stock disponible para activar este equipo');
+          }
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+
+        // 3. Si estaba ACTIVO y pasa a DESUSO
+        else if (estadoAnterior === 'activo' && estadoNuevo === 'desuso') {
+          console.log('Marcando equipo activo como desuso - reduciendo inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+
+        // 4. Si estaba INACTIVO o MANTENIMIENTO y pasa a DESUSO
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'desuso') {
+          console.log('Marcando equipo inactivo/mantenimiento como desuso - reduciendo inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_disponible: { decrement: 1 }
+            }
+          });
+        }
+
+        // 5. Si estaba DESUSO y pasa a ACTIVO
+        else if (estadoAnterior === 'desuso' && estadoNuevo === 'activo') {
+          console.log('Reactivar equipo desde desuso');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+
+        // 6. Si estaba DESUSO y pasa a INACTIVO o MANTENIMIENTO
+        else if (estadoAnterior === 'desuso' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          console.log('Mover equipo de desuso a inventario disponible');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { increment: 1 }
+            }
+          });
+        }
+
+        console.log('Cambio de estado procesado exitosamente');
+      } else {
+        console.log('No hay cambio de estado, omitiendo actualización de stock');
       }
 
+      // Actualizar el mikrotik
       const mikrotikActualizado = await tx.mikrotik.update({
         where: { id: mikrotikId },
         data: {
@@ -290,7 +312,7 @@ async update(req, res) {
           ubicacion,
           ip_mikrotik,
           cereal_mikrotik,
-          estado,
+          estado: estadoNuevo,
           updated_at: new Date()
         },
         include: {
@@ -400,90 +422,86 @@ async cambiarEstado(req, res) {
       console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
-        
-        if ((estadoAnterior === 'activo' || estadoAnterior === 'desuso') && 
-            (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
-          
-          console.log(`Devolviendo mikrotik al inventario (estado: ${estadoNuevo})`);
-          
-          if (estadoAnterior === 'desuso') {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_total: { increment: 1 },
-                cantidad_disponible: { increment: 1 }
-              }
-            });
-          } else {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { increment: 1 },
-                cantidad_asignada: { decrement: 1 }
-              }
-            });
-          }
+        // Obtener stock actual para validaciones
+        const stockActual = await tx.stock_equipos.findUnique({
+          where: { id: stockEquipoId }
+        });
+
+        if (!stockActual) {
+          throw new Error('Stock de equipo no encontrado');
         }
-        
-        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'desuso') && 
-                 estadoNuevo === 'activo') {
-          
-          console.log(`Asignando mikrotik desde inventario (activación)`);
-          
-          if (estadoAnterior === 'desuso') {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_total: { increment: 1 },
-                cantidad_disponible: { decrement: 1 },
-                cantidad_asignada: { increment: 1 }
-              }
-            });
-          } else {
-            await tx.stock_equipos.update({
-              where: { id: stockEquipoId },
-              data: {
-                cantidad_disponible: { decrement: 1 },
-                cantidad_asignada: { increment: 1 }
-              }
-            });
-          }
-        }
-        
-        else if (estadoNuevo === 'desuso') {
-          console.log(`Marcando mikrotik como desuso - eliminando del inventario`);
-          
-          const stockActual = await tx.stock_equipos.findUnique({
-            where: { id: stockEquipoId }
+
+        // Misma lógica corregida que en el método update
+        if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          console.log('Devolviendo equipo activo al inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { increment: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
           });
-          
-          if (stockActual) {
-            if (estadoAnterior === 'activo') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_asignada: { decrement: 1 }
-                }
-              });
-            }
-            else if (estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_disponible: { decrement: 1 }
-                }
-              });
-            }
+        }
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activo') {
+          console.log('Asignando equipo desde inventario a activo');
+          if (stockActual.cantidad_disponible <= 0) {
+            throw new Error('No hay stock disponible para activar este equipo');
           }
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'activo' && estadoNuevo === 'desuso') {
+          console.log('Marcando equipo activo como desuso');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'desuso') {
+          console.log('Marcando equipo inactivo/mantenimiento como desuso');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_disponible: { decrement: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'desuso' && estadoNuevo === 'activo') {
+          console.log('Reactivar equipo desde desuso');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'desuso' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+          console.log('Mover equipo de desuso a inventario disponible');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { increment: 1 }
+            }
+          });
         }
       }
 
       const mikrotikActualizado = await tx.mikrotik.update({
         where: { id: parseInt(id) },
         data: { 
-          estado,
+          estado: estadoNuevo,
           updated_at: new Date()
         },
         include: {

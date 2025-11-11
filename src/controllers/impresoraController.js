@@ -262,7 +262,7 @@ async update(req, res) {
       return res.status(404).json({ error: 'Impresora no encontrada' });
     }
 
-     if (toner) {
+    if (toner) {
       const tonerExistente = await prisma.stock_equipos.findFirst({
         where: {
           OR: [
@@ -285,17 +285,15 @@ async update(req, res) {
     }
 
     const resultado = await prisma.$transaction(async (tx) => {
-     
+      // Lógica para manejo de toner (se mantiene igual)
       const contadorAnterior = impresoraActual.contador_instalacion_toner || 0;
       const contadorNuevo = parseInt(contador_instalacion_toner) || 0;
       
       console.log(`Cambio contador toner: ${contadorAnterior} -> ${contadorNuevo}`);
 
-      
       if (contadorNuevo > contadorAnterior) {
         const diferencia = contadorNuevo - contadorAnterior;
         
-       
         const tonerCompatible = await tx.stock_equipos.findFirst({
           where: {
             tipo_equipo: {
@@ -348,17 +346,28 @@ async update(req, res) {
         });
       }
 
+      // LÓGICA CORREGIDA PARA ESTADOS DE IMPRESORA
       const estadoAnterior = impresoraActual.estado_impresora;
       const estadoNuevo = estado_impresora;
+      const stockEquipoId = impresoraActual.stock_equipos_id;
+
+      console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
-        const stockEquipoId = impresoraActual.stock_equipos_id;
+        // Obtener stock actual para validaciones
+        const stockActual = await tx.stock_equipos.findUnique({
+          where: { id: stockEquipoId }
+        });
 
-        if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
-            (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
-          
-          console.log(`Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
-          
+        if (!stockActual) {
+          throw new Error('Stock de equipo no encontrado');
+        }
+
+        // LÓGICA CORREGIDA - TRANSICIONES DE ESTADO
+
+        // 1. Si estaba ACTIVA y pasa a INACTIVA o MANTENIMIENTO
+        if (estadoAnterior === 'activa' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
+          console.log('Devolviendo impresora activa al inventario');
           await tx.stock_equipos.update({
             where: { id: stockEquipoId },
             data: {
@@ -367,12 +376,14 @@ async update(req, res) {
             }
           });
         }
-        
-        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
-                 estadoNuevo === 'activa') {
-          
-          console.log(`Asignando impresora desde inventario (activación)`);
-          
+
+        // 2. Si estaba INACTIVA o MANTENIMIENTO y pasa a ACTIVA
+        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activa') {
+          console.log('Asignando impresora desde inventario a activa');
+          // Validar que hay stock disponible
+          if (stockActual.cantidad_disponible <= 0) {
+            throw new Error('No hay stock disponible para activar esta impresora');
+          }
           await tx.stock_equipos.update({
             where: { id: stockEquipoId },
             data: {
@@ -381,37 +392,67 @@ async update(req, res) {
             }
           });
         }
-        
-        else if (estadoNuevo === 'obsoleta') {
-          console.log(`Marcando impresora como obsoleta - eliminando del inventario`);
-          
-          const stockActual = await tx.stock_equipos.findUnique({
-            where: { id: stockEquipoId }
+
+        // 3. Si estaba ACTIVA y pasa a OBSOLETA
+        else if (estadoAnterior === 'activa' && estadoNuevo === 'obsoleta') {
+          console.log('Marcando impresora activa como obsoleta - reduciendo inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
           });
-          
-          if (stockActual) {
-            if (estadoAnterior === 'activa') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_asignada: { decrement: 1 }
-                }
-              });
-            }
-            else if (estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { decrement: 1 },
-                  cantidad_disponible: { decrement: 1 }
-                }
-              });
-            }
-          }
         }
+
+        // 4. Si estaba INACTIVA o MANTENIMIENTO y pasa a OBSOLETA
+        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'obsoleta') {
+          console.log('Marcando impresora inactiva/mantenimiento como obsoleta - reduciendo inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_disponible: { decrement: 1 }
+            }
+          });
+        }
+
+        // 5. Si estaba OBSOLETA y pasa a ACTIVA
+        else if (estadoAnterior === 'obsoleta' && estadoNuevo === 'activa') {
+          console.log('Reactivar impresora desde obsoleta');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+
+        // 6. Si estaba OBSOLETA y pasa a INACTIVA o MANTENIMIENTO
+        else if (estadoAnterior === 'obsoleta' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
+          console.log('Mover impresora de obsoleta a inventario disponible');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { increment: 1 }
+            }
+          });
+        }
+
+        // 7. Estado SIN_TONER - no afecta el inventario de la impresora
+        else if (estadoNuevo === 'sin_toner' || estadoAnterior === 'sin_toner') {
+          console.log('Cambio a/desde estado sin_toner - no afecta inventario de impresora');
+        }
+
+        console.log('Cambio de estado procesado exitosamente');
+      } else {
+        console.log('No hay cambio de estado, omitiendo actualización de stock');
       }
 
+      // Actualizar la impresora
       const impresoraActualizada = await tx.impresora.update({
         where: { id: impresoraId },
         data: {
@@ -424,7 +465,7 @@ async update(req, res) {
           ubicacion,
           toner, 
           contador_instalacion_toner: contadorNuevo, 
-          estado_impresora,
+          estado_impresora: estadoNuevo,
           contador_impresiones: contador_impresiones ? parseInt(contador_impresiones) : undefined,
           updated_at: new Date()
         },
@@ -507,153 +548,154 @@ async update(req, res) {
     }
   },
 
-  async cambiarEstado(req, res) {
-    try {
-      const { id } = req.params;
-      const { estado_impresora } = req.body;
+async cambiarEstado(req, res) {
+  try {
+    const { id } = req.params;
+    const { estado_impresora } = req.body;
 
-      const estadosPermitidos = ['activa', 'inactiva', 'mantenimiento', 'sin_toner', 'obsoleta'];
-      
-      if (!estadosPermitidos.includes(estado_impresora)) {
-        return res.status(400).json({ 
-          error: 'Estado no válido', 
-          estados_permitidos: estadosPermitidos 
-        });
-      }
-
-      const impresora = await prisma.impresora.findUnique({
-        where: { id: parseInt(id) },
-        include: {
-          stock_equipos: true
-        }
+    const estadosPermitidos = ['activa', 'inactiva', 'mantenimiento', 'sin_toner', 'obsoleta'];
+    
+    if (!estadosPermitidos.includes(estado_impresora)) {
+      return res.status(400).json({ 
+        error: 'Estado no válido', 
+        estados_permitidos: estadosPermitidos 
       });
-
-      if (!impresora) {
-        return res.status(404).json({ error: 'Impresora no encontrada' });
-      }
-
-      const impresoraActualizada = await prisma.$transaction(async (tx) => {
-        const estadoAnterior = impresora.estado_impresora;
-        const estadoNuevo = estado_impresora;
-        const stockEquipoId = impresora.stock_equipos_id;
-
-        console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
-
-        if (estadoAnterior !== estadoNuevo) {
-          
-          if ((estadoAnterior === 'activa' || estadoAnterior === 'obsoleta') && 
-              (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
-            
-            console.log(`Devolviendo impresora al inventario (estado: ${estadoNuevo})`);
-            
-            if (estadoAnterior === 'obsoleta') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { increment: 1 },
-                  cantidad_disponible: { increment: 1 }
-                }
-              });
-            } else {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_disponible: { increment: 1 },
-                  cantidad_asignada: { decrement: 1 }
-                }
-              });
-            }
-          }
-          
-          else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento' || estadoAnterior === 'obsoleta') && 
-                   estadoNuevo === 'activa') {
-            
-            console.log(`Asignando impresora desde inventario (activación)`);
-            
-            if (estadoAnterior === 'obsoleta') {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_total: { increment: 1 },
-                  cantidad_disponible: { decrement: 1 },
-                  cantidad_asignada: { increment: 1 }
-                }
-              });
-            } else {
-              await tx.stock_equipos.update({
-                where: { id: stockEquipoId },
-                data: {
-                  cantidad_disponible: { decrement: 1 },
-                  cantidad_asignada: { increment: 1 }
-                }
-              });
-            }
-          }
-          else if (estadoNuevo === 'obsoleta') {
-            console.log(`Marcando impresora como obsoleta - eliminando del inventario`);
-            
-            const stockActual = await tx.stock_equipos.findUnique({
-              where: { id: stockEquipoId }
-            });
-            
-            if (stockActual) {
-              if (estadoAnterior === 'activa') {
-                await tx.stock_equipos.update({
-                  where: { id: stockEquipoId },
-                  data: {
-                    cantidad_total: { decrement: 1 },
-                    cantidad_asignada: { decrement: 1 }
-                  }
-                });
-              }
-              else if (estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') {
-                await tx.stock_equipos.update({
-                  where: { id: stockEquipoId },
-                  data: {
-                    cantidad_total: { decrement: 1 },
-                    cantidad_disponible: { decrement: 1 }
-                  }
-                });
-              }
-            }
-          }
-        }
-
-        const impresoraActualizada = await tx.impresora.update({
-          where: { id: parseInt(id) },
-          data: { 
-            estado_impresora,
-            updated_at: new Date()
-          },
-          include: {
-            stock_equipos: {
-              include: {
-                tipo_equipo: true
-              }
-            },
-            sede: true,
-            departamento: true,
-            toner_actual: {
-              include: {
-                tipo_equipo: true
-              }
-            }
-          }
-        });
-
-        return impresoraActualizada;
-      });
-
-      res.json({
-        message: `Estado de la impresora cambiado a ${estado_impresora}`,
-        impresora: impresoraActualizada
-      });
-
-    } catch (error) {
-      console.error('Error en cambiarEstado impresora:', error);
-      res.status(500).json({ error: error.message });
     }
-  },
+
+    const impresora = await prisma.impresora.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        stock_equipos: true
+      }
+    });
+
+    if (!impresora) {
+      return res.status(404).json({ error: 'Impresora no encontrada' });
+    }
+
+    const impresoraActualizada = await prisma.$transaction(async (tx) => {
+      const estadoAnterior = impresora.estado_impresora;
+      const estadoNuevo = estado_impresora;
+      const stockEquipoId = impresora.stock_equipos_id;
+
+      console.log(`Cambio de estado impresora: ${estadoAnterior} -> ${estadoNuevo}`);
+
+      if (estadoAnterior !== estadoNuevo) {
+        // Obtener stock actual para validaciones
+        const stockActual = await tx.stock_equipos.findUnique({
+          where: { id: stockEquipoId }
+        });
+
+        if (!stockActual) {
+          throw new Error('Stock de equipo no encontrado');
+        }
+
+        // Misma lógica corregida que en el método update
+        if (estadoAnterior === 'activa' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
+          console.log('Devolviendo impresora activa al inventario');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { increment: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activa') {
+          console.log('Asignando impresora desde inventario a activa');
+          if (stockActual.cantidad_disponible <= 0) {
+            throw new Error('No hay stock disponible para activar esta impresora');
+          }
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'activa' && estadoNuevo === 'obsoleta') {
+          console.log('Marcando impresora activa como obsoleta');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+        else if ((estadoAnterior === 'inactiva' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'obsoleta') {
+          console.log('Marcando impresora inactiva/mantenimiento como obsoleta');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { decrement: 1 },
+              cantidad_disponible: { decrement: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'obsoleta' && estadoNuevo === 'activa') {
+          console.log('Reactivar impresora desde obsoleta');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { decrement: 1 },
+              cantidad_asignada: { increment: 1 }
+            }
+          });
+        }
+        else if (estadoAnterior === 'obsoleta' && (estadoNuevo === 'inactiva' || estadoNuevo === 'mantenimiento')) {
+          console.log('Mover impresora de obsoleta a inventario disponible');
+          await tx.stock_equipos.update({
+            where: { id: stockEquipoId },
+            data: {
+              cantidad_total: { increment: 1 },
+              cantidad_disponible: { increment: 1 }
+            }
+          });
+        }
+        // Estado SIN_TONER no afecta inventario
+        else if (estadoNuevo === 'sin_toner' || estadoAnterior === 'sin_toner') {
+          console.log('Cambio a/desde estado sin_toner - no afecta inventario');
+        }
+      }
+
+      const impresoraActualizada = await tx.impresora.update({
+        where: { id: parseInt(id) },
+        data: { 
+          estado_impresora: estadoNuevo,
+          updated_at: new Date()
+        },
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true,
+          departamento: true,
+          toner_actual: {
+            include: {
+              tipo_equipo: true
+            }
+          }
+        }
+      });
+
+      return impresoraActualizada;
+    });
+
+    res.json({
+      message: `Estado de la impresora cambiado a ${estado_impresora}`,
+      impresora: impresoraActualizada
+    });
+
+  } catch (error) {
+    console.error('Error en cambiarEstado impresora:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async instalarToner(req, res) {
     try {

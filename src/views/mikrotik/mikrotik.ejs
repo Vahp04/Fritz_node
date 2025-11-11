@@ -1211,31 +1211,42 @@
             }
         }
 
-        async function editMikrotik(id) {
+      async function editMikrotik(id) {
             try {
+                console.log('Cargando mikrotik con ID:', id);
                 const response = await fetch(`/api/mikrotiks/${id}`);
-                    
-            if (!response.ok) {
-                throw new Error('Error al cargar mikrotik');
-            }
+                
+                if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al cargar mikrotik');
+                }
 
-            const mikrotik = await response.json();
-                    
-            document.getElementById('edit_mikrotik_id').value = mikrotik.id;
-            document.getElementById('edit_sede_id').value = mikrotik.sede_id;
-            document.getElementById('edit_estado').value = mikrotik.estado;
-            document.getElementById('edit_ip_mikrotik').value = mikrotik.ip_mikrotik || '';
-            document.getElementById('edit_cereal_mikrotik').value = mikrotik.cereal_mikrotik || '';
-            document.getElementById('edit_ubicacion').value = mikrotik.ubicacion;
-            document.getElementById('edit_descripcion').value = mikrotik.descripcion || '';
-                    
+                const mikrotik = await response.json();
+                console.log('Datos recibidos:', mikrotik);
+                
+                // Verificar que los datos se estén recibiendo correctamente
+                if (!mikrotik) {
+                throw new Error('No se recibieron datos del mikrotik');
+                }
+                
+                // Llenar el formulario con los datos
+                document.getElementById('edit_mikrotik_id').value = mikrotik.id;
+                document.getElementById('edit_sede_id').value = mikrotik.sede_id;
+                document.getElementById('edit_estado').value = mikrotik.estado;
+                document.getElementById('edit_ip_mikrotik').value = mikrotik.ip_mikrotik || '';
+                document.getElementById('edit_cereal_mikrotik').value = mikrotik.cereal_mikrotik || '';
+                document.getElementById('edit_ubicacion').value = mikrotik.ubicacion;
+                document.getElementById('edit_descripcion').value = mikrotik.descripcion || '';
+                
+                console.log('Formulario llenado con datos');
                 $('#editMikrotikModal').modal('show');
-                    
+                
             } catch (error) {
+                console.error('Error al cargar mikrotik:', error);
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Error al cargar los datos del mikrotik'
                 });
             }
         }
@@ -1498,8 +1509,7 @@
 
 
             
-            const resultCount = document.getElementById('resultCount');
-            resultCount.parentNode.insertBefore(clearFiltersBtn, resultCount.nextSibling);
+        
         }
 
         async function generarReporteGeneralMikrotiks() {
