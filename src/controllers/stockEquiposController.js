@@ -818,5 +818,51 @@ async equiposMikrotiks(req, res) {
             message: error.message
         });
     }
+},
+
+async todosLosToners(req, res) {
+  try {
+    console.log('Buscando TODOS los toners del inventario...');
+    
+    const todosEquipos = await prisma.stock_equipos.findMany({
+      include: {
+        tipo_equipo: {
+          select: {
+            id: true,
+            nombre: true
+          }
+        }
+      },
+      orderBy: {
+        marca: 'asc'
+      }
+    });
+
+    console.log(`${todosEquipos.length} equipos totales encontrados`);
+
+    const toners = todosEquipos.filter(equipo => {
+      if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+        return false;
+      }
+      
+      const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+      return tipoNombre.includes('toner') ||
+             tipoNombre.includes('tinta') ||
+             tipoNombre.includes('cartucho') ||
+             tipoNombre.includes('consumible');
+    });
+
+    console.log(`${toners.length} toners encontrados (sin paginación)`);
+    
+    res.json(toners);
+    
+  } catch (error) {
+    console.error('ERROR en todosLosToners:', error);
+    res.status(500).json({ 
+      error: 'Error al cargar todos los toners',
+      message: error.message
+    });
+  }
 }
+
 };

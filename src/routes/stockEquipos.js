@@ -13,6 +13,7 @@ router.get('/consumibles', stockEquiposController.equiposConsumibles);
 router.get('/para-asignacion', stockEquiposController.equiposParaAsignacion);
 router.get('/impresoras', stockEquiposController.equiposImpresoras);
 router.get('/mikrotiks', stockEquiposController.equiposMikrotiks);
+router.get('/toners/todos', stockEquiposController.todosLosToners);
 router.get('/api', stockEquiposController.apiIndex);
 router.get('/:id', stockEquiposController.show);
 router.put('/:id', stockEquiposController.update);

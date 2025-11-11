@@ -164,6 +164,28 @@ export const impresoraController = {
         return res.status(400).json({ error: 'Ya existe una impresora configurada para este equipo' });
       }
 
+          if (toner) {
+      const tonerExistente = await prisma.stock_equipos.findFirst({
+        where: {
+          OR: [
+            { modelo: { contains: toner, mode: 'insensitive' } },
+            { 
+              AND: [
+                { marca: { contains: toner.split(' ')[0], mode: 'insensitive' } },
+                { modelo: { contains: toner.split(' ').slice(1).join(' '), mode: 'insensitive' } }
+              ]
+            }
+          ]
+        }
+      });
+
+      if (!tonerExistente) {
+        return res.status(400).json({ 
+          error: 'El modelo de toner seleccionado no existe en el inventario' 
+        });
+      }
+    }
+
       const resultado = await prisma.$transaction(async (tx) => {
         const impresora = await tx.impresora.create({
           data: {
@@ -244,6 +266,28 @@ async update(req, res) {
 
     if (!impresoraActual) {
       return res.status(404).json({ error: 'Impresora no encontrada' });
+    }
+
+     if (toner) {
+      const tonerExistente = await prisma.stock_equipos.findFirst({
+        where: {
+          OR: [
+            { modelo: { contains: toner, mode: 'insensitive' } },
+            { 
+              AND: [
+                { marca: { contains: toner.split(' ')[0], mode: 'insensitive' } },
+                { modelo: { contains: toner.split(' ').slice(1).join(' '), mode: 'insensitive' } }
+              ]
+            }
+          ]
+        }
+      });
+
+      if (!tonerExistente) {
+        return res.status(400).json({ 
+          error: 'El modelo de toner seleccionado no existe en el inventario' 
+        });
+      }
     }
 
     const resultado = await prisma.$transaction(async (tx) => {

@@ -19,10 +19,8 @@ import impresoraRoutes from './routes/impresora.js';
 import consumibleRoutes from './routes/consumible.js'
 
 
-// Importar routers para PDFs
 import pdfRoutes from './routes/pdfRoutes.js';
 
-// Importar rutas de vistas
 import viewRoutes from './routes/views.js';
 
 const app = express();
@@ -45,7 +43,6 @@ app.use('/img', express.static(path.join(__dirname, '../public/img')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Función helper para renderizar templates en controladores
 export const renderTemplate = (app, view, data) => {
   return new Promise((resolve, reject) => {
     app.render(view, data, (err, html) => {
@@ -71,13 +68,12 @@ app.use('/', impresoraRoutes);
 app.use('/api/consumibles', consumibleRoutes);
 
 
-// Rutas PDF
+
 app.use('/api/pdf', pdfRoutes);
 
-// Rutas de VISTAS (EJS)
 app.use('/', viewRoutes);
 
-// Ruta de prueba
+
 app.get("/", (req, res) => {
   res.redirect('/login');
 });
@@ -116,11 +112,9 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Ruta para debug de rutas (similar a tu Laravel)
 app.get('/debug-routes', (req, res) => {
   const routes = [];
   
-  // Obtener todas las rutas registradas
   app._router.stack.forEach(middleware => {
     if (middleware.route) {
       routes.push({
@@ -145,7 +139,6 @@ app.get('/debug-routes', (req, res) => {
   res.json(routes);
 });
 
-// Manejo de errores 404 para API
 app.use('/api/*', (req, res) => {
   res.status(404).json({
     error: "Ruta API no encontrada",
@@ -175,7 +168,6 @@ app.use('/api/*', (req, res) => {
   });
 });
 
-// Manejo de errores 404 para vistas
 app.use((req, res) => {
   res.status(404).render('error', {
     title: "Página no encontrada",
@@ -187,19 +179,16 @@ app.use((req, res) => {
   });
 });
 
-// Manejo de errores global
 app.use((error, req, res, next) => {
   console.error('Error global:', error);
   
-  // Si es una petición API, responder con JSON
   if (req.path.includes('/api/')) {
     return res.status(500).json({ 
       error: 'Error interno del servidor',
       message: process.env.NODE_ENV === 'development' ? error.message : 'Contacte al administrador'
     });
   }
-  
-  // Si es una vista, renderizar página de error
+ 
   res.status(500).render('error', {
     title: "Error del servidor",
     message: "Ha ocurrido un error interno.",

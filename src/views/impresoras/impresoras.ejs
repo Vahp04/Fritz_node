@@ -1057,31 +1057,45 @@
 
         async function cargarModelosToner() {
             try {
-                console.log('Cargando modelos de toner del inventario...');
-                const response = await fetch('/api/stock_equipos');
+                console.log('Cargando TODOS los modelos de toner del inventario...');
+                
+                const response = await fetch('/api/stock_equipos/toners/todos');
                 
                 if (!response.ok) {
-                    throw new Error('Error al cargar equipos del inventario');
+                throw new Error('Error al cargar equipos del inventario');
                 }
 
-                const data = await response.json();
+                toners = await response.json();
 
-                toners = data.stockEquipos.filter(equipo => 
-                    equipo.tipo_equipo && 
-                    (equipo.tipo_equipo.nombre.toLowerCase().includes('toner') ||
-                    equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
-                    equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho'))
-                ) || [];
-                
-                console.log(`${toners.length} modelos de toner encontrados`);
+                console.log(`${toners.length} modelos de toner cargados (sin paginación)`);
                 renderizarModelosToner();
                 
             } catch (error) {
                 console.error('Error:', error);
                 mostrarError('No se pudieron cargar los modelos de toner del inventario');
                 
+                try {
+                console.log('Intentando fallback con endpoint normal...');
+                const response = await fetch('/api/stock_equipos');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    toners = data.stockEquipos.filter(equipo => {
+                    const tipoNombre = equipo.tipo_equipo?.nombre?.toLowerCase() || '';
+                    return tipoNombre.includes('toner') ||
+                            tipoNombre.includes('tinta') ||
+                            tipoNombre.includes('cartucho') ||
+                            tipoNombre.includes('consumible');
+                    }) || [];
+                    
+                    console.log(`${toners.length} toners cargados en fallback`);
+                    renderizarModelosToner();
+                }
+                } catch (fallbackError) {
+                console.error('Error en fallback:', fallbackError);
                 toners = [];
                 renderizarModelosToner();
+                }
             }
         }
 
@@ -1091,32 +1105,31 @@
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                    while (select.options.length > 1) {
-                        select.remove(1);
-                    }
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
 
-                    if (toners.length === 0) {
-                        const option = document.createElement('option');
-                        option.value = "";
-                        option.textContent = "No hay modelos de toner en el inventario";
-                        option.disabled = true;
-                        select.appendChild(option);
-                        return;
-                    }
+                if (toners.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay toners disponibles en inventario";
+                    option.disabled = true;
+                    select.appendChild(option);
+                    return;
+                }
 
-                    // Agregar modelos de toner disponibles
-                    toners.forEach(toner => {
-                        const option = document.createElement('option');
-                        option.value = `${toner.marca} ${toner.modelo}`;
-                        option.textContent = `${toner.marca} ${toner.modelo}`;
-                        select.appendChild(option);
-                    });
+                toners.forEach(toner => {
+                    const option = document.createElement('option');
+                    const displayText = `${toner.marca} ${toner.modelo} - ${toner.cantidad_disponible} disponibles`;
+                    option.value = `${toner.marca} ${toner.modelo}`;
+                    option.textContent = displayText;
+                    option.setAttribute('data-stock', toner.cantidad_disponible);
+                    select.appendChild(option);
+                });
                 }
             });
         }
 
-
-        // Cargar toners disponibles
         async function cargarToners() {
             try {
                 const response = await fetch('/api/stock_equipos');
