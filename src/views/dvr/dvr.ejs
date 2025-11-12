@@ -1,0 +1,2011 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Gestión de DVRs' %></title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .dvr-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #a595d1 0%, #8228db 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .status-activo {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+        
+        .status-inactivo {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+        }
+        
+        .status-mantenimiento {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+        
+        .status-desuso {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .main-content {
+            transition: all 0.3s;
+        }
+
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background-color: #298aeb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .mac-address {
+            font-family: 'Courier New', monospace;
+            background-color: #ac3b3b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .switch-field-container {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .form-check-input:checked {
+            background-color: #DC2626;
+            border-color: #DC2626;
+        }
+
+        .form-check-input:focus {
+            border-color: #DC2626;
+            box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.25);
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <div class="sidebar text-white p-3 position-relative">
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>            
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/consumibles">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Consumibles</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/impresoras">
+                        <i class="bi bi-printer me-2"></i>
+                        <span class="sidebar-text">Impresoras</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/mikrotik">
+                        <i class="bi bi-router me-2"></i>
+                        <span class="sidebar-text">Redes</span>
+                    </a>
+                </li>
+
+                  <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/servidores">
+                        <i class="bi bi-server me-2"></i>
+                        <span class="sidebar-text">Servidores</span>
+                    </a>
+                </li>
+
+               <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/dvr">
+                        <i class="bi bi-camera-video me-2"></i>
+                        <span class="sidebar-text">DVR</span>
+                    </a>
+                </li>
+
+              
+            </ul>
+
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de DVRs</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            <main class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-camera-video me-2 text-danger" ></i>
+                            Gestión de Sistema de Cámaras
+                        </h2>
+                        <p class="text-muted mb-0">Administra los dispositivos DVR de videovigilancia</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createDvrModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nuevo DVR
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalDvrs">0</h4>
+                                        <small>Total de DVRs</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-camera-video fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalActivos">0</h4>
+                                        <small>Activos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-check-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalMantenimiento">0</h4>
+                                        <small>En Mantenimiento</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-tools fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-secondary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="totalInactivos">0</h4>
+                                        <small>Inactivos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-pause-circle fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de DVRs
+                            </h5>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="generarReporteGeneralDvrs()">
+                                        <i class="bi bi-graph-up me-2"></i>Reporte General 
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSedeDvrs()">
+                                        <i class="bi bi-building me-2"></i>Reporte por Sede 
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" placeholder="Buscar por IP, descripción o MAC..." id="searchDvr">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterSede">
+                                    <option value="">Todas las sedes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="filterEstado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="mantenimiento">Mantenimiento</option>
+                                    <option value="desuso">Dañado</option>
+                                </select>
+                            </div>
+                             <div class="col-md-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="resetFiltros()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Dispositivo</th>
+                                        <th>IP / MAC / Serial</th>
+                                        <th>Cámaras / Switch</th>
+                                        <th>Sede</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Creación</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dvrsTableBody">
+                                    <tr id="loadingRow">
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando DVRs...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted" id="resultCount">
+                                Mostrando 0 de 0 DVRs
+                            </div>
+                            
+                            <nav aria-label="Paginación de DVRs">
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Crear DVR -->
+    <div class="modal fade" id="createDvrModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-camera-video me-2"></i> Nuevo DVR
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createDvrForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Equipo en Inventario*</label>
+                                <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
+                                    <option value="">Seleccione un equipo</option>
+                                </select>
+                                <div class="form-text">Seleccione el equipo DVR del inventario</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sede*</label>
+                                <select class="form-select" name="sede_id" id="create_sede_id" required>
+                                    <option value="">Seleccione una sede</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">IP del DVR</label>
+                                <input type="text" class="form-control" name="ip_dvr" placeholder="Ej: 192.168.1.100">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Número de Serie</label>
+                                <input type="text" class="form-control" name="cereal_dvr" placeholder="Serial del DVR">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Dirección MAC</label>
+                                <input type="text" class="form-control" name="mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cantidad de Cámaras*</label>
+                                <input type="number" class="form-control" name="cantidad_cam" required min="1" max="64" value="1">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleSwitchField" onchange="toggleSwitchField()">
+                                    <label class="form-check-label" for="toggleSwitchField">
+                                        ¿Tiene switch?
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3 switch-field-container" id="switchFieldContainer" style="display: none;">
+                                <label class="form-label">Switch Conectado</label>
+                                <input type="text" class="form-control" name="switch" id="create_switch" placeholder="Switch de conexión">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Ubicación*</label>
+                                <input type="text" class="form-control" name="ubicacion" required placeholder="Ej: Recepción, Estacionamiento">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Estado*</label>
+                                <select class="form-select" name="estado" required>
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="mantenimiento">Mantenimiento</option>
+                                    <option value="desuso">Dañado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del DVR y su ubicación específica"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-fritz">Guardar DVR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal para Editar DVR -->
+<div class="modal fade" id="editDvrModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i> Editar DVR
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editDvrForm">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_dvr_id" name="id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sede*</label>
+                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                    <option value="">Seleccione una sede</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Estado*</label>
+                                <select class="form-select" name="estado" id="edit_estado" required>
+                                    <option value="activo">Activo</option>
+                                    <option value="inactivo">Inactivo</option>
+                                    <option value="mantenimiento">Mantenimiento</option>
+                                    <option value="desuso">Dañado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">IP del DVR</label>
+                                <input type="text" class="form-control" name="ip_dvr" id="edit_ip_dvr" placeholder="Ej: 192.168.1.100">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Número de Serie</label>
+                                <input type="text" class="form-control" name="cereal_dvr" id="edit_cereal_dvr" placeholder="Serial del DVR">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Dirección MAC</label>
+                                <input type="text" class="form-control" name="mac_dvr" id="edit_mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cantidad de Cámaras*</label>
+                                <input type="number" class="form-control" name="cantidad_cam" id="edit_cantidad_cam" required min="1" max="64">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="toggleSwitchFieldEdit" onchange="toggleSwitchFieldEdit()">
+                                    <label class="form-check-label" for="toggleSwitchFieldEdit">
+                                        ¿Tiene Switch?
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3 switch-field-container" id="switchFieldContainerEdit" style="display: none;">
+                                <label class="form-label">Switch Conectado</label>
+                                <input type="text" class="form-control" name="switch" id="edit_switch" placeholder="Switch de conexión">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ubicación*</label>
+                        <input type="text" class="form-control" name="ubicacion" id="edit_ubicacion" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Actualizar DVR</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal para Ver DVR -->
+    <div class="modal fade" id="viewDvrModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles del DVR
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="dvr-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="bi bi-camera-video"></i>
+                        </div>
+                        <h4 id="view_stock_equipo_header"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ID:</strong>
+                            <p id="view_dvr_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Estado:</strong>
+                            <p id="view_estado" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>IP del DVR:</strong>
+                            <p id="view_ip_dvr" class="mb-2 ip-address"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Número de Serie:</strong>
+                            <p id="view_cereal_dvr" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Dirección MAC:</strong>
+                            <p id="view_mac_dvr" class="mb-2 mac-address"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Cantidad de Cámaras:</strong>
+                            <p id="view_cantidad_cam" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Switch:</strong>
+                            <p id="view_switch" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Sede:</strong>
+                            <p id="view_sede" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Ubicación:</strong>
+                            <p id="view_ubicacion" class="mb-2"></p>
+                        </div>
+                        <div class="col-12">
+                            <strong>Descripción:</strong>
+                            <p id="view_descripcion" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Equipo:</strong>
+                            <p id="view_stock_equipo" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Creación:</strong>
+                            <p id="view_created_at" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="selectSedeDvrModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-building me-2"></i> Seleccionar Sede
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione una sede para generar el reporte:</label>
+                        <select class="form-select" id="select_sede_dvr_reporte">
+                            <option value="">Seleccione una sede</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Se generará un reporte PDF con todos los DVRs de la sede seleccionada.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarReporteDvrConSedeSeleccionada()">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let dvrs = [];
+        let sedes = [];
+        let stockEquipos = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+        let currentFilters = {
+            search: '',
+            sede_id: '',
+            estado: ''
+        };
+
+        // Enviar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarDvrs();
+            cargarSedes();
+            cargarStockEquipos();
+            inicializarEventos();
+            applySavedTheme();
+            inicializarSidebar();
+        });
+
+        async function crearDvr() {
+            const form = document.getElementById('createDvrForm');
+            const formData = new FormData(form);
+            const stockEquipoId = formData.get('stock_equipos_id');
+
+            const datosEnvio = Object.fromEntries(formData);
+            if (stockEquipoId === 'temp') {
+                datosEnvio.stock_equipos_id = 1; 
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Modo temporal',
+                    text: 'Usando equipo genérico. Actualice el stock manualmente después.',
+                    timer: 3000
+                });
+            }
+
+            try {
+                const response = await fetch('/api/dvrs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosEnvio)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                
+                $('#createDvrModal').modal('hide');
+                form.reset();
+                await cargarDvrs(currentPage);
+                
+            } catch (error) {
+                console.error('Error creando DVR:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        function actualizarEstadoFiltros() {
+            document.getElementById('searchDvr').value = currentFilters.search;
+            document.getElementById('filterSede').value = currentFilters.sede_id;
+            document.getElementById('filterEstado').value = currentFilters.estado;
+            
+            const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+            const resultCount = document.getElementById('resultCount');
+            
+            if (filtrosActivos > 0) {
+                resultCount.innerHTML = `Mostrando ${dvrs.length} de ${totalRecords} DVRs <span class="badge bg-warning ms-2"></span>`;
+            } else {
+                resultCount.textContent = `Mostrando ${dvrs.length} de ${totalRecords} DVRs`;
+            }
+        }
+
+        async function cargarSedes() {
+            try {
+                const response = await fetch('/api/sedes');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar sedes');
+                }
+
+                sedes = await response.json();
+                renderizarSedes();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function cargarStockEquipos() {
+            try {
+                console.log('Buscando equipos DVR específicos...');
+                
+                const response = await fetch('/api/stock_equipos/equipos/dvr');
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                stockEquipos = await response.json();
+                
+                console.log(`${stockEquipos.length} equipos DVR/cámaras DISPONIBLES encontrados`);
+                
+                if (stockEquipos.length === 0) {
+                    console.log('No se encontraron equipos DVR disponibles');
+                    
+                    const todosResponse = await fetch('/api/stock_equipos/api?limit=50');
+                    if (todosResponse.ok) {
+                        const todos = await todosResponse.json();
+                        const tiposConteo = {};
+                        todos.forEach(equipo => {
+                            const tipo = equipo.tipo_equipo?.nombre || 'Sin tipo';
+                            tiposConteo[tipo] = (tiposConteo[tipo] || 0) + 1;
+                        });
+                        console.log('Tipos de equipos disponibles:', tiposConteo);
+                    }
+                }
+                
+                renderizarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error cargando equipos DVR:', error);
+                stockEquipos = [];
+                renderizarStockEquipos();
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No se pudieron cargar los equipos DVR',
+                    text: 'Por favor, verifique que existan equipos DVR en el inventario',
+                    timer: 3000
+                });
+            }
+        }
+
+        function actualizarResumen() {
+            const total = dvrs.length;
+            const activos = dvrs.filter(d => d.estado === 'activo').length;
+            const inactivos = dvrs.filter(d => d.estado === 'inactivo').length;
+            const mantenimiento = dvrs.filter(d => d.estado === 'mantenimiento').length;
+            const desuso = dvrs.filter(d => d.estado === 'desuso').length;
+
+            document.getElementById('totalDvrs').textContent = total;
+            document.getElementById('totalActivos').textContent = activos;
+            document.getElementById('totalInactivos').textContent = inactivos;
+            document.getElementById('totalMantenimiento').textContent = mantenimiento;
+
+        
+        }
+
+        function renderizarDvrs() {
+            const tbody = document.getElementById('dvrsTableBody');
+            if (!tbody) return;
+
+            if (dvrs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-camera-video display-4 mb-3"></i>
+                                <h5>No hay DVRs registrados</h5>
+                                <p class="mb-3">Puede crear el primer DVR usando el botón "Nuevo DVR"</p>
+                                <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createDvrModal">
+                                    <i class="bi bi-plus-circle me-1"></i> Crear primer DVR
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            
+            dvrs.forEach(dvr => {
+                const estado = dvr.estado || 'inactivo';
+                const estadoClass = `status-badge status-${estado}`;
+                const estadoText = estado.charAt(0).toUpperCase() + estado.slice(1);
+                
+                const ipDisplay = dvr.ip_dvr ? `<span class="ip-address">${dvr.ip_dvr}</span>` : '<span class="text-muted">No asignada</span>';
+                const macDisplay = dvr.mac_dvr ? `<span class="mac-address">${dvr.mac_dvr}</span>` : '<span class="text-muted">No asignada</span>';
+                const serialDisplay = dvr.cereal_dvr || '<span class="text-muted">No asignado</span>';
+                const switchDisplay = dvr.switch || '<span class="text-muted">No asignado</span>';
+                const ubicacion = dvr.ubicacion || '<span class="text-muted">Sin ubicación</span>';
+                const cantidadCam = dvr.cantidad_cam || 0;
+                
+                const sedeNombre = dvr.sede ? dvr.sede.nombre : 'Sin sede';
+                const equipoNombre = dvr.stock_equipos ? 
+                    `${dvr.stock_equipos.marca || ''} ${dvr.stock_equipos.modelo || ''}`.trim() : 
+                    'No asignado';
+
+                const fechaCreacion = dvr.created_at ? 
+                    new Date(dvr.created_at).toLocaleDateString('es-ES') : 
+                    'No disponible';
+
+                html += `
+                    <tr>
+                        <td class="fw-bold">${dvr.id}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="dvr-icon me-3">
+                                    <i class="bi bi-camera-video"></i>
+                                </div>
+                                <div>
+                                    <strong>${equipoNombre}</strong>
+                                    <br>
+                                    <small class="text-muted">${ubicacion}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div><strong>IP:</strong> ${ipDisplay}</div>
+                                <div><strong>MAC:</strong> ${macDisplay}</div>
+                                <div><strong>Serial:</strong> ${serialDisplay}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div><strong>Cámaras:</strong> ${cantidadCam}</div>
+                                <div><strong>Switch:</strong> ${switchDisplay}</div>
+                            </div>
+                        </td>
+                        <td>${sedeNombre}</td>
+                        <td><span class="${estadoClass}">${estadoText}</span></td>
+                        <td>${fechaCreacion}</td>
+                        <td class="text-center table-actions">
+                            <button class="btn btn-sm btn-outline-info action-btn" onclick="viewDvr(${dvr.id})" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning action-btn" onclick="editDvr(${dvr.id})" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger action-btn" onclick="deleteDvr(${dvr.id}, '${equipoNombre.replace(/'/g, "\\'")}')" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        async function cargarDvrs(page = 1) {
+            try {
+                currentPage = page;
+                
+                const params = new URLSearchParams();
+                params.append('page', page);
+                
+                if (currentFilters.search) {
+                    params.append('search', currentFilters.search);
+                }
+                if (currentFilters.sede_id) {
+                    params.append('sede_id', currentFilters.sede_id);
+                }
+                if (currentFilters.estado) {
+                    params.append('estado', currentFilters.estado);
+                }
+                
+                const url = `/api/dvrs?${params.toString()}`;
+                console.log('Cargando DVRs desde:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Datos recibidos:', data);
+                
+                if (data.dvrs && Array.isArray(data.dvrs)) {
+                    dvrs = data.dvrs;
+                    totalPages = data.pagination?.total || 1;
+                    totalRecords = data.pagination?.totalRecords || data.dvrs.length;
+                    
+                    console.log(`Cargados ${dvrs.length} DVRs`);
+                    
+                    dvrs.forEach((dvr, index) => {
+                        console.log(`DVR ${index + 1}:`, {
+                            id: dvr.id,
+                            ubicacion: dvr.ubicacion,
+                            descripcion: dvr.descripcion,
+                            sede: dvr.sede?.nombre
+                        });
+                    });
+                } else {
+                    console.warn('Estructura de datos inesperada:', data);
+                    dvrs = [];
+                    totalPages = 1;
+                    totalRecords = 0;
+                }
+
+                actualizarResumen();
+                renderizarDvrs();
+                renderizarPaginacion();
+                actualizarEstadoFiltros();
+                
+            } catch (error) {
+                console.error('Error cargando DVRs:', error);
+                
+                dvrs = [];
+                renderizarDvrs();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los DVRs: ' + error.message
+                });
+            }
+        }
+
+
+        function renderizarSedes() {
+            const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    sedes.forEach(sede => {
+                        const option = document.createElement('option');
+                        option.value = sede.id;
+                        option.textContent = sede.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function renderizarStockEquipos() {
+            const select = document.getElementById('create_stock_equipos_id');
+            if (!select) {
+                console.error('No se encontró el select de stock_equipos');
+                return;
+            }
+
+            const currentValue = select.value;
+
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            if (stockEquipos.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay equipos DVR/cámaras disponibles";
+                option.disabled = true;
+                select.appendChild(option);
+                
+                const submitBtn = document.querySelector('#createDvrForm button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.title = "No hay equipos disponibles en inventario";
+                }
+                return;
+            }
+
+            const submitBtn = document.querySelector('#createDvrForm button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.title = "";
+            }
+
+            stockEquipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo.id;
+                
+                const tipo = equipo.tipo_equipo?.nombre || 'Sin tipo';
+                option.textContent = `${equipo.marca} ${equipo.modelo} (${tipo}) - ${equipo.cantidad_disponible} disponibles`;
+                
+                option.title = `Tipo: ${tipo}\nMarca: ${equipo.marca}\nModelo: ${equipo.modelo}\nDisponibles: ${equipo.cantidad_disponible}\nTotal: ${equipo.cantidad_total}`;
+                
+                if (currentValue == equipo.id) {
+                    option.selected = true;
+                }
+                
+                select.appendChild(option);
+            });
+
+            console.log(`Renderizados ${stockEquipos.length} equipos DVR/cámaras en el select`);
+        }
+
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+            if (!pagination) return;
+
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) {
+                return;
+            }
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            pagination.appendChild(prevLi);
+
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+                pagination.appendChild(firstLi);
+                
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+                pagination.appendChild(pageLi);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
+                
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
+                pagination.appendChild(lastLi);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
+
+        function cambiarPagina(page) {
+            if (page < 1 || page > totalPages || page === currentPage) return;
+            cargarDvrs(page);
+        }
+
+// Funciones CRUD
+        async function crearDvr() {
+            const form = document.getElementById('createDvrForm');
+            const formData = new FormData(form);
+            const stockEquipoId = formData.get('stock_equipos_id');
+
+            const toggleSwitch = document.getElementById('toggleSwitchField');
+            if (!toggleSwitch.checked) {
+                formData.delete('switch');
+            }
+
+            const datosEnvio = Object.fromEntries(formData);
+            if (stockEquipoId === 'temp') {
+                datosEnvio.stock_equipos_id = 1; 
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Modo temporal',
+                    text: 'Usando equipo genérico. Actualice el stock manualmente después.',
+                    timer: 3000
+                });
+            }
+
+            try {
+                const response = await fetch('/api/dvrs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosEnvio)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                
+                $('#createDvrModal').modal('hide');
+                form.reset();
+                resetSwitchField(); 
+                await cargarDvrs(currentPage);
+                
+            } catch (error) {
+                console.error('Error creando DVR:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+
+        async function editDvr(id) {
+            try {
+                console.log('Cargando DVR con ID:', id);
+                const response = await fetch(`/api/dvrs/${id}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cargar DVR');
+                }
+
+                const dvr = await response.json();
+                console.log('Datos recibidos:', dvr);
+                
+                if (!dvr) {
+                    throw new Error('No se recibieron datos del DVR');
+                }
+                
+                document.getElementById('edit_dvr_id').value = dvr.id;
+                document.getElementById('edit_sede_id').value = dvr.sede_id;
+                document.getElementById('edit_estado').value = dvr.estado;
+                document.getElementById('edit_ip_dvr').value = dvr.ip_dvr || '';
+                document.getElementById('edit_cereal_dvr').value = dvr.cereal_dvr || '';
+                document.getElementById('edit_mac_dvr').value = dvr.mac_dvr || '';
+                document.getElementById('edit_cantidad_cam').value = dvr.cantidad_cam;
+                document.getElementById('edit_ubicacion').value = dvr.ubicacion;
+                document.getElementById('edit_descripcion').value = dvr.descripcion || '';
+                
+                // Inicializar el campo Switch
+                inicializarSwitchFieldEdit(dvr);
+                
+                console.log('Formulario llenado con datos');
+                $('#editDvrModal').modal('show');
+                
+            } catch (error) {
+                console.error('Error al cargar DVR:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al cargar los datos del DVR'
+                });
+            }
+        }
+
+
+
+        async function actualizarDvr() {
+            const form = document.getElementById('editDvrForm');
+            const formData = new FormData(form);
+            const dvrId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/dvrs/${dvrId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editDvrModal').modal('hide');
+                form.reset();
+                    
+                await cargarDvrs(currentPage);
+                    
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar el DVR'
+                });
+            }
+        }
+
+        async function viewDvr(id) {
+            try {
+                const response = await fetch(`/api/dvrs/${id}`);
+                    
+                if (!response.ok) {
+                    throw new Error('Error al cargar DVR');
+                }
+
+                const dvr = await response.json();
+                    
+                document.getElementById('view_descripcion').textContent = dvr.descripcion || 'Sistema de videovigilancia';
+                document.getElementById('view_id').textContent = `ID: ${dvr.id}`;
+                document.getElementById('view_dvr_id').textContent = dvr.id;
+                document.getElementById('view_estado').innerHTML = `<span class="status-badge status-${dvr.estado}">${dvr.estado.charAt(0).toUpperCase() + dvr.estado.slice(1)}</span>`;
+                document.getElementById('view_ip_dvr').textContent = dvr.ip_dvr || 'No asignada';
+                document.getElementById('view_cereal_dvr').textContent = dvr.cereal_dvr || 'No asignado';
+                document.getElementById('view_mac_dvr').textContent = dvr.mac_dvr || 'No asignada';
+                document.getElementById('view_cantidad_cam').textContent = dvr.cantidad_cam;
+                document.getElementById('view_switch').textContent = dvr.switch || 'No asignado';
+                document.getElementById('view_sede').textContent = dvr.sede ? dvr.sede.nombre : 'Sin sede';
+                document.getElementById('view_ubicacion').textContent = dvr.ubicacion;
+                document.getElementById('view_descripcion').textContent = dvr.descripcion || 'Sin descripción';
+                document.getElementById('view_stock_equipo_header').textContent = dvr.stock_equipos ? `${dvr.stock_equipos.marca} ${dvr.stock_equipos.modelo}` : 'No asignado';
+                document.getElementById('view_stock_equipo').textContent = dvr.stock_equipos ? `${dvr.stock_equipos.marca} ${dvr.stock_equipos.modelo}` : 'No asignado';
+                document.getElementById('view_created_at').textContent = new Date(dvr.created_at).toLocaleDateString('es-ES');
+                    
+                $('#viewDvrModal').modal('show');
+                    
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function deleteDvr(id, nombre) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar el DVR "${nombre}". Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/dvrs/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Error del servidor');
+                    }
+
+                    const data = await response.json();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    await cargarDvrs(currentPage);
+                    await cargarStockEquipos(); 
+                        
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Error al eliminar el DVR'
+                    });
+                }
+            }
+        }
+
+        function toggleSwitchField() {
+            console.log('toggleSwitchField ejecutada');
+            const toggleSwitch = document.getElementById('toggleSwitchField');
+            const switchContainer = document.getElementById('switchFieldContainer');
+            const switchInput = document.getElementById('create_switch');
+            
+            console.log('Toggle checked:', toggleSwitch.checked);
+            console.log('Switch container:', switchContainer);
+            console.log('Switch input:', switchInput);
+            
+            if (toggleSwitch.checked) {
+                switchContainer.style.display = 'block';
+                if (switchInput) switchInput.required = true;
+                console.log('Campo Switch mostrado');
+            } else {
+                switchContainer.style.display = 'none';
+                if (switchInput) switchInput.required = false;
+                if (switchInput) switchInput.value = '';
+                console.log('Campo Switch ocultado');
+            }
+        }
+
+        function toggleSwitchFieldEdit() {
+            console.log('toggleSwitchFieldEdit ejecutada');
+            const toggleSwitch = document.getElementById('toggleSwitchFieldEdit');
+            const switchContainer = document.getElementById('switchFieldContainerEdit');
+            const switchInput = document.getElementById('edit_switch');
+            
+            console.log('Toggle edit checked:', toggleSwitch.checked);
+            console.log('Switch container edit:', switchContainer);
+            console.log('Switch input edit:', switchInput);
+            
+            if (toggleSwitch.checked) {
+                switchContainer.style.display = 'block';
+                if (switchInput) switchInput.required = true;
+                console.log('Campo Switch (edición) mostrado');
+            } else {
+                switchContainer.style.display = 'none';
+                if (switchInput) switchInput.required = false;
+                if (switchInput) switchInput.value = '';
+                console.log('Campo Switch (edición) ocultado');
+            }
+        }
+
+       function resetSwitchField() {
+            console.log('Reseteando campo Switch...');
+            const toggleSwitch = document.getElementById('toggleSwitchField');
+            const switchContainer = document.getElementById('switchFieldContainer');
+            const switchInput = document.getElementById('create_switch');
+            
+            if (toggleSwitch) toggleSwitch.checked = false;
+            if (switchContainer) switchContainer.style.display = 'none';
+            if (switchInput) {
+                switchInput.required = false;
+                switchInput.value = '';
+            }
+            console.log('Campo Switch reseteado');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const createModal = document.getElementById('createDvrModal');
+            if (createModal) {
+                createModal.addEventListener('hidden.bs.modal', function() {
+                    resetSwitchField();
+                });
+            }
+            
+            setTimeout(inicializarSwitches, 100);
+        });
+        function aplicarFiltros() {
+            currentFilters = {
+                search: document.getElementById('searchDvr').value,
+                sede_id: document.getElementById('filterSede').value,
+                estado: document.getElementById('filterEstado').value
+            };
+            
+            currentPage = 1;
+            cargarDvrs(currentPage);
+        }
+
+        function aplicarBusquedaRapida() {
+            currentFilters.search = document.getElementById('searchDvr').value;
+            currentPage = 1;
+            cargarDvrs(currentPage);
+        }
+
+        function resetFiltros() {
+            currentFilters = {
+                search: '',
+                sede_id: '',
+                estado: ''
+            };
+            
+            document.getElementById('searchDvr').value = '';
+            document.getElementById('filterSede').value = '';
+            document.getElementById('filterEstado').value = '';
+            
+            currentPage = 1;
+            cargarDvrs(currentPage);
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+                
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                    
+                const themeIcon = document.querySelector('.theme-switcher i');
+                if (themeIcon) {
+                    if (savedTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeIcon = document.querySelector('.theme-switcher i');
+                
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+                
+            if (themeIcon) {
+                if (newTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+                
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function inicializarSidebar() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-double-left');
+                    icon.classList.toggle('bi-chevron-double-right');
+                });
+            }
+
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            const themeSwitcher = document.querySelector('.theme-switcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', toggleTheme);
+            }
+        }
+
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            document.getElementById('createDvrForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearDvr();
+            });
+
+            document.getElementById('editDvrForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarDvr();
+            });
+
+            let searchTimeout;
+            document.getElementById('searchDvr').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
+            });
+
+            document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+            
+            // Inicializar los switches
+            inicializarSwitches();
+        }
+
+
+
+
+        function inicializarSwitchFieldEdit(dvr) {
+            console.log('Inicializando campo Switch para edición:', dvr);
+            const toggleSwitch = document.getElementById('toggleSwitchFieldEdit');
+            const switchContainer = document.getElementById('switchFieldContainerEdit');
+            const switchInput = document.getElementById('edit_switch');
+            
+            if (toggleSwitch && switchContainer && switchInput) {
+                if (dvr.switch && dvr.switch.trim() !== '') {
+                    toggleSwitch.checked = true;
+                    switchContainer.style.display = 'block';
+                    switchInput.required = true;
+                    switchInput.value = dvr.switch;
+                    console.log('Campo Switch inicializado con valor:', dvr.switch);
+                } else {
+                    toggleSwitch.checked = false;
+                    switchContainer.style.display = 'none';
+                    switchInput.required = false;
+                    switchInput.value = '';
+                    console.log('Campo Switch inicializado sin valor');
+                }
+            } else {
+                console.error('Elementos del campo Switch no encontrados en edición');
+            }
+        }
+
+        async function generarReporteGeneralDvrs() {
+            try {
+                console.log('Generando reporte general de DVRs...');
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/dvrs/reporte/general`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: 'El reporte general se ha abierto en una nueva pestaña',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo generar el reporte: ' + error.message
+                });
+            }
+        }
+
+        function abrirModalSeleccionSedeDvrs() {
+            if (sedes.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No hay sedes',
+                    text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
+                });
+                return;
+            }
+
+            const selectSede = document.getElementById('select_sede_dvr_reporte');
+            selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
+            
+            sedes.forEach(sede => {
+                const option = document.createElement('option');
+                option.value = sede.id;
+                option.textContent = sede.nombre;
+                selectSede.appendChild(option);
+            });
+
+            $('#selectSedeDvrModal').modal('show');
+        }
+
+        async function generarReporteDvrConSedeSeleccionada() {
+            const sedeId = document.getElementById('select_sede_dvr_reporte').value;
+            
+            if (!sedeId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Seleccione una sede',
+                    text: 'Por favor seleccione una sede para generar el reporte.'
+                });
+                return;
+            }
+
+            const sedeSelect = document.getElementById('select_sede_dvr_reporte');
+            const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
+
+            $('#selectSedeDvrModal').modal('hide');
+
+            try {
+                console.log(`Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    text: `Generando reporte para ${sedeNombre}...`,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/dvrs/reporte/sede/${sedeId}`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte por sede:', error);
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+
+        function inicializarSwitches() {
+            console.log('Inicializando switches...');
+            
+            const toggleSwitchCreate = document.getElementById('toggleSwitchField');
+            if (toggleSwitchCreate) {
+                toggleSwitchCreate.addEventListener('change', toggleSwitchField);
+                console.log('Evento agregado a toggleSwitchField');
+            }
+           
+            const toggleSwitchEdit = document.getElementById('toggleSwitchFieldEdit');
+            if (toggleSwitchEdit) {
+                toggleSwitchEdit.addEventListener('change', toggleSwitchFieldEdit);
+                console.log('Evento agregado a toggleSwitchFieldEdit');
+            }
+            
+            toggleSwitchField();
+            toggleSwitchFieldEdit();
+        }
+    </script>
+</body>
+</html>

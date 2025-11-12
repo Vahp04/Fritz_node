@@ -14,16 +14,17 @@ router.get('/para-asignacion', stockEquiposController.equiposParaAsignacion);
 router.get('/impresoras', stockEquiposController.equiposImpresoras);
 router.get('/mikrotiks', stockEquiposController.equiposMikrotiks);
 router.get('/toners/todos', stockEquiposController.todosLosToners);
+router.get('/equipos/dvr', stockEquiposController.equiposDvr);
+
 router.get('/api', stockEquiposController.apiIndex);
 router.get('/:id', stockEquiposController.show);
 router.put('/:id', stockEquiposController.update);
 router.delete('/:id', stockEquiposController.destroy);
 router.patch('/:id/cantidades', stockEquiposController.actualizarCantidades);
 router.get('/api/:id', stockEquiposController.apiShow);
+
 router.get('/consumibles', stockEquiposController.equiposConsumibles);
-
 router.get('/servidores', stockEquiposController.servidores);
-
-
+router.get('/dvrs', stockEquiposController.getDvrs);
 
 export default router;

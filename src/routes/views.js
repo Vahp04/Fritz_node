@@ -121,6 +121,15 @@ router.get('/servidores', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/dvr', authenticateToken, (req, res) => {
+    res.render('dvr/dvr', {
+        title: 'Gestión de los DVR y Cámaras',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 router.get('/impresoras', authenticateToken, (req, res) => {
     res.render('impresoras/impresoras', {
         title: 'Gestión de las Impresoras',

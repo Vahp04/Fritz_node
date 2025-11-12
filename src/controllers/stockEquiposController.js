@@ -905,5 +905,134 @@ async servidores(req, res) {
             message: error.message
         });
     }
+},
+
+
+// Endpoint mejorado para DVRs
+async getDvrs(req, res) {
+  try {
+    console.log('Buscando equipos DVR y cámaras...');
+    
+    const todosEquipos = await prisma.stock_equipos.findMany({
+      include: {
+        tipo_equipo: {
+          select: {
+            id: true,
+            nombre: true,
+            requiere_ip: true,
+            requiere_cereal: true
+          }
+        }
+      },
+      orderBy: {
+        marca: 'asc'
+      }
+    });
+
+    console.log(`${todosEquipos.length} equipos totales encontrados`);
+
+    // Filtrar equipos DVR/cámaras
+    const dvrs = todosEquipos.filter(equipo => {
+      if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+        return false;
+      }
+      
+      const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+      const equipoNombre = `${equipo.marca} ${equipo.modelo}`.toLowerCase();
+      
+      const esDvrOCamara = 
+        tipoNombre.includes('dvr') || 
+       
+        tipoNombre.includes('cámara') ||
+        tipoNombre.includes('camara') ||
+       
+        equipoNombre.includes('dvr');
+      
+      const disponible = equipo.cantidad_disponible > 0;
+      
+      return esDvrOCamara && disponible;
+    });
+
+    console.log(`${dvrs.length} equipos DVR/cámaras disponibles encontrados`);
+    
+    res.json(dvrs);
+    
+  } catch (error) {
+    console.error('Error en getDvrs:', error);
+    res.status(500).json({ 
+      error: 'Error al cargar equipos DVR',
+      message: error.message
+    });
+  }
+},
+
+// Endpoint específico para DVRs sin paginación
+async equiposDvr(req, res) {
+  try {
+    console.log('Buscando equipos DVR y cámaras SIN PAGINACIÓN...');
+    
+    const todosEquipos = await prisma.stock_equipos.findMany({
+      include: {
+        tipo_equipo: {
+          select: {
+            id: true,
+            nombre: true,
+            requiere_ip: true,
+            requiere_cereal: true
+          }
+        }
+      },
+      orderBy: {
+        marca: 'asc'
+      }
+    });
+
+    console.log(`${todosEquipos.length} equipos totales encontrados`);
+
+    // Filtrar equipos DVR/cámaras con criterios más específicos
+    const dvrs = todosEquipos.filter(equipo => {
+      if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+        return false;
+      }
+      
+      const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+      const equipoNombre = `${equipo.marca} ${equipo.modelo}`.toLowerCase();
+      
+      // Criterios más amplios para DVR
+      const esDvrOCamara = 
+        tipoNombre.includes('dvr') || 
+        tipoNombre.includes('grabador') ||
+        tipoNombre.includes('cámara') ||
+        tipoNombre.includes('camara') ||
+        tipoNombre.includes('video') ||
+        tipoNombre.includes('vigilancia') ||
+        tipoNombre.includes('seguridad') ||
+        tipoNombre.includes('cctv') ||
+        equipoNombre.includes('dvr') ||
+        equipoNombre.includes('nvr') ||
+        equipoNombre.includes('grabador') ||
+        equipoNombre.includes('camera') ||
+        equipoNombre.includes('surveillance');
+      
+      const disponible = equipo.cantidad_disponible > 0;
+      
+      if (esDvrOCamara) {
+        console.log(`✅ DVR ENCONTRADO: ${equipo.marca} ${equipo.modelo} | Tipo: "${tipoNombre}" | Disp: ${disponible}`);
+      }
+      
+      return esDvrOCamara && disponible;
+    });
+
+    console.log(`${dvrs.length} equipos DVR/cámaras disponibles encontrados`);
+    
+    res.json(dvrs);
+    
+  } catch (error) {
+    console.error('Error en equiposDvr:', error);
+    res.status(500).json({ 
+      error: 'Error al cargar equipos DVR',
+      message: error.message
+    });
+  }
 }
 };
