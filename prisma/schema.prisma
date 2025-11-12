@@ -30,6 +30,7 @@ model sedes {
   mikrotik   mikrotik[]
   consumible consumible[]
   servidores servidores[]
+  dvr        dvr[]
 
   @@map("sedes")
 }
@@ -64,10 +65,11 @@ model stock_equipos {
   equipo_asignado     equipo_asignado[]
   impresoras          impresora[]       @relation("ImpresoraPrincipal") 
   impresora_toner     impresora[]       @relation("TonerInstalado")
-  mikrotik            mikrotik[]         @relation("MikrotikPrincipal")
+  mikrotik            mikrotik[]        @relation("MikrotikPrincipal")
   ConsumibleEquipo    ConsumibleEquipo[]       
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
   servidores          servidores[]      @relation("ServidoresPrincipal")
+  dvr                 dvr[]             @relation("DvrPrincipal")
 
   @@map("stock_equipos")
 }
@@ -219,6 +221,25 @@ model servidores {
   @@map("servidores")
 }
 
+model dvr{
+  id                Int            @id @default(autoincrement())
+  stock_equipos_id  Int            
+  sede_id           Int             
+  descripcion       String?        @db.VarChar(500)
+  cantidad_cam      Int            
+  ip_dvr            String?        @db.VarChar(191)
+  cereal_dvr        String?        @db.VarChar(191)
+  mac_dvr           String?        @db.VarChar(191)
+  estado            EstadoDvr      @default(activo)
+  switch            String?        @db.VarChar(191)
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @default(now()) @updatedAt
+  stock_equipos     stock_equipos  @relation("DvrPrincipal", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+  sede              sedes          @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+
+  @@map("dvr")
+  }
+
 enum cargo {
   Gerente
   Jefe
@@ -250,6 +271,14 @@ enum EstadoServidor {
   inactivo
   mantenimiento
   desuso
+}
+
+enum EstadoDvr{
+  activo
+  inactivo
+  mantenimiento
+  desuso
+
 }
 
 model ContadorRegistros {

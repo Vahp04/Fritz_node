@@ -516,9 +516,6 @@
                                     <li><a class="dropdown-item" href="#" onclick="generarReporteGeneralServidores()">
                                         <i class="bi bi-graph-up me-2"></i>Reporte General 
                                     </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="abrirModalSeleccionSedeServidores()">
-                                        <i class="bi bi-building me-2"></i>Reporte por Sede 
-                                    </a></li>
                                 </ul>
                             </div>
                         </div>
@@ -992,7 +989,7 @@
                 renderizarStockEquipos();
             }
         }
-        
+
         function actualizarResumen() {
             const total = servidores.length;
             const activos = servidores.filter(s => s.estado === 'activo').length;
@@ -1580,82 +1577,6 @@
                     icon: 'error',
                     title: 'Error',
                     text: 'No se pudo generar el reporte: ' + error.message
-                });
-            }
-        }
-
-        function abrirModalSeleccionSedeServidores() {
-            if (sedes.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'No hay sedes',
-                    text: 'No se han cargado las sedes. Por favor, espere un momento e intente nuevamente.'
-                });
-                return;
-            }
-
-            const selectSede = document.getElementById('select_sede_servidor_reporte');
-            selectSede.innerHTML = '<option value="">Seleccione una sede</option>';
-            
-            sedes.forEach(sede => {
-                const option = document.createElement('option');
-                option.value = sede.id;
-                option.textContent = sede.nombre;
-                selectSede.appendChild(option);
-            });
-
-            $('#selectSedeServidorModal').modal('show');
-        }
-
-        async function generarReporteServidorConSedeSeleccionada() {
-            const sedeId = document.getElementById('select_sede_servidor_reporte').value;
-            
-            if (!sedeId) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Seleccione una sede',
-                    text: 'Por favor seleccione una sede para generar el reporte.'
-                });
-                return;
-            }
-
-            const sedeSelect = document.getElementById('select_sede_servidor_reporte');
-            const sedeNombre = sedeSelect.options[sedeSelect.selectedIndex].text;
-
-            $('#selectSedeServidorModal').modal('hide');
-
-            try {
-                console.log(`Generando reporte para sede ID: ${sedeId} - ${sedeNombre}`);
-                
-                Swal.fire({
-                    title: 'Generando Reporte',
-                    text: `Generando reporte para ${sedeNombre}...`,
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                window.open(`/api/servidores/reporte/sede/${sedeId}`, '_blank');
-                
-                Swal.close();
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Reporte Generado',
-                    text: `El reporte para ${sedeNombre} se ha abierto en una nueva pestaña`,
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-                
-            } catch (error) {
-                console.error('Error generando reporte por sede:', error);
-                Swal.close();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    html: `No se pudo generar el reporte:<br><small>${error.message}</small>`,
-                    confirmButtonText: 'Entendido'
                 });
             }
         }

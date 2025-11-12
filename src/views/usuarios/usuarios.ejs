@@ -408,7 +408,7 @@
                         <span class="sidebar-text">Impresoras</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link text-white sidebar-link " href="/mikrotik">
                         <i class="bi bi-router me-2"></i>
@@ -744,13 +744,13 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Correo Electrónico*</label>
-                                    <input type="email" class="form-control" name="correo" id="edit_correo" required>
+                                    <input type="email" class="form-control" name="correo" id="edit_correo" >
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">RDP Fiscal*</label>
-                                    <input type="text" class="form-control" name="rdpfis" id="edit_rdpfis" required>
+                                    <input type="text" class="form-control" name="rdpfis" id="edit_rdpfis" >
                                     <small class="text-muted">Identificador Fiscal del usuario</small>
                                 </div>
                             </div>
@@ -1315,14 +1315,7 @@ function renderizarPaginacion() {
 
     console.log('Datos para actualizar:', datos);
 
-    if (!datos.nombre || !datos.cargo || !datos.correo || !datos.rdpfis || !datos.sede_id || !datos.departamento_id) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Todos los campos marcados con * son obligatorios'
-        });
-        return;
-    }
+
 
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
