@@ -802,7 +802,7 @@ async equiposMikrotiks(req, res) {
             
             const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
             const esMikrotik = tipoNombre.includes('mikrotik') || 
-                              tipoNombre.includes('router') ||
+                              tipoNombre.includes('hotspot') ||
                               tipoNombre.includes('switch');
             
             return esMikrotik;
@@ -868,8 +868,6 @@ async todosLosToners(req, res) {
 async servidores(req, res) {
     try {
         console.log('Buscando servidores en el inventario...');
-        
-        
         const todosEquipos = await prisma.stock_equipos.findMany({
             include: {
                 tipo_equipo: {
@@ -886,7 +884,6 @@ async servidores(req, res) {
 
         console.log(`${todosEquipos.length} equipos totales encontrados`);
 
-        // Filtrar servidores
         const servidores = todosEquipos.filter(equipo => {
             if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
                 return false;

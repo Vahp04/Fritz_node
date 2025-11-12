@@ -105,7 +105,7 @@ router.get('/tipo_equipo', authenticateToken, (req, res) => {
 
 router.get('/mikrotik', authenticateToken, (req, res) => {
     res.render('mikrotik/mikrotik', {
-        title: 'Gestión de los Mikrotiks',
+        title: 'Gestión de las Redes',
         user: req.user,
         success: req.query.success || null,
         error: req.query.error || null
@@ -114,7 +114,7 @@ router.get('/mikrotik', authenticateToken, (req, res) => {
 
 router.get('/servidores', authenticateToken, (req, res) => {
     res.render('servidores/servidores', {
-        title: 'Gestión de los Mikrotiks',
+        title: 'Gestión de los Servidores',
         user: req.user,
         success: req.query.success || null,
         error: req.query.error || null

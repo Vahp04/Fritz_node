@@ -118,7 +118,6 @@ async store(req, res) {
     const stockEquiposId = parseInt(stock_equipos_id);
     const sedeId = parseInt(sede_id);
 
-    // Buscar el equipo en stock incluyendo el tipo_equipo
     const servidorStock = await prisma.stock_equipos.findUnique({
       where: { id: stockEquiposId },
       include: {
@@ -130,7 +129,6 @@ async store(req, res) {
       return res.status(404).json({ error: 'Equipo no encontrado en inventario' });
     }
 
-    // Verificar que el equipo sea del tipo "servidores"
     const tipoNombre = servidorStock.tipo_equipo?.nombre?.toLowerCase() || '';
     if (!tipoNombre.includes('servidor')) {
       return res.status(400).json({ 
@@ -225,7 +223,6 @@ async store(req, res) {
             throw new Error('Stock de equipo no encontrado');
           }
 
-          // LÓGICA CORREGIDA - TRANSICIONES DE ESTADO
           if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
             console.log('Devolviendo servidor activo al inventario');
             await tx.stock_equipos.update({
@@ -747,164 +744,50 @@ async store(req, res) {
     }
   },
 
-  async generarPDFPorSede(req, res) {
+  async equiposServidores(req, res) {
     try {
-      const { sede_id } = req.params;
-      const sedeId = parseInt(sede_id);
-
-      console.log(`Generando PDF de servidores para sede ID: ${sedeId}`);
-
-      if (isNaN(sedeId) || sedeId <= 0) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
-      }
-
-      const sede = await prisma.sedes.findUnique({
-        where: { id: sedeId }
-      });
-
-      if (!sede) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
-      }
-
-      const servidores = await prisma.servidores.findMany({
-        where: { sede_id: sedeId },
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
+      console.log('Buscando equipos servidores desde servidoresController...');
+      
+      const equipos = await prisma.stock_equipos.findMany({
+        where: {
+          OR: [
+            {
+              tipo_equipo: {
+                nombre: {
+                  contains: 'servidor',
+                  mode: 'insensitive'
+                }
+              }
+            },
+            {
+              tipo_equipo: {
+                nombre: {
+                  contains: 'server',
+                  mode: 'insensitive'
+                }
+              }
             }
-          },
-          sede: true
+          ],
+          cantidad_disponible: {
+            gt: 0
+          }
         },
-        orderBy: [
-          { ubicacion: 'asc' },
-          { id: 'asc' }
-        ]
-      });
-
-      if (servidores.length === 0) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ 
-          error: 'No se encontraron servidores para esta sede' 
-        }));
-      }
-
-      console.log(`${servidores.length} servidores encontrados en ${sede.nombre}`);
-
-      const data = {
-        titulo: `Reporte de Servidores - ${sede.nombre}`,
-        subtitulo: `Sede: ${sede.nombre}`,
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: servidores.length,
-        servidores: servidores,
-        sede: sede,
-        estadisticas: {
-          activos: servidores.filter(s => s.estado === 'activo').length,
-          inactivos: servidores.filter(s => s.estado === 'inactivo').length,
-          mantenimiento: servidores.filter(s => s.estado === 'mantenimiento').length,
-          desuso: servidores.filter(s => s.estado === 'desuso').length
+        include: {
+          tipo_equipo: true
+        },
+        orderBy: {
+          marca: 'asc'
         }
-      };
-
-      console.log('Renderizando template para sede...');
-      
-      const html = await renderTemplate(req.app, 'pdfs/reporte-servidores-sede', data);
-
-      console.log(' Generando PDF para sede...');
-      
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
-
-      const filename = `reporte-servidores-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
-      
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
       });
       
-      res.end(pdfBuffer);
-
+      console.log(`${equipos.length} servidores encontrados`);
+      res.json(equipos);
+      
     } catch (error) {
-      console.error('Error generando PDF por sede:', error);
-
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message 
-      }));
+      console.error('Error:', error);
+      res.status(500).json({ error: error.message });
     }
   },
-
-  // En servidoresController.js, agrega esta función temporal
-async equiposServidores(req, res) {
-  try {
-    console.log('Buscando equipos servidores desde servidoresController...');
-    
-    const equipos = await prisma.stock_equipos.findMany({
-      where: {
-        OR: [
-          {
-            tipo_equipo: {
-              nombre: {
-                contains: 'servidor',
-                mode: 'insensitive'
-              }
-            }
-          },
-          {
-            tipo_equipo: {
-              nombre: {
-                contains: 'server',
-                mode: 'insensitive'
-              }
-            }
-          }
-        ],
-        cantidad_disponible: {
-          gt: 0
-        }
-      },
-      include: {
-        tipo_equipo: true
-      },
-      orderBy: {
-        marca: 'asc'
-      }
-    });
-    
-    console.log(`${equipos.length} servidores encontrados`);
-    res.json(equipos);
-    
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
 
 
 };

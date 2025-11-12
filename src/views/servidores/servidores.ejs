@@ -180,7 +180,7 @@
             width: 50px;
             height: 50px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #66c0ea 0%, #97f0bf 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -372,13 +372,13 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link" href="/mikrotik">
+                    <a class="nav-link text-white sidebar-link " href="/mikrotik">
                         <i class="bi bi-router me-2"></i>
-                        <span class="sidebar-text">Mikrotiks</span>
+                        <span class="sidebar-text">Redes</span>
                     </a>
                 </li>
 
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a class="nav-link text-white sidebar-link active" href="/servidores">
                         <i class="bi bi-server me-2"></i>
                         <span class="sidebar-text">Servidores</span>
@@ -936,62 +936,63 @@
             }
         }
 
-async function cargarStockEquipos() {
-    try {
-    
-        let allEquipos = [];
-        let page = 1;
-        let hasMore = true;
-        
-        while (hasMore) {
-            const response = await fetch(`/api/stock_equipos?page=${page}&limit=100`);
+        async function cargarStockEquipos() {
+            try {
             
-            if (!response.ok) {
-                throw new Error('Error al cargar equipos del inventario');
-            }
-            
-            const data = await response.json();
-            const equipos = data.stockEquipos || data;
-            
-            if (!equipos || equipos.length === 0) {
-                hasMore = false;
-            } else {
-                allEquipos = allEquipos.concat(equipos);
-                page++;
+                let allEquipos = [];
+                let page = 1;
+                let hasMore = true;
                 
-                if (page > 10) {
-                    hasMore = false;
-                    console.warn('Límite de páginas alcanzado');
+                while (hasMore) {
+                    const response = await fetch(`/api/stock_equipos?page=${page}&limit=100`);
+                    
+                    if (!response.ok) {
+                        throw new Error('Error al cargar equipos del inventario');
+                    }
+                    
+                    const data = await response.json();
+                    const equipos = data.stockEquipos || data;
+                    
+                    if (!equipos || equipos.length === 0) {
+                        hasMore = false;
+                    } else {
+                        allEquipos = allEquipos.concat(equipos);
+                        page++;
+                        
+                        if (page > 10) {
+                            hasMore = false;
+                            console.warn('Límite de páginas alcanzado');
+                        }
+                    }
                 }
+                
+                console.log(`${allEquipos.length} equipos totales cargados (de ${page-1} páginas)`);
+                
+                stockEquipos = allEquipos.filter(equipo => {
+                    const tipoNombre = (equipo.tipo_equipo?.nombre || '').toLowerCase();
+                    const esServidor = tipoNombre.includes('servidor') 
+                                    tipoNombre.includes('server')|| 
+                                    tipoNombre.includes('servidores');
+                    
+                    if (esServidor) {
+                        console.log(`SERVIDOR: ${equipo.marca} ${equipo.modelo} (${tipoNombre})`);
+                    }
+                    
+                    return esServidor;
+                });
+                
+                console.log(`${stockEquipos.length} servidores encontrados`);
+                
+                renderizarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error cargando stock equipos:', error);
+                mostrarError('No se pudieron cargar los servidores del inventario');
+                stockEquipos = [];
+                renderizarStockEquipos();
             }
         }
         
-        console.log(`${allEquipos.length} equipos totales cargados (de ${page-1} páginas)`);
-        
-        stockEquipos = allEquipos.filter(equipo => {
-            const tipoNombre = (equipo.tipo_equipo?.nombre || '').toLowerCase();
-            const esServidor = tipoNombre.includes('servidor') 
-                             tipoNombre.includes('server')|| 
-                             tipoNombre.includes('servidores');
-            
-            if (esServidor) {
-                console.log(`SERVIDOR: ${equipo.marca} ${equipo.modelo} (${tipoNombre})`);
-            }
-            
-            return esServidor;
-        });
-        
-        console.log(`${stockEquipos.length} servidores encontrados`);
-        
-        renderizarStockEquipos();
-        
-    } catch (error) {
-        console.error('Error cargando stock equipos:', error);
-        mostrarError('No se pudieron cargar los servidores del inventario');
-        stockEquipos = [];
-        renderizarStockEquipos();
-    }
-}
         function actualizarResumen() {
             const total = servidores.length;
             const activos = servidores.filter(s => s.estado === 'activo').length;
@@ -1103,33 +1104,33 @@ async function cargarStockEquipos() {
             });
         }
 
-function renderizarStockEquipos() {
-    const select = document.getElementById('create_stock_equipos_id');
-    if (select) {
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
+        function renderizarStockEquipos() {
+            const select = document.getElementById('create_stock_equipos_id');
+            if (select) {
+                while (select.options.length > 1) {
+                    select.remove(1);
+                }
 
-        if (stockEquipos.length === 0) {
-            const option = document.createElement('option');
-            option.value = "";
-            option.textContent = "No hay servidores disponibles en inventario";
-            option.disabled = true;
-            select.appendChild(option);
-            return;
-        }
+                if (stockEquipos.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay servidores disponibles en inventario";
+                    option.disabled = true;
+                    select.appendChild(option);
+                    return;
+                }
 
-        stockEquipos.forEach(equipo => {
-            const option = document.createElement('option');
-            option.value = equipo.id;
-            option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles (${equipo.tipo_equipo?.nombre || 'Sin tipo'})`;
-            option.setAttribute('data-tipo', equipo.tipo_equipo?.nombre || '');
-            select.appendChild(option);
-        });
-        
-        console.log(`${stockEquipos.length} servidores renderizados en el select`);
-    }
-}
+                stockEquipos.forEach(equipo => {
+                    const option = document.createElement('option');
+                    option.value = equipo.id;
+                    option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles (${equipo.tipo_equipo?.nombre || 'Sin tipo'})`;
+                    option.setAttribute('data-tipo', equipo.tipo_equipo?.nombre || '');
+                    select.appendChild(option);
+                });
+                
+                console.log(`${stockEquipos.length} servidores renderizados en el select`);
+            }
+        }
        
         function renderizarPaginacion() {
             const pagination = document.getElementById('paginationContainer');
@@ -1252,7 +1253,7 @@ function renderizarStockEquipos() {
             }
         }
 
-      async function editServidor(id) {
+        async function editServidor(id) {
             try {
                 console.log('Cargando servidor con ID:', id);
                 const response = await fetch(`/api/servidores/${id}`);
@@ -1265,12 +1266,10 @@ function renderizarStockEquipos() {
                 const servidor = await response.json();
                 console.log('Datos recibidos:', servidor);
                 
-                // Verificar que los datos se estén recibiendo correctamente
                 if (!servidor) {
                 throw new Error('No se recibieron datos del servidor');
                 }
                 
-                // Llenar el formulario con los datos
                 document.getElementById('edit_servidor_id').value = servidor.id;
                 document.getElementById('edit_sede_id').value = servidor.sede_id;
                 document.getElementById('edit_estado').value = servidor.estado;
@@ -1548,9 +1547,6 @@ function renderizarStockEquipos() {
             document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
 
-
-            
-        
         }
 
         async function generarReporteGeneralServidores() {
@@ -1663,7 +1659,6 @@ function renderizarStockEquipos() {
                 });
             }
         }
- 
 
     </script>
 </body>
