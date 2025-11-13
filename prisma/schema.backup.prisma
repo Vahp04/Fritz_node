@@ -70,6 +70,7 @@ model stock_equipos {
   tipo_equipo         tipo_equipo       @relation(fields: [tipo_equipo_id], references: [id], onDelete: NoAction)
   servidores          servidores[]      @relation("ServidoresPrincipal")
   dvr                 dvr[]             @relation("DvrPrincipal")
+  telefonos            telefonos[]      @relation("TelefonoUsuarios")
 
   @@map("stock_equipos")
 }
@@ -103,6 +104,7 @@ model usuarios {
   equipo_asignado equipo_asignado[]
   departamento    departamentos     @relation(fields: [departamento_id], references: [id], onDelete: NoAction)
   sede            sedes             @relation(fields: [sede_id], references: [id], onDelete: NoAction)
+  telefonos       telefonos[]
 
   @@map("usuarios")
 }
@@ -239,6 +241,23 @@ model dvr{
   sede              sedes          @relation(fields: [sede_id], references: [id], onDelete: NoAction)
 
   @@map("dvr")
+  }
+
+  model telefonos{
+    id                Int             @id @default(autoincrement())
+    usuarios_id       Int
+    stock_equipos_id  Int
+    num_telefono      String          @db.VarChar(191)
+    ip_telefono       String          @db.VarChar(191)
+    mac_telefono      String?         @db.VarChar(191)
+    mail_telefono     String          @db.VarChar(191)
+    fecha_asignacion  DateTime?
+    created_at        DateTime        @default(now())
+    updated_at        DateTime        @default(now()) @updatedAt
+    stock_equipos     stock_equipos   @relation("TelefonoUsuarios", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
+    usuarios          usuarios        @relation(fields: [usuarios_id], references: [id], onDelete: NoAction)
+
+    @@map("telefonos")
   }
 
 enum cargo {

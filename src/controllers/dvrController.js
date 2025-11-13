@@ -862,7 +862,6 @@ export const dvrController = {
 
       console.log(`${dvrs.length} DVRs encontrados`);
 
-      // Asegurar datos completos para el PDF
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',
@@ -994,7 +993,6 @@ export const dvrController = {
 
       console.log(`${dvrs.length} DVRs encontrados en ${sede.nombre}`);
 
-      // Asegurar datos completos para el PDF
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',
