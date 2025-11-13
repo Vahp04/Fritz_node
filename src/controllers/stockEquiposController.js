@@ -699,6 +699,21 @@ async equiposParaAsignacion(req, res) {
             const excluir = tipoNombre.includes('mikrotik') || 
                            tipoNombre.includes('impresora') ||
                            tipoNombre.includes('toner') ||
+                           tipoNombre.includes('tinta') ||
+                           tipoNombre.includes('cartucho') ||
+                           tipoNombre.includes('telefono') ||
+                           tipoNombre.includes('celular') ||
+                           tipoNombre.includes('movil') ||
+                           tipoNombre.includes('servidor') ||
+                           tipoNombre.includes('hotspot') ||
+                           tipoNombre.includes('toner') ||
+                           tipoNombre.includes('servidores') ||
+                           tipoNombre.includes('dvr') ||
+                           tipoNombre.includes('DVR') ||
+                           tipoNombre.includes('camara') ||
+                           tipoNombre.includes('switch') ||
+                           tipoNombre.includes('teléfono') ||
+                           tipoNombre.includes('móvil') ||
                            tipoNombre.includes('consumible');
             
             if (excluir) {
@@ -1058,7 +1073,6 @@ async equiposParaTelefonosCompleto(req, res) {
         tipoNombre.includes('móvil') ||
         tipoNombre.includes('movil');
 
-      // Solo incluir equipos con stock disponible
       return esTelefono && equipo.cantidad_disponible > 0;
     });
 

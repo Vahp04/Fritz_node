@@ -1318,15 +1318,12 @@ async verPdfPorUsuario(req, res) {
     try {
         const { usuarioId } = req.params;
 
-        // Obtener y actualizar el contador en una transacción
         let contador = await prisma.$transaction(async (tx) => {
-            // Buscar el contador existente
             let counter = await tx.contadorRegistros.findUnique({
                 where: { tipo: 'reporte_equipos' }
             });
 
             if (!counter) {
-                // Si no existe, crear uno nuevo
                 counter = await tx.contadorRegistros.create({
                     data: {
                         tipo: 'reporte_equipos',
@@ -1334,7 +1331,6 @@ async verPdfPorUsuario(req, res) {
                     }
                 });
             } else {
-                // Si existe, incrementar el número
                 counter = await tx.contadorRegistros.update({
                     where: { tipo: 'reporte_equipos' },
                     data: {
@@ -1443,7 +1439,6 @@ async verPdfPorUsuario(req, res) {
 
         const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
         
-        // Configuración para abrir en el navegador
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${nombreArchivo}"`);
         res.setHeader('Content-Length', pdfBuffer.length);
