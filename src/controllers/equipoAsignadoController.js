@@ -1318,15 +1318,36 @@ async verPdfPorUsuario(req, res) {
     try {
         const { usuarioId } = req.params;
 
-        let contador = await prisma.contadorRegistros.findUnique({
-            where: { tipo: 'reporte_equipos' }
+        // Obtener y actualizar el contador en una transacción
+        let contador = await prisma.$transaction(async (tx) => {
+            // Buscar el contador existente
+            let counter = await tx.contadorRegistros.findUnique({
+                where: { tipo: 'reporte_equipos' }
+            });
+
+            if (!counter) {
+                // Si no existe, crear uno nuevo
+                counter = await tx.contadorRegistros.create({
+                    data: {
+                        tipo: 'reporte_equipos',
+                        ultimoNumero: 1
+                    }
+                });
+            } else {
+                // Si existe, incrementar el número
+                counter = await tx.contadorRegistros.update({
+                    where: { tipo: 'reporte_equipos' },
+                    data: {
+                        ultimoNumero: { increment: 1 }
+                    }
+                });
+            }
+
+            return counter;
         });
 
-        if (!contador) {
-            contador = { ultimoNumero: 1 };
-        }
-
         const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
+        console.log(`Número de registro generado: ${numeroRegistro}`);
 
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(usuarioId) },
@@ -1340,7 +1361,7 @@ async verPdfPorUsuario(req, res) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-       const equiposAsignados = await prisma.equipo_asignado.findMany({
+        const equiposAsignados = await prisma.equipo_asignado.findMany({
             where: { usuarios_id: parseInt(usuarioId) },
             select: {
                 id: true,
@@ -1411,20 +1432,24 @@ async verPdfPorUsuario(req, res) {
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
         const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'Letter',
+            format: 'A4',
             landscape: false
         });
 
         console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+        console.log(`Número de registro utilizado: ${numeroRegistro}`);
 
         if (res.headersSent) return;
 
         const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
         
+        // Configuración para abrir en el navegador
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${nombreArchivo}"`);
         res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
 
         res.end(pdfBuffer);
 

@@ -20,5 +20,5 @@ router.get('/api/:id', telefonoAsignadoController.apiShow);
 
 router.get('/pdf/usuario/:usuarioId', telefonoAsignadoController.generarPDFPorUsuario);
 router.get('/pdf/general', telefonoAsignadoController.generarPDFGeneral);
-
+router.post('/:id/devolver', telefonoAsignadoController.devolverTelefono);
 export default router;

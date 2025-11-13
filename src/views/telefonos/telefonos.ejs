@@ -207,7 +207,7 @@
             width: 50px;
             height: 50px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #274ebbff 0%, #764ba2 100%);
+            background: linear-gradient(130deg, rgb(215, 208, 60) 0%, #e03f3f 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -351,7 +351,7 @@
                 </li>
 
                 <li class="nav-item">
-                        <a class="nav-link text-white sidebar-link" href="/telefonos">
+                        <a class="nav-link text-white sidebar-link active" href="/telefonos">
                             <i class="bi bi-telephone me-2"></i>
                             <span class="sidebar-text">Teléfonos</span>
                         </a>
@@ -385,12 +385,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white sidebar-link active" href="/telefonos-asignados">
-                        <i class="bi bi-telephone me-2"></i>
-                        <span class="sidebar-text">Teléfonos Asignados</span>
-                    </a>
-                </li>
+              
 
                 <li class="nav-item">
                     <a class="nav-link text-white sidebar-link " href="/consumibles">
@@ -546,23 +541,18 @@
                             </h5>
                             <div class="dropdown">
                                 <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-download me-1"></i> Exportar
+                                    <i class="bi bi-file-pdf me-1"></i> Reportes PDF
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>
                                         <a class="dropdown-item" href="#" onclick="generarPDFGeneral()">
-                                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF General
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="verPDFGeneral()">
-                                            <i class="bi bi-eye me-2"></i>Ver PDF General
+                                            <i class="bi bi-eye me-2"></i>Ver Reporte General
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item" href="#" onclick="abrirModalSeleccionUsuario()">
-                                            <i class="bi bi-person me-2"></i>PDF por Usuario
+                                            <i class="bi bi-person me-2"></i>Reporte por Usuario
                                         </a>
                                     </li>
                                 </ul>
@@ -611,12 +601,12 @@
                                         <th>Línea</th>
                                         <th>IP</th>
                                         <th>Fecha Asignación</th>
-                                        <th width="120px" class="text-center">Acciones</th>
+                                        <th width="150px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="telefonosAsignadosTableBody">
                                     <tr id="loadingRow">
-                                        <td colspan="8" class="text-center py-4">
+                                        <td colspan="8¿9" class="text-center py-4">
                                             <div class="spinner-border text-danger" role="status">
                                                 <span class="visually-hidden">Cargando...</span>
                                             </div>
@@ -883,10 +873,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="generarPDFUsuarioSeleccionado()">
-                        <i class="bi bi-download me-1"></i> Descargar PDF
-                    </button>
-                    <button type="button" class="btn btn-info text-white" onclick="verPDFUsuarioSeleccionado()">
-                        <i class="bi bi-eye me-1"></i> Ver PDF
+                        <i class="bi bi-eye me-1"></i> Ver Reporte
                     </button>
                 </div>
             </div>
@@ -1180,7 +1167,7 @@
             if (telefonosAsignados.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center py-4">
+                        <td colspan="9" class="text-center py-4"> <!-- Cambiado a 9 columnas -->
                             <i class="bi bi-telephone display-4 text-muted mb-3"></i>
                             <p class="text-muted mb-0">No se encontraron teléfonos asignados</p>
                             <button class="btn btn-sm btn-fritz mt-2" onclick="cargarTelefonosAsignados()">
@@ -1242,11 +1229,11 @@
                     </td>
                     <td>
                         <small class="d-block">
-                            <i class="bi bi-wifi me-1"></i>${asignacion.ip_telefono || 'N/A'}
+                            <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_telefono || 'N/A'}
                         </small>
                         ${asignacion.mac_telefono ? `
                         <small class="d-block text-muted">
-                            <i class="bi bi-hdd-network me-1"></i>${asignacion.mac_telefono}
+                            <i class="bi bi-wifi me-1"></i>${asignacion.mac_telefono}
                         </small>
                         ` : ''}
                     </td>
@@ -1265,6 +1252,11 @@
                                 onclick="editTelefonoAsignado(${asignacion.id})"
                                 title="Editar">
                             <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success action-btn me-1" 
+                                onclick="devolverTelefonoAsignado(${asignacion.id})"
+                                title="Devolver al Inventario">
+                            <i class="bi bi-arrow-return-left"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger action-btn"
                                 onclick="deleteTelefonoAsignado(${asignacion.id})"
@@ -1351,7 +1343,7 @@
             }
         }
 
-        // Funciones de gestión de temas
+        // TEMA
         function applySavedTheme() {
             const savedTheme = localStorage.getItem('theme');
             const htmlElement = document.documentElement;
@@ -1395,6 +1387,72 @@
             localStorage.setItem('theme', newTheme);
         }
 
+        async function devolverTelefonoAsignado(id) {
+    const result = await Swal.fire({
+        title: '¿Devolver teléfono al inventario?',
+        html: `
+            <div class="text-start">
+                <p>Esta acción:</p>
+                <ul class="text-start">
+                    <li>Eliminará esta asignación</li>
+                    <li>Devolverá el teléfono al stock disponible</li>
+                    <li>Actualizará los contadores de inventario</li>
+                </ul>
+                <p class="text-warning mt-2"><strong>¿Estás seguro de continuar?</strong></p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: '<i class="bi bi-arrow-return-left me-1"></i>Sí, devolver',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/telefonos-asignados/${id}/devolver`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Teléfono devuelto!',
+                    html: `
+                        <div class="text-center">
+                            <i class="bi bi-check-circle-fill text-success display-4 mb-3"></i>
+                            <p class="mb-2">${data.message}</p>
+                            <small class="text-muted">El teléfono ahora está disponible en el inventario</small>
+                        </div>
+                    `,
+                    confirmButtonText: 'Aceptar'
+                });
+                
+                await cargarTelefonosAsignados();
+                
+            } else {
+                throw new Error(data.error || 'Error al devolver el teléfono');
+            }
+        } catch (error) {
+            console.error('Error devolviendo teléfono:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                confirmButtonText: 'Entendido'
+            });
+        }
+    }
+}
+
         // Inicialización de eventos
         function inicializarEventos() {
             document.getElementById('logoutForm').addEventListener('submit', function(e) {
@@ -1412,7 +1470,6 @@
                 await actualizarTelefonoAsignado();
             });
 
-            // Filtros con debounce
             const searchUsuario = document.getElementById('searchUsuario');
             const searchTelefono = document.getElementById('searchTelefono');
             const searchNumero = document.getElementById('searchNumero');
@@ -1423,7 +1480,6 @@
             if (searchNumero) searchNumero.addEventListener('input', debounce(aplicarFiltros, 500));
             if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
 
-            // Eventos del sidebar
             const sidebarToggle = document.getElementById('sidebarToggle');
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', function() {
@@ -1677,7 +1733,7 @@
             const tbody = document.getElementById('telefonosAsignadosTableBody');
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center py-4">
+                    <td colspan="9" class="text-center py-4">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Buscando...</span>
                         </div>
@@ -1720,49 +1776,56 @@
             $('#seleccionUsuarioModal').modal('show');
         }
 
-        function generarPDFUsuarioSeleccionado() {
-            const usuarioId = document.getElementById('usuarioSeleccionado').value;
-            if (usuarioId) {
-                generarPDFUsuario(usuarioId);
-                $('#seleccionUsuarioModal').modal('hide');
-            } else {
-                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-            }
-        }
+function generarPDFGeneral() {
+    console.log('Abriendo PDF general de teléfonos...');
+    const url = '/api/telefonos-asignados/pdf/general';
+    
+    // Abrir en nueva pestaña
+    window.open(url, '_blank');
+}
 
-        function verPDFUsuarioSeleccionado() {
-            const usuarioId = document.getElementById('usuarioSeleccionado').value;
-            if (usuarioId) {
-                verPDFUsuario(usuarioId);
-                $('#seleccionUsuarioModal').modal('hide');
-            } else {
-                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-            }
-        }
+function verPDFGeneral() {
+    console.log('Abriendo PDF general de teléfonos...');
+    const url = '/api/telefonos-asignados/pdf/general';
+    
+    // Abrir en nueva pestaña
+    window.open(url, '_blank');
+}
 
-        function generarPDFUsuario(usuarioId) {
-            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
-            console.log(`Descargando PDF para usuario ${usuarioId}: ${url}`);
-            window.location.href = url;
-        }
+function generarPDFUsuario(usuarioId) {
+    const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+    console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
+    
+    // Abrir en nueva pestaña
+    window.open(url, '_blank');
+}
 
-        function verPDFUsuario(usuarioId) {
-            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
-            console.log(`Viendo PDF para usuario ${usuarioId}: ${url}`);
-            window.open(url, '_blank');
-        }
+function verPDFUsuario(usuarioId) {
+    const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+    console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
+    
+    window.open(url, '_blank');
+}
 
-        function generarPDFGeneral() {
-            const url = '/api/telefonos-asignados/pdf/general';
-            console.log('Descargando PDF general de teléfonos');
-            window.location.href = url;
-        }
+function generarPDFUsuarioSeleccionado() {
+    const usuarioId = document.getElementById('usuarioSeleccionado').value;
+    if (usuarioId) {
+        generarPDFUsuario(usuarioId);
+        $('#seleccionUsuarioModal').modal('hide');
+    } else {
+        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+    }
+}
 
-        function verPDFGeneral() {
-            const url = '/api/telefonos-asignados/pdf/general';
-            console.log('Viendo PDF general de teléfonos');
-            window.open(url, '_blank');
-        }
+function verPDFUsuarioSeleccionado() {
+    const usuarioId = document.getElementById('usuarioSeleccionado').value;
+    if (usuarioId) {
+        verPDFUsuario(usuarioId);
+        $('#seleccionUsuarioModal').modal('hide');
+    } else {
+        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+    }
+}
 
         function mostrarError(mensaje) {
             Swal.fire({

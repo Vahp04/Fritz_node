@@ -558,267 +558,328 @@ async update(req, res) {
     }
   },
 
-  async generarPDFPorUsuario(req, res) {
-    console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
-    
-    try {
-      const { usuarioId } = req.params;
+  async devolverTelefono(req, res) {
+  try {
+    const { id } = req.params;
+    console.log('Devolviendo teléfono asignado:', id);
 
-      const usuario = await prisma.usuarios.findUnique({
-        where: { id: parseInt(usuarioId) },
-        include: {
-          sede: { select: { nombre: true } },
-          departamento: { select: { nombre: true } }
-        }
-      });
+    const telefonoAsignado = await prisma.telefonos.findUnique({
+      where: { id: parseInt(id) }
+    });
 
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
-      }
-
-      const telefonosAsignados = await prisma.telefonos.findMany({
-        where: { usuarios_id: parseInt(usuarioId) },
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: { select: { nombre: true } }
-            }
-          }
-        },
-        orderBy: { fecha_asignacion: 'desc' }
-      });
-
-      const telefonosProcesados = telefonosAsignados.map(asignacion => {
-        const stock = asignacion.stock_equipos || {};
-        const tipoEquipo = stock.tipo_equipo || {};
-        
-        return {
-          id: asignacion.id,
-          num_telefono: asignacion.num_telefono,
-          ip_telefono: asignacion.ip_telefono,
-          mac_telefono: asignacion.mac_telefono,
-          mail_telefono: asignacion.mail_telefono,
-          fecha_asignacion: asignacion.fecha_asignacion,
-          stockEquipo: {
-            id: stock.id || 0,
-            marca: stock.marca || 'N/A',
-            modelo: stock.modelo || '',
-            tipoEquipo: {
-              nombre: tipoEquipo.nombre || 'Teléfono'
-            }
-          }
-        };
-      });
-
-      const totalTelefonos = telefonosProcesados.length;
-
-      const data = {
-        titulo: `Reporte de Teléfonos Asignados - ${usuario.nombre} ${usuario.apellido}`,
-        subtitulo: `Usuario: ${usuario.nombre} ${usuario.apellido}`,
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: totalTelefonos,
-        telefonos: telefonosProcesados,
-        usuario: usuario,
-        sede: usuario.sede
-      };
-
-      console.log('Renderizando template para teléfonos...');
-      
-      const html = await renderTemplate(req.app, 'pdfs/reporte-telefonos-usuario', data);
-
-      console.log('Generando PDF para teléfonos...');
-      
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF de teléfonos generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
-
-      const filename = `reporte-telefonos-${usuario.nombre.replace(/\s+/g, '-')}-${usuario.apellido.replace(/\s+/g, '-')}.pdf`;
-      
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-      
-      res.end(pdfBuffer);
-
-    } catch (error) {
-      console.error('Error generando PDF por usuario:', error);
-
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message 
-      }));
+    if (!telefonoAsignado) {
+      return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
     }
-  },
 
-  async generarPDFGeneral(req, res) {
-    console.log('=== GENERAR PDF GENERAL DE TELÉFONOS INICIADO ===');
-    
-    try {
-      const { sede_id, departamento_id } = req.query;
-
-      let whereClause = {};
-
-      if (sede_id) {
-        whereClause.usuarios = {
-          sede_id: parseInt(sede_id)
-        };
+    await prisma.stock_equipos.update({
+      where: { id: telefonoAsignado.stock_equipos_id },
+      data: {
+        cantidad_disponible: { increment: 1 },
+        cantidad_asignada: { decrement: 1 }
       }
+    });
 
-      if (departamento_id) {
-        whereClause.usuarios = {
-          ...whereClause.usuarios,
-          departamento_id: parseInt(departamento_id)
-        };
-      }
+    await prisma.telefonos.delete({
+      where: { id: parseInt(id) }
+    });
 
-      const telefonosAsignados = await prisma.telefonos.findMany({
-        where: whereClause,
-        include: {
-          usuarios: {
-            include: {
-              sede: true,
-              departamento: true
-            }
-          },
-          stock_equipos: {
-            include: {
-              tipo_equipo: { select: { nombre: true } }
-            }
-          }
-        },
-        orderBy: [
-          { usuarios: { sede_id: 'asc' } },
-          { usuarios: { departamento_id: 'asc' } },
-          { usuarios: { nombre: 'asc' } }
-        ]
-      });
+    res.json({ 
+      message: 'Teléfono devuelto al inventario exitosamente.',
+      stock_equipos_id: telefonoAsignado.stock_equipos_id
+    });
 
-      const telefonosProcesados = telefonosAsignados.map(asignacion => {
-        const usuario = asignacion.usuarios || {};
-        const stock = asignacion.stock_equipos || {};
-        const tipoEquipo = stock.tipo_equipo || {};
-        
-        return {
-          id: asignacion.id,
-          num_telefono: asignacion.num_telefono,
-          ip_telefono: asignacion.ip_telefono,
-          mac_telefono: asignacion.mac_telefono,
-          mail_telefono: asignacion.mail_telefono,
-          fecha_asignacion: asignacion.fecha_asignacion,
-          usuario: {
-            id: usuario.id,
-            nombre: usuario.nombre,
-            apellido: usuario.apellido,
-            cargo: usuario.cargo,
-            sede: usuario.sede,
-            departamento: usuario.departamento
-          },
-          stockEquipo: {
-            id: stock.id || 0,
-            marca: stock.marca || 'N/A',
-            modelo: stock.modelo || '',
-            tipoEquipo: {
-              nombre: tipoEquipo.nombre || 'Teléfono'
-            }
-          }
-        };
-      });
+  } catch (error) {
+    console.error('Error en devolverTelefono:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
-      const totalTelefonos = telefonosProcesados.length;
-
-      let titulo = 'Reporte General de Teléfonos Asignados';
-      if (sede_id) {
-        const sede = await prisma.sedes.findUnique({
-          where: { id: parseInt(sede_id) }
-        });
-        titulo += ` - Sede: ${sede?.nombre || 'Desconocida'}`;
-      }
-
-      const data = {
-        titulo: titulo,
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: totalTelefonos,
-        telefonos: telefonosProcesados,
-        filtros: {
-          sede_id: sede_id || null,
-          departamento_id: departamento_id || null
-        }
-      };
-
-      console.log('Renderizando template general para teléfonos...');
-      
-      const html = await renderTemplate(req.app, 'pdfs/reporte-telefonos-general', data);
-
-      console.log('Generando PDF general para teléfonos...');
-      
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF general de teléfonos generado exitosamente');
-
-      const filename = `reporte-telefonos-general-${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-      
-      res.end(pdfBuffer);
-
-    } catch (error) {
-      console.error('Error generando PDF general:', error);
-
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message 
-      }));
-    }
-  },
-
+async generarPDFPorUsuario(req, res) {
+  console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
   
+  try {
+    const { usuarioId } = req.params;
+
+    const usuario = await prisma.usuarios.findUnique({
+      where: { id: parseInt(usuarioId) },
+      include: {
+        sede: { select: { nombre: true } },
+        departamento: { select: { nombre: true } }
+      }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const telefonosAsignados = await prisma.telefonos.findMany({
+      where: { usuarios_id: parseInt(usuarioId) },
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: { select: { nombre: true } }
+          }
+        }
+      },
+      orderBy: { fecha_asignacion: 'desc' }
+    });
+
+    const telefonosProcesados = telefonosAsignados.map(asignacion => {
+      const stock = asignacion.stock_equipos || {};
+      const tipoEquipo = stock.tipo_equipo || {};
+      
+      return {
+        id: asignacion.id,
+        num_telefono: asignacion.num_telefono,
+        ip_telefono: asignacion.ip_telefono,
+        mac_telefono: asignacion.mac_telefono,
+        mail_telefono: asignacion.mail_telefono,
+        linea_telefono: asignacion.linea_telefono,
+        fecha_asignacion: asignacion.fecha_asignacion,
+        stockEquipo: {
+          id: stock.id || 0,
+          marca: stock.marca || 'N/A',
+          modelo: stock.modelo || '',
+          tipoEquipo: {
+            nombre: tipoEquipo.nombre || 'Teléfono'
+          }
+        }
+      };
+    });
+
+    const totalTelefonos = telefonosProcesados.length;
+
+    // Manejo del contador sin upsert
+    let contador = await prisma.contador_documentos.findUnique({
+      where: { tipo: 'TELEFONOS_USUARIO' }
+    });
+
+    let numeroDocumento;
+    
+    if (!contador) {
+      // Crear contador si no existe
+      contador = await prisma.contador_documentos.create({
+        data: {
+          tipo: 'TELEFONOS_USUARIO',
+          valor: 1
+        }
+      });
+      numeroDocumento = '0001';
+    } else {
+      // Incrementar contador existente
+      contador = await prisma.contador_documentos.update({
+        where: { tipo: 'TELEFONOS_USUARIO' },
+        data: { 
+          valor: contador.valor + 1,
+          fecha_actualizacion: new Date()
+        }
+      });
+      numeroDocumento = contador.valor.toString().padStart(4, '0');
+    }
+
+    const data = {
+      titulo: `Reporte de Teléfonos Asignados - ${usuario.nombre} ${usuario.apellido}`,
+      subtitulo: `Usuario: ${usuario.nombre} ${usuario.apellido}`,
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: totalTelefonos,
+      telefonos: telefonosProcesados,
+      usuario: usuario,
+      sede: usuario.sede,
+      numeroDocumento: numeroDocumento
+    };
+
+    console.log('Renderizando template para teléfonos...');
+    
+    const html = await renderTemplate(req.app, 'pdfs/reporte-telefonos-usuario', data);
+
+    console.log('Generando PDF para teléfonos...');
+    
+    const pdfOptions = {
+      format: 'Letter',
+      landscape: false,
+      printBackground: true,
+      margin: {
+        top: '15mm',
+        right: '10mm',
+        bottom: '15mm',
+        left: '10mm'
+      }
+    };
+
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('PDF de teléfonos generado exitosamente');
+    console.log('Número de documento:', numeroDocumento);
+
+    const filename = `reporte-telefonos-${usuario.nombre.replace(/\s+/g, '-')}-${usuario.apellido.replace(/\s+/g, '-')}-${numeroDocumento}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('Error generando PDF por usuario:', error);
+
+    res.status(500).json({ 
+      error: 'Error generando PDF', 
+      detalles: error.message 
+    });
+  }
+},
+async generarPDFGeneral(req, res) {
+  console.log('=== GENERAR PDF GENERAL DE TELÉFONOS INICIADO ===');
+  
+  try {
+    const { sede_id, departamento_id } = req.query;
+
+    let whereClause = {};
+
+    if (sede_id) {
+      whereClause.usuarios = {
+        sede_id: parseInt(sede_id)
+      };
+    }
+
+    if (departamento_id) {
+      whereClause.usuarios = {
+        ...whereClause.usuarios,
+        departamento_id: parseInt(departamento_id)
+      };
+    }
+
+    const telefonosAsignados = await prisma.telefonos.findMany({
+      where: whereClause,
+      include: {
+        usuarios: {
+          include: {
+            sede: true,
+            departamento: true
+          }
+        },
+        stock_equipos: {
+          include: {
+            tipo_equipo: { select: { nombre: true } }
+          }
+        }
+      },
+      orderBy: [
+        { usuarios: { sede_id: 'asc' } },
+        { usuarios: { departamento_id: 'asc' } },
+        { usuarios: { nombre: 'asc' } }
+      ]
+    });
+
+    const telefonosProcesados = telefonosAsignados.map(asignacion => {
+      const usuario = asignacion.usuarios || {};
+      const stock = asignacion.stock_equipos || {};
+      const tipoEquipo = stock.tipo_equipo || {};
+      
+      return {
+        id: asignacion.id,
+        num_telefono: asignacion.num_telefono,
+        ip_telefono: asignacion.ip_telefono,
+        mac_telefono: asignacion.mac_telefono,
+        mail_telefono: asignacion.mail_telefono,
+        fecha_asignacion: asignacion.fecha_asignacion,
+        usuario: {
+          id: usuario.id,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
+          cargo: usuario.cargo,
+          sede: usuario.sede,
+          departamento: usuario.departamento
+        },
+        stockEquipo: {
+          id: stock.id || 0,
+          marca: stock.marca || 'N/A',
+          modelo: stock.modelo || '',
+          tipoEquipo: {
+            nombre: tipoEquipo.nombre || 'Teléfono'
+          }
+        }
+      };
+    });
+
+    const totalTelefonos = telefonosProcesados.length;
+
+    let titulo = 'Reporte General de Teléfonos Asignados';
+    let subtitulo = 'Todos los teléfonos asignados en el sistema';
+    
+    if (sede_id) {
+      const sede = await prisma.sedes.findUnique({
+        where: { id: parseInt(sede_id) }
+      });
+      titulo = `Reporte de Teléfonos - Sede: ${sede?.nombre || 'Desconocida'}`;
+      subtitulo = `Teléfonos asignados en ${sede?.nombre || 'la sede seleccionada'}`;
+    }
+
+    const data = {
+      titulo: titulo,
+      subtitulo: subtitulo,
+      fecha: new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      total: totalTelefonos,
+      telefonos: telefonosProcesados,
+      filtros: {
+        sede_id: sede_id || null,
+        departamento_id: departamento_id || null
+      }
+    };
+
+    console.log('Renderizando template general para teléfonos...');
+    
+    const html = await renderTemplate(req.app, 'pdfs/reporte-telefonos-general', data);
+
+    console.log('Generando PDF general para teléfonos...');
+    
+    const pdfOptions = {
+      format: 'Letter',
+      landscape: true, 
+      printBackground: true,
+      margin: {
+        top: '15mm',
+        right: '10mm',
+        bottom: '15mm',
+        left: '10mm'
+      }
+    };
+
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+    
+    console.log('PDF general de teléfonos generado exitosamente');
+
+    const filename = `reporte-telefonos-general-${new Date().toISOString().split('T')[0]}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('Error generando PDF general:', error);
+
+    res.status(500).json({ 
+      error: 'Error generando PDF', 
+      detalles: error.message 
+    });
+  }
+},
 };
