@@ -302,12 +302,14 @@ enum EstadoDvr{
 
 }
 
-model ContadorRegistros {
+model contadorRegistros {
   id        Int      @id @default(autoincrement())
   tipo      String   @unique // Por ejemplo: "reporte_equipos"
   ultimoNumero Int   @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("contadorRegistros")
 }
 
 model contador_documentos {
