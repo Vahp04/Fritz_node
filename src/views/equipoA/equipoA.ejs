@@ -371,6 +371,13 @@
                 </li>
 
                 <li class="nav-item">
+                        <a class="nav-link text-white sidebar-link" href="/telefonos">
+                            <i class="bi bi-telephone me-2"></i>
+                            <span class="sidebar-text">Teléfonos</span>
+                        </a>
+                    </li>
+
+                <li class="nav-item">
                     <a class="nav-link text-white sidebar-link" href="/sedes">
                         <i class="bi bi-building me-2"></i>
                         <span class="sidebar-text">Sedes</span>
@@ -1412,12 +1419,12 @@ function renderizarEquiposAsignados() {
                 ` : ''}
                 ${asignacion.ip_equipo ? `
                 <small class="d-block text-muted">
-                    <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_equipo}
+                    <i class="bi bi-wifi me-1"></i>${asignacion.ip_equipo}
                 </small>
                 ` : ''}
                 ${asignacion.numero_serie ? `
                 <small class="d-block text-muted">
-                    <i class="bi bi-upc-scan me-1"></i>${asignacion.numero_serie}
+                    <i class="bi bi-hdd-network me-1"></i>${asignacion.numero_serie}
                 </small>
                 ` : ''}
             </td>

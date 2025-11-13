@@ -330,6 +330,13 @@
                 </li>
 
                 <li class="nav-item">
+                        <a class="nav-link text-white sidebar-link" href="/telefonos">
+                            <i class="bi bi-telephone me-2"></i>
+                            <span class="sidebar-text">Teléfonos</span>
+                        </a>
+                    </li>
+
+                <li class="nav-item">
                     <a class="nav-link text-white sidebar-link" href="/sedes">
                         <i class="bi bi-building me-2"></i>
                         <span class="sidebar-text">Sedes</span>
@@ -1044,7 +1051,7 @@
                     </td>
                     <td>
                         <div class="d-flex flex-column gap-1">
-                            ${servidor.ip_servidores ? `<span class="ip-address">${servidor.ip_servidores}</span>` : '<small class="text-muted">Sin IP</small>'}
+                            ${servidor.ip_servidores ? `<span class="ip-address bi bi-wifi me-1">${servidor.ip_servidores}</span>` : '<small class="text-muted">Sin IP</small>'}
                             ${servidor.cereal_servidores ? `<small class="text-muted">${servidor.cereal_servidores}</small>` : ''}
                         </div>
                     </td>
