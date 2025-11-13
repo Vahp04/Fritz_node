@@ -23,7 +23,7 @@ export const dvrController = {
           { cereal_dvr: { contains: search, mode: 'insensitive' } },
           { mac_dvr: { contains: search, mode: 'insensitive' } },
           { switch: { contains: search, mode: 'insensitive' } },
-          { ubicacion: { contains: search, mode: 'insensitive' } } // Agregado ubicación a la búsqueda
+          { ubicacion: { contains: search, mode: 'insensitive' } } 
         ];
       }
 
@@ -54,11 +54,10 @@ export const dvrController = {
         take: limit
       });
 
-      // Asegurar que todos los campos tengan valores por defecto
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',
-        ubicacion: dvr.ubicacion || 'Sin ubicación', // Valor por defecto
+        ubicacion: dvr.ubicacion || 'Sin ubicación', 
         sede_id: dvr.sede_id,
         cantidad_cam: dvr.cantidad_cam || 0,
         ip_dvr: dvr.ip_dvr || '',
@@ -125,7 +124,6 @@ export const dvrController = {
         return res.status(404).json({ error: 'DVR no encontrado' });
       }
 
-      // Asegurar datos completos
       const dvrConDatosCompletos = {
         id: dvr.id,
         descripcion: dvr.descripcion || '',
@@ -173,12 +171,11 @@ export const dvrController = {
         mac_dvr,
         switch: switchName,
         estado,
-        ubicacion // Agregado ubicación
+        ubicacion 
       } = req.body;
 
       console.log('Datos recibidos para crear DVR:', req.body);
 
-      // Validar campos requeridos
       if (!ubicacion || ubicacion.trim() === '') {
         return res.status(400).json({ error: 'La ubicación es requerida' });
       }
@@ -212,7 +209,7 @@ export const dvrController = {
           data: {
             stock_equipos_id: stockEquiposId, 
             descripcion: descripcion || '',
-            ubicacion: ubicacion, // Campo requerido
+            ubicacion: ubicacion, 
             sede_id: sedeId, 
             cantidad_cam: cantidadCam,
             ip_dvr: ip_dvr || '',
@@ -234,7 +231,7 @@ export const dvrController = {
         return dvr;
       });
 
-      // Cargar el DVR creado con relaciones
+  
       const dvrCompleto = await prisma.dvr.findUnique({
         where: { id: resultado.id },
         include: {
@@ -270,12 +267,11 @@ export const dvrController = {
         mac_dvr,
         switch: switchName,
         estado,
-        ubicacion // Agregado ubicación
+        ubicacion 
       } = req.body;
 
       console.log('Datos recibidos para actualizar:', req.body);
 
-      // Validar ubicación
       if (!ubicacion || ubicacion.trim() === '') {
         return res.status(400).json({ error: 'La ubicación es requerida' });
       }
@@ -389,7 +385,7 @@ export const dvrController = {
           where: { id: dvrId },
           data: {
             descripcion: descripcion || '',
-            ubicacion: ubicacion, // Campo requerido
+            ubicacion: ubicacion, 
             sede_id: sedeId,
             cantidad_cam: cantidadCam,
             ip_dvr: ip_dvr || '',
@@ -513,7 +509,6 @@ export const dvrController = {
             throw new Error('Stock de equipo no encontrado');
           }
 
-          // Misma lógica de cambio de estado
           if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
             await tx.stock_equipos.update({
               where: { id: stockEquipoId },
@@ -623,7 +618,6 @@ export const dvrController = {
         }
       });
 
-      // Asegurar datos completos
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',
@@ -687,7 +681,6 @@ export const dvrController = {
         }
       });
 
-      // Asegurar datos completos
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',
@@ -789,7 +782,7 @@ export const dvrController = {
             { cereal_dvr: { contains: q, mode: 'insensitive' } },
             { mac_dvr: { contains: q, mode: 'insensitive' } },
             { switch: { contains: q, mode: 'insensitive' } },
-            { ubicacion: { contains: q, mode: 'insensitive' } } // Agregado ubicación
+            { ubicacion: { contains: q, mode: 'insensitive' } } 
           ]
         },
         include: {
@@ -805,7 +798,6 @@ export const dvrController = {
         }
       });
 
-      // Asegurar datos completos
       const dvrsConDatosCompletos = dvrs.map(dvr => ({
         id: dvr.id,
         descripcion: dvr.descripcion || '',

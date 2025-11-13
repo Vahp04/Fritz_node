@@ -907,8 +907,6 @@ async servidores(req, res) {
     }
 },
 
-
-// Endpoint mejorado para DVRs
 async getDvrs(req, res) {
   try {
     console.log('Buscando equipos DVR y cámaras...');
@@ -931,7 +929,6 @@ async getDvrs(req, res) {
 
     console.log(`${todosEquipos.length} equipos totales encontrados`);
 
-    // Filtrar equipos DVR/cámaras
     const dvrs = todosEquipos.filter(equipo => {
       if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
         return false;
@@ -966,7 +963,6 @@ async getDvrs(req, res) {
   }
 },
 
-// Endpoint específico para DVRs sin paginación
 async equiposDvr(req, res) {
   try {
     console.log('Buscando equipos DVR y cámaras SIN PAGINACIÓN...');
@@ -989,7 +985,6 @@ async equiposDvr(req, res) {
 
     console.log(`${todosEquipos.length} equipos totales encontrados`);
 
-    // Filtrar equipos DVR/cámaras con criterios más específicos
     const dvrs = todosEquipos.filter(equipo => {
       if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
         return false;
@@ -998,26 +993,17 @@ async equiposDvr(req, res) {
       const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
       const equipoNombre = `${equipo.marca} ${equipo.modelo}`.toLowerCase();
       
-      // Criterios más amplios para DVR
       const esDvrOCamara = 
         tipoNombre.includes('dvr') || 
-        tipoNombre.includes('grabador') ||
+       
         tipoNombre.includes('cámara') ||
-        tipoNombre.includes('camara') ||
-        tipoNombre.includes('video') ||
-        tipoNombre.includes('vigilancia') ||
-        tipoNombre.includes('seguridad') ||
-        tipoNombre.includes('cctv') ||
-        equipoNombre.includes('dvr') ||
-        equipoNombre.includes('nvr') ||
-        equipoNombre.includes('grabador') ||
-        equipoNombre.includes('camera') ||
-        equipoNombre.includes('surveillance');
+        tipoNombre.includes('camara');
+        
+        
       
       const disponible = equipo.cantidad_disponible > 0;
       
       if (esDvrOCamara) {
-        console.log(`✅ DVR ENCONTRADO: ${equipo.marca} ${equipo.modelo} | Tipo: "${tipoNombre}" | Disp: ${disponible}`);
       }
       
       return esDvrOCamara && disponible;
@@ -1034,5 +1020,58 @@ async equiposDvr(req, res) {
       message: error.message
     });
   }
-}
+},
+
+async equiposParaTelefonosCompleto(req, res) {
+  try {
+    console.log('=== EQUIPOS PARA TELEFONOS COMPLETO (SIN PAGINACIÓN) ===');
+    
+    const todosEquipos = await prisma.stock_equipos.findMany({
+      include: {
+        tipo_equipo: {
+          select: {
+            id: true,
+            nombre: true,
+            requiere_ip: true,
+            requiere_cereal: true
+          }
+        }
+      },
+      orderBy: {
+        marca: 'asc'
+      }
+    });
+
+    console.log(`${todosEquipos.length} equipos totales encontrados`);
+
+    const equiposTelefonicos = todosEquipos.filter(equipo => {
+      if (!equipo.tipo_equipo || !equipo.tipo_equipo.nombre) {
+        return false;
+      }
+      
+      const tipoNombre = equipo.tipo_equipo.nombre.toLowerCase();
+      
+      const esTelefono = 
+        tipoNombre.includes('teléfono') ||
+        tipoNombre.includes('telefono') ||
+        tipoNombre.includes('celular') ||
+        tipoNombre.includes('móvil') ||
+        tipoNombre.includes('movil');
+
+      // Solo incluir equipos con stock disponible
+      return esTelefono && equipo.cantidad_disponible > 0;
+    });
+
+    console.log(`${equiposTelefonicos.length} equipos son teléfonos con stock disponible`);
+    
+    res.json(equiposTelefonicos);
+    
+  } catch (error) {
+    console.error('ERROR en equiposParaTelefonosCompleto:', error);
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      message: error.message
+    });
+  }
+},
 };

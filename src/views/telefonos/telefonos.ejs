@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Fritz C.A | Teléfonos Asignados' %></title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+            } else {
+                const defaultTheme = 'light';
+                localStorage.setItem('theme', defaultTheme);
+                htmlElement.setAttribute('data-bs-theme', defaultTheme);
+            }
+        })();
+    </script>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        :root {
+            --fritz-red: #DC2626;
+            --fritz-red-light: #EF4444;
+            --fritz-black: #1A1A1A;
+            --fritz-white: #FFFFFF;
+            --fritz-gray: #F5F5F5;
+        }
+        
+        .sidebar {
+            width: 280px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+            background-size: cover;
+            background-position: center;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapsed {
+            width: 85px;
+        }
+        
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-section {
+            color: var(--fritz-red);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+
+        .sidebar-link {
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(220, 38, 38, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .navbar-brand {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: var(--fritz-black) !important;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 35px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--fritz-red);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge-rol {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        .badge-admin {
+            background-color: var(--fritz-red);
+        }
+        
+        .badge-tecnico {
+            background-color: #3498db;
+        }
+        
+        .badge-consulta {
+            background-color: #2ecc71;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-text {
+                display: none;
+            }
+        }
+        
+        .btn-fritz {
+            background-color: var(--fritz-red);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-fritz:hover {
+            background-color: var(--fritz-red-light);
+            transform: translateY(-2px);
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        }
+        
+        .sidebar-user-profile {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-user-profile:hover {
+            background-color: rgba(220, 38, 38, 0.2);
+        }
+        
+        .text-white-50 {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .table-actions {
+            white-space: nowrap;
+        }
+
+        .telefono-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #274ebbff 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .estado-badge {
+            font-size: 0.7rem;
+            padding: 0.4em 0.8em;
+            border-radius: 50px;
+        }
+        
+        .estado-activo {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: black;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+        }
+
+        .telefono-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: black;
+            border: none;
+        }
+
+        .pagination .page-link {
+            color: #DC2626;
+            border: 1px solid #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #DC2626;
+            border-color: #DC2626;
+            color: white;
+        }
+
+        .pagination .page-link:hover {
+            color: #DC2626;
+            background-color: #f8f9fa;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .main-content {
+            transition: all 0.3s;
+        }
+
+        .info-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body data-user-id="<%= user ? user.id : 0 %>">
+    <div class="d-flex">
+        <div class="sidebar text-white p-3 position-relative">
+            <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
+            <div class="text-center mb-4 py-3 border-bottom border-secondary">
+                <center><img src="/img/logo-fritz-web.webp" alt="logoo" style="width: 65px; height: 50px;"></center>
+                <h4 class="mb-0 text-white fw-bold sidebar-text">FRITZ C.A</h4>
+                <small class="text-white sidebar-text">Sistema de Gestión</small>
+            </div>
+            <div class="sidebar-user-profile d-flex align-items-center">
+                <div class="user-avatar me-3">
+                    <% if (user) { %>
+                        <div class="avatar-circle bg-gradient-danger text-white">
+                            <% 
+                            const name = user.name || 'Usuario';
+                            const initials = name.split(' ')
+                                .filter(word => word)
+                                .map(word => word.charAt(0).toUpperCase())
+                                .slice(0, 2)
+                                .join('');
+                            %>
+                            <%= initials || 'US' %>
+                        </div>
+                    <% } else { %>
+                        <div class="avatar-circle bg-danger text-white">GU</div>
+                    <% } %>
+                </div>
+
+                <div class="user-info text-white sidebar-text">
+                    <% if (user) { %>
+                        <div class="fw-bold text-truncate" style="max-width: 150px;">
+                            <%= user.name || 'Usuario' %>
+                        </div>
+                        <small class="text-white-50 d-block">
+                            <%= user.activo ? 'Activo' : 'Inactivo' %>
+                        </small>
+                    <% } else { %>
+                        <div class="fw-bold">Invitado</div>
+                        <small class="text-white-50">No autenticado</small>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Menu -->
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <br>
+                    <a class="nav-link text-white sidebar-link" href="/dashboard">
+                        <i class="bi bi-speedometer2 me-2"></i> 
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-section">
+                    <i class="bi bi-gear me-1"></i> 
+                    <span class="sidebar-text">Gestión</span>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuario">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        <span class="sidebar-text">TIC</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/stock">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Inventario</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/usuarios">
+                        <i class="bi bi-people-fill me-2"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/sedes">
+                        <i class="bi bi-building me-2"></i>
+                        <span class="sidebar-text">Sedes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/departamentos">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <span class="sidebar-text">Departamentos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/tipo_equipo">
+                        <i class="bi bi-boxes me-2"></i>
+                        <span class="sidebar-text">Categorías</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/equipoA">
+                        <i class="bi bi-laptop me-2"></i>
+                        <span class="sidebar-text">Equipos Asignados</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link active" href="/telefonos-asignados">
+                        <i class="bi bi-telephone me-2"></i>
+                        <span class="sidebar-text">Teléfonos Asignados</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/consumibles">
+                        <i class="bi bi-box-seam me-2"></i>
+                        <span class="sidebar-text">Consumibles</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/impresoras">
+                        <i class="bi bi-printer me-2"></i>
+                        <span class="sidebar-text">Impresoras</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/mikrotik">
+                        <i class="bi bi-router me-2"></i>
+                        <span class="sidebar-text">Redes</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link " href="/servidores">
+                        <i class="bi bi-server me-2"></i>
+                        <span class="sidebar-text">Servidores</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white sidebar-link" href="/dvr">
+                        <i class="bi bi-camera-video me-2"></i>
+                        <span class="sidebar-text">DVR</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Bottom -->
+            <div class="mt-auto p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
+                        <i class="bi bi-moon-stars"></i>
+                    </button>
+                    <form method="POST" action="/logout" class="d-inline" id="logoutForm">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="sidebar-text">Salir</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    
+                    <div class="d-flex align-items-center">
+                        <span class="navbar-brand me-3 d-none d-lg-block">
+                            <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
+                        </span>
+                        
+                        <!-- Breadcrumb -->
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
+                                <li class="breadcrumb-item active text-white" aria-current="page">Gestión de Teléfonos Asignados</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main class="p-4">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="bi bi-telephone me-2 text-danger"></i>
+                            Gestión de Teléfonos Asignados
+                        </h2>
+                        <p class="text-muted mb-0">Administra las asignaciones de teléfonos a usuarios</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-fritz" data-bs-toggle="modal" data-bs-target="#createTelefonoAsignadoModal">
+                            <i class="bi bi-plus-circle me-1"></i> Nueva Asignación
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumen de Asignaciones -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countTotal">0</h4>
+                                        <small>Total Teléfonos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-telephone fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countPorMarca">0</h4>
+                                        <small>Marcas Diferentes</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-tags fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h4 class="mb-0" id="countUsuarios">0</h4>
+                                        <small>Usuarios Activos</small>
+                                    </div>
+                                    <div class="align-self-center">
+                                        <i class="bi bi-people fs-3"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teléfonos Asignados Management Card -->
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Teléfonos Asignados
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-download me-1"></i> Exportar
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="generarPDFGeneral()">
+                                            <i class="bi bi-file-pdf me-2"></i>Descargar PDF General
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="verPDFGeneral()">
+                                            <i class="bi bi-eye me-2"></i>Ver PDF General
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="abrirModalSeleccionUsuario()">
+                                            <i class="bi bi-person me-2"></i>PDF por Usuario
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Filtros -->
+                        <div class="row mb-4 g-2">
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por usuario..." id="searchUsuario">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por teléfono..." id="searchTelefono">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    <input type="text" class="form-control" placeholder="Buscar por número..." id="searchNumero">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar 
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Teléfonos Asignados -->
+                        <div class="table-responsive">
+                            <table class="table table-hover" style="width:100%">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="50px">ID</th>
+                                        <th>Usuario</th>
+                                        <th>Teléfono</th>
+                                        <th>Número</th>
+                                        <th>Línea</th>
+                                        <th>IP</th>
+                                        <th>Fecha Asignación</th>
+                                        <th width="120px" class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="telefonosAsignadosTableBody">
+                                    <tr id="loadingRow">
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="spinner-border text-danger" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                            <p class="text-muted mt-2 mb-0">Cargando teléfonos asignados...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted" id="resultCount">
+                                Mostrando 0 de 0 asignaciones
+                            </div>
+                            <nav aria-label="Paginación de teléfonos asignados">
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                </ul>
+                            </nav>
+                        </div> 
+                        <br>
+                    </div>
+                </div>
+                           
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Modal para Crear Asignación -->
+    <div class="modal fade" id="createTelefonoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-telephone me-2"></i> Nueva Asignación de Teléfono
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createTelefonoAsignadoForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario*</label>
+                                    <select class="form-select" name="usuarios_id" id="create_usuarios_id" required>
+                                        <option value="">Seleccione un usuario</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Teléfono*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
+                                        <option value="">Seleccione un teléfono</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Teléfono*</label>
+                                    <input type="text" class="form-control" name="num_telefono" placeholder="Ej: 12345678" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Línea Telefónica*</label>
+                                    <input type="text" class="form-control" name="linea_telefono" placeholder="Ej: Línea Principal, Línea Secundaria" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Teléfono*</label>
+                                    <input type="text" class="form-control" name="ip_telefono" placeholder="Ej: 192.168.1.100" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">MAC Address</label>
+                                    <input type="text" class="form-control" name="mac_telefono" placeholder="Ej: 00:1A:2B:3C:4D:5E">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email del Teléfono*</label>
+                                    <input type="email" class="form-control" name="mail_telefono" placeholder="Ej: usuario@empresa.com" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Asignación*</label>
+                                    <input type="date" class="form-control" name="fecha_asignacion" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar Asignación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Asignación -->
+    <div class="modal fade" id="editTelefonoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Asignación de Teléfono
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editTelefonoAsignadoForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_telefono_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Usuario*</label>
+                                    <select class="form-select" name="usuarios_id" id="edit_usuarios_id" required>
+                                        <option value="">Seleccione un usuario</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Teléfono*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="edit_stock_equipos_id" required>
+                                        <option value="">Seleccione un teléfono</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Teléfono*</label>
+                                    <input type="text" class="form-control" name="num_telefono" id="edit_num_telefono" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Línea Telefónica*</label>
+                                    <input type="text" class="form-control" name="linea_telefono" id="edit_linea_telefono" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del Teléfono*</label>
+                                    <input type="text" class="form-control" name="ip_telefono" id="edit_ip_telefono" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">MAC Address</label>
+                                    <input type="text" class="form-control" name="mac_telefono" id="edit_mac_telefono">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email del Teléfono*</label>
+                                    <input type="email" class="form-control" name="mail_telefono" id="edit_mail_telefono" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Asignación*</label>
+                                    <input type="date" class="form-control" name="fecha_asignacion" id="edit_fecha_asignacion" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Asignación</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Asignación -->
+    <div class="modal fade" id="viewTelefonoAsignadoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles de la Asignación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <div class="telefono-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
+                            <i class="bi bi-telephone"></i>
+                        </div>
+                        <h4 id="view_titulo"></h4>
+                        <p class="text-muted" id="view_id"></p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ID:</strong>
+                            <p id="view_telefono_id" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Número:</strong>
+                            <p id="view_num_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Línea Telefónica:</strong>
+                            <p id="view_linea_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Usuario Asignado:</strong>
+                            <p id="view_usuario" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Teléfono:</strong>
+                            <p id="view_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>IP:</strong>
+                            <p id="view_ip_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>MAC:</strong>
+                            <p id="view_mac_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong>
+                            <p id="view_mail_telefono" class="mb-2"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Asignación:</strong>
+                            <p id="view_fecha_asignacion" class="mb-2"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar usuario para PDF -->
+    <div class="modal fade" id="seleccionUsuarioModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person me-2"></i> Generar PDF por Usuario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione un usuario:</label>
+                        <select class="form-select" id="usuarioSeleccionado">
+                            <option value="">Seleccione un usuario</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarPDFUsuarioSeleccionado()">
+                        <i class="bi bi-download me-1"></i> Descargar PDF
+                    </button>
+                    <button type="button" class="btn btn-info text-white" onclick="verPDFUsuarioSeleccionado()">
+                        <i class="bi bi-eye me-1"></i> Ver PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        // Variables globales
+        let telefonosAsignados = [];
+        let usuarios = [];
+        let stockTelefonos = [];
+
+        let filtrosActuales = {
+            usuario: '',
+            telefono: '',
+            num_telefono: ''
+        };
+
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarTelefonosAsignados();
+            cargarUsuarios();
+            cargarStockTelefonos();
+            inicializarEventos();
+            applySavedTheme();
+        });
+
+        async function cargarUsuarios() {
+            try {
+                console.log('Cargando usuarios para select...');
+                const response = await fetch('/api/usuarios/para-select', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                usuarios = await response.json();
+                console.log(`${usuarios.length} usuarios cargados para select`);
+                llenarSelectUsuarios();
+                
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                usuarios = [];
+                llenarSelectUsuarios();
+            }
+        }
+
+        async function cargarStockTelefonos() {
+    try {
+        console.log('Cargando TODOS los teléfonos para asignación...');
+        const response = await fetch('/api/stock_equipos/para-telefonos-completo', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.error('Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        stockTelefonos = await response.json();
+        console.log(`${stockTelefonos.length} teléfonos cargados para asignación`);
+        
+        // Ya vienen filtrados y con stock disponible
+        llenarSelectStockTelefonos(stockTelefonos);
+        
+    } catch (error) {
+        console.error('Error cargando teléfonos:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
+        stockTelefonos = [];
+        llenarSelectStockTelefonos([]);
+    }
+}
+
+        function manejarErrorAutenticacion() {
+            console.log('Redirigiendo al login...');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sesión expirada',
+                text: 'Tu sesión ha expirado. Serás redirigido al login.',
+                confirmButtonText: 'Ir al login',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then((result) => {
+                window.location.href = '/login';
+            });
+        }
+
+        async function cargarTelefonosAsignados(page = 1, filtros = {}) {
+            try {
+                currentPage = page;
+                
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: '10'
+                });
+                
+                if (filtros.usuario) params.append('usuario', filtros.usuario);
+                if (filtros.telefono) params.append('telefono', filtros.telefono);
+                if (filtros.num_telefono) params.append('num_telefono', filtros.num_telefono);
+                
+                console.log('Cargando teléfonos asignados con filtros:', params.toString());
+                
+                const response = await fetch(`/api/telefonos-asignados?${params.toString()}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Respuesta teléfonos asignados:', data);
+                
+                telefonosAsignados = Array.isArray(data.telefonosAsignados) ? data.telefonosAsignados : [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                console.log(`${telefonosAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
+                
+                if (telefonosAsignados.length > 0) {
+                    console.log('Primera asignación:', telefonosAsignados[0]);
+                }
+                
+                renderizarTelefonosAsignados();
+                actualizarContadores();
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                telefonosAsignados = [];
+                renderizarTelefonosAsignados();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los teléfonos asignados'
+                });
+            }
+        }
+
+        function llenarSelectUsuarios() {
+            const createSelect = document.getElementById('create_usuarios_id');
+            const editSelect = document.getElementById('edit_usuarios_id');
+            const pdfSelect = document.getElementById('usuarioSeleccionado');
+
+            const selects = [createSelect, editSelect, pdfSelect].filter(select => select !== null);
+
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">Seleccione un usuario</option>';
+                
+                if (!usuarios || usuarios.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay usuarios disponibles";
+                    select.appendChild(option);
+                    return;
+                }
+                
+                console.log(`Llenando select con ${usuarios.length} usuarios`);
+                
+                usuarios.forEach(usuario => {
+                    if (!usuario || !usuario.id) return;
+                    
+                    const option = document.createElement('option');
+                    option.value = usuario.id;
+                    
+                    let texto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    
+                    if (usuario.cargo) {
+                        texto += ` - ${usuario.cargo}`;
+                    }
+                    
+                    if (usuario.sede && usuario.sede.nombre) {
+                        texto += ` (${usuario.sede.nombre})`;
+                    }
+                    
+                    option.textContent = texto || `Usuario ${usuario.id}`;
+                    select.appendChild(option);
+                });
+            });
+            
+            console.log('Selects de usuarios llenados correctamente');
+        }
+
+        function llenarSelectStockTelefonos(telefonosFiltrados = null) {
+            const createSelect = document.getElementById('create_stock_equipos_id');
+            const editSelect = document.getElementById('edit_stock_equipos_id');
+
+            const selects = [createSelect, editSelect].filter(select => select !== null);
+            
+            const telefonos = telefonosFiltrados || stockTelefonos;
+
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">Seleccione un teléfono</option>';
+                
+                if (!telefonos || telefonos.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = "No hay teléfonos disponibles";
+                    select.appendChild(option);
+                    return;
+                }
+                
+                console.log(`Llenando select con ${telefonos.length} teléfonos`);
+                
+                telefonos.forEach(telefono => {
+                    if (!telefono || !telefono.id) return;
+                    
+                    const option = document.createElement('option');
+                    option.value = telefono.id;
+                    
+                    let texto = '';
+                    if (telefono.marca && telefono.modelo) {
+                        texto = `${telefono.marca} ${telefono.modelo}`;
+                    } else if (telefono.nombre) {
+                        texto = telefono.nombre;
+                    } else {
+                        texto = `Teléfono ${telefono.id}`;
+                    }
+                    
+                    if (telefono.tipo_equipo && telefono.tipo_equipo.nombre) {
+                        texto += ` (${telefono.tipo_equipo.nombre})`;
+                    }
+                    
+                    if (telefono.cantidad_disponible !== undefined) {
+                        texto += ` - ${telefono.cantidad_disponible} disponible${telefono.cantidad_disponible !== 1 ? 's' : ''}`;
+                    }
+                    
+                    option.textContent = texto;
+                    select.appendChild(option);
+                });
+            });
+            
+            console.log('Selects de teléfonos llenados correctamente');
+        }
+
+        function renderizarTelefonosAsignados() {
+            const tbody = document.getElementById('telefonosAsignadosTableBody');
+            
+            if (!tbody) {
+                console.error('No se encontró el tbody de la tabla');
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            if (telefonosAsignados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="bi bi-telephone display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron teléfonos asignados</p>
+                            <button class="btn btn-sm btn-fritz mt-2" onclick="cargarTelefonosAsignados()">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            telefonosAsignados.forEach(asignacion => {
+                const row = document.createElement('tr');
+                
+                const usuario = asignacion.usuarioAsignado || {};
+                const stockTelefono = asignacion.stockEquipo || {};
+                
+                const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+                const cargoUsuario = usuario.cargo || 'Sin cargo';
+                const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                const infoTelefono = `${stockTelefono.marca || 'N/A'} ${stockTelefono.modelo || ''}`.trim();
+
+                row.innerHTML = `
+                    <td class="fw-bold">${asignacion.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="telefono-icon me-3">
+                                ${inicialUsuario}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${nombreUsuario}</div>
+                                <small class="text-muted">${cargoUsuario}</small>
+                                ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge telefono-badge rounded-pill">
+                            <i class="bi bi-telephone me-1"></i>
+                            ${infoTelefono}
+                        </span>
+                        ${stockTelefono.tipo_equipo ? `
+                        <small class="d-block text-muted">
+                            ${stockTelefono.tipo_equipo.nombre}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <span class="badge info-badge rounded-pill">
+                            <i class="bi bi-phone me-1"></i>
+                            ${asignacion.num_telefono || 'N/A'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary rounded-pill">
+                            <i class="bi bi-telephone-outbound me-1"></i>
+                            ${asignacion.linea_telefono || 'N/A'}
+                        </span>
+                    </td>
+                    <td>
+                        <small class="d-block">
+                            <i class="bi bi-hdd-network me-1"></i>${asignacion.ip_telefono || 'N/A'}
+                        </small>
+                        ${asignacion.mac_telefono ? `
+                        <small class="d-block text-muted">
+                            <i class="bi bi-wifi me-1"></i>${asignacion.mac_telefono}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <small class="d-block">
+                            ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
+                        </small>
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewTelefonoAsignado(${asignacion.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editTelefonoAsignado(${asignacion.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteTelefonoAsignado(${asignacion.id})"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderizarPaginacion() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (!paginationContainer) {
+                console.log('No se encontró el contenedor de paginación, creándolo...');
+                crearContenedorPaginacion();
+                return;
+            }
+            
+            paginationContainer.innerHTML = '';
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarTelefonosAsignados(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            paginationContainer.appendChild(prevLi);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarTelefonosAsignados(${i}, filtrosActuales)">${i}</a>
+                `;
+                paginationContainer.appendChild(pageLi);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarTelefonosAsignados(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            paginationContainer.appendChild(nextLi);
+        }
+
+        function crearContenedorPaginacion() {
+            const cardBody = document.querySelector('.card-body');
+            if (!cardBody) return;
+            
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'd-flex justify-content-between align-items-center mt-4';
+            paginationDiv.innerHTML = `
+                <div class="text-muted" id="resultCount">
+                    Mostrando 0 de 0 asignaciones
+                </div>
+                
+                <nav aria-label="Paginación de teléfonos asignados">
+                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                    </ul>
+                </nav>
+            `;
+            
+            cardBody.appendChild(paginationDiv);
+        }
+
+        function actualizarContadores() {
+            const countTotal = telefonosAsignados.length;
+            const countUsuarios = new Set(telefonosAsignados.map(t => t.usuarios_id)).size;
+            const countMarcas = new Set(telefonosAsignados.map(t => t.stockEquipo?.marca).filter(Boolean)).size;
+
+            document.getElementById('countTotal').textContent = countTotal;
+            document.getElementById('countUsuarios').textContent = countUsuarios;
+            document.getElementById('countPorMarca').textContent = countMarcas;
+
+            const resultCount = document.getElementById('resultCount');
+            if (resultCount) {
+                resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
+            }
+        }
+
+        // Funciones de gestión de temas
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const htmlElement = document.documentElement;
+            
+            if (savedTheme) {
+                htmlElement.setAttribute('data-bs-theme', savedTheme);
+                
+                const themeIcon = document.querySelector('.theme-switcher i');
+                if (themeIcon) {
+                    if (savedTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            const themeIcon = document.querySelector('.theme-switcher i');
+            
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            
+            if (themeIcon) {
+                if (newTheme === 'dark') {
+                    themeIcon.classList.remove('bi-moon-stars');
+                    themeIcon.classList.add('bi-sun');
+                } else {
+                    themeIcon.classList.remove('bi-sun');
+                    themeIcon.classList.add('bi-moon-stars');
+                }
+            }
+            
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Inicialización de eventos
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
+
+            document.getElementById('createTelefonoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearTelefonoAsignado();
+            });
+
+            document.getElementById('editTelefonoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarTelefonoAsignado();
+            });
+
+            // Filtros con debounce
+            const searchUsuario = document.getElementById('searchUsuario');
+            const searchTelefono = document.getElementById('searchTelefono');
+            const searchNumero = document.getElementById('searchNumero');
+            const resetFilters = document.getElementById('resetFilters');
+
+            if (searchUsuario) searchUsuario.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchTelefono) searchTelefono.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchNumero) searchNumero.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
+
+            // Eventos del sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-double-left');
+                    icon.classList.toggle('bi-chevron-double-right');
+                });
+            }
+
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            const themeSwitcher = document.querySelector('.theme-switcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', toggleTheme);
+            }
+        }
+
+        // Funciones CRUD
+        async function crearTelefonoAsignado() {
+            const form = document.getElementById('createTelefonoAsignadoForm');
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/api/telefonos-asignados', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Teléfono asignado exitosamente'
+                    });
+                    $('#createTelefonoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarTelefonosAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al asignar teléfono');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function editTelefonoAsignado(id) {
+            try {
+                const response = await fetch(`/api/telefonos-asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
+
+                const asignacion = await response.json();
+                
+                console.log('Datos para editar:', asignacion);
+                
+                document.getElementById('edit_telefono_id').value = asignacion.id;
+                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+                document.getElementById('edit_num_telefono').value = asignacion.num_telefono || '';
+                document.getElementById('edit_linea_telefono').value = asignacion.linea_telefono || '';
+                document.getElementById('edit_ip_telefono').value = asignacion.ip_telefono || '';
+                document.getElementById('edit_mac_telefono').value = asignacion.mac_telefono || '';
+                document.getElementById('edit_mail_telefono').value = asignacion.mail_telefono || '';
+                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion ? asignacion.fecha_asignacion.split('T')[0] : '';
+                
+                $('#editTelefonoAsignadoModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function actualizarTelefonoAsignado() {
+            const form = document.getElementById('editTelefonoAsignadoForm');
+            const formData = new FormData(form);
+            const telefonoId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/telefonos-asignados/${telefonoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Asignación actualizada exitosamente'
+                    });
+                    $('#editTelefonoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarTelefonosAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al actualizar asignación');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function viewTelefonoAsignado(id) {
+            try {
+                const response = await fetch(`/api/telefonos-asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
+
+                const asignacion = await response.json();
+                
+                const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
+                const stockTelefono = asignacion.stock_equipos || asignacion.stockEquipo || {};
+                
+                let usuarioTexto = 'N/A';
+                if (usuario) {
+                    if (usuario.nombre && usuario.apellido) {
+                        usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    } else if (usuario.name) {
+                        usuarioTexto = usuario.name;
+                    }
+                    if (usuario.cargo) {
+                        usuarioTexto += ` - ${usuario.cargo}`;
+                    }
+                }
+
+                let telefonoTexto = 'N/A';
+                if (stockTelefono) {
+                    if (stockTelefono.marca && stockTelefono.modelo) {
+                        telefonoTexto = `${stockTelefono.marca || ''} ${stockTelefono.modelo || ''}`.trim();
+                    } else if (stockTelefono.nombre) {
+                        telefonoTexto = stockTelefono.nombre;
+                    }
+                }
+
+                document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+                document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+                document.getElementById('view_telefono_id').textContent = asignacion.id;
+                document.getElementById('view_usuario').textContent = usuarioTexto;
+                document.getElementById('view_telefono').textContent = telefonoTexto;
+                document.getElementById('view_num_telefono').textContent = asignacion.num_telefono || 'N/A';
+                document.getElementById('view_linea_telefono').textContent = asignacion.linea_telefono || 'N/A';
+                document.getElementById('view_ip_telefono').textContent = asignacion.ip_telefono || 'N/A';
+                document.getElementById('view_mac_telefono').textContent = asignacion.mac_telefono || 'No asignado';
+                document.getElementById('view_mail_telefono').textContent = asignacion.mail_telefono || 'N/A';
+                document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
+                    new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
+                
+                $('#viewTelefonoAsignadoModal').modal('show');
+                
+            } catch (error) {
+                console.error('Error cargando asignación:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        async function deleteTelefonoAsignado(id) {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar esta asignación de teléfono. Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/telefonos-asignados/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message || 'Asignación eliminada exitosamente'
+                        });
+                        await cargarTelefonosAsignados();
+                    } else {
+                        throw new Error(data.error || 'Error al eliminar asignación');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
+            }
+        }
+
+        // Funciones de filtros
+        function aplicarFiltros() {
+            console.log('Aplicando filtros con búsqueda en servidor...');
+            
+            mostrarCargaFiltros();
+
+            filtrosActuales = {
+                usuario: document.getElementById('searchUsuario').value.trim(),
+                telefono: document.getElementById('searchTelefono').value.trim(),
+                num_telefono: document.getElementById('searchNumero').value.trim()
+            };
+            
+            console.log('Filtros activos:', filtrosActuales);
+            
+            cargarTelefonosAsignados(1, filtrosActuales);
+        }
+
+        function mostrarCargaFiltros() {
+            const tbody = document.getElementById('telefonosAsignadosTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Buscando asignaciones...</p>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function resetFiltros() {
+            console.log('Reseteando filtros...');
+            
+            document.getElementById('searchUsuario').value = '';
+            document.getElementById('searchTelefono').value = '';
+            document.getElementById('searchNumero').value = '';
+            
+            filtrosActuales = {
+                usuario: '',
+                telefono: '',
+                num_telefono: ''
+            };
+            
+            cargarTelefonosAsignados(1);
+        }
+
+        // Funciones de PDF
+        function abrirModalSeleccionUsuario() {
+            $('#seleccionUsuarioModal').modal('show');
+        }
+
+        function generarPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                generarPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
+
+        function verPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                verPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
+
+        function generarPDFUsuario(usuarioId) {
+            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+            console.log(`Descargando PDF para usuario ${usuarioId}: ${url}`);
+            window.location.href = url;
+        }
+
+        function verPDFUsuario(usuarioId) {
+            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+            console.log(`Viendo PDF para usuario ${usuarioId}: ${url}`);
+            window.open(url, '_blank');
+        }
+
+        function generarPDFGeneral() {
+            const url = '/api/telefonos-asignados/pdf/general';
+            console.log('Descargando PDF general de teléfonos');
+            window.location.href = url;
+        }
+
+        function verPDFGeneral() {
+            const url = '/api/telefonos-asignados/pdf/general';
+            console.log('Viendo PDF general de teléfonos');
+            window.open(url, '_blank');
+        }
+
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
+    </script>
+</body>
+</html>

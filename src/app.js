@@ -19,6 +19,7 @@ import impresoraRoutes from './routes/impresora.js';
 import consumibleRoutes from './routes/consumible.js';
 import servidoresRoutes from './routes/servidores.js';
 import dvrRoutes from './routes/dvr.js';
+import telefonoRoutes from './routes/telefonos.js'
 
 import pdfRoutes from './routes/pdfRoutes.js';
 
@@ -69,6 +70,8 @@ app.use('/', impresoraRoutes);
 app.use('/api/consumibles', consumibleRoutes);
 app.use('/api/servidores', servidoresRoutes);
 app.use('/api/dvrs', dvrRoutes);
+app.use('/api/telefonos-asignados', telefonoRoutes);
+
 
 app.use('/api/pdf', pdfRoutes);
 

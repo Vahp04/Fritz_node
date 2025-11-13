@@ -248,6 +248,7 @@ model dvr{
     usuarios_id       Int
     stock_equipos_id  Int
     num_telefono      String          @db.VarChar(191)
+    linea_telefono    String          @db.VarChar(191)
     ip_telefono       String          @db.VarChar(191)
     mac_telefono      String?         @db.VarChar(191)
     mail_telefono     String          @db.VarChar(191)

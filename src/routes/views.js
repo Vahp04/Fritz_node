@@ -121,6 +121,15 @@ router.get('/servidores', authenticateToken, (req, res) => {
     });
 });
 
+router.get('/telefonos', authenticateToken, (req, res) => {
+    res.render('telefonos/telefonos', {
+        title: 'Gestión de los Teléfonos',
+        user: req.user,
+        success: req.query.success || null,
+        error: req.query.error || null
+    });
+});
+
 router.get('/dvr', authenticateToken, (req, res) => {
     res.render('dvr/dvr', {
         title: 'Gestión de los DVR y Cámaras',
