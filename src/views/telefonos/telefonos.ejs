@@ -690,8 +690,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Email del Teléfono*</label>
-                                    <input type="email" class="form-control" name="mail_telefono" placeholder="Ej: usuario@empresa.com" required>
+                                    <label class="form-label">IMEI del Teléfono*</label>
+                                    <input type="text" class="form-control" name="mail_telefono" " required>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -721,7 +721,7 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editTelefonoAsignadoForm">
+                <form id="editTelefonoAsignadoForm" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" id="edit_telefono_id" name="id">
                         <div class="row">
@@ -767,14 +767,42 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Email del Teléfono*</label>
-                                    <input type="email" class="form-control" name="mail_telefono" id="edit_mail_telefono" required>
+                                    <label class="form-label">IMEI del Teléfono*</label>
+                                    <input type="text" class="form-control" name="mail_telefono" id="edit_mail_telefono" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Fecha de Asignación*</label>
                                     <input type="date" class="form-control" name="fecha_asignacion" id="edit_fecha_asignacion" required>
+                                </div>
+                            </div>
+                              <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Imagen de Comprobante</label>
+                                    <input type="file" 
+                                        class="form-control" 
+                                        name="imagen_comprobante" 
+                                        id="edit_imagen_comprobante"
+                                        accept="image/*">
+                                    <div class="form-text">
+                                        Sube una imagen del comprobante (solo al editar). Formatos: JPG, PNG, GIF, WebP. Máx: 5MB.
+                                    </div>
+                                    
+                                    <!-- Vista previa de la imagen actual -->
+                                    <div id="imagen_actual_container" class="mt-2" style="display: none;">
+                                        <label class="form-label">Imagen Actual:</label>
+                                        <div class="border rounded p-2">
+                                            <img id="imagen_actual" src="" alt="Comprobante actual" 
+                                                class="img-fluid rounded" style="max-height: 200px;">
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="eliminarImagenActual()">
+                                                    <i class="bi bi-trash me-1"></i> Eliminar Imagen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -789,68 +817,73 @@
     </div>
 
     <!-- Modal para Ver Asignación -->
-    <div class="modal fade" id="viewTelefonoAsignadoModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-eye me-2"></i> Detalles de la Asignación
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-4">
-                        <div class="telefono-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
-                            <i class="bi bi-telephone"></i>
-                        </div>
-                        <h4 id="view_titulo"></h4>
-                        <p class="text-muted" id="view_id"></p>
+<div class="modal fade" id="viewTelefonoAsignadoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-eye me-2"></i> Detalles de la Asignación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="telefono-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;" id="view_icon">
+                        <i class="bi bi-telephone"></i>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>ID:</strong>
-                            <p id="view_telefono_id" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Número:</strong>
-                            <p id="view_num_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Línea Telefónica:</strong>
-                            <p id="view_linea_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Usuario Asignado:</strong>
-                            <p id="view_usuario" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Teléfono:</strong>
-                            <p id="view_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>IP:</strong>
-                            <p id="view_ip_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>MAC:</strong>
-                            <p id="view_mac_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Email:</strong>
-                            <p id="view_mail_telefono" class="mb-2"></p>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Fecha de Asignación:</strong>
-                            <p id="view_fecha_asignacion" class="mb-2"></p>
-                        </div>
+                    <h4 id="view_titulo"></h4>
+                    <p class="text-muted" id="view_id"></p>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>ID:</strong>
+                        <p id="view_telefono_id" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Número:</strong>
+                        <p id="view_num_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Línea Telefónica:</strong>
+                        <p id="view_linea_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Usuario Asignado:</strong>
+                        <p id="view_usuario" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Teléfono:</strong>
+                        <p id="view_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>IP:</strong>
+                        <p id="view_ip_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>MAC:</strong>
+                        <p id="view_mac_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>IMEI:</strong>
+                        <p id="view_mail_telefono" class="mb-2"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Fecha de Asignación:</strong>
+                        <p id="view_fecha_asignacion" class="mb-2"></p>
+                    </div>
+                    
+                    <!-- Contenedor para la imagen -->
+                    <div class="col-12 mt-3">
+                        <div id="view_imagen_container"></div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Modal para seleccionar usuario para PDF -->
     <div class="modal fade" id="seleccionUsuarioModal" tabindex="-1">
@@ -1543,134 +1576,268 @@
             }
         }
 
-        async function editTelefonoAsignado(id) {
-            try {
-                const response = await fetch(`/api/telefonos-asignados/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar asignación');
-                }
+async function editTelefonoAsignado(id) {
+    try {
+        const response = await fetch(`/api/telefonos-asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
+        }
 
-                const asignacion = await response.json();
-                
-                console.log('Datos para editar:', asignacion);
-                
-                document.getElementById('edit_telefono_id').value = asignacion.id;
-                document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
-                document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
-                document.getElementById('edit_num_telefono').value = asignacion.num_telefono || '';
-                document.getElementById('edit_linea_telefono').value = asignacion.linea_telefono || '';
-                document.getElementById('edit_ip_telefono').value = asignacion.ip_telefono || '';
-                document.getElementById('edit_mac_telefono').value = asignacion.mac_telefono || '';
-                document.getElementById('edit_mail_telefono').value = asignacion.mail_telefono || '';
-                document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion ? asignacion.fecha_asignacion.split('T')[0] : '';
-                
-                $('#editTelefonoAsignadoModal').modal('show');
-                
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
+        const asignacion = await response.json();
+        
+        console.log('Datos para editar:', asignacion);
+        
+        // Llenar campos existentes
+        document.getElementById('edit_telefono_id').value = asignacion.id;
+        document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+        document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+        document.getElementById('edit_num_telefono').value = asignacion.num_telefono || '';
+        document.getElementById('edit_linea_telefono').value = asignacion.linea_telefono || '';
+        document.getElementById('edit_ip_telefono').value = asignacion.ip_telefono || '';
+        document.getElementById('edit_mac_telefono').value = asignacion.mac_telefono || '';
+        document.getElementById('edit_mail_telefono').value = asignacion.mail_telefono || '';
+        document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion ? asignacion.fecha_asignacion.split('T')[0] : '';
+        
+        // Manejar imagen de comprobante
+        const imagenContainer = document.getElementById('imagen_actual_container');
+        const imagenActual = document.getElementById('imagen_actual');
+        
+        // Remover campo delete_imagen si existe
+        const deleteInput = document.getElementById('delete_imagen');
+        if (deleteInput) {
+            deleteInput.remove();
+        }
+        
+        if (asignacion.imagen_telefono || asignacion.imagen_url) {
+            // Mostrar imagen actual
+            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_telefono}`;
+            imagenActual.src = imagenPath;
+            imagenActual.style.cursor = 'pointer';
+            imagenActual.title = 'Click para ampliar';
+            imagenActual.onclick = () => ampliarImagen(imagenPath);
+            imagenContainer.style.display = 'block';
+        } else {
+            // Ocultar si no hay imagen
+            imagenContainer.style.display = 'none';
+        }
+        
+        $('#editTelefonoAsignadoModal').modal('show');
+        
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+function eliminarImagenActual() {
+    Swal.fire({
+        title: '¿Eliminar imagen?',
+        text: 'Esta acción eliminará la imagen del comprobante actual.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Ocultar la imagen actual
+            document.getElementById('imagen_actual_container').style.display = 'none';
+            // Limpiar el input de archivo
+            document.getElementById('edit_imagen_comprobante').value = '';
+            
+            // Agregar un campo hidden para indicar que se debe eliminar la imagen
+            let deleteInput = document.getElementById('delete_imagen');
+            if (!deleteInput) {
+                deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete_imagen';
+                deleteInput.id = 'delete_imagen';
+                deleteInput.value = 'true';
+                document.getElementById('editTelefonoAsignadoForm').appendChild(deleteInput);
+            } else {
+                deleteInput.value = 'true';
+            }
+            
+            Swal.fire('Eliminada', 'La imagen ha sido eliminada', 'success');
+        }
+    });
+}
+
+
+async function actualizarTelefonoAsignado() {
+    const form = document.getElementById('editTelefonoAsignadoForm');
+    const formData = new FormData(form);
+    const telefonoId = formData.get('id');
+
+    try {
+        const response = await fetch(`/api/telefonos-asignados/${telefonoId}`, {
+            method: 'PUT',
+            body: formData // Usar FormData en lugar de JSON
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message || 'Asignación actualizada exitosamente'
+            });
+            $('#editTelefonoAsignadoModal').modal('hide');
+            form.reset();
+            await cargarTelefonosAsignados();
+        } else {
+            throw new Error(data.error || 'Error al actualizar asignación');
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+async function viewTelefonoAsignado(id) {
+    try {
+        const response = await fetch(`/api/telefonos-asignados/${id}`);
+        
+        if (!response.ok) {
+            throw new Error('Error al cargar asignación');
+        }
+
+        const asignacion = await response.json();
+        
+        const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
+        const stockTelefono = asignacion.stock_equipos || asignacion.stockEquipo || {};
+        
+        let usuarioTexto = 'N/A';
+        if (usuario) {
+            if (usuario.nombre && usuario.apellido) {
+                usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+            } else if (usuario.name) {
+                usuarioTexto = usuario.name;
+            }
+            if (usuario.cargo) {
+                usuarioTexto += ` - ${usuario.cargo}`;
             }
         }
 
-        async function actualizarTelefonoAsignado() {
-            const form = document.getElementById('editTelefonoAsignadoForm');
-            const formData = new FormData(form);
-            const telefonoId = formData.get('id');
-
-            try {
-                const response = await fetch(`/api/telefonos-asignados/${telefonoId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.message || 'Asignación actualizada exitosamente'
-                    });
-                    $('#editTelefonoAsignadoModal').modal('hide');
-                    form.reset();
-                    await cargarTelefonosAsignados();
-                } else {
-                    throw new Error(data.error || 'Error al actualizar asignación');
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
+        let telefonoTexto = 'N/A';
+        if (stockTelefono) {
+            if (stockTelefono.marca && stockTelefono.modelo) {
+                telefonoTexto = `${stockTelefono.marca || ''} ${stockTelefono.modelo || ''}`.trim();
+            } else if (stockTelefono.nombre) {
+                telefonoTexto = stockTelefono.nombre;
             }
         }
 
-        async function viewTelefonoAsignado(id) {
-            try {
-                const response = await fetch(`/api/telefonos-asignados/${id}`);
-                
-                if (!response.ok) {
-                    throw new Error('Error al cargar asignación');
-                }
-
-                const asignacion = await response.json();
-                
-                const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
-                const stockTelefono = asignacion.stock_equipos || asignacion.stockEquipo || {};
-                
-                let usuarioTexto = 'N/A';
-                if (usuario) {
-                    if (usuario.nombre && usuario.apellido) {
-                        usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-                    } else if (usuario.name) {
-                        usuarioTexto = usuario.name;
-                    }
-                    if (usuario.cargo) {
-                        usuarioTexto += ` - ${usuario.cargo}`;
-                    }
-                }
-
-                let telefonoTexto = 'N/A';
-                if (stockTelefono) {
-                    if (stockTelefono.marca && stockTelefono.modelo) {
-                        telefonoTexto = `${stockTelefono.marca || ''} ${stockTelefono.modelo || ''}`.trim();
-                    } else if (stockTelefono.nombre) {
-                        telefonoTexto = stockTelefono.nombre;
-                    }
-                }
-
-                document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
-                document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
-                document.getElementById('view_telefono_id').textContent = asignacion.id;
-                document.getElementById('view_usuario').textContent = usuarioTexto;
-                document.getElementById('view_telefono').textContent = telefonoTexto;
-                document.getElementById('view_num_telefono').textContent = asignacion.num_telefono || 'N/A';
-                document.getElementById('view_linea_telefono').textContent = asignacion.linea_telefono || 'N/A';
-                document.getElementById('view_ip_telefono').textContent = asignacion.ip_telefono || 'N/A';
-                document.getElementById('view_mac_telefono').textContent = asignacion.mac_telefono || 'No asignado';
-                document.getElementById('view_mail_telefono').textContent = asignacion.mail_telefono || 'N/A';
-                document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
-                    new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
-                
-                $('#viewTelefonoAsignadoModal').modal('show');
-                
-            } catch (error) {
-                console.error('Error cargando asignación:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+        document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+        document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+        document.getElementById('view_telefono_id').textContent = asignacion.id;
+        document.getElementById('view_usuario').textContent = usuarioTexto;
+        document.getElementById('view_telefono').textContent = telefonoTexto;
+        document.getElementById('view_num_telefono').textContent = asignacion.num_telefono || 'N/A';
+        document.getElementById('view_linea_telefono').textContent = asignacion.linea_telefono || 'N/A';
+        document.getElementById('view_ip_telefono').textContent = asignacion.ip_telefono || 'N/A';
+        document.getElementById('view_mac_telefono').textContent = asignacion.mac_telefono || 'No asignado';
+        document.getElementById('view_mail_telefono').textContent = asignacion.mail_telefono || 'N/A';
+        document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
+            new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
+        
+        // MOSTRAR IMAGEN DE COMPROBANTE
+        const imagenContainer = document.getElementById('view_imagen_container');
+        if (asignacion.imagen_telefono || asignacion.imagen_url) {
+            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_telefono}`;
+            imagenContainer.innerHTML = `
+                <strong>Comprobante:</strong>
+                <div class="mt-2">
+                    <img src="${imagenPath}" 
+                         alt="Comprobante" 
+                         class="img-fluid rounded border" 
+                         style="max-height: 300px; cursor: pointer;"
+                         onclick="ampliarImagen('${imagenPath}')"
+                         title="Click para ampliar">
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-zoom-in me-1"></i>Click en la imagen para ampliar
+                        </small>
+                    </div>
+                </div>
+            `;
+        } else {
+            imagenContainer.innerHTML = `
+                <strong>Comprobante:</strong>
+                <p class="text-muted">
+                    <i class="bi bi-image me-1"></i>No hay imagen de comprobante
+                </p>
+            `;
         }
+        
+        $('#viewTelefonoAsignadoModal').modal('show');
+        
+    } catch (error) {
+        console.error('Error cargando asignación:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+// Función para ampliar imagen
+function ampliarImagen(src) {
+    const modalHtml = `
+        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-image me-2"></i>Comprobante
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${src}" 
+                             alt="Comprobante ampliado" 
+                             class="img-fluid"
+                             style="max-height: 80vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
+                            <i class="bi bi-download me-1"></i>Descargar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    const existingModal = document.getElementById('imagenAmpliadaModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal al body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+    imagenModal.show();
+    
+    // Limpiar cuando se cierre
+    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
 
         async function deleteTelefonoAsignado(id) {
             const result = await Swal.fire({

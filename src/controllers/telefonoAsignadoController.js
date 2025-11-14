@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
+import FileUploadService from '../services/fileUploadService.js';
 
 export const telefonoAsignadoController = {
   async index(req, res) {
@@ -115,226 +116,271 @@ export const telefonoAsignadoController = {
     }
   },
 
-async store(req, res) {
-  try {
-    const {
-      usuarios_id,
-      stock_equipos_id,
-      num_telefono,
-      linea_telefono, 
-      ip_telefono,
-      mac_telefono,
-      mail_telefono,
-      fecha_asignacion
-    } = req.body;
-
-    console.log('Datos recibidos para crear asignación de teléfono:', {
-      usuarios_id,
-      stock_equipos_id,
-      num_telefono,
-      linea_telefono, 
-      ip_telefono,
-      mac_telefono,
-      mail_telefono,
-      fecha_asignacion
-    });
-
-    const stockEquipo = await prisma.stock_equipos.findUnique({
-      where: { id: parseInt(stock_equipos_id) },
-      include: { tipo_equipo: true }
-    });
-
-    if (!stockEquipo) {
-      return res.status(400).json({ error: 'Teléfono en stock no encontrado' });
-    }
-
-    if (stockEquipo.cantidad_disponible <= 0) {
-      return res.status(400).json({ error: 'El teléfono seleccionado no tiene stock disponible' });
-    }
-
-    const telefonoAsignado = await prisma.telefonos.create({
-      data: {
-        usuarios_id: parseInt(usuarios_id),
-        stock_equipos_id: parseInt(stock_equipos_id),
+  async store(req, res) {
+    try {
+      const {
+        usuarios_id,
+        stock_equipos_id,
         num_telefono,
         linea_telefono, 
         ip_telefono,
         mac_telefono,
         mail_telefono,
-        fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : new Date()
-      },
-      include: {
-        usuarios: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            cargo: true,
-            correo: true
-          }
+        fecha_asignacion
+      } = req.body;
+
+      console.log('Datos recibidos para crear asignación de teléfono:', {
+        usuarios_id,
+        stock_equipos_id,
+        num_telefono,
+        linea_telefono, 
+        ip_telefono,
+        mac_telefono,
+        mail_telefono,
+        fecha_asignacion
+      });
+
+      // NO procesar imagen en la creación
+      console.log('Creación - No se procesa imagen');
+
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: parseInt(stock_equipos_id) },
+        include: { tipo_equipo: true }
+      });
+
+      if (!stockEquipo) {
+        return res.status(400).json({ error: 'Teléfono en stock no encontrado' });
+      }
+
+      if (stockEquipo.cantidad_disponible <= 0) {
+        return res.status(400).json({ error: 'El teléfono seleccionado no tiene stock disponible' });
+      }
+
+      const telefonoAsignado = await prisma.telefonos.create({
+        data: {
+          usuarios_id: parseInt(usuarios_id),
+          stock_equipos_id: parseInt(stock_equipos_id),
+          num_telefono,
+          linea_telefono, 
+          ip_telefono,
+          mac_telefono,
+          mail_telefono,
+          fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : new Date(),
+          imagen_telefono: null // Siempre null al crear
         },
-        stock_equipos: {
-          include: {
-            tipo_equipo: {
-              select: {
-                id: true,
-                nombre: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    await prisma.stock_equipos.update({
-      where: { id: parseInt(stock_equipos_id) },
-      data: {
-        cantidad_disponible: { decrement: 1 },
-        cantidad_asignada: { increment: 1 }
-      }
-    });
-
-    res.status(201).json({
-      message: 'Teléfono asignado exitosamente.',
-      telefonoAsignado
-    });
-
-  } catch (error) {
-    console.error('Error en store:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
-
-  async show(req, res) {
-    try {
-      const { id } = req.params;
-      const telefonoAsignado = await prisma.telefonos.findUnique({
-        where: { id: parseInt(id) },
         include: {
           usuarios: {
-            include: {
-              sede: true,
-              departamento: true
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              cargo: true,
+              correo: true
             }
           },
           stock_equipos: {
             include: {
-              tipo_equipo: true
+              tipo_equipo: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
+              }
             }
           }
         }
       });
 
-      if (!telefonoAsignado) {
-        return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
-      }
+      await prisma.stock_equipos.update({
+        where: { id: parseInt(stock_equipos_id) },
+        data: {
+          cantidad_disponible: { decrement: 1 },
+          cantidad_asignada: { increment: 1 }
+        }
+      });
 
-      res.json(telefonoAsignado);
+      res.status(201).json({
+        message: 'Teléfono asignado exitosamente.',
+        telefonoAsignado
+      });
+
     } catch (error) {
-      console.error('Error en show:', error);
+      console.error('Error en store:', error);
       res.status(500).json({ error: error.message });
     }
   },
 
-async update(req, res) {
+async show(req, res) {
   try {
     const { id } = req.params;
-    const {
-      usuarios_id,
-      stock_equipos_id,
-      num_telefono,
-      linea_telefono, 
-      ip_telefono,
-      mac_telefono,
-      mail_telefono,
-      fecha_asignacion
-    } = req.body;
-
-    console.log('Datos recibidos para actualizar asignación de teléfono:', {
-      usuarios_id,
-      stock_equipos_id,
-      num_telefono,
-      linea_telefono, 
-      ip_telefono,
-      mac_telefono,
-      mail_telefono,
-      fecha_asignacion
-    });
-
     const telefonoAsignado = await prisma.telefonos.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: parseInt(id) },
+      include: {
+        usuarios: {
+          include: {
+            sede: true,
+            departamento: true
+          }
+        },
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        }
+      }
     });
 
     if (!telefonoAsignado) {
       return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
     }
 
-    const stockAnterior = telefonoAsignado.stock_equipos_id;
-    const stockNuevo = parseInt(stock_equipos_id);
+    // Agregar URL completa para la imagen si existe
+    const telefonoConImagen = {
+      ...telefonoAsignado,
+      imagen_url: telefonoAsignado.imagen_telefono 
+        ? `/uploads/${telefonoAsignado.imagen_telefono}`
+        : null
+    };
 
-    if (stockAnterior !== stockNuevo) {
-      await prisma.stock_equipos.update({
-        where: { id: stockAnterior },
-        data: {
-          cantidad_disponible: { increment: 1 },
-          cantidad_asignada: { decrement: 1 }
-        }
-      });
+    res.json(telefonoConImagen);
+  } catch (error) {
+    console.error('Error en show:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
-      await prisma.stock_equipos.update({
-        where: { id: stockNuevo },
-        data: {
-          cantidad_disponible: { decrement: 1 },
-          cantidad_asignada: { increment: 1 }
-        }
-      });
-    }
-
-    const updated = await prisma.telefonos.update({
-      where: { id: parseInt(id) },
-      data: {
-        usuarios_id: parseInt(usuarios_id),
-        stock_equipos_id: stockNuevo,
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        usuarios_id,
+        stock_equipos_id,
         num_telefono,
         linea_telefono, 
         ip_telefono,
         mac_telefono,
         mail_telefono,
-        fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : telefonoAsignado.fecha_asignacion
-      },
-      include: {
-        usuarios: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            cargo: true,
-            correo: true
+        fecha_asignacion
+      } = req.body;
+
+      console.log('Datos recibidos para actualizar asignación de teléfono:', {
+        usuarios_id,
+        stock_equipos_id,
+        num_telefono,
+        linea_telefono, 
+        ip_telefono,
+        mac_telefono,
+        mail_telefono,
+        fecha_asignacion
+      });
+
+      const telefonoAsignado = await prisma.telefonos.findUnique({
+        where: { id: parseInt(id) }
+      });
+
+      
+
+      if (!telefonoAsignado) {
+        return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
+      }
+      
+
+      // PROCESAR IMAGEN SOLO EN EDICIÓN
+      let imagenPath = telefonoAsignado.imagen_telefono;
+
+// Verificar si se debe eliminar la imagen existente
+if (req.body.delete_imagen === 'true') {
+    if (telefonoAsignado.imagen_telefono) {
+        await FileUploadService.deleteFile(telefonoAsignado.imagen_telefono);
+    }
+    imagenPath = null;
+}
+
+// Procesar nueva imagen si se subió
+if (req.file) {
+    console.log('Procesando imagen de comprobante en edición...');
+    
+    // Validar que sea una imagen
+    FileUploadService.validateImage(req.file);
+    
+    // Eliminar imagen anterior si existe
+    if (telefonoAsignado.imagen_telefono) {
+        await FileUploadService.deleteFile(telefonoAsignado.imagen_telefono);
+    }
+    
+    // Subir nueva imagen
+    imagenPath = await FileUploadService.uploadFile(req.file, 'telefonos/comprobantes');
+    console.log('Imagen subida:', imagenPath);
+}
+
+      // Lógica de actualización de stock si cambió el equipo
+      const stockAnterior = telefonoAsignado.stock_equipos_id;
+      const stockNuevo = parseInt(stock_equipos_id);
+
+      if (stockAnterior !== stockNuevo) {
+        await prisma.stock_equipos.update({
+          where: { id: stockAnterior },
+          data: {
+            cantidad_disponible: { increment: 1 },
+            cantidad_asignada: { decrement: 1 }
           }
+        });
+
+        await prisma.stock_equipos.update({
+          where: { id: stockNuevo },
+          data: {
+            cantidad_disponible: { decrement: 1 },
+            cantidad_asignada: { increment: 1 }
+          }
+        });
+      }
+
+      const updated = await prisma.telefonos.update({
+        where: { id: parseInt(id) },
+        data: {
+          usuarios_id: parseInt(usuarios_id),
+          stock_equipos_id: stockNuevo,
+          num_telefono,
+          linea_telefono, 
+          ip_telefono,
+          mac_telefono,
+          mail_telefono,
+          imagen_telefono: imagenPath, // Actualizar la imagen solo si se subió una nueva
+          fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : telefonoAsignado.fecha_asignacion
         },
-        stock_equipos: {
-          include: {
-            tipo_equipo: {
-              select: {
-                id: true,
-                nombre: true
+        include: {
+          usuarios: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              cargo: true,
+              correo: true
+            }
+          },
+          stock_equipos: {
+            include: {
+              tipo_equipo: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
               }
             }
           }
         }
-      }
-    });
+      });
 
-    res.json({
-      message: 'Asignación de teléfono actualizada exitosamente.',
-      telefonoAsignado: updated
-    });
+      res.json({
+        message: 'Asignación de teléfono actualizada exitosamente.',
+        telefonoAsignado: updated
+      });
 
-  } catch (error) {
-    console.error('Error en update:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+    } catch (error) {
+      console.error('Error en update:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 
   async destroy(req, res) {  
     try {
@@ -347,6 +393,10 @@ async update(req, res) {
 
       if (!telefonoAsignado) {
         return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
+      }
+
+      if (telefonoAsignado.imagen_telefono) {
+        await FileUploadService.deleteFile(telefonoAsignado.imagen_telefono);
       }
 
       const stockEquipo = await prisma.stock_equipos.findUnique({
@@ -374,6 +424,7 @@ async update(req, res) {
       res.status(500).json({ error: error.message });
     }
   },
+
 
   async porUsuario(req, res) {
     try {
@@ -649,7 +700,6 @@ async generarPDFPorUsuario(req, res) {
 
     const totalTelefonos = telefonosProcesados.length;
 
-    // Manejo del contador sin upsert
     let contador = await prisma.contador_documentos.findUnique({
       where: { tipo: 'TELEFONOS_USUARIO' }
     });
@@ -657,7 +707,6 @@ async generarPDFPorUsuario(req, res) {
     let numeroDocumento;
     
     if (!contador) {
-      // Crear contador si no existe
       contador = await prisma.contador_documentos.create({
         data: {
           tipo: 'TELEFONOS_USUARIO',
@@ -666,7 +715,6 @@ async generarPDFPorUsuario(req, res) {
       });
       numeroDocumento = '0001';
     } else {
-      // Incrementar contador existente
       contador = await prisma.contador_documentos.update({
         where: { tipo: 'TELEFONOS_USUARIO' },
         data: { 

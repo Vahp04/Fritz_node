@@ -40,7 +40,7 @@ app.use(cookieParser());
 
 app.use('/public', express.static(path.join(__dirname, '../public')));
 app.use('/img', express.static(path.join(__dirname, '../public/img')));
-
+app.use('/uploads', express.static('uploads'));
 // Configuración de EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));

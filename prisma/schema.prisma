@@ -253,6 +253,7 @@ model dvr{
     mac_telefono      String?         @db.VarChar(191)
     mail_telefono     String          @db.VarChar(191)
     fecha_asignacion  DateTime?
+    imagen_telefono   String?         @db.VarChar(500)
     created_at        DateTime        @default(now())
     updated_at        DateTime        @default(now()) @updatedAt
     stock_equipos     stock_equipos   @relation("TelefonoUsuarios", fields: [stock_equipos_id], references: [id], onDelete: NoAction)
