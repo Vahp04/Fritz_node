@@ -571,11 +571,11 @@
                                     <i class="bi bi-download me-1"></i> Exportar
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
+                                   <!-- <li>
                                         <a class="dropdown-item" href="#" onclick="generarPDFAsignaciones()">
                                             <i class="bi bi-file-pdf me-2"></i>Descargar PDF Asignaciones
                                         </a>
-                                    </li>
+                                    </li>-->
                                     <li>
                                         <a class="dropdown-item" href="#" onclick="verPDFAsignaciones()">
                                             <i class="bi bi-eye me-2"></i>Ver PDF Asignaciones
@@ -960,9 +960,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="generarPDFUsuarioSeleccionado()">
+                    <!--<button type="button" class="btn btn-primary" onclick="generarPDFUsuarioSeleccionado()">
                         <i class="bi bi-download me-1"></i> Descargar PDF
-                    </button>
+                    </button>-->
                     <button type="button" class="btn btn-info text-white" onclick="verPDFUsuarioSeleccionado()">
                         <i class="bi bi-eye me-1"></i> Ver PDF
                     </button>
@@ -2043,20 +2043,16 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
                 </div>
             `;
             
-            // Remover modal anterior si existe
             const existingModal = document.getElementById('imagenAmpliadaModal');
             if (existingModal) {
                 existingModal.remove();
             }
             
-            // Agregar nuevo modal al body
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
-            // Mostrar modal
             const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
             imagenModal.show();
             
-            // Limpiar cuando se cierre
             document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
                 this.remove();
             });
