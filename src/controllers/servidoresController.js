@@ -101,79 +101,79 @@ export const servidoresController = {
     }
   },
 
-async store(req, res) {
-  try {
-    const { 
-      stock_equipos_id,
-      descripcion, 
-      sede_id, 
-      ubicacion, 
-      ip_servidores,
-      cereal_servidores,
-      estado 
-    } = req.body;
+  async store(req, res) {
+    try {
+      const { 
+        stock_equipos_id,
+        descripcion, 
+        sede_id, 
+        ubicacion, 
+        ip_servidores,
+        cereal_servidores,
+        estado 
+      } = req.body;
 
-    console.log('Datos recibidos para crear servidor:', req.body);
+      console.log('Datos recibidos para crear servidor:', req.body);
 
-    const stockEquiposId = parseInt(stock_equipos_id);
-    const sedeId = parseInt(sede_id);
+      const stockEquiposId = parseInt(stock_equipos_id);
+      const sedeId = parseInt(sede_id);
 
-    const servidorStock = await prisma.stock_equipos.findUnique({
-      where: { id: stockEquiposId },
-      include: {
-        tipo_equipo: true
+      const servidorStock = await prisma.stock_equipos.findUnique({
+        where: { id: stockEquiposId },
+        include: {
+          tipo_equipo: true
+        }
+      });
+
+      if (!servidorStock) {
+        return res.status(404).json({ error: 'Equipo no encontrado en inventario' });
       }
-    });
 
-    if (!servidorStock) {
-      return res.status(404).json({ error: 'Equipo no encontrado en inventario' });
-    }
+      const tipoNombre = servidorStock.tipo_equipo?.nombre?.toLowerCase() || '';
+      if (!tipoNombre.includes('servidor')) {
+        return res.status(400).json({ 
+          error: 'El equipo seleccionado no es un servidor. Por favor seleccione un equipo del tipo servidor.' 
+        });
+      }
 
-    const tipoNombre = servidorStock.tipo_equipo?.nombre?.toLowerCase() || '';
-    if (!tipoNombre.includes('servidor')) {
-      return res.status(400).json({ 
-        error: 'El equipo seleccionado no es un servidor. Por favor seleccione un equipo del tipo servidor.' 
-      });
-    }
+      if (servidorStock.cantidad_disponible <= 0) {
+        return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
+      }
 
-    if (servidorStock.cantidad_disponible <= 0) {
-      return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
-    }
+      const resultado = await prisma.$transaction(async (tx) => {
+        const servidor = await tx.servidores.create({
+          data: {
+            stock_equipos_id: stockEquiposId, 
+            descripcion,
+            sede_id: sedeId, 
+            ubicacion,
+            ip_servidores,
+            cereal_servidores,
+            estado: estado || 'activo'
+          }
+        });
 
-    const resultado = await prisma.$transaction(async (tx) => {
-      const servidor = await tx.servidores.create({
-        data: {
-          stock_equipos_id: stockEquiposId, 
-          descripcion,
-          sede_id: sedeId, 
-          ubicacion,
-          ip_servidores,
-          cereal_servidores,
-          estado: estado || 'activo'
-        }
-      });
+        await tx.stock_equipos.update({
+          where: { id: stockEquiposId }, 
+          data: {
+            cantidad_disponible: { decrement: 1 },
+            cantidad_asignada: { increment: 1 }
+          }
+        });
 
-      await tx.stock_equipos.update({
-        where: { id: stockEquiposId }, 
-        data: {
-          cantidad_disponible: { decrement: 1 },
-          cantidad_asignada: { increment: 1 }
-        }
+        return servidor;
       });
 
-      return servidor;
-    });
+      res.status(201).json({
+        message: 'Servidor activado exitosamente',
+        servidor: resultado
+      });
 
-    res.status(201).json({
-      message: 'Servidor activado exitosamente',
-      servidor: resultado
-    });
-
-  } catch (error) {
-    console.error('Error en store:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+    } catch (error) {
+      console.error('Error en store:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 
   async update(req, res) {
     try {

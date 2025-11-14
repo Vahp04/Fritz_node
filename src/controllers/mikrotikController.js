@@ -5,316 +5,81 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 const prisma = new PrismaClient();
 
 export const mikrotikController = {
-async index(req, res) {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    const search = req.query.search || '';
-    const sede_id = req.query.sede_id || '';
-    const estado = req.query.estado || '';
+  async index(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const search = req.query.search || '';
+      const sede_id = req.query.sede_id || '';
+      const estado = req.query.estado || '';
 
-    let where = {};
+      let where = {};
 
-    if (search) {
-      where.OR = [
-        { descripcion: { contains: search, mode: 'insensitive' } },
-        { ip_mikrotik: { contains: search, mode: 'insensitive' } },
-        { cereal_mikrotik: { contains: search, mode: 'insensitive' } },
-        { ubicacion: { contains: search, mode: 'insensitive' } }
-      ];
-    }
-
-    if (sede_id) {
-      where.sede_id = parseInt(sede_id);
-    }
-
-    if (estado) {
-      where.estado = estado;
-    }
-
-    const totalRecords = await prisma.mikrotik.count({ where });
-
-    const mikrotiks = await prisma.mikrotik.findMany({
-      where,
-      include: {
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
-          }
-        },
-        sede: true
-      },
-      orderBy: {
-        id: 'asc'
-      },
-      skip: skip,
-      take: limit
-    });
-
-    const totalPages = Math.ceil(totalRecords / limit);
-
-    res.json({
-      mikrotiks: mikrotiks,
-      pagination: {
-        current: page,
-        total: totalPages,
-        totalRecords: totalRecords
-      },
-      filters: {
-        search: search,
-        sede_id: sede_id,
-        estado: estado
+      if (search) {
+        where.OR = [
+          { descripcion: { contains: search, mode: 'insensitive' } },
+          { ip_mikrotik: { contains: search, mode: 'insensitive' } },
+          { cereal_mikrotik: { contains: search, mode: 'insensitive' } },
+          { ubicacion: { contains: search, mode: 'insensitive' } }
+        ];
       }
-    });
-  } catch (error) {
-    console.error('Error en index:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
 
-async show(req, res) {
-  try {
-    const { id } = req.params;
-    const mikrotikId = parseInt(id); 
-
-    const mikrotik = await prisma.mikrotik.findUnique({
-      where: { id: mikrotikId }, 
-      include: {
-        stock_equipos: {
-          include: {
-            tipo_equipo: true
-          }
-        },
-        sede: true
+      if (sede_id) {
+        where.sede_id = parseInt(sede_id);
       }
-    });
 
-    if (!mikrotik) {
-      return res.status(404).json({ error: 'Mikrotik no encontrado' });
-    }
+      if (estado) {
+        where.estado = estado;
+      }
 
-    res.json(mikrotik);
-  } catch (error) {
-    console.error('Error en show:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+      const totalRecords = await prisma.mikrotik.count({ where });
 
-async store(req, res) {
-  try {
-    const { 
-      stock_equipos_id,
-      descripcion, 
-      sede_id, 
-      ubicacion, 
-      ip_mikrotik,
-      cereal_mikrotik,
-      estado 
-    } = req.body;
-
-    console.log('Datos recibidos para crear mikrotik:', req.body);
-
-    const stockEquiposId = parseInt(stock_equipos_id);
-    const sedeId = parseInt(sede_id);
-
-    const mikrotikStock = await prisma.stock_equipos.findMany({
-      where: { id: stockEquiposId }, 
-      include: { tipo_equipo: true }
-    });
-
-    if (!mikrotikStock) {
-      return res.status(404).json({ error: 'Equipo no encontrado en inventario' });
-    }
-
-    if (mikrotikStock.cantidad_disponible <= 0) {
-      return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
-    }
-
-
-
-    const resultado = await prisma.$transaction(async (tx) => {
-      const mikrotik = await tx.mikrotik.create({
-        data: {
-          stock_equipos_id: stockEquiposId, 
-          descripcion,
-          sede_id: sedeId, 
-          ubicacion,
-          ip_mikrotik,
-          cereal_mikrotik,
-          estado: estado || 'activo'
-        }
+      const mikrotiks = await prisma.mikrotik.findMany({
+        where,
+        include: {
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          },
+          sede: true
+        },
+        orderBy: {
+          id: 'asc'
+        },
+        skip: skip,
+        take: limit
       });
 
-      await tx.stock_equipos.update({
-        where: { id: stockEquiposId }, 
-        data: {
-          cantidad_disponible: { decrement: 1 },
-          cantidad_asignada: { increment: 1 }
+      const totalPages = Math.ceil(totalRecords / limit);
+
+      res.json({
+        mikrotiks: mikrotiks,
+        pagination: {
+          current: page,
+          total: totalPages,
+          totalRecords: totalRecords
+        },
+        filters: {
+          search: search,
+          sede_id: sede_id,
+          estado: estado
         }
       });
-
-      return mikrotik;
-    });
-
-    res.status(201).json({
-      message: 'Mikrotik activado exitosamente',
-      mikrotik: resultado
-    });
-
-  } catch (error) {
-    console.error('Error en store:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
-
-async update(req, res) {
-  try {
-    const { id } = req.params;
-    const { 
-      descripcion, 
-      sede_id, 
-      ubicacion, 
-      ip_mikrotik,
-      cereal_mikrotik,
-      estado 
-    } = req.body;
-
-    console.log('Datos recibidos para actualizar:', req.body);
-
-    const mikrotikId = parseInt(id);
-    const sedeId = sede_id ? parseInt(sede_id) : undefined;
-
-    // CORREGIR: Cambiar findMany por findUnique
-    const mikrotikActual = await prisma.mikrotik.findUnique({
-      where: { id: mikrotikId },
-      include: {
-        stock_equipos: true
-      }
-    });
-
-    if (!mikrotikActual) {
-      return res.status(404).json({ error: 'Mikrotik no encontrado' });
+    } catch (error) {
+      console.error('Error en index:', error);
+      res.status(500).json({ error: error.message });
     }
+  },
 
-    console.log(`Mikrotik actual - Estado: ${mikrotikActual.estado}, Stock ID: ${mikrotikActual.stock_equipos_id}`);
+  async show(req, res) {
+    try {
+      const { id } = req.params;
+      const mikrotikId = parseInt(id); 
 
-    const resultado = await prisma.$transaction(async (tx) => {
-      const estadoAnterior = mikrotikActual.estado;
-      const estadoNuevo = estado;
-      const stockEquipoId = mikrotikActual.stock_equipos_id;
-
-      console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
-
-      // Solo procesar cambios si el estado realmente cambió
-      if (estadoAnterior !== estadoNuevo) {
-        console.log('Procesando cambio de estado...');
-
-        // Obtener el stock actual para validaciones
-        const stockActual = await tx.stock_equipos.findUnique({
-          where: { id: stockEquipoId }
-        });
-
-        if (!stockActual) {
-          throw new Error('Stock de equipo no encontrado');
-        }
-
-        // LÓGICA CORREGIDA - TRANSICIONES DE ESTADO
-
-        // 1. Si estaba ACTIVO y pasa a INACTIVO o MANTENIMIENTO
-        if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
-          console.log('Devolviendo equipo activo al inventario');
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_disponible: { increment: 1 },
-              cantidad_asignada: { decrement: 1 }
-            }
-          });
-        }
-
-        // 2. Si estaba INACTIVO o MANTENIMIENTO y pasa a ACTIVO
-        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activo') {
-          console.log('Asignando equipo desde inventario a activo');
-          // Validar que hay stock disponible
-          if (stockActual.cantidad_disponible <= 0) {
-            throw new Error('No hay stock disponible para activar este equipo');
-          }
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_disponible: { decrement: 1 },
-              cantidad_asignada: { increment: 1 }
-            }
-          });
-        }
-
-        // 3. Si estaba ACTIVO y pasa a DESUSO
-        else if (estadoAnterior === 'activo' && estadoNuevo === 'desuso') {
-          console.log('Marcando equipo activo como desuso - reduciendo inventario');
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_total: { decrement: 1 },
-              cantidad_asignada: { decrement: 1 }
-            }
-          });
-        }
-
-        // 4. Si estaba INACTIVO o MANTENIMIENTO y pasa a DESUSO
-        else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'desuso') {
-          console.log('Marcando equipo inactivo/mantenimiento como desuso - reduciendo inventario');
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_total: { decrement: 1 },
-              cantidad_disponible: { decrement: 1 }
-            }
-          });
-        }
-
-        // 5. Si estaba DESUSO y pasa a ACTIVO
-        else if (estadoAnterior === 'desuso' && estadoNuevo === 'activo') {
-          console.log('Reactivar equipo desde desuso');
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_total: { increment: 1 },
-              cantidad_disponible: { decrement: 1 },
-              cantidad_asignada: { increment: 1 }
-            }
-          });
-        }
-
-        // 6. Si estaba DESUSO y pasa a INACTIVO o MANTENIMIENTO
-        else if (estadoAnterior === 'desuso' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
-          console.log('Mover equipo de desuso a inventario disponible');
-          await tx.stock_equipos.update({
-            where: { id: stockEquipoId },
-            data: {
-              cantidad_total: { increment: 1 },
-              cantidad_disponible: { increment: 1 }
-            }
-          });
-        }
-
-        console.log('Cambio de estado procesado exitosamente');
-      } else {
-        console.log('No hay cambio de estado, omitiendo actualización de stock');
-      }
-
-      // Actualizar el mikrotik
-      const mikrotikActualizado = await tx.mikrotik.update({
-        where: { id: mikrotikId },
-        data: {
-          descripcion,
-          sede_id: sedeId,
-          ubicacion,
-          ip_mikrotik,
-          cereal_mikrotik,
-          estado: estadoNuevo,
-          updated_at: new Date()
-        },
+      const mikrotik = await prisma.mikrotik.findUnique({
+        where: { id: mikrotikId }, 
         include: {
           stock_equipos: {
             include: {
@@ -325,19 +90,241 @@ async update(req, res) {
         }
       });
 
-      return mikrotikActualizado;
-    });
+      if (!mikrotik) {
+        return res.status(404).json({ error: 'Mikrotik no encontrado' });
+      }
 
-    res.json({
-      message: 'Mikrotik actualizado exitosamente',
-      mikrotik: resultado
-    });
+      res.json(mikrotik);
+    } catch (error) {
+      console.error('Error en show:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 
-  } catch (error) {
-    console.error('Error en update:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+  async store(req, res) {
+    try {
+      const { 
+        stock_equipos_id,
+        descripcion, 
+        sede_id, 
+        ubicacion, 
+        ip_mikrotik,
+        cereal_mikrotik,
+        estado 
+      } = req.body;
+
+      console.log('Datos recibidos para crear mikrotik:', req.body);
+
+      const stockEquiposId = parseInt(stock_equipos_id);
+      const sedeId = parseInt(sede_id);
+
+      const mikrotikStock = await prisma.stock_equipos.findMany({
+        where: { id: stockEquiposId }, 
+        include: { tipo_equipo: true }
+      });
+
+      if (!mikrotikStock) {
+        return res.status(404).json({ error: 'Equipo no encontrado en inventario' });
+      }
+
+      if (mikrotikStock.cantidad_disponible <= 0) {
+        return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
+      }
+
+
+
+      const resultado = await prisma.$transaction(async (tx) => {
+        const mikrotik = await tx.mikrotik.create({
+          data: {
+            stock_equipos_id: stockEquiposId, 
+            descripcion,
+            sede_id: sedeId, 
+            ubicacion,
+            ip_mikrotik,
+            cereal_mikrotik,
+            estado: estado || 'activo'
+          }
+        });
+
+        await tx.stock_equipos.update({
+          where: { id: stockEquiposId }, 
+          data: {
+            cantidad_disponible: { decrement: 1 },
+            cantidad_asignada: { increment: 1 }
+          }
+        });
+
+        return mikrotik;
+      });
+
+      res.status(201).json({
+        message: 'Mikrotik activado exitosamente',
+        mikrotik: resultado
+      });
+
+    } catch (error) {
+      console.error('Error en store:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const { 
+        descripcion, 
+        sede_id, 
+        ubicacion, 
+        ip_mikrotik,
+        cereal_mikrotik,
+        estado 
+      } = req.body;
+
+      console.log('Datos recibidos para actualizar:', req.body);
+
+      const mikrotikId = parseInt(id);
+      const sedeId = sede_id ? parseInt(sede_id) : undefined;
+
+      const mikrotikActual = await prisma.mikrotik.findUnique({
+        where: { id: mikrotikId },
+        include: {
+          stock_equipos: true
+        }
+      });
+
+      if (!mikrotikActual) {
+        return res.status(404).json({ error: 'Mikrotik no encontrado' });
+      }
+
+      console.log(`Mikrotik actual - Estado: ${mikrotikActual.estado}, Stock ID: ${mikrotikActual.stock_equipos_id}`);
+
+      const resultado = await prisma.$transaction(async (tx) => {
+        const estadoAnterior = mikrotikActual.estado;
+        const estadoNuevo = estado;
+        const stockEquipoId = mikrotikActual.stock_equipos_id;
+
+        console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
+
+        if (estadoAnterior !== estadoNuevo) {
+          console.log('Procesando cambio de estado...');
+
+          const stockActual = await tx.stock_equipos.findUnique({
+            where: { id: stockEquipoId }
+          });
+
+          if (!stockActual) {
+            throw new Error('Stock de equipo no encontrado');
+          }
+
+          if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+            console.log('Devolviendo equipo activo al inventario');
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { increment: 1 },
+                cantidad_asignada: { decrement: 1 }
+              }
+            });
+          }
+
+          else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'activo') {
+            console.log('Asignando equipo desde inventario a activo');
+            if (stockActual.cantidad_disponible <= 0) {
+              throw new Error('No hay stock disponible para activar este equipo');
+            }
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          }
+
+          else if (estadoAnterior === 'activo' && estadoNuevo === 'desuso') {
+            console.log('Marcando equipo activo como desuso - reduciendo inventario');
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { decrement: 1 },
+                cantidad_asignada: { decrement: 1 }
+              }
+            });
+          }
+
+          else if ((estadoAnterior === 'inactivo' || estadoAnterior === 'mantenimiento') && estadoNuevo === 'desuso') {
+            console.log('Marcando equipo inactivo/mantenimiento como desuso - reduciendo inventario');
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { decrement: 1 },
+                cantidad_disponible: { decrement: 1 }
+              }
+            });
+          }
+
+          else if (estadoAnterior === 'desuso' && estadoNuevo === 'activo') {
+            console.log('Reactivar equipo desde desuso');
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { decrement: 1 },
+                cantidad_asignada: { increment: 1 }
+              }
+            });
+          }
+
+          else if (estadoAnterior === 'desuso' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
+            console.log('Mover equipo de desuso a inventario disponible');
+            await tx.stock_equipos.update({
+              where: { id: stockEquipoId },
+              data: {
+                cantidad_total: { increment: 1 },
+                cantidad_disponible: { increment: 1 }
+              }
+            });
+          }
+
+          console.log('Cambio de estado procesado exitosamente');
+        } else {
+          console.log('No hay cambio de estado, omitiendo actualización de stock');
+        }
+
+        const mikrotikActualizado = await tx.mikrotik.update({
+          where: { id: mikrotikId },
+          data: {
+            descripcion,
+            sede_id: sedeId,
+            ubicacion,
+            ip_mikrotik,
+            cereal_mikrotik,
+            estado: estadoNuevo,
+            updated_at: new Date()
+          },
+          include: {
+            stock_equipos: {
+              include: {
+                tipo_equipo: true
+              }
+            },
+            sede: true
+          }
+        });
+
+        return mikrotikActualizado;
+      });
+
+      res.json({
+        message: 'Mikrotik actualizado exitosamente',
+        mikrotik: resultado
+      });
+
+    } catch (error) {
+      console.error('Error en update:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 
 
  async destroy(req, res) {
@@ -422,7 +409,6 @@ async cambiarEstado(req, res) {
       console.log(`Cambio de estado: ${estadoAnterior} -> ${estadoNuevo}`);
 
       if (estadoAnterior !== estadoNuevo) {
-        // Obtener stock actual para validaciones
         const stockActual = await tx.stock_equipos.findUnique({
           where: { id: stockEquipoId }
         });
@@ -431,7 +417,6 @@ async cambiarEstado(req, res) {
           throw new Error('Stock de equipo no encontrado');
         }
 
-        // Misma lógica corregida que en el método update
         if (estadoAnterior === 'activo' && (estadoNuevo === 'inactivo' || estadoNuevo === 'mantenimiento')) {
           console.log('Devolviendo equipo activo al inventario');
           await tx.stock_equipos.update({

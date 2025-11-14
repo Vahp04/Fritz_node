@@ -5,130 +5,130 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 
 export const equipoAsignadoController = {
-async index(req, res) {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 10;
-        const skip = (page - 1) * limit;
+  async index(req, res) {
+      try {
+          const page = parseInt(req.query.page) || 1;
+          const limit = 10;
+          const skip = (page - 1) * limit;
 
-   
-        const { usuario, equipo, estado } = req.query;
+    
+          const { usuario, equipo, estado } = req.query;
+          
+          console.log(' Filtros recibidos en equipos asignados:', { usuario, equipo, estado });
+
+  
+          let whereClause = {};
+
         
-        console.log(' Filtros recibidos en equipos asignados:', { usuario, equipo, estado });
-
- 
-        let whereClause = {};
-
-       
-        if (usuario) {
-            whereClause.usuarios = {
-                OR: [
-                    { nombre: { contains: usuario, mode: 'insensitive' } },
-                    { apellido: { contains: usuario, mode: 'insensitive' } }
-                ]
-            };
-        }
+          if (usuario) {
+              whereClause.usuarios = {
+                  OR: [
+                      { nombre: { contains: usuario, mode: 'insensitive' } },
+                      { apellido: { contains: usuario, mode: 'insensitive' } }
+                  ]
+              };
+          }
 
 
-        if (equipo) {
-            whereClause.stock_equipos = {
-                OR: [
-                    { marca: { contains: equipo, mode: 'insensitive' } },
-                    { modelo: { contains: equipo, mode: 'insensitive' } }
-                ]
-            };
-        }
+          if (equipo) {
+              whereClause.stock_equipos = {
+                  OR: [
+                      { marca: { contains: equipo, mode: 'insensitive' } },
+                      { modelo: { contains: equipo, mode: 'insensitive' } }
+                  ]
+              };
+          }
 
 
-        if (estado) {
-            whereClause.estado = estado;
-        }
+          if (estado) {
+              whereClause.estado = estado;
+          }
 
-        console.log(' Where clause para equipos asignados:', JSON.stringify(whereClause, null, 2));
+          console.log(' Where clause para equipos asignados:', JSON.stringify(whereClause, null, 2));
 
 
-        const total = await prisma.equipo_asignado.count({
-            where: whereClause
-        });
+          const total = await prisma.equipo_asignado.count({
+              where: whereClause
+          });
 
-        console.log(` Total de asignaciones con filtros: ${total}`);
+          console.log(` Total de asignaciones con filtros: ${total}`);
 
- 
-        let equiposAsignados = [];
-        if (total > 0) {
-            equiposAsignados = await prisma.equipo_asignado.findMany({
-                where: whereClause,
-                skip,
-                take: limit,
-                include: {
-                    usuarios: {
-                        include: {
-                            sede: true,
-                            departamento: true
-                        }
-                    },
-                    usuario: true,
-                    stock_equipos: {
-                        include: {
-                            tipo_equipo: true
-                        }
-                    }
-                },
-                orderBy: { id: 'asc' }
-            });
-        }
+  
+          let equiposAsignados = [];
+          if (total > 0) {
+              equiposAsignados = await prisma.equipo_asignado.findMany({
+                  where: whereClause,
+                  skip,
+                  take: limit,
+                  include: {
+                      usuarios: {
+                          include: {
+                              sede: true,
+                              departamento: true
+                          }
+                      },
+                      usuario: true,
+                      stock_equipos: {
+                          include: {
+                              tipo_equipo: true
+                          }
+                      }
+                  },
+                  orderBy: { id: 'asc' }
+              });
+          }
 
-        console.log('Equipos asignados encontrados:', equiposAsignados.length);
-        
+          console.log('Equipos asignados encontrados:', equiposAsignados.length);
+          
 
-        const response = equiposAsignados.map(asignacion => ({
-            id: asignacion.id,
-            usuarios_id: asignacion.usuarios_id,
-            stock_equipos_id: asignacion.stock_equipos_id,
-            fecha_asignacion: asignacion.fecha_asignacion,
-            fecha_devolucion: asignacion.fecha_devolucion,
-            ip_equipo: asignacion.ip_equipo,
-            numero_serie: asignacion.cereal_equipo,
-            observaciones: asignacion.observaciones,
-            estado: asignacion.estado,
-            created_at: asignacion.created_at,
-            updated_at: asignacion.updated_at,
-            usuarioAsignado: asignacion.usuarios ? {
-                id: asignacion.usuarios.id,
-                nombre: asignacion.usuarios.nombre,
-                apellido: asignacion.usuarios.apellido,
-                cargo: asignacion.usuarios.cargo,
-                correo: asignacion.usuarios.correo,
-                sede: asignacion.usuarios.sede,
-                departamento: asignacion.usuarios.departamento
-            } : null,
-            stockEquipo: asignacion.stock_equipos ? {
-                id: asignacion.stock_equipos.id,
-                marca: asignacion.stock_equipos.marca,
-                modelo: asignacion.stock_equipos.modelo,
-                tipo_equipo: asignacion.stock_equipos.tipo_equipo
-            } : null,
-            usuarioAsignador: asignacion.usuario ? {
-                id: asignacion.usuario.id,
-                name: asignacion.usuario.name,
-                email: asignacion.usuario.email
-            } : null
-        }));
+          const response = equiposAsignados.map(asignacion => ({
+              id: asignacion.id,
+              usuarios_id: asignacion.usuarios_id,
+              stock_equipos_id: asignacion.stock_equipos_id,
+              fecha_asignacion: asignacion.fecha_asignacion,
+              fecha_devolucion: asignacion.fecha_devolucion,
+              ip_equipo: asignacion.ip_equipo,
+              numero_serie: asignacion.cereal_equipo,
+              observaciones: asignacion.observaciones,
+              estado: asignacion.estado,
+              created_at: asignacion.created_at,
+              updated_at: asignacion.updated_at,
+              usuarioAsignado: asignacion.usuarios ? {
+                  id: asignacion.usuarios.id,
+                  nombre: asignacion.usuarios.nombre,
+                  apellido: asignacion.usuarios.apellido,
+                  cargo: asignacion.usuarios.cargo,
+                  correo: asignacion.usuarios.correo,
+                  sede: asignacion.usuarios.sede,
+                  departamento: asignacion.usuarios.departamento
+              } : null,
+              stockEquipo: asignacion.stock_equipos ? {
+                  id: asignacion.stock_equipos.id,
+                  marca: asignacion.stock_equipos.marca,
+                  modelo: asignacion.stock_equipos.modelo,
+                  tipo_equipo: asignacion.stock_equipos.tipo_equipo
+              } : null,
+              usuarioAsignador: asignacion.usuario ? {
+                  id: asignacion.usuario.id,
+                  name: asignacion.usuario.name,
+                  email: asignacion.usuario.email
+              } : null
+          }));
 
-        res.json({
-            equiposAsignados: response,
-            pagination: {
-                current: page,
-                total: Math.ceil(total / limit),
-                totalRecords: total
-            }
-        });
+          res.json({
+              equiposAsignados: response,
+              pagination: {
+                  current: page,
+                  total: Math.ceil(total / limit),
+                  totalRecords: total
+              }
+          });
 
-    } catch (error) {
-        console.error('Error en index:', error);
-        res.status(500).json({ error: error.message });
-    }
-},
+      } catch (error) {
+          console.error('Error en index:', error);
+          res.status(500).json({ error: error.message });
+      }
+  },
 
   async store(req, res) {
     try {
@@ -154,7 +154,6 @@ async index(req, res) {
         estado
       });
 
-      // NO procesar imagen en la creación
       console.log('Creación - No se procesa imagen');
 
       if (!req.user || !req.user.id) {
@@ -185,7 +184,7 @@ async index(req, res) {
           observaciones,
           usuario_id: req.user.id,
           estado,
-          imagen_comprobante: null // ← Siempre null al crear
+          imagen_comprobante: null 
         },
         include: {
           usuarios: {
@@ -292,7 +291,7 @@ async index(req, res) {
         fecha_devolucion,
         observaciones,
         estado,
-        delete_imagen // ← Nuevo campo para eliminar imagen
+        delete_imagen 
       } = req.body;
 
       console.log('Datos recibidos para actualizar asignación:', {
@@ -315,10 +314,8 @@ async index(req, res) {
         return res.status(404).json({ error: 'Asignación no encontrada' });
       }
 
-      // PROCESAR IMAGEN SOLO EN EDICIÓN
       let imagenPath = equipoAsignado.imagen_comprobante;
       
-      // Verificar si se debe eliminar la imagen existente
       if (delete_imagen === 'true') {
         console.log('Eliminando imagen existente...');
         if (equipoAsignado.imagen_comprobante) {
@@ -327,20 +324,16 @@ async index(req, res) {
         imagenPath = null;
       }
       
-      // Procesar nueva imagen si se subió
       if (req.file) {
         console.log('Procesando imagen de comprobante en edición...');
         
         try {
-          // Validar que sea una imagen
           FileUploadService.validateImage(req.file);
           
-          // Eliminar imagen anterior si existe
           if (equipoAsignado.imagen_comprobante && delete_imagen !== 'true') {
             await FileUploadService.deleteFile(equipoAsignado.imagen_comprobante);
           }
           
-          // Subir nueva imagen
           imagenPath = await FileUploadService.uploadFile(req.file, 'equipos/comprobantes');
           console.log('Imagen subida:', imagenPath);
         } catch (uploadError) {
@@ -425,7 +418,7 @@ async index(req, res) {
           cereal_equipo: numero_serie,
           fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
           observaciones,
-          imagen_comprobante: imagenPath, // ← Actualizar imagen
+          imagen_comprobante: imagenPath, 
           estado: nuevoEstado
         },
         include: {
@@ -485,7 +478,6 @@ async index(req, res) {
         return res.status(404).json({ error: 'Asignación no encontrada' });
       }
 
-      // Eliminar imagen si existe
       if (equipoAsignado.imagen_comprobante) {
         await FileUploadService.deleteFile(equipoAsignado.imagen_comprobante);
       }
@@ -579,123 +571,123 @@ async index(req, res) {
     }
   },
 
-async marcarObsoleto(req, res) {
-  try {
-    const { id } = req.params;
+  async marcarObsoleto(req, res) {
+    try {
+      const { id } = req.params;
 
-    const equipoAsignado = await prisma.equipo_asignado.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        stock_equipos: true
-      }
-    });
-
-    if (!equipoAsignado) {
-      return res.status(404).json({ error: 'Asignación no encontrada' });
-    }
-
-    if (equipoAsignado.estado === 'obsoleto') {
-      return res.status(400).json({ error: 'El equipo ya está marcado como obsoleto' });
-    }
-
-    const updated = await prisma.equipo_asignado.update({
-      where: { id: parseInt(id) },
-      data: {
-        estado: 'obsoleto',
-        fecha_devolucion: new Date() 
-      }
-    });
-    const stockEquipo = await prisma.stock_equipos.findUnique({
-      where: { id: equipoAsignado.stock_equipos_id }
-    });
-
-    if (stockEquipo) {
-      const updateData = {
-        cantidad_total: { decrement: 1 }
-      };
-
-      if (equipoAsignado.estado === 'activo') {
-        updateData.cantidad_asignada = { decrement: 1 };
-      } else if (equipoAsignado.estado === 'devuelto') {
-        updateData.cantidad_disponible = { decrement: 1 };
-      }
-
-      await prisma.stock_equipos.update({
-        where: { id: stockEquipo.id },
-        data: updateData
-      });
-
-      const stockActualizado = await prisma.stock_equipos.findUnique({
-        where: { id: stockEquipo.id }
-      });
-
-      if (stockActualizado.cantidad_total <= 0) {
-        await prisma.stock_equipos.delete({
-          where: { id: stockEquipo.id }
-        });
-        console.log(`Equipo de stock ${stockEquipo.id} eliminado por cantidad total 0`);
-      }
-    }
-
-    res.json({ 
-      message: 'Equipo marcado como obsoleto exitosamente.',
-      equipoActualizado: updated
-    });
-
-  } catch (error) {
-    console.error('Error en marcarObsoleto:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
-
-async reactivar(req, res) {
-  try {
-    const { id } = req.params;
-
-    const equipoAsignado = await prisma.equipo_asignado.findUnique({
-      where: { id: parseInt(id) }
-    });
-
-    if (!equipoAsignado) {
-      return res.status(404).json({ error: 'Asignación no encontrada' });
-    }
-
-    if (equipoAsignado.estado !== 'obsoleto') {
-      return res.status(400).json({ error: 'Solo se pueden reactivar equipos obsoletos' });
-    }
-
-    const updated = await prisma.equipo_asignado.update({
-      where: { id: parseInt(id) },
-      data: {
-        estado: 'activo',
-        fecha_devolucion: null
-      }
-    });
-
-    const stockEquipo = await prisma.stock_equipos.findUnique({
-      where: { id: equipoAsignado.stock_equipos_id }
-    });
-
-    if (stockEquipo) {
-      await prisma.stock_equipos.update({
-        where: { id: stockEquipo.id },
-        data: {
-          cantidad_total: { increment: 1 },
-          cantidad_asignada: { increment: 1 }
+      const equipoAsignado = await prisma.equipo_asignado.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          stock_equipos: true
         }
       });
+
+      if (!equipoAsignado) {
+        return res.status(404).json({ error: 'Asignación no encontrada' });
+      }
+
+      if (equipoAsignado.estado === 'obsoleto') {
+        return res.status(400).json({ error: 'El equipo ya está marcado como obsoleto' });
+      }
+
+      const updated = await prisma.equipo_asignado.update({
+        where: { id: parseInt(id) },
+        data: {
+          estado: 'obsoleto',
+          fecha_devolucion: new Date() 
+        }
+      });
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: equipoAsignado.stock_equipos_id }
+      });
+
+      if (stockEquipo) {
+        const updateData = {
+          cantidad_total: { decrement: 1 }
+        };
+
+        if (equipoAsignado.estado === 'activo') {
+          updateData.cantidad_asignada = { decrement: 1 };
+        } else if (equipoAsignado.estado === 'devuelto') {
+          updateData.cantidad_disponible = { decrement: 1 };
+        }
+
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: updateData
+        });
+
+        const stockActualizado = await prisma.stock_equipos.findUnique({
+          where: { id: stockEquipo.id }
+        });
+
+        if (stockActualizado.cantidad_total <= 0) {
+          await prisma.stock_equipos.delete({
+            where: { id: stockEquipo.id }
+          });
+          console.log(`Equipo de stock ${stockEquipo.id} eliminado por cantidad total 0`);
+        }
+      }
+
+      res.json({ 
+        message: 'Equipo marcado como obsoleto exitosamente.',
+        equipoActualizado: updated
+      });
+
+    } catch (error) {
+      console.error('Error en marcarObsoleto:', error);
+      res.status(500).json({ error: error.message });
     }
+  },
 
-    res.json({ 
-      message: 'Equipo reactivado exitosamente.',
-      equipoAsignado: updated
-    });
+  async reactivar(req, res) {
+    try {
+      const { id } = req.params;
 
-  } catch (error) {
-    console.error('Error en reactivar:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+      const equipoAsignado = await prisma.equipo_asignado.findUnique({
+        where: { id: parseInt(id) }
+      });
+
+      if (!equipoAsignado) {
+        return res.status(404).json({ error: 'Asignación no encontrada' });
+      }
+
+      if (equipoAsignado.estado !== 'obsoleto') {
+        return res.status(400).json({ error: 'Solo se pueden reactivar equipos obsoletos' });
+      }
+
+      const updated = await prisma.equipo_asignado.update({
+        where: { id: parseInt(id) },
+        data: {
+          estado: 'activo',
+          fecha_devolucion: null
+        }
+      });
+
+      const stockEquipo = await prisma.stock_equipos.findUnique({
+        where: { id: equipoAsignado.stock_equipos_id }
+      });
+
+      if (stockEquipo) {
+        await prisma.stock_equipos.update({
+          where: { id: stockEquipo.id },
+          data: {
+            cantidad_total: { increment: 1 },
+            cantidad_asignada: { increment: 1 }
+          }
+        });
+      }
+
+      res.json({ 
+        message: 'Equipo reactivado exitosamente.',
+        equipoAsignado: updated
+      });
+
+    } catch (error) {
+      console.error('Error en reactivar:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
 
   async porUsuario(req, res) {
     try {
@@ -899,7 +891,7 @@ async reactivar(req, res) {
     }
   },
 
-   async generarPdfAsignaciones(req, res) {
+  async generarPdfAsignaciones(req, res) {
     console.log('=== GENERAR PDF ASIGNACIONES INICIADO ===');
    try {
         const equiposAsignados = await prisma.equipo_asignado.findMany({
@@ -1072,414 +1064,413 @@ async reactivar(req, res) {
             });
         }
     }
-},
+  },
 
-async verPdfAsignaciones(req, res) {
-    console.log('=== VER PDF ASIGNACIONES INICIADO ===');
-  try {
-        const equiposAsignados = await prisma.equipo_asignado.findMany({
-            select: {
-                id: true,
-                usuarios_id: true,
-                stock_equipos_id: true,
-                fecha_asignacion: true,
-                fecha_devolucion: true,
-                ip_equipo: true,
-                cereal_equipo: true, 
-                observaciones: true,
-                estado: true,
-                usuarios: {
-                    select: {
-                        id: true,
-                        nombre: true,
-                        apellido: true,
-                        cargo: true,
-                        correo: true,
-                        sede: {
-                            select: {
-                                nombre: true
-                            }
-                        },
-                        departamento: {
-                            select: {
-                                nombre: true
-                            }
-                        }
-                    }
-                },
-                usuario: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
-                },
-                stock_equipos: {
-                    include: {
-                        tipo_equipo: {
-                            select: {
-                                id: true,
-                                nombre: true,
-                                requiere_ip: true,
-                                requiere_cereal: true
-                            }
-                        }
-                    }
-                }
-            },
-            orderBy: [
-                { estado: 'asc' },
-                { fecha_asignacion: 'desc' }
-            ]
-        });
-
-        const asignacionesProcesadas = equiposAsignados.map(asignacion => {
-            const usuario = asignacion.usuarios || {};
-            const stock = asignacion.stock_equipos || {};
-            const tipoEquipo = stock.tipo_equipo || {};
-            const asignador = asignacion.usuario || {};
-            
-            return {
-                id: asignacion.id,
-                usuarios_id: asignacion.usuarios_id,
-                stock_equipos_id: asignacion.stock_equipos_id,
-                fecha_asignacion: asignacion.fecha_asignacion,
-                fecha_devolucion: asignacion.fecha_devolucion,
-                ip_equipo: asignacion.ip_equipo,
-                numero_serie: asignacion.cereal_equipo, 
-                cereal_equipo: asignacion.cereal_equipo,
-                observaciones: asignacion.observaciones,
-                estado: asignacion.estado,
-                
-                usuarioAsignado: {
-                    id: usuario.id || 0,
-                    nombre: usuario.nombre || 'N/A',
-                    apellido: usuario.apellido || '',
-                    cargo: usuario.cargo || 'Sin cargo',
-                    correo: usuario.correo || 'Sin correo',
-                    sede: usuario.sede || { nombre: 'Sin sede' },
-                    departamento: usuario.departamento || { nombre: 'Sin departamento' }
-                },
-                stockEquipo: {
-                    id: stock.id || 0,
-                    marca: stock.marca || 'N/A',
-                    modelo: stock.modelo || '',
-                    tipoEquipo: {
-                        id: tipoEquipo.id || 0,
-                        nombre: tipoEquipo.nombre || 'Sin tipo',
-                        requiere_ip: tipoEquipo.requiere_ip || false,
-                        requiere_cereal: tipoEquipo.requiere_cereal || false,
-                    }
-                },
-                usuarioAsignador: {
-                    id: asignador.id || 0,
-                    name: asignador.name || 'Sistema',
-                    email: asignador.email || 'N/A'
-                },
-                
-                fecha_asignacion_formateada: asignacion.fecha_asignacion ? 
-                    new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A',
-                fecha_devolucion_formateada: asignacion.fecha_devolucion ? 
-                    new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto'
-            };
-        });
-
-        const totalAsignaciones = asignacionesProcesadas.length;
-        const asignacionesActivas = asignacionesProcesadas.filter(a => a.estado === 'activo').length;
-        const asignacionesDevueltas = asignacionesProcesadas.filter(a => a.estado === 'devuelto').length;
-        const asignacionesObsoletas = asignacionesProcesadas.filter(a => a.estado === 'obsoleto').length;
-
-        const asignacionesPorTipo = {};
-        asignacionesProcesadas.forEach(asignacion => {
-            const tipoNombre = asignacion.stockEquipo.tipoEquipo.nombre;
-            if (!asignacionesPorTipo[tipoNombre]) {
-                asignacionesPorTipo[tipoNombre] = 0;
-            }
-            asignacionesPorTipo[tipoNombre]++;
-        });
-
-        const data = {
-            equiposAsignados: asignacionesProcesadas,
-            fechaGeneracion: new Date().toLocaleString('es-ES'),
-            totalAsignaciones: totalAsignaciones,
-            asignacionesActivas: asignacionesActivas,
-            asignacionesDevueltas: asignacionesDevueltas,
-            asignacionesObsoletas: asignacionesObsoletas,
-            asignacionesPorTipo: asignacionesPorTipo
-        };
-
-        const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones', data);
-        const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'Letter',
-            landscape: true
-        });
-
-        console.log('=== VER PDF ASIGNACIONES GENERADO EXITOSAMENTE ===');
-
-        if (res.headersSent) return;
-
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'inline; filename="reporte-asignaciones.pdf"');
-        res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Cache-Control', 'no-cache');
-
-        res.end(pdfBuffer);
-
-    } catch (error) {
-        console.error('ERROR viendo PDF de asignaciones:', error);
-        if (!res.headersSent) {
-            res.status(500).json({ 
-                error: 'Error al cargar el PDF: ' + error.message 
-            });
-        }
-    }
-},
-
-async generarPdfPorUsuario(req, res) {
-    console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
-    
+  async verPdfAsignaciones(req, res) {
+      console.log('=== VER PDF ASIGNACIONES INICIADO ===');
     try {
-        const { usuarioId } = req.params;
+          const equiposAsignados = await prisma.equipo_asignado.findMany({
+              select: {
+                  id: true,
+                  usuarios_id: true,
+                  stock_equipos_id: true,
+                  fecha_asignacion: true,
+                  fecha_devolucion: true,
+                  ip_equipo: true,
+                  cereal_equipo: true, 
+                  observaciones: true,
+                  estado: true,
+                  usuarios: {
+                      select: {
+                          id: true,
+                          nombre: true,
+                          apellido: true,
+                          cargo: true,
+                          correo: true,
+                          sede: {
+                              select: {
+                                  nombre: true
+                              }
+                          },
+                          departamento: {
+                              select: {
+                                  nombre: true
+                              }
+                          }
+                      }
+                  },
+                  usuario: {
+                      select: {
+                          id: true,
+                          name: true,
+                          email: true
+                      }
+                  },
+                  stock_equipos: {
+                      include: {
+                          tipo_equipo: {
+                              select: {
+                                  id: true,
+                                  nombre: true,
+                                  requiere_ip: true,
+                                  requiere_cereal: true
+                              }
+                          }
+                      }
+                  }
+              },
+              orderBy: [
+                  { estado: 'asc' },
+                  { fecha_asignacion: 'desc' }
+              ]
+          });
 
-        let contador = await prisma.contadorRegistros.upsert({
-            where: { tipo: 'reporte_equipos' },
-            update: { ultimoNumero: { increment: 1 } },
-            create: { 
-                tipo: 'reporte_equipos',
-                ultimoNumero: 1
-            }
-        });
+          const asignacionesProcesadas = equiposAsignados.map(asignacion => {
+              const usuario = asignacion.usuarios || {};
+              const stock = asignacion.stock_equipos || {};
+              const tipoEquipo = stock.tipo_equipo || {};
+              const asignador = asignacion.usuario || {};
+              
+              return {
+                  id: asignacion.id,
+                  usuarios_id: asignacion.usuarios_id,
+                  stock_equipos_id: asignacion.stock_equipos_id,
+                  fecha_asignacion: asignacion.fecha_asignacion,
+                  fecha_devolucion: asignacion.fecha_devolucion,
+                  ip_equipo: asignacion.ip_equipo,
+                  numero_serie: asignacion.cereal_equipo, 
+                  cereal_equipo: asignacion.cereal_equipo,
+                  observaciones: asignacion.observaciones,
+                  estado: asignacion.estado,
+                  
+                  usuarioAsignado: {
+                      id: usuario.id || 0,
+                      nombre: usuario.nombre || 'N/A',
+                      apellido: usuario.apellido || '',
+                      cargo: usuario.cargo || 'Sin cargo',
+                      correo: usuario.correo || 'Sin correo',
+                      sede: usuario.sede || { nombre: 'Sin sede' },
+                      departamento: usuario.departamento || { nombre: 'Sin departamento' }
+                  },
+                  stockEquipo: {
+                      id: stock.id || 0,
+                      marca: stock.marca || 'N/A',
+                      modelo: stock.modelo || '',
+                      tipoEquipo: {
+                          id: tipoEquipo.id || 0,
+                          nombre: tipoEquipo.nombre || 'Sin tipo',
+                          requiere_ip: tipoEquipo.requiere_ip || false,
+                          requiere_cereal: tipoEquipo.requiere_cereal || false,
+                      }
+                  },
+                  usuarioAsignador: {
+                      id: asignador.id || 0,
+                      name: asignador.name || 'Sistema',
+                      email: asignador.email || 'N/A'
+                  },
+                  
+                  fecha_asignacion_formateada: asignacion.fecha_asignacion ? 
+                      new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A',
+                  fecha_devolucion_formateada: asignacion.fecha_devolucion ? 
+                      new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto'
+              };
+          });
 
-        const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
+          const totalAsignaciones = asignacionesProcesadas.length;
+          const asignacionesActivas = asignacionesProcesadas.filter(a => a.estado === 'activo').length;
+          const asignacionesDevueltas = asignacionesProcesadas.filter(a => a.estado === 'devuelto').length;
+          const asignacionesObsoletas = asignacionesProcesadas.filter(a => a.estado === 'obsoleto').length;
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: parseInt(usuarioId) },
-            include: {
-                sede: { select: { nombre: true } },
-                departamento: { select: { nombre: true } }
-            }
-        });
+          const asignacionesPorTipo = {};
+          asignacionesProcesadas.forEach(asignacion => {
+              const tipoNombre = asignacion.stockEquipo.tipoEquipo.nombre;
+              if (!asignacionesPorTipo[tipoNombre]) {
+                  asignacionesPorTipo[tipoNombre] = 0;
+              }
+              asignacionesPorTipo[tipoNombre]++;
+          });
 
-        if (!usuario) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
+          const data = {
+              equiposAsignados: asignacionesProcesadas,
+              fechaGeneracion: new Date().toLocaleString('es-ES'),
+              totalAsignaciones: totalAsignaciones,
+              asignacionesActivas: asignacionesActivas,
+              asignacionesDevueltas: asignacionesDevueltas,
+              asignacionesObsoletas: asignacionesObsoletas,
+              asignacionesPorTipo: asignacionesPorTipo
+          };
 
-        const equiposAsignados = await prisma.equipo_asignado.findMany({
-            where: { usuarios_id: parseInt(usuarioId) },
-            select: { 
-                id: true,
-                fecha_asignacion: true,
-                fecha_devolucion: true,
-                ip_equipo: true,
-                cereal_equipo: true, 
-                estado: true,
-                stock_equipos: {
-                    include: {
-                        tipo_equipo: { select: { nombre: true } }
-                    }
-                },
-                usuario: {
-                    select: { name: true }
-                }
-            },
-            orderBy: [
-                { estado: 'asc' },
-                { fecha_asignacion: 'desc' }
-            ]
-        });
+          const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones', data);
+          const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+              format: 'Letter',
+              landscape: true
+          });
 
-        const equiposProcesados = equiposAsignados.map(asignacion => {
-            const stock = asignacion.stock_equipos || {};
-            const tipoEquipo = stock.tipo_equipo || {};
-            const asignador = asignacion.usuario || {};
-            
-            return {
-                id: asignacion.id,
-                fecha_asignacion: asignacion.fecha_asignacion,
-                fecha_devolucion: asignacion.fecha_devolucion,
-                ip_equipo: asignacion.ip_equipo,
-                cereal_equipo: asignacion.cereal_equipo, 
-                estado: asignacion.estado,
-                
-                stockEquipo: {
-                    id: stock.id || 0,
-                    marca: stock.marca || 'N/A',
-                    modelo: stock.modelo || '',
-                    descripcion: stock.descripcion || '',
-                    tipoEquipo: {
-                        nombre: tipoEquipo.nombre || 'Sin tipo'
-                    }
-                },
-                usuarioAsignador: {
-                    name: asignador.name || 'Sistema'
-                }
-            };
-        });
+          console.log('=== VER PDF ASIGNACIONES GENERADO EXITOSAMENTE ===');
 
-        const totalEquipos = equiposProcesados.length;
-        const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
-        const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
-        const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
+          if (res.headersSent) return;
 
-        const data = {
-            usuario: usuario,
-            equiposAsignados: equiposProcesados,
-            fechaGeneracion: new Date().toLocaleString('es-ES'),
-            totalEquipos: totalEquipos,
-            equiposActivos: equiposActivos,
-            equiposDevueltos: equiposDevueltos,
-            equiposObsoletos: equiposObsoletos,
-            formatoDuplicado: true,
-            numeroRegistro: numeroRegistro 
-        };
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', 'inline; filename="reporte-asignaciones.pdf"');
+          res.setHeader('Content-Length', pdfBuffer.length);
+          res.setHeader('Cache-Control', 'no-cache');
 
-        const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
-        const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'Letter',
-            landscape: false
-        });
+          res.end(pdfBuffer);
 
-        console.log('=== PDF POR USUARIO GENERADO EXITOSAMENTE ===');
-        console.log(`Número de registro asignado: ${numeroRegistro}`);
+      } catch (error) {
+          console.error('ERROR viendo PDF de asignaciones:', error);
+          if (!res.headersSent) {
+              res.status(500).json({ 
+                  error: 'Error al cargar el PDF: ' + error.message 
+              });
+          }
+      }
+  },
 
-        if (res.headersSent) return;
+  async generarPdfPorUsuario(req, res) {
+      console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
+      
+      try {
+          const { usuarioId } = req.params;
 
-        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
-        
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Cache-Control', 'no-cache');
+          let contador = await prisma.contadorRegistros.upsert({
+              where: { tipo: 'reporte_equipos' },
+              update: { ultimoNumero: { increment: 1 } },
+              create: { 
+                  tipo: 'reporte_equipos',
+                  ultimoNumero: 1
+              }
+          });
 
-        res.end(pdfBuffer);
+          const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
 
-    } catch (error) {
-        console.error('ERROR generando PDF por usuario:', error);
-        if (!res.headersSent) {
-            res.status(500).json({ 
-                error: 'Error al generar el PDF: ' + error.message 
-            });
-        }
-    }
-},
+          const usuario = await prisma.usuarios.findUnique({
+              where: { id: parseInt(usuarioId) },
+              include: {
+                  sede: { select: { nombre: true } },
+                  departamento: { select: { nombre: true } }
+              }
+          });
 
-async verPdfPorUsuario(req, res) {
+          if (!usuario) {
+              return res.status(404).json({ error: 'Usuario no encontrado' });
+          }
+
+          const equiposAsignados = await prisma.equipo_asignado.findMany({
+              where: { usuarios_id: parseInt(usuarioId) },
+              select: { 
+                  id: true,
+                  fecha_asignacion: true,
+                  fecha_devolucion: true,
+                  ip_equipo: true,
+                  cereal_equipo: true, 
+                  estado: true,
+                  stock_equipos: {
+                      include: {
+                          tipo_equipo: { select: { nombre: true } }
+                      }
+                  },
+                  usuario: {
+                      select: { name: true }
+                  }
+              },
+              orderBy: [
+                  { estado: 'asc' },
+                  { fecha_asignacion: 'desc' }
+              ]
+          });
+
+          const equiposProcesados = equiposAsignados.map(asignacion => {
+              const stock = asignacion.stock_equipos || {};
+              const tipoEquipo = stock.tipo_equipo || {};
+              const asignador = asignacion.usuario || {};
+              
+              return {
+                  id: asignacion.id,
+                  fecha_asignacion: asignacion.fecha_asignacion,
+                  fecha_devolucion: asignacion.fecha_devolucion,
+                  ip_equipo: asignacion.ip_equipo,
+                  cereal_equipo: asignacion.cereal_equipo, 
+                  estado: asignacion.estado,
+                  
+                  stockEquipo: {
+                      id: stock.id || 0,
+                      marca: stock.marca || 'N/A',
+                      modelo: stock.modelo || '',
+                      descripcion: stock.descripcion || '',
+                      tipoEquipo: {
+                          nombre: tipoEquipo.nombre || 'Sin tipo'
+                      }
+                  },
+                  usuarioAsignador: {
+                      name: asignador.name || 'Sistema'
+                  }
+              };
+          });
+
+          const totalEquipos = equiposProcesados.length;
+          const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
+          const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
+          const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
+
+          const data = {
+              usuario: usuario,
+              equiposAsignados: equiposProcesados,
+              fechaGeneracion: new Date().toLocaleString('es-ES'),
+              totalEquipos: totalEquipos,
+              equiposActivos: equiposActivos,
+              equiposDevueltos: equiposDevueltos,
+              equiposObsoletos: equiposObsoletos,
+              formatoDuplicado: true,
+              numeroRegistro: numeroRegistro 
+          };
+
+          const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
+          const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+              format: 'Letter',
+              landscape: false
+          });
+
+          console.log('=== PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+          console.log(`Número de registro asignado: ${numeroRegistro}`);
+
+          if (res.headersSent) return;
+
+          const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+          res.setHeader('Content-Length', pdfBuffer.length);
+          res.setHeader('Cache-Control', 'no-cache');
+
+          res.end(pdfBuffer);
+
+      } catch (error) {
+          console.error('ERROR generando PDF por usuario:', error);
+          if (!res.headersSent) {
+              res.status(500).json({ 
+                  error: 'Error al generar el PDF: ' + error.message 
+              });
+          }
+      }
+  },
+
+  async verPdfPorUsuario(req, res) {
     console.log('=== VER PDF POR USUARIO INICIADO ===');
-    
-    try {
-        const { usuarioId } = req.params;
+      try {
+          const { usuarioId } = req.params;
 
-        let contador = await prisma.$transaction(async (tx) => {
-            let counter = await tx.contadorRegistros.findUnique({
-                where: { tipo: 'reporte_equipos' }
-            });
+          let contador = await prisma.$transaction(async (tx) => {
+              let counter = await tx.contadorRegistros.findUnique({
+                  where: { tipo: 'reporte_equipos' }
+              });
 
-            if (!counter) {
-                counter = await tx.contadorRegistros.create({
-                    data: {
-                        tipo: 'reporte_equipos',
-                        ultimoNumero: 1
-                    }
-                });
-            } else {
-                counter = await tx.contadorRegistros.update({
-                    where: { tipo: 'reporte_equipos' },
-                    data: {
-                        ultimoNumero: { increment: 1 }
-                    }
-                });
-            }
+              if (!counter) {
+                  counter = await tx.contadorRegistros.create({
+                      data: {
+                          tipo: 'reporte_equipos',
+                          ultimoNumero: 1
+                      }
+                  });
+              } else {
+                  counter = await tx.contadorRegistros.update({
+                      where: { tipo: 'reporte_equipos' },
+                      data: {
+                          ultimoNumero: { increment: 1 }
+                      }
+                  });
+              }
 
-            return counter;
-        });
+              return counter;
+          });
 
-        const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
-        console.log(`Número de registro generado: ${numeroRegistro}`);
+          const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
+          console.log(`Número de registro generado: ${numeroRegistro}`);
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: parseInt(usuarioId) },
-            include: {
-                sede: { select: { nombre: true } },
-                departamento: { select: { nombre: true } }
-            }
-        });
+          const usuario = await prisma.usuarios.findUnique({
+              where: { id: parseInt(usuarioId) },
+              include: {
+                  sede: { select: { nombre: true } },
+                  departamento: { select: { nombre: true } }
+              }
+          });
 
-        if (!usuario) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
+          if (!usuario) {
+              return res.status(404).json({ error: 'Usuario no encontrado' });
+          }
 
-        const equiposAsignados = await prisma.equipo_asignado.findMany({
-            where: { usuarios_id: parseInt(usuarioId) },
-            select: {
-                id: true,
-                fecha_asignacion: true,
-                fecha_devolucion: true,
-                ip_equipo: true,
-                cereal_equipo: true, 
-                estado: true,
-                stock_equipos: {
-                    include: {
-                        tipo_equipo: { select: { nombre: true } }
-                    }
-                },
-                usuario: {
-                    select: { name: true }
-                }
-            },
-            orderBy: [
-                { estado: 'asc' },
-                { fecha_asignacion: 'desc' }
-            ]
-        });
+          const equiposAsignados = await prisma.equipo_asignado.findMany({
+              where: { usuarios_id: parseInt(usuarioId) },
+              select: {
+                  id: true,
+                  fecha_asignacion: true,
+                  fecha_devolucion: true,
+                  ip_equipo: true,
+                  cereal_equipo: true, 
+                  estado: true,
+                  stock_equipos: {
+                      include: {
+                          tipo_equipo: { select: { nombre: true } }
+                      }
+                  },
+                  usuario: {
+                      select: { name: true }
+                  }
+              },
+              orderBy: [
+                  { estado: 'asc' },
+                  { fecha_asignacion: 'desc' }
+              ]
+          });
 
-        const equiposProcesados = equiposAsignados.map(asignacion => {
-            const stock = asignacion.stock_equipos || {};
-            const tipoEquipo = stock.tipo_equipo || {};
-            const asignador = asignacion.usuario || {};
-            
-            return {
-                id: asignacion.id,
-                fecha_asignacion: asignacion.fecha_asignacion,
-                fecha_devolucion: asignacion.fecha_devolucion,
-                ip_equipo: asignacion.ip_equipo,
-                cereal_equipo: asignacion.cereal_equipo, 
-                estado: asignacion.estado,
-                
-                stockEquipo: {
-                    id: stock.id || 0,
-                    marca: stock.marca || 'N/A',
-                    modelo: stock.modelo || '',
-                    descripcion: stock.descripcion || '',
-                    tipoEquipo: {
-                        nombre: tipoEquipo.nombre || 'Sin tipo'
-                    }
-                },
-                usuarioAsignador: {
-                    name: asignador.name || 'Sistema'
-                }
-            };
-        });
+          const equiposProcesados = equiposAsignados.map(asignacion => {
+              const stock = asignacion.stock_equipos || {};
+              const tipoEquipo = stock.tipo_equipo || {};
+              const asignador = asignacion.usuario || {};
+              
+              return {
+                  id: asignacion.id,
+                  fecha_asignacion: asignacion.fecha_asignacion,
+                  fecha_devolucion: asignacion.fecha_devolucion,
+                  ip_equipo: asignacion.ip_equipo,
+                  cereal_equipo: asignacion.cereal_equipo, 
+                  estado: asignacion.estado,
+                  
+                  stockEquipo: {
+                      id: stock.id || 0,
+                      marca: stock.marca || 'N/A',
+                      modelo: stock.modelo || '',
+                      descripcion: stock.descripcion || '',
+                      tipoEquipo: {
+                          nombre: tipoEquipo.nombre || 'Sin tipo'
+                      }
+                  },
+                  usuarioAsignador: {
+                      name: asignador.name || 'Sistema'
+                  }
+              };
+          });
 
-        const totalEquipos = equiposProcesados.length;
-        const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
-        const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
-        const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
+          const totalEquipos = equiposProcesados.length;
+          const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
+          const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
+          const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
 
-        const data = {
-            usuario: usuario,
-            equiposAsignados: equiposProcesados,
-            fechaGeneracion: new Date().toLocaleString('es-ES'),
-            totalEquipos: totalEquipos,
-            equiposActivos: equiposActivos,
-            equiposDevueltos: equiposDevueltos,
-            equiposObsoletos: equiposObsoletos,
-            formatoDuplicado: true,
-            numeroRegistro: numeroRegistro
-        };
+          const data = {
+              usuario: usuario,
+              equiposAsignados: equiposProcesados,
+              fechaGeneracion: new Date().toLocaleString('es-ES'),
+              totalEquipos: totalEquipos,
+              equiposActivos: equiposActivos,
+              equiposDevueltos: equiposDevueltos,
+              equiposObsoletos: equiposObsoletos,
+              formatoDuplicado: true,
+              numeroRegistro: numeroRegistro
+          };
 
-        const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
-        const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'A4',
+          const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
+          const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+            format: 'Letter',
             landscape: false
         });
 
@@ -1489,7 +1480,7 @@ async verPdfPorUsuario(req, res) {
         if (res.headersSent) return;
 
         const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
-        
+          
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${nombreArchivo}"`);
         res.setHeader('Content-Length', pdfBuffer.length);
@@ -1499,13 +1490,13 @@ async verPdfPorUsuario(req, res) {
 
         res.end(pdfBuffer);
 
-    } catch (error) {
-        console.error('ERROR viendo PDF por usuario:', error);
+      } catch (error) {
+       console.error('ERROR viendo PDF por usuario:', error);
         if (!res.headersSent) {
             res.status(500).json({ 
-                error: 'Error al cargar el PDF: ' + error.message 
+              error: 'Error al cargar el PDF: ' + error.message 
             });
         }
     }
-}
+  }
 }

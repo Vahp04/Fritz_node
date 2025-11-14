@@ -13,5 +13,7 @@ router.post('/', usuariosController.store);
 router.get('/:id', usuariosController.show);     
 router.put('/:id', usuariosController.update);   
 router.delete('/:id', usuariosController.destroy); 
+router.get('/:id/reporte/pdf', usuariosController.generarReporteIndividual);
+router.get('/:id/reporte/ver', usuariosController.verReporteIndividual);
 
 export default router;
