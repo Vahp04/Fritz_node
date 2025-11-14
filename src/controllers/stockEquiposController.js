@@ -714,6 +714,7 @@ async equiposParaAsignacion(req, res) {
                            tipoNombre.includes('switch') ||
                            tipoNombre.includes('teléfono') ||
                            tipoNombre.includes('móvil') ||
+                           tipoNombre.includes('batería')||
                            tipoNombre.includes('consumible');
             
             if (excluir) {

@@ -1016,10 +1016,10 @@ async function cargarStockEquipos(page = 1, filtros = {}) {
         }
 
         async function forzarActualizacionResumen() {
-    console.log('Forzando actualización del resumen...');
-    await actualizarResumen();
-    await cargarStockEquipos(1);
-}
+            console.log('Forzando actualización del resumen...');
+            await actualizarResumen();
+            await cargarStockEquipos(1);
+        }
 
         function renderizarStockEquipos() {
             const tbody = document.getElementById('stockEquiposTableBody');
@@ -1132,75 +1132,75 @@ async function cargarStockEquipos(page = 1, filtros = {}) {
             });
         }
 
-  function renderizarPaginacion() {
-    const pagination = document.getElementById('paginationContainer');
-    pagination.innerHTML = '';
+    function renderizarPaginacion() {
+        const pagination = document.getElementById('paginationContainer');
+        pagination.innerHTML = '';
 
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    prevLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
-            <i class="bi bi-chevron-left"></i>
-        </a>
-    `;
-    pagination.appendChild(prevLi);
-
-    for (let i = 1; i <= totalPages; i++) {
-        const pageLi = document.createElement('li');
-        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        pageLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cargarStockEquipos(${i}, filtrosActuales)">${i}</a>
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+            </a>
         `;
-        pagination.appendChild(pageLi);
+        pagination.appendChild(prevLi);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            pageLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarStockEquipos(${i}, filtrosActuales)">${i}</a>
+            `;
+            pagination.appendChild(pageLi);
+        }
+
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `
+            <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        `;
+        pagination.appendChild(nextLi);
     }
 
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    nextLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
-            <i class="bi bi-chevron-right"></i>
-        </a>
-    `;
-    pagination.appendChild(nextLi);
-}
+        function calcularCantidadesNuevo() {
+            const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
+            const cantidadAsignada = parseInt(document.getElementById('cantidad_asignada').value) || 0;
+            
+            const cantidadDisponible = cantidadTotal - cantidadAsignada;
+            
+            if (cantidadDisponible >= 0) {
+                document.getElementById('cantidad_disponible').value = cantidadDisponible;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'La cantidad asignada no puede ser mayor que la cantidad total'
+                });
+                document.getElementById('cantidad_asignada').value = 0;
+                document.getElementById('cantidad_disponible').value = cantidadTotal;
+            }
+        }
 
-function calcularCantidadesNuevo() {
-    const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
-    const cantidadAsignada = parseInt(document.getElementById('cantidad_asignada').value) || 0;
-    
-    const cantidadDisponible = cantidadTotal - cantidadAsignada;
-    
-    if (cantidadDisponible >= 0) {
-        document.getElementById('cantidad_disponible').value = cantidadDisponible;
-    } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'La cantidad asignada no puede ser mayor que la cantidad total'
-        });
-        document.getElementById('cantidad_asignada').value = 0;
-        document.getElementById('cantidad_disponible').value = cantidadTotal;
-    }
-}
-
- function calcularCantidadesEdicion() {
-    const cantidadTotal = parseInt(document.getElementById('edit_cantidad_total').value) || 0;
-    const cantidadAsignada = parseInt(document.getElementById('edit_cantidad_asignada').value) || 0;
-    
-    const cantidadDisponible = cantidadTotal - cantidadAsignada;
-    
-    if (cantidadDisponible >= 0) {
-        document.getElementById('edit_cantidad_disponible').value = cantidadDisponible;
-    } else {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'La cantidad total no puede ser menor que la cantidad asignada actual'
-        });
-        document.getElementById('edit_cantidad_total').value = cantidadTotal + cantidadAsignada;
-        document.getElementById('edit_cantidad_disponible').value = 0;
-    }
-}
+        function calcularCantidadesEdicion() {
+            const cantidadTotal = parseInt(document.getElementById('edit_cantidad_total').value) || 0;
+            const cantidadAsignada = parseInt(document.getElementById('edit_cantidad_asignada').value) || 0;
+            
+            const cantidadDisponible = cantidadTotal - cantidadAsignada;
+            
+            if (cantidadDisponible >= 0) {
+                document.getElementById('edit_cantidad_disponible').value = cantidadDisponible;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'La cantidad total no puede ser menor que la cantidad asignada actual'
+                });
+                document.getElementById('edit_cantidad_total').value = cantidadTotal + cantidadAsignada;
+                document.getElementById('edit_cantidad_disponible').value = 0;
+            }
+        }
 
         //  TEMA 
         function applySavedTheme() {
@@ -1275,84 +1275,84 @@ function calcularCantidadesNuevo() {
             }
         });
 
-function inicializarEventos() {
-    document.getElementById('logoutForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
 
-    document.getElementById('createStockEquipoForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await crearStockEquipo();
-    });
+            document.getElementById('createStockEquipoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearStockEquipo();
+            });
 
-    document.getElementById('editStockEquipoForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await actualizarStockEquipo();
-    });
+            document.getElementById('editStockEquipoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarStockEquipo();
+            });
 
-    document.getElementById('cantidad_total').addEventListener('input', calcularCantidadesNuevo);
-    document.getElementById('cantidad_asignada').addEventListener('input', calcularCantidadesNuevo);
-    document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
-    document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
+            document.getElementById('cantidad_total').addEventListener('input', calcularCantidadesNuevo);
+            document.getElementById('cantidad_asignada').addEventListener('input', calcularCantidadesNuevo);
+            document.getElementById('edit_cantidad_total').addEventListener('input', calcularCantidadesEdicion);
+            document.getElementById('edit_cantidad_asignada').addEventListener('input', calcularCantidadesEdicion);
 
-    const searchName = document.getElementById('searchName');
-    const filterTipo = document.getElementById('filterTipo');
-    const filterStock = document.getElementById('filterStock');
-    const resetFilters = document.getElementById('resetFilters');
+            const searchName = document.getElementById('searchName');
+            const filterTipo = document.getElementById('filterTipo');
+            const filterStock = document.getElementById('filterStock');
+            const resetFilters = document.getElementById('resetFilters');
 
-    if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (filterTipo) filterTipo.addEventListener('change', aplicarFiltros);
-    if (filterStock) filterStock.addEventListener('change', aplicarFiltros);
-    if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
-}
+            if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (filterTipo) filterTipo.addEventListener('change', aplicarFiltros);
+            if (filterStock) filterStock.addEventListener('change', aplicarFiltros);
+            if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
+        }
 
         // Funciones CRUD
         async function crearStockEquipo() {
-    const form = document.getElementById('createStockEquipoForm');
-    const formData = new FormData(form);
+            const form = document.getElementById('createStockEquipoForm');
+            const formData = new FormData(form);
 
-    try {
-        console.log('Datos a enviar:', Object.fromEntries(formData)); // Debug
+            try {
+                console.log('Datos a enviar:', Object.fromEntries(formData)); // Debug
 
-        const response = await fetch('/api/stock_equipos', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        });
+                const response = await fetch('/api/stock_equipos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
 
-        console.log('Response status:', response.status);
+                console.log('Response status:', response.status);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error(errorText || 'Error del servidor');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#createStockEquipoModal').modal('hide');
+                form.reset();
+                calcularCantidadesNuevo();
+                
+                await cargarStockEquipos(currentPage);
+                await actualizarResumen();
+            } catch (error) {
+                console.error('Error completo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al crear el equipo'
+                });
+            }
         }
-
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#createStockEquipoModal').modal('hide');
-        form.reset();
-        calcularCantidadesNuevo();
-        
-        await cargarStockEquipos(currentPage);
-        await actualizarResumen();
-    } catch (error) {
-        console.error('Error completo:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al crear el equipo'
-        });
-    }
-}
 
         async function editStockEquipo(id) {
             try {
@@ -1390,50 +1390,50 @@ function inicializarEventos() {
         }
 
         async function actualizarStockEquipo() {
-    const form = document.getElementById('editStockEquipoForm');
-    const formData = new FormData(form);
-    const equipoId = formData.get('id');
+            const form = document.getElementById('editStockEquipoForm');
+            const formData = new FormData(form);
+            const equipoId = formData.get('id');
 
-    try {
-        console.log('Datos a actualizar:', Object.fromEntries(formData)); // Debug
+            try {
+                console.log('Datos a actualizar:', Object.fromEntries(formData)); // Debug
 
-        const response = await fetch(`/api/stock_equipos/${equipoId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        });
+                const response = await fetch(`/api/stock_equipos/${equipoId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
 
-        console.log('Response status:', response.status);
+                console.log('Response status:', response.status);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error response:', errorText);
-            throw new Error(errorText || 'Error del servidor');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editStockEquipoModal').modal('hide');
+                form.reset();
+                
+                await cargarStockEquipos(currentPage);
+                await actualizarResumen();
+            } catch (error) {
+                console.error('Error completo:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar el equipo'
+                });
+            }
         }
-
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#editStockEquipoModal').modal('hide');
-        form.reset();
-        
-        await cargarStockEquipos(currentPage);
-        await actualizarResumen();
-    } catch (error) {
-        console.error('Error completo:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al actualizar el equipo'
-        });
-    }
-}
 
         async function viewStockEquipo(id) {
             try {
@@ -1472,135 +1472,135 @@ function inicializarEventos() {
         }
 
       async function deleteStockEquipo(id, nombre) {
-    const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: `Vas a eliminar el equipo "${nombre}". Esta acción no se puede deshacer.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#DC2626',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/api/stock_equipos/${id}`, {
-                method: 'DELETE'
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Vas a eliminar el equipo "${nombre}". Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
             });
 
-            console.log('Delete response status:', response.status);
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/stock_equipos/${id}`, {
+                        method: 'DELETE'
+                    });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(errorText || 'Error del servidor');
+                    console.log('Delete response status:', response.status);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        throw new Error(errorText || 'Error del servidor');
+                    }
+
+                    const data = await response.json();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    await cargarStockEquipos(currentPage);
+                    await actualizarResumen();
+                } catch (error) {
+                    console.error('Error completo:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Error al eliminar el equipo'
+                    });
+                }
             }
-
-            const data = await response.json();
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message
-            });
-            await cargarStockEquipos(currentPage);
-            await actualizarResumen();
-        } catch (error) {
-            console.error('Error completo:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Error al eliminar el equipo'
-            });
         }
-    }
-}
 
-function aplicarFiltros() {
-    console.log('Aplicando filtros con búsqueda en servidor...');
- 
-    mostrarCargaFiltros();
+        function aplicarFiltros() {
+            console.log('Aplicando filtros con búsqueda en servidor...');
+        
+            mostrarCargaFiltros();
 
-    filtrosActuales = {
-        nombre: document.getElementById('searchName').value.trim(),
-        tipo: document.getElementById('filterTipo').value,
-        stock: document.getElementById('filterStock').value
-    };
-    
-    console.log('Filtros activos:', filtrosActuales);
+            filtrosActuales = {
+                nombre: document.getElementById('searchName').value.trim(),
+                tipo: document.getElementById('filterTipo').value,
+                stock: document.getElementById('filterStock').value
+            };
+            
+            console.log('Filtros activos:', filtrosActuales);
 
-    cargarStockEquipos(1, filtrosActuales);
-}
+            cargarStockEquipos(1, filtrosActuales);
+        }
 
-function mostrarCargaFiltros() {
-    const tbody = document.getElementById('stockEquiposTableBody');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Buscando...</span>
+        function mostrarCargaFiltros() {
+            const tbody = document.getElementById('stockEquiposTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Buscando equipos...</p>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Función para resetear filtros
+        function resetFiltros() {
+            console.log('Reseteando filtros...');
+            
+            document.getElementById('searchName').value = '';
+            document.getElementById('filterTipo').value = '';
+            document.getElementById('filterStock').value = '';
+            
+            filtrosActuales = {
+                nombre: '',
+                tipo: '',
+                stock: ''
+            };
+            
+            // Recargar todos los equipos
+            cargarStockEquipos(1);
+            
+            // Mostrar notificación
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed bottom-0 end-0 p-3';
+            toast.style.zIndex = '11';
+            toast.innerHTML = `
+                <div class="toast show" role="alert">
+                    <div class="toast-header bg-success text-white">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong class="me-auto">Filtros limpiados</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        Se muestran todos los equipos nuevamente.
+                    </div>
                 </div>
-                <p class="text-muted mt-2 mb-0">Buscando equipos...</p>
-            </td>
-        </tr>
-    `;
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Función para resetear filtros
-function resetFiltros() {
-    console.log('Reseteando filtros...');
-    
-    document.getElementById('searchName').value = '';
-    document.getElementById('filterTipo').value = '';
-    document.getElementById('filterStock').value = '';
-    
-    filtrosActuales = {
-        nombre: '',
-        tipo: '',
-        stock: ''
-    };
-    
-    // Recargar todos los equipos
-    cargarStockEquipos(1);
-    
-    // Mostrar notificación
-    const toast = document.createElement('div');
-    toast.className = 'position-fixed bottom-0 end-0 p-3';
-    toast.style.zIndex = '11';
-    toast.innerHTML = `
-        <div class="toast show" role="alert">
-            <div class="toast-header bg-success text-white">
-                <i class="bi bi-check-circle me-2"></i>
-                <strong class="me-auto">Filtros limpiados</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">
-                Se muestran todos los equipos nuevamente.
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
         }
-    }, 3000);
-}
 
 
         function mostrarError(mensaje) {
@@ -1611,19 +1611,19 @@ function resetFiltros() {
             });
         }
 
-function generarPDFStock() {
-    window.location.href = '/api/pdf/stock';
-}
+        function generarPDFStock() {
+            window.location.href = '/api/pdf/stock';
+        }
 
-function verPDFStock() {
-    const link = document.createElement('a');
-    link.href = '/api/pdf/stock/ver';
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
+        function verPDFStock() {
+            const link = document.createElement('a');
+            link.href = '/api/pdf/stock/ver';
+            link.target = '_blank';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
 </html>

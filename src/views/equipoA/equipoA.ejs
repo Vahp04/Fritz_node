@@ -440,7 +440,6 @@
                 </li>
             </ul>
             
-            <!-- Bottom -->
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -458,7 +457,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -469,8 +467,6 @@
                         <span class="navbar-brand me-3 d-none d-lg-block">
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
-                        
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -483,7 +479,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -498,8 +493,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Resumen de Asignaciones -->
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <div class="card bg-primary text-white">
@@ -1372,216 +1365,216 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
             console.log('Selects de equipos llenados correctamente');
         }
 
-function renderizarEquiposAsignados() {
-    const tbody = document.getElementById('equiposAsignadosTableBody');
-    const estadoFilter = document.getElementById('filterEstado').value;
-    
-    if (!tbody) {
-        console.error('No se encontró el tbody de la tabla');
-        return;
-    }
+        function renderizarEquiposAsignados() {
+            const tbody = document.getElementById('equiposAsignadosTableBody');
+            const estadoFilter = document.getElementById('filterEstado').value;
+            
+            if (!tbody) {
+                console.error('No se encontró el tbody de la tabla');
+                return;
+            }
 
-    tbody.innerHTML = '';
+            tbody.innerHTML = '';
 
-    if (equiposAsignados.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="text-center py-4">
-                    <i class="bi bi-laptop display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No se encontraron equipos asignados</p>
-                    <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
-                        <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                    </button>
-                </td>
-            </tr>
-        `;
-        return;
-    }
+            if (equiposAsignados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="bi bi-laptop display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron equipos asignados</p>
+                            <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-    equiposAsignados.forEach(asignacion => {
-        const row = document.createElement('tr');
-        const estadoClass = `estado-${asignacion.estado || 'activo'}`;
-        const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
-                       (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
-        
-        row.className = rowClass;
-        
-       
-        if (asignacion.estado === 'obsoleto') {
-    if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
-        row.style.display = 'none';
-    } else {
-        row.style.display = '';
-    }
-}
-        
-        const usuario = asignacion.usuarioAsignado || {};
-        const stockEquipo = asignacion.stockEquipo || {};
-        const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
-        
-        const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
-        const cargoUsuario = usuario.cargo || 'Sin cargo';
-        const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
-        const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
+            equiposAsignados.forEach(asignacion => {
+                const row = document.createElement('tr');
+                const estadoClass = `estado-${asignacion.estado || 'activo'}`;
+                const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
+                            (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
+                
+                row.className = rowClass;
+                
+            
+                if (asignacion.estado === 'obsoleto') {
+            if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
+                row.style.display = 'none';
+            } else {
+                row.style.display = '';
+            }
+        }
+                
+                const usuario = asignacion.usuarioAsignado || {};
+                const stockEquipo = asignacion.stockEquipo || {};
+                const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
+                
+                const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+                const cargoUsuario = usuario.cargo || 'Sin cargo';
+                const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+                const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
 
-        row.innerHTML = `
-            <td class="fw-bold">${asignacion.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="equipo-icon me-3">
-                        ${inicialUsuario}
-                    </div>
-                    <div>
-                        <div class="fw-bold">${nombreUsuario}</div>
-                        <small class="text-muted">${cargoUsuario}</small>
-                        ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
-                    </div>
+                row.innerHTML = `
+                    <td class="fw-bold">${asignacion.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="equipo-icon me-3">
+                                ${inicialUsuario}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${nombreUsuario}</div>
+                                <small class="text-muted">${cargoUsuario}</small>
+                                ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge equipo-badge rounded-pill">
+                            <i class="bi bi-pc me-1"></i>
+                            ${infoEquipo}
+                        </span>
+                        ${stockEquipo.tipo_equipo ? `
+                        <small class="d-block text-muted">
+                            ${stockEquipo.tipo_equipo.nombre}
+                        </small>
+                        ` : ''}
+                        ${asignacion.ip_equipo ? `
+                        <small class="d-block text-muted">
+                            <i class="bi bi-wifi me-1"></i>${asignacion.ip_equipo}
+                        </small>
+                        ` : ''}
+                        ${asignacion.numero_serie ? `
+                        <small class="d-block text-muted">
+                            <i class="bi bi-hdd-network me-1"></i>${asignacion.numero_serie}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <small class="d-block">
+                            ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
+                        </small>
+                        ${asignacion.fecha_devolucion ? `
+                        <small class="d-block text-muted">
+                            Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
+                        </small>
+                        ` : ''}
+                    </td>
+                    <td>
+                        <span class="badge estado-badge ${estadoClass}">
+                            ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge asignador-badge rounded-pill">
+                            <i class="bi bi-person-check me-1"></i>
+                            ${usuarioAsignador.name}
+                        </span>
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewEquipoAsignado(${asignacion.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        ${asignacion.estado !== 'obsoleto' ? `
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editEquipoAsignado(${asignacion.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        ` : `
+                        <button class="btn btn-sm btn-outline-secondary action-btn me-1" 
+                                onclick="reactivarEquipo(${asignacion.id})"
+                                title="Reactivar">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        `}
+                        ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
+                        <button class="btn btn-sm btn-outline-success action-btn me-1"
+                                onclick="devolverEquipo(${asignacion.id})"
+                                title="Devolver">
+                            <i class="bi bi-arrow-return-left"></i>
+                        </button>
+                        ` : ''}
+                        ${asignacion.estado !== 'obsoleto' && asignacion.estado !== 'devuelto' ? `
+        <button class="btn btn-sm btn-outline-warning action-btn me-1"
+                onclick="marcarObsoleto(${asignacion.id})"
+                title="Marcar como Obsoleto">
+            <i class="bi bi-exclamation-triangle"></i>
+        </button>
+        ` : ''}
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteEquipoAsignado(${asignacion.id})"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderizarPaginacion() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (!paginationContainer) {
+                console.log('No se encontró el contenedor de paginación, creándolo...');
+                crearContenedorPaginacion();
+                return;
+            }
+            
+            paginationContainer.innerHTML = '';
+
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            paginationContainer.appendChild(prevLi);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarEquiposAsignados(${i}, filtrosActuales)">${i}</a>
+                `;
+                paginationContainer.appendChild(pageLi);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            paginationContainer.appendChild(nextLi);
+        }
+
+        function crearContenedorPaginacion() {
+            const cardBody = document.querySelector('.card-body');
+            if (!cardBody) return;
+            
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'd-flex justify-content-between align-items-center mt-4';
+            paginationDiv.innerHTML = `
+                <div class="text-muted" id="resultCount">
+                    Mostrando 0 de 0 asignaciones
                 </div>
-            </td>
-            <td>
-                <span class="badge equipo-badge rounded-pill">
-                    <i class="bi bi-pc me-1"></i>
-                    ${infoEquipo}
-                </span>
-                ${stockEquipo.tipo_equipo ? `
-                <small class="d-block text-muted">
-                    ${stockEquipo.tipo_equipo.nombre}
-                </small>
-                ` : ''}
-                ${asignacion.ip_equipo ? `
-                <small class="d-block text-muted">
-                    <i class="bi bi-wifi me-1"></i>${asignacion.ip_equipo}
-                </small>
-                ` : ''}
-                ${asignacion.numero_serie ? `
-                <small class="d-block text-muted">
-                    <i class="bi bi-hdd-network me-1"></i>${asignacion.numero_serie}
-                </small>
-                ` : ''}
-            </td>
-            <td>
-                <small class="d-block">
-                    ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
-                </small>
-                ${asignacion.fecha_devolucion ? `
-                <small class="d-block text-muted">
-                    Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
-                </small>
-                ` : ''}
-            </td>
-            <td>
-                <span class="badge estado-badge ${estadoClass}">
-                    ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
-                </span>
-            </td>
-            <td>
-                <span class="badge asignador-badge rounded-pill">
-                    <i class="bi bi-person-check me-1"></i>
-                    ${usuarioAsignador.name}
-                </span>
-            </td>
-            <td class="table-actions text-center">
-                <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                        onclick="viewEquipoAsignado(${asignacion.id})"
-                        title="Ver">
-                    <i class="bi bi-eye"></i>
-                </button>
-                ${asignacion.estado !== 'obsoleto' ? `
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editEquipoAsignado(${asignacion.id})"
-                        title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                ` : `
-                <button class="btn btn-sm btn-outline-secondary action-btn me-1" 
-                        onclick="reactivarEquipo(${asignacion.id})"
-                        title="Reactivar">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
-                `}
-                ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
-                <button class="btn btn-sm btn-outline-success action-btn me-1"
-                        onclick="devolverEquipo(${asignacion.id})"
-                        title="Devolver">
-                    <i class="bi bi-arrow-return-left"></i>
-                </button>
-                ` : ''}
-                ${asignacion.estado !== 'obsoleto' && asignacion.estado !== 'devuelto' ? `
-<button class="btn btn-sm btn-outline-warning action-btn me-1"
-        onclick="marcarObsoleto(${asignacion.id})"
-        title="Marcar como Obsoleto">
-    <i class="bi bi-exclamation-triangle"></i>
-</button>
-` : ''}
-                <button class="btn btn-sm btn-outline-danger action-btn"
-                        onclick="deleteEquipoAsignado(${asignacion.id})"
-                        title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
-
-function renderizarPaginacion() {
-    const paginationContainer = document.getElementById('paginationContainer');
-    if (!paginationContainer) {
-        console.log('No se encontró el contenedor de paginación, creándolo...');
-        crearContenedorPaginacion();
-        return;
-    }
-    
-    paginationContainer.innerHTML = '';
-
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    prevLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
-            <i class="bi bi-chevron-left"></i>
-        </a>
-    `;
-    paginationContainer.appendChild(prevLi);
-
-    for (let i = 1; i <= totalPages; i++) {
-        const pageLi = document.createElement('li');
-        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        pageLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cargarEquiposAsignados(${i}, filtrosActuales)">${i}</a>
-        `;
-        paginationContainer.appendChild(pageLi);
-    }
-
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    nextLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarEquiposAsignados(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
-            <i class="bi bi-chevron-right"></i>
-        </a>
-    `;
-    paginationContainer.appendChild(nextLi);
-}
-
-function crearContenedorPaginacion() {
-    const cardBody = document.querySelector('.card-body');
-    if (!cardBody) return;
-    
-    const paginationDiv = document.createElement('div');
-    paginationDiv.className = 'd-flex justify-content-between align-items-center mt-4';
-    paginationDiv.innerHTML = `
-        <div class="text-muted" id="resultCount">
-            Mostrando 0 de 0 asignaciones
-        </div>
-        
-        <nav aria-label="Paginación de equipos asignados">
-            <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-            </ul>
-        </nav>
-    `;
-    
-    cardBody.appendChild(paginationDiv);
-}
+                
+                <nav aria-label="Paginación de equipos asignados">
+                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                    </ul>
+                </nav>
+            `;
+            
+            cardBody.appendChild(paginationDiv);
+        }
 
         function actualizarContadores() {
             const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
@@ -1668,43 +1661,42 @@ function crearContenedorPaginacion() {
             }
         });
 
-function inicializarEventos() {
-    document.getElementById('logoutForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-    });
+        function inicializarEventos() {
+            document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                this.submit();
+            });
 
-    document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await crearEquipoAsignado();
-    });
+            document.getElementById('createEquipoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await crearEquipoAsignado();
+            });
 
-    document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await actualizarEquipoAsignado();
-    });
+            document.getElementById('editEquipoAsignadoForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                await actualizarEquipoAsignado();
+            });
 
-    // Filtros con debounce
-    const searchName = document.getElementById('searchName');
-    const searchEquipo = document.getElementById('searchEquipo');
-    const filterEstado = document.getElementById('filterEstado');
-    const resetFilters = document.getElementById('resetFilters');
+            const searchName = document.getElementById('searchName');
+            const searchEquipo = document.getElementById('searchEquipo');
+            const filterEstado = document.getElementById('filterEstado');
+            const resetFilters = document.getElementById('resetFilters');
 
-    if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (searchEquipo) searchEquipo.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (filterEstado) filterEstado.addEventListener('change', aplicarFiltros);
-    if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
+            if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchEquipo) searchEquipo.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (filterEstado) filterEstado.addEventListener('change', aplicarFiltros);
+            if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
 
-    inicializarEventosSelects();
-}
+            inicializarEventosSelects();
+        }
 
-document.addEventListener('DOMContentLoaded', function() {
-    cargarEquiposAsignados(); 
-    cargarUsuarios();
-    cargarStockEquipos();
-    inicializarEventos();
-    applySavedTheme();
-});
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEquiposAsignados(); 
+            cargarUsuarios();
+            cargarStockEquipos();
+            inicializarEventos();
+            applySavedTheme();
+        });
 
         $('#createEquipoAsignadoModal').on('show.bs.modal', function () {
             console.log('Modal de crear abierto, forzando actualización de campos dinámicos...');
@@ -1764,319 +1756,311 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function eliminarImagenActual() {
-    Swal.fire({
-        title: '¿Eliminar imagen?',
-        text: 'Esta acción eliminará la imagen del comprobante actual.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#DC2626',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Ocultar la imagen actual
-            document.getElementById('imagen_actual_container').style.display = 'none';
-            // Limpiar el input de archivo
-            document.getElementById('edit_imagen_comprobante').value = '';
-            
-            // Agregar un campo hidden para indicar que se debe eliminar la imagen
-            let deleteInput = document.getElementById('delete_imagen');
-            if (!deleteInput) {
-                deleteInput = document.createElement('input');
-                deleteInput.type = 'hidden';
-                deleteInput.name = 'delete_imagen';
-                deleteInput.id = 'delete_imagen';
-                deleteInput.value = 'true';
-                document.getElementById('editEquipoAsignadoForm').appendChild(deleteInput);
-            } else {
-                deleteInput.value = 'true';
-            }
-            
-            Swal.fire('Eliminada', 'La imagen ha sido eliminada', 'success');
+            Swal.fire({
+                title: '¿Eliminar imagen?',
+                text: 'Esta acción eliminará la imagen del comprobante actual.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('imagen_actual_container').style.display = 'none';
+                    document.getElementById('edit_imagen_comprobante').value = '';
+                    
+                    let deleteInput = document.getElementById('delete_imagen');
+                    if (!deleteInput) {
+                        deleteInput = document.createElement('input');
+                        deleteInput.type = 'hidden';
+                        deleteInput.name = 'delete_imagen';
+                        deleteInput.id = 'delete_imagen';
+                        deleteInput.value = 'true';
+                        document.getElementById('editEquipoAsignadoForm').appendChild(deleteInput);
+                    } else {
+                        deleteInput.value = 'true';
+                    }
+                    
+                    Swal.fire('Eliminada', 'La imagen ha sido eliminada', 'success');
+                }
+            });
         }
-    });
-}
 
    async function editEquipoAsignado(id) {
-    try {
-        const response = await fetch(`/api/equipos_asignados/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar asignación');
-        }
-
-        const asignacion = await response.json();
-        
-        console.log('Datos para editar:', asignacion);
-        
-        // Llenar campos existentes
-        document.getElementById('edit_asignacion_id').value = asignacion.id;
-        document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
-        document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
-        document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
-        document.getElementById('edit_estado').value = asignacion.estado;
-        document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
-        document.getElementById('edit_numero_serie').value = asignacion.numero_serie || asignacion.cereal_equipo || '';
-        document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
-        document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
-        
-        // Manejar imagen de comprobante
-        const imagenContainer = document.getElementById('imagen_actual_container');
-        const imagenActual = document.getElementById('imagen_actual');
-        
-        // Remover campo delete_imagen si existe
-        const deleteInput = document.getElementById('delete_imagen');
-        if (deleteInput) {
-            deleteInput.remove();
-        }
-        
-        if (asignacion.imagen_comprobante || asignacion.imagen_url) {
-            // Mostrar imagen actual
-            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
-            imagenActual.src = imagenPath;
-            imagenActual.style.cursor = 'pointer';
-            imagenActual.title = 'Click para ampliar';
-            imagenActual.onclick = () => ampliarImagen(imagenPath);
-            imagenContainer.style.display = 'block';
-        } else {
-            // Ocultar si no hay imagen
-            imagenContainer.style.display = 'none';
-        }
-        
-        $('#editEquipoAsignadoModal').modal('show');
-        
-        setTimeout(() => {
-            const editSelect = document.getElementById('edit_stock_equipos_id');
-            if (editSelect && editSelect.value) {
-                console.log('Aplicando toggle campos en edición para equipo:', editSelect.value);
-                toggleDynamicFieldsBasedOnSelection(editSelect, true);
+        try {
+            const response = await fetch(`/api/equipos_asignados/${id}`);
+            
+            if (!response.ok) {
+                throw new Error('Error al cargar asignación');
             }
-        }, 300);
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
-        async function actualizarEquipoAsignado() {
-    const form = document.getElementById('editEquipoAsignadoForm');
-    const formData = new FormData(form);
-    const asignacionId = formData.get('id');
-
-    try {
-        const response = await fetch(`/api/equipos_asignados/${asignacionId}`, {
-            method: 'PUT',
-            body: formData // Usar FormData en lugar de JSON
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message || 'Asignación actualizada exitosamente'
-            });
-            $('#editEquipoAsignadoModal').modal('hide');
-            form.reset();
-            await cargarEquiposAsignados();
-        } else {
-            throw new Error(data.error || 'Error al actualizar asignación');
-        }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
-
-async function viewEquipoAsignado(id) {
-    try {
-        const response = await fetch(`/api/equipos_asignados/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar asignación');
-        }
-
-        const asignacion = await response.json();
-        
-        console.log('Datos de asignación cargados:', asignacion);
-        
-        console.log('Estructura completa:', Object.keys(asignacion));
-        console.log('Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
-        console.log('Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
-        console.log('Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
-        console.log('Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
-        
-        const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
-        const stockEquipo = asignacion.stock_equipos || asignacion.stockEquipo || {};
-        const usuarioAsignador = asignacion.usuario || asignacion.usuarioAsignador || { name: 'Sistema' };
-        const numeroSerie = asignacion.numero_serie || asignacion.cereal_equipo || '';
-        
-        let inicial = 'A';
-        if (usuario && usuario.nombre) {
-            inicial = usuario.nombre.charAt(0).toUpperCase();
-        } else if (usuario && usuario.name) {
-            inicial = usuario.name.charAt(0).toUpperCase();
-        }
-        document.getElementById('view_icon').textContent = inicial;
-        
-        document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
-        document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
-        document.getElementById('view_asignacion_id').textContent = asignacion.id;
-        
-
-        const estadoClass = `estado-${asignacion.estado}`;
-        const estadoTexto = asignacion.estado ? asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1) : 'Activo';
-        document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
-        
-   
-        let usuarioTexto = 'N/A';
-        if (usuario) {
-            if (usuario.nombre && usuario.apellido) {
-                usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-            } else if (usuario.name) {
-                usuarioTexto = usuario.name;
-            }
-            if (usuario.cargo) {
-                usuarioTexto += ` - ${usuario.cargo}`;
-            }
-        }
-        document.getElementById('view_usuario').textContent = usuarioTexto;
-        
-
-        let equipoTexto = 'N/A';
-        if (stockEquipo) {
-            if (stockEquipo.marca && stockEquipo.modelo) {
-                equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
-            } else if (stockEquipo.nombre) {
-                equipoTexto = stockEquipo.nombre;
+            const asignacion = await response.json();
+            
+            console.log('Datos para editar:', asignacion);
+            
+            document.getElementById('edit_asignacion_id').value = asignacion.id;
+            document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
+            document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
+            document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
+            document.getElementById('edit_estado').value = asignacion.estado;
+            document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
+            document.getElementById('edit_numero_serie').value = asignacion.numero_serie || asignacion.cereal_equipo || '';
+            document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
+            document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+            
+            const imagenContainer = document.getElementById('imagen_actual_container');
+            const imagenActual = document.getElementById('imagen_actual');
+            
+            const deleteInput = document.getElementById('delete_imagen');
+            if (deleteInput) {
+                deleteInput.remove();
             }
             
-         
-            const tipoEquipo = stockEquipo.tipo_equipo || stockEquipo.tipoEquipo || {};
-            if (tipoEquipo.nombre) {
-                equipoTexto += ` (${tipoEquipo.nombre})`;
+            if (asignacion.imagen_comprobante || asignacion.imagen_url) {
+                const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
+                imagenActual.src = imagenPath;
+                imagenActual.style.cursor = 'pointer';
+                imagenActual.title = 'Click para ampliar';
+                imagenActual.onclick = () => ampliarImagen(imagenPath);
+                imagenContainer.style.display = 'block';
+            } else {
+                imagenContainer.style.display = 'none';
+            }
+            
+            $('#editEquipoAsignadoModal').modal('show');
+            
+            setTimeout(() => {
+                const editSelect = document.getElementById('edit_stock_equipos_id');
+                if (editSelect && editSelect.value) {
+                    console.log('Aplicando toggle campos en edición para equipo:', editSelect.value);
+                    toggleDynamicFieldsBasedOnSelection(editSelect, true);
+                }
+            }, 300);
+            
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+
+        async function actualizarEquipoAsignado() {
+            const form = document.getElementById('editEquipoAsignadoForm');
+            const formData = new FormData(form);
+            const asignacionId = formData.get('id');
+
+            try {
+                const response = await fetch(`/api/equipos_asignados/${asignacionId}`, {
+                    method: 'PUT',
+                    body: formData 
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Asignación actualizada exitosamente'
+                    });
+                    $('#editEquipoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarEquiposAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al actualizar asignación');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
         }
-        document.getElementById('view_equipo').textContent = equipoTexto;
-        
-       
-        document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
-            new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
-        document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
-            new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
-        
- 
-        document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
-        
-       
-        document.getElementById('view_numero_serie').textContent = numeroSerie || 'No asignado';
-        
-       
-        let asignadorTexto = 'Sistema';
-        if (usuarioAsignador) {
-            asignadorTexto = usuarioAsignador.name || 'Usuario';
-        }
-        document.getElementById('view_asignado_por').textContent = asignadorTexto;
-        
-     
-        document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
-        
-        $('#viewEquipoAsignadoModal').modal('show');
-          const imagenContainer = document.getElementById('view_imagen_container');
-        if (asignacion.imagen_comprobante || asignacion.imagen_url) {
-            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
-            imagenContainer.innerHTML = `
-                <strong>Comprobante:</strong>
-                <div class="mt-2">
-                    <img src="${imagenPath}" 
-                         alt="Comprobante" 
-                         class="img-fluid rounded border" 
-                         style="max-height: 300px; cursor: pointer;"
-                         onclick="ampliarImagen('${imagenPath}')"
-                         title="Click para ampliar">
-                    <div class="mt-2">
-                        <small class="text-muted">
-                            <i class="bi bi-zoom-in me-1"></i>Click en la imagen para ampliar
-                        </small>
-                    </div>
-                </div>
-            `;
-        } else {
-            imagenContainer.innerHTML = `
-                <strong>Comprobante:</strong>
-                <p class="text-muted">
-                    <i class="bi bi-image me-1"></i>No hay imagen de comprobante
-                </p>
-            `;
-        }
-        
-        $('#viewEquipoAsignadoModal').modal('show');
-        
-    } catch (error) {
-        console.error('Error cargando asignación:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
-function ampliarImagen(src) {
-    const modalHtml = `
-        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-image me-2"></i>Comprobante
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="${src}" 
-                             alt="Comprobante ampliado" 
-                             class="img-fluid"
-                             style="max-height: 80vh;">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <a href="${src}" download="comprobante-equipo-${Date.now()}.jpg" class="btn btn-fritz">
-                            <i class="bi bi-download me-1"></i>Descargar
-                        </a>
+        async function viewEquipoAsignado(id) {
+            try {
+                const response = await fetch(`/api/equipos_asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
+
+                const asignacion = await response.json();
+                
+                console.log('Datos de asignación cargados:', asignacion);
+                
+                console.log('Estructura completa:', Object.keys(asignacion));
+                console.log('Usuario:', asignacion.usuarios || asignacion.usuarioAsignado);
+                console.log('Equipo:', asignacion.stock_equipos || asignacion.stockEquipo);
+                console.log('Asignador:', asignacion.usuario || asignacion.usuarioAsignador);
+                console.log('Número de serie:', asignacion.numero_serie || asignacion.cereal_equipo);
+                
+                const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
+                const stockEquipo = asignacion.stock_equipos || asignacion.stockEquipo || {};
+                const usuarioAsignador = asignacion.usuario || asignacion.usuarioAsignador || { name: 'Sistema' };
+                const numeroSerie = asignacion.numero_serie || asignacion.cereal_equipo || '';
+                
+                let inicial = 'A';
+                if (usuario && usuario.nombre) {
+                    inicial = usuario.nombre.charAt(0).toUpperCase();
+                } else if (usuario && usuario.name) {
+                    inicial = usuario.name.charAt(0).toUpperCase();
+                }
+                document.getElementById('view_icon').textContent = inicial;
+                
+                document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
+                document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
+                document.getElementById('view_asignacion_id').textContent = asignacion.id;
+                
+
+                const estadoClass = `estado-${asignacion.estado}`;
+                const estadoTexto = asignacion.estado ? asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1) : 'Activo';
+                document.getElementById('view_estado').innerHTML = `<span class="badge estado-badge ${estadoClass}">${estadoTexto}</span>`;
+                
+        
+                let usuarioTexto = 'N/A';
+                if (usuario) {
+                    if (usuario.nombre && usuario.apellido) {
+                        usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    } else if (usuario.name) {
+                        usuarioTexto = usuario.name;
+                    }
+                    if (usuario.cargo) {
+                        usuarioTexto += ` - ${usuario.cargo}`;
+                    }
+                }
+                document.getElementById('view_usuario').textContent = usuarioTexto;
+                
+
+                let equipoTexto = 'N/A';
+                if (stockEquipo) {
+                    if (stockEquipo.marca && stockEquipo.modelo) {
+                        equipoTexto = `${stockEquipo.marca || ''} ${stockEquipo.modelo || ''}`.trim();
+                    } else if (stockEquipo.nombre) {
+                        equipoTexto = stockEquipo.nombre;
+                    }
+                    
+                
+                    const tipoEquipo = stockEquipo.tipo_equipo || stockEquipo.tipoEquipo || {};
+                    if (tipoEquipo.nombre) {
+                        equipoTexto += ` (${tipoEquipo.nombre})`;
+                    }
+                }
+                document.getElementById('view_equipo').textContent = equipoTexto;
+                
+            
+                document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
+                    new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
+                document.getElementById('view_fecha_devolucion').textContent = asignacion.fecha_devolucion ? 
+                    new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto';
+                
+        
+                document.getElementById('view_ip_equipo').textContent = asignacion.ip_equipo || 'No asignada';
+                
+            
+                document.getElementById('view_numero_serie').textContent = numeroSerie || 'No asignado';
+                
+            
+                let asignadorTexto = 'Sistema';
+                if (usuarioAsignador) {
+                    asignadorTexto = usuarioAsignador.name || 'Usuario';
+                }
+                document.getElementById('view_asignado_por').textContent = asignadorTexto;
+                
+            
+                document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
+                
+                $('#viewEquipoAsignadoModal').modal('show');
+                const imagenContainer = document.getElementById('view_imagen_container');
+                if (asignacion.imagen_comprobante || asignacion.imagen_url) {
+                    const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
+                    imagenContainer.innerHTML = `
+                        <strong>Comprobante:</strong>
+                        <div class="mt-2">
+                            <img src="${imagenPath}" 
+                                alt="Comprobante" 
+                                class="img-fluid rounded border" 
+                                style="max-height: 300px; cursor: pointer;"
+                                onclick="ampliarImagen('${imagenPath}')"
+                                title="Click para ampliar">
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-zoom-in me-1"></i>Click en la imagen para ampliar
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    imagenContainer.innerHTML = `
+                        <strong>Comprobante:</strong>
+                        <p class="text-muted">
+                            <i class="bi bi-image me-1"></i>No hay imagen de comprobante
+                        </p>
+                    `;
+                }
+                
+                $('#viewEquipoAsignadoModal').modal('show');
+                
+            } catch (error) {
+                console.error('Error cargando asignación:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
+
+        function ampliarImagen(src) {
+            const modalHtml = `
+                <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark text-white">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-image me-2"></i>Comprobante
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="${src}" 
+                                    alt="Comprobante ampliado" 
+                                    class="img-fluid"
+                                    style="max-height: 80vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <a href="${src}" download="comprobante-equipo-${Date.now()}.jpg" class="btn btn-fritz">
+                                    <i class="bi bi-download me-1"></i>Descargar
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-    
-    // Remover modal anterior si existe
-    const existingModal = document.getElementById('imagenAmpliadaModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // Agregar nuevo modal al body
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Mostrar modal
-    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
-    imagenModal.show();
-    
-    // Limpiar cuando se cierre
-    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
-        this.remove();
-    });
-}
+            `;
+            
+            // Remover modal anterior si existe
+            const existingModal = document.getElementById('imagenAmpliadaModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Agregar nuevo modal al body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Mostrar modal
+            const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+            imagenModal.show();
+            
+            // Limpiar cuando se cierre
+            document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
 
 
         async function devolverEquipo(id) {
@@ -2120,84 +2104,84 @@ function ampliarImagen(src) {
         }
 
         async function marcarObsoleto(id) {
-    const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: '¿Deseas marcar este equipo como obsoleto? Esta acción eliminará el equipo del inventario y del sistema.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ffc107',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, marcar como obsoleto',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/api/equipos_asignados/${id}/obsoleto`, {
-                method: 'POST'
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¿Deseas marcar este equipo como obsoleto? Esta acción eliminará el equipo del inventario y del sistema.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, marcar como obsoleto',
+                cancelButtonText: 'Cancelar'
             });
 
-            const data = await response.json();
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/equipos_asignados/${id}/obsoleto`, {
+                        method: 'POST'
+                    });
 
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: data.message || 'Equipo marcado como obsoleto y eliminado del sistema'
-                });
-                await cargarEquiposAsignados();
-            } else {
-                throw new Error(data.error || 'Error al marcar equipo como obsoleto');
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message || 'Equipo marcado como obsoleto y eliminado del sistema'
+                        });
+                        await cargarEquiposAsignados();
+                    } else {
+                        throw new Error(data.error || 'Error al marcar equipo como obsoleto');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
             }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message
-            });
         }
-    }
-}
 
-async function reactivarEquipo(id) {
-    const result = await Swal.fire({
-        title: '¿Reactivar equipo?',
-        text: '¿Deseas reactivar este equipo obsoleto?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, reactivar',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            const response = await fetch(`/api/equipos_asignados/${id}/reactivar`, {
-                method: 'POST'
+        async function reactivarEquipo(id) {
+            const result = await Swal.fire({
+                title: '¿Reactivar equipo?',
+                text: '¿Deseas reactivar este equipo obsoleto?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, reactivar',
+                cancelButtonText: 'Cancelar'
             });
 
-            const data = await response.json();
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/equipos_asignados/${id}/reactivar`, {
+                        method: 'POST'
+                    });
 
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: data.message || 'Equipo reactivado exitosamente'
-                });
-                await cargarEquiposAsignados();
-            } else {
-                throw new Error(data.error || 'Error al reactivar equipo');
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Éxito',
+                            text: data.message || 'Equipo reactivado exitosamente'
+                        });
+                        await cargarEquiposAsignados();
+                    } else {
+                        throw new Error(data.error || 'Error al reactivar equipo');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message
+                    });
+                }
             }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message
-            });
         }
-    }
-}
 
         async function deleteEquipoAsignado(id) {
             const result = await Swal.fire({
@@ -2239,81 +2223,81 @@ async function reactivarEquipo(id) {
             }
         }
 
-function aplicarFiltros() {
-    console.log('Aplicando filtros con búsqueda en servidor...');
-    
-    mostrarCargaFiltros();
+        function aplicarFiltros() {
+            console.log('Aplicando filtros con búsqueda en servidor...');
+            
+            mostrarCargaFiltros();
 
-    filtrosActuales = {
-        usuario: document.getElementById('searchName').value.trim(),
-        equipo: document.getElementById('searchEquipo').value.trim(),
-        estado: document.getElementById('filterEstado').value
-    };
-    
-    console.log('Filtros activos:', filtrosActuales);
-    
-    cargarEquiposAsignados(1, filtrosActuales);
-}
-function mostrarCargaFiltros() {
-    const tbody = document.getElementById('equiposAsignadosTableBody');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Buscando...</span>
-                </div>
-                <p class="text-muted mt-2 mb-0">Buscando asignaciones...</p>
-            </td>
-        </tr>
-    `;
-}
+            filtrosActuales = {
+                usuario: document.getElementById('searchName').value.trim(),
+                equipo: document.getElementById('searchEquipo').value.trim(),
+                estado: document.getElementById('filterEstado').value
+            };
+            
+            console.log('Filtros activos:', filtrosActuales);
+            
+            cargarEquiposAsignados(1, filtrosActuales);
+        }
+        function mostrarCargaFiltros() {
+            const tbody = document.getElementById('equiposAsignadosTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Buscando asignaciones...</p>
+                    </td>
+                </tr>
+            `;
+        }
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
 
-function actualizarContadores() {
-    const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
-    const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
-    const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
-    const countTotal = equiposAsignados.length;
+        function actualizarContadores() {
+            const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
+            const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
+            const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
+            const countTotal = equiposAsignados.length;
 
-    document.getElementById('countActivos').textContent = countActivos;
-    document.getElementById('countDevueltos').textContent = countDevueltos;
-    document.getElementById('countObsoletos').textContent = countObsoletos;
-    document.getElementById('countTotal').textContent = countTotal;
+            document.getElementById('countActivos').textContent = countActivos;
+            document.getElementById('countDevueltos').textContent = countDevueltos;
+            document.getElementById('countObsoletos').textContent = countObsoletos;
+            document.getElementById('countTotal').textContent = countTotal;
 
-    const resultCount = document.getElementById('resultCount');
-    if (resultCount) {
-        resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
-    }
-}
+            const resultCount = document.getElementById('resultCount');
+            if (resultCount) {
+                resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
+            }
+        }
 
 
-function resetFiltros() {
-    console.log('Reseteando filtros...');
-    
-    document.getElementById('searchName').value = '';
-    document.getElementById('searchEquipo').value = '';
-    document.getElementById('filterEstado').value = '';
-    
-    filtrosActuales = {
-        usuario: '',
-        equipo: '',
-        estado: ''
-    };
-    
-    cargarEquiposAsignados(1);
+        function resetFiltros() {
+            console.log('Reseteando filtros...');
+            
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchEquipo').value = '';
+            document.getElementById('filterEstado').value = '';
+            
+            filtrosActuales = {
+                usuario: '',
+                equipo: '',
+                estado: ''
+            };
+            
+            cargarEquiposAsignados(1);
 
-}
+        }
 
         function abrirModalSeleccionUsuario() {
             $('#seleccionUsuarioModal').modal('show');

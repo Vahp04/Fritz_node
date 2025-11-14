@@ -28,10 +28,8 @@ class PuppeteerPDF {
 
       await page.setViewport({ width: 1200, height: 800 });
 
-      // Configurar timeout de la página
       page.setDefaultTimeout(60000);
 
-      // Configurar el contenido HTML con manejo de errores
       try {
         await page.setContent(htmlContent, {
           waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
@@ -41,17 +39,14 @@ class PuppeteerPDF {
         console.warn('Error en setContent, continuando...', contentError.message);
       }
 
-      // Esperar a que las fuentes se carguen
       try {
         await page.evaluateHandle('document.fonts.ready');
       } catch (fontError) {
         console.warn('Error cargando fuentes:', fontError.message);
       }
 
-      // Esperar un poco más para asegurar la renderización
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Configurar opciones del PDF más robustas
       const pdfOptions = {
         format: options.format || 'A4',
         landscape: options.landscape || false,

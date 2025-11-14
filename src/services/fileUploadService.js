@@ -21,11 +21,9 @@ class FileUploadService {
 
   static async uploadFile(file, folder = 'uploads') {
     try {
-      // Crear directorio si no existe
       const uploadDir = path.join(process.cwd(), 'uploads', folder);
       await fs.mkdir(uploadDir, { recursive: true });
 
-      // Generar nombre único
       const timestamp = Date.now();
       const fileExtension = path.extname(file.originalname);
       const fileName = `${timestamp}-${Math.random().toString(36).substring(2)}${fileExtension}`;
@@ -34,7 +32,6 @@ class FileUploadService {
       // Guardar archivo
       await fs.writeFile(filePath, file.buffer);
 
-      // Retornar ruta relativa para la base de datos
       return path.join(folder, fileName).replace(/\\/g, '/');
     } catch (error) {
       console.error('Error subiendo archivo:', error);
@@ -51,7 +48,6 @@ class FileUploadService {
       console.log('Archivo eliminado:', filePath);
     } catch (error) {
       console.error('Error eliminando archivo:', error);
-      // No lanzar error para no interrumpir el flujo principal
     }
   }
 }

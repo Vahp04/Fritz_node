@@ -284,7 +284,6 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
@@ -294,7 +293,6 @@
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
             </div>
             
-            <!-- User Profile -->
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -331,7 +329,6 @@
             
             <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -340,7 +337,6 @@
                     </a>
                 </li>
                 
-                <!-- Sección de Gestión -->
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -437,7 +433,6 @@
                 </li>
             </ul>
             
-            <!-- Bottom -->
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -455,7 +450,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -467,7 +461,6 @@
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
                         
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -480,7 +473,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -512,39 +504,37 @@
                     </div>
                 <% } %>
                 
-                <!-- Usuario Management Card -->
-  <div class="card border-0 shadow mb-4">
-    <div class="card-header bg-dark text-white py-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Usuarios
-            </h5>
-            <!-- Dropdown integrado -->
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-download me-1"></i> Exportar
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="#" onclick="abrirModalReporteIndividual()">
-                            <i class="bi bi-file-earmark-person me-2"></i>Reporte Individual
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item" href="#" onclick="generarPDF()">
-                            <i class="bi bi-file-pdf me-2 "></i>Descargar PDF General
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="#" onclick="verPDF()">
-                            <i class="bi bi-eye me-2 "></i>Ver PDF General
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
+                    <div class="card border-0 shadow mb-4">
+                        <div class="card-header bg-dark text-white py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-list-ul me-2 text-danger"></i> Lista de Usuarios
+                                </h5>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-download me-1"></i> Exportar
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="abrirModalReporteIndividual()">
+                                                <i class="bi bi-file-earmark-person me-2"></i>Reporte Individual
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="generarPDF()">
+                                                <i class="bi bi-file-pdf me-2 "></i>Descargar PDF General
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="verPDF()">
+                                                <i class="bi bi-eye me-2 "></i>Ver PDF General
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     <div class="card-body">
                         <!-- Filtros -->
                        <div class="row mb-4 g-2">
@@ -577,7 +567,6 @@
                             </div>
                         </div>
 
-                        <!-- Tabla de Usuarios -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
@@ -605,7 +594,6 @@
                             </table>
                         </div>
 
-                        <!-- Paginación -->
                         <div class="d-flex justify-content-between align-items-center mt-4">
                             <div class="text-muted" id="resultCount">
                                 Mostrando 0 de 0 usuarios
@@ -882,6 +870,7 @@
         </div>
     </div>
 
+    <!-- Modal para reporte individual-->
     <div class="modal fade" id="selectUsuarioReporteModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -897,7 +886,6 @@
                     Selecciona un usuario para generar su reporte individual con información detallada y equipos asignados.
                 </div>
                 
-                <!-- Buscador de Usuarios -->
                 <div class="mb-3">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -906,12 +894,10 @@
                     </div>
                 </div>
 
-                <!-- Lista de Usuarios -->
                 <div class="table-responsive" style="max-height: 400px;">
                     <table class="table table-hover table-sm">
                         <thead class="table-light sticky-top">
                             <tr>
-                                <th width="50px">ID</th>
                                 <th>Usuario</th>
                                 <th>Cargo</th>
                                 <th>Sede</th>
@@ -953,7 +939,7 @@
         let totalPages = 1;
         let totalRecords = 0;
         let todosLosUsuarios = [];
-let usuariosFiltrados = [];
+        let usuariosFiltrados = [];
 
 
         // Cargar datos al iniciar
@@ -972,65 +958,64 @@ let usuariosFiltrados = [];
     rdp: ''
 };
 
-// Función para cargar usuarios con filtros
-async function cargarUsuarios(page = 1, filtros = {}) {
-    try {
-        currentPage = page;
-        
-        // Construir query string con filtros
-        const params = new URLSearchParams({
-            page: page.toString(),
-            limit: '10'
-        });
+        async function cargarUsuarios(page = 1, filtros = {}) {
+            try {
+                currentPage = page;
+                
+                // Construir query string con filtros
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: '10'
+                });
 
-        if (filtros.nombre) params.append('nombre', filtros.nombre);
-        if (filtros.cargo) params.append('cargo', filtros.cargo);
-        if (filtros.sede) params.append('sede', filtros.sede);
-        if (filtros.rdp) params.append('rdp', filtros.rdp);
-        
-        const response = await fetch(`/api/usuarios?${params.toString()}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar usuarios');
+                if (filtros.nombre) params.append('nombre', filtros.nombre);
+                if (filtros.cargo) params.append('cargo', filtros.cargo);
+                if (filtros.sede) params.append('sede', filtros.sede);
+                if (filtros.rdp) params.append('rdp', filtros.rdp);
+                
+                const response = await fetch(`/api/usuarios?${params.toString()}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar usuarios');
+                }
+
+                const data = await response.json();
+                
+                usuarios = data.usuarios || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                renderizarUsuarios();
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los usuarios');
+            }
         }
-
-        const data = await response.json();
-        
-        usuarios = data.usuarios || [];
-        totalPages = data.pagination?.total || 1;
-        totalRecords = data.pagination?.totalRecords || 0;
-        
-        renderizarUsuarios();
-        renderizarPaginacion();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar los usuarios');
-    }
-}
 
 
         function debugRDP() {
-    console.log('=== DEBUG RDP ===');
-    usuarios.forEach((usuario, index) => {
-        console.log(`Usuario ${index + 1}:`, {
-            id: usuario.id,
-            nombre: usuario.nombre,
-            rdp: usuario.rdp,
-            tieneRdp: !!usuario.rdp,
-            rdpType: typeof usuario.rdp,
-            rdpLength: usuario.rdp ? usuario.rdp.length : 0
-        });
-    });
-    
-    const createForm = document.getElementById('createUsuarioForm');
-    const formData = new FormData(createForm);
-    console.log('Formulario crear - RDP field:', formData.get('RDP'));
-    
-    const editForm = document.getElementById('editUsuarioForm');
-    const editFormData = new FormData(editForm);
-    console.log('Formulario editar - RDP field:', editFormData.get('RDP'));
-}
+            console.log('=== DEBUG RDP ===');
+            usuarios.forEach((usuario, index) => {
+                console.log(`Usuario ${index + 1}:`, {
+                    id: usuario.id,
+                    nombre: usuario.nombre,
+                    rdp: usuario.rdp,
+                    tieneRdp: !!usuario.rdp,
+                    rdpType: typeof usuario.rdp,
+                    rdpLength: usuario.rdp ? usuario.rdp.length : 0
+                });
+            });
+            
+            const createForm = document.getElementById('createUsuarioForm');
+            const formData = new FormData(createForm);
+            console.log('Formulario crear - RDP field:', formData.get('RDP'));
+            
+            const editForm = document.getElementById('editUsuarioForm');
+            const editFormData = new FormData(editForm);
+            console.log('Formulario editar - RDP field:', editFormData.get('RDP'));
+        }
 
         function renderizarUsuarios() {
             const tbody = document.getElementById('usuariosTableBody');
@@ -1051,7 +1036,6 @@ async function cargarUsuarios(page = 1, filtros = {}) {
             usuarios.forEach(usuario => {
                 const row = document.createElement('tr');
                 
-                // Generar badges para RDPs
                 let rdpHTML = '';
                 if (usuario.rdpfis) {
                     rdpHTML += `<span class="badge rdp-badge rdp-fisico" title="RDP Fiscal">Bs: ${usuario.rdpfis}</span>`;
@@ -1138,315 +1122,314 @@ async function cargarUsuarios(page = 1, filtros = {}) {
                 `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
         }
 
-function renderizarSedes(preservarValores = false, selectId = null) {
-    const selects = selectId ? [selectId] : ['create_sede_id', 'edit_sede_id'];
+        function renderizarSedes(preservarValores = false, selectId = null) {
+            const selects = selectId ? [selectId] : ['create_sede_id', 'edit_sede_id'];
 
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (select) {
-            const currentValue = preservarValores ? select.value : null;
-            
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = preservarValores ? select.value : null;
+                    
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
 
-            if (sedes.length === 0) {
-                console.warn('No hay sedes cargadas para renderizar');
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No hay sedes disponibles";
-                select.appendChild(option);
-                return;
-            }
+                    if (sedes.length === 0) {
+                        console.warn('No hay sedes cargadas para renderizar');
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No hay sedes disponibles";
+                        select.appendChild(option);
+                        return;
+                    }
 
-            sedes.forEach(sede => {
-                const option = document.createElement('option');
-                option.value = sede.id;
-                option.textContent = sede.nombre;
-                select.appendChild(option);
+                    sedes.forEach(sede => {
+                        const option = document.createElement('option');
+                        option.value = sede.id;
+                        option.textContent = sede.nombre;
+                        select.appendChild(option);
+                    });
+                    
+                    if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                        select.value = currentValue;
+                        console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
+                    }
+                    
+                    console.log(`Select ${selectId} renderizado con ${sedes.length} sedes`);
+                } else {
+                    console.warn(`No se encontró el select: ${selectId}`);
+                }
             });
-            
-            if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
-                select.value = currentValue;
-                console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
-            }
-            
-            console.log(`Select ${selectId} renderizado con ${sedes.length} sedes`);
-        } else {
-            console.warn(`No se encontró el select: ${selectId}`);
         }
-    });
-}
 
-function renderizarDepartamentos(preservarValores = false, selectId = null) {
-    const selects = selectId ? [selectId] : ['create_departamento_id', 'edit_departamento_id'];
+        function renderizarDepartamentos(preservarValores = false, selectId = null) {
+            const selects = selectId ? [selectId] : ['create_departamento_id', 'edit_departamento_id'];
 
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (select) {
-            const currentValue = preservarValores ? select.value : null;
-            
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = preservarValores ? select.value : null;
+                    
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
 
-            if (departamentos.length === 0) {
-                console.warn('No hay departamentos cargados para renderizar');
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No hay departamentos disponibles";
-                select.appendChild(option);
-                return;
-            }
+                    if (departamentos.length === 0) {
+                        console.warn('No hay departamentos cargados para renderizar');
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No hay departamentos disponibles";
+                        select.appendChild(option);
+                        return;
+                    }
 
-            departamentos.forEach(departamento => {
-                const option = document.createElement('option');
-                option.value = departamento.id;
-                option.textContent = departamento.nombre;
-                select.appendChild(option);
+                    departamentos.forEach(departamento => {
+                        const option = document.createElement('option');
+                        option.value = departamento.id;
+                        option.textContent = departamento.nombre;
+                        select.appendChild(option);
+                    });
+                    
+                    if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                        select.value = currentValue;
+                        console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
+                    }
+                    
+                    console.log(`Select ${selectId} renderizado con ${departamentos.length} departamentos`);
+                } else {
+                    console.warn(`No se encontró el select: ${selectId}`);
+                }
             });
-            
-            if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
-                select.value = currentValue;
-                console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
-            }
-            
-            console.log(`Select ${selectId} renderizado con ${departamentos.length} departamentos`);
-        } else {
-            console.warn(`No se encontró el select: ${selectId}`);
         }
-    });
-}
 
-async function cargarDatosParaEdicion(usuario) {
-    try {
-        console.log(' Cargando datos para edición...');
-        
-        if (sedes.length === 0) {
-            console.log(' Cargando sedes...');
-            await cargarSedes();
-        }
-        
-        if (departamentos.length === 0) {
-            console.log('Cargando departamentos...');
-            await cargarDepartamentos();
-        }
-        
-        console.log(` Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
-        
-        renderizarSedes(true, 'edit_sede_id');
-        renderizarDepartamentos(true, 'edit_departamento_id');
-        
-        const sedeSelect = document.getElementById('edit_sede_id');
-        const departamentoSelect = document.getElementById('edit_departamento_id');
-        
-        if (sedeSelect) {
-            console.log(` Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
-            sedeSelect.value = usuario.sede_id || '';
-            
-            if (sedeSelect.value !== usuario.sede_id?.toString()) {
-                console.warn(' No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
-                setTimeout(() => {
+        async function cargarDatosParaEdicion(usuario) {
+            try {
+                console.log(' Cargando datos para edición...');
+                
+                if (sedes.length === 0) {
+                    console.log(' Cargando sedes...');
+                    await cargarSedes();
+                }
+                
+                if (departamentos.length === 0) {
+                    console.log('Cargando departamentos...');
+                    await cargarDepartamentos();
+                }
+                
+                console.log(` Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
+                
+                renderizarSedes(true, 'edit_sede_id');
+                renderizarDepartamentos(true, 'edit_departamento_id');
+                
+                const sedeSelect = document.getElementById('edit_sede_id');
+                const departamentoSelect = document.getElementById('edit_departamento_id');
+                
+                if (sedeSelect) {
+                    console.log(` Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
                     sedeSelect.value = usuario.sede_id || '';
-                    console.log('Reintentando establecer sede_id:', sedeSelect.value);
-                }, 100);
-            }
-        }
-        
-        if (departamentoSelect) {
-            console.log(` Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
-            departamentoSelect.value = usuario.departamento_id || '';
-            
-            if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
-                console.warn(' No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
-                setTimeout(() => {
+                    
+                    if (sedeSelect.value !== usuario.sede_id?.toString()) {
+                        console.warn(' No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
+                        setTimeout(() => {
+                            sedeSelect.value = usuario.sede_id || '';
+                            console.log('Reintentando establecer sede_id:', sedeSelect.value);
+                        }, 100);
+                    }
+                }
+                
+                if (departamentoSelect) {
+                    console.log(` Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
                     departamentoSelect.value = usuario.departamento_id || '';
-                    console.log(' Reintentando establecer departamento_id:', departamentoSelect.value);
-                }, 100);
+                    
+                    if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
+                        console.warn(' No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
+                        setTimeout(() => {
+                            departamentoSelect.value = usuario.departamento_id || '';
+                            console.log(' Reintentando establecer departamento_id:', departamentoSelect.value);
+                        }, 100);
+                    }
+                }
+                
+            } catch (error) {
+                console.error(' Error cargando datos para edición:', error);
             }
         }
-        
-    } catch (error) {
-        console.error(' Error cargando datos para edición:', error);
-    }
-}
 
-async function cargarSedes() {
-    try {
-        console.log('Iniciando carga de sedes...');
-        const response = await fetch('/api/sedes');
-        
-        if (!response.ok) {
-            throw new Error(`Error ${response.status} al cargar sedes`);
+        async function cargarSedes() {
+            try {
+                console.log('Iniciando carga de sedes...');
+                const response = await fetch('/api/sedes');
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status} al cargar sedes`);
+                }
+
+                sedes = await response.json();
+                console.log(` ${sedes.length} sedes cargadas correctamente`);
+                renderizarSedes();
+                return sedes;
+                
+            } catch (error) {
+                console.error(' Error cargando sedes:', error);
+                return [];
+            }
         }
 
-        sedes = await response.json();
-        console.log(` ${sedes.length} sedes cargadas correctamente`);
-        renderizarSedes();
-        return sedes;
-        
-    } catch (error) {
-        console.error(' Error cargando sedes:', error);
-        return [];
-    }
-}
+        async function cargarDepartamentos() {
+            try {
+                console.log(' Iniciando carga de departamentos...');
+                const response = await fetch('/api/departamentos?all=true');
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status} al cargar departamentos`);
+                }
 
-// Cargar departamentos
-async function cargarDepartamentos() {
-    try {
-        console.log(' Iniciando carga de departamentos...');
-        const response = await fetch('/api/departamentos?all=true');
-        
-        if (!response.ok) {
-            throw new Error(`Error ${response.status} al cargar departamentos`);
+                departamentos = await response.json();
+                console.log(` ${departamentos.length} departamentos cargados correctamente`);
+                renderizarDepartamentos();
+                return departamentos;
+                
+            } catch (error) {
+                console.error('Error cargando departamentos:', error);
+                return [];
+            }
         }
 
-        departamentos = await response.json();
-        console.log(` ${departamentos.length} departamentos cargados correctamente`);
-        renderizarDepartamentos();
-        return departamentos;
-        
-    } catch (error) {
-        console.error('Error cargando departamentos:', error);
-        return [];
-    }
-}
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+            pagination.innerHTML = '';
 
-function renderizarPaginacion() {
-    const pagination = document.getElementById('paginationContainer');
-    pagination.innerHTML = '';
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            pagination.appendChild(prevLi);
 
-    const prevLi = document.createElement('li');
-    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-    prevLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
-            <i class="bi bi-chevron-left"></i>
-        </a>
-    `;
-    pagination.appendChild(prevLi);
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarUsuarios(${i}, filtrosActuales)">${i}</a>
+                `;
+                pagination.appendChild(pageLi);
+            }
 
-    for (let i = 1; i <= totalPages; i++) {
-        const pageLi = document.createElement('li');
-        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        pageLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cargarUsuarios(${i}, filtrosActuales)">${i}</a>
-        `;
-        pagination.appendChild(pageLi);
-    }
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
 
-    const nextLi = document.createElement('li');
-    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-    nextLi.innerHTML = `
-        <a class="page-link" href="#" onclick="cargarUsuarios(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
-            <i class="bi bi-chevron-right"></i>
-        </a>
-    `;
-    pagination.appendChild(nextLi);
-}
-
-function abrirModalReporteIndividual() {
-    console.log('Abriendo modal de reporte individual...');
-    cargarUsuariosParaReporte();
-    $('#selectUsuarioReporteModal').modal('show');
-}
+        function abrirModalReporteIndividual() {
+            console.log('Abriendo modal de reporte individual...');
+            cargarUsuariosParaReporte();
+            $('#selectUsuarioReporteModal').modal('show');
+        }
 
 
 
             //  TEMA 
-    function applySavedTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        const htmlElement = document.documentElement;
-        
-        if (savedTheme) {
-            htmlElement.setAttribute('data-bs-theme', savedTheme);
-            
-            const themeIcon = document.querySelector('.theme-switcher i');
-            if (themeIcon) {
-                if (savedTheme === 'dark') {
-                    themeIcon.classList.remove('bi-moon-stars');
-                    themeIcon.classList.add('bi-sun');
+            function applySavedTheme() {
+                const savedTheme = localStorage.getItem('theme');
+                const htmlElement = document.documentElement;
+                
+                if (savedTheme) {
+                    htmlElement.setAttribute('data-bs-theme', savedTheme);
+                    
+                    const themeIcon = document.querySelector('.theme-switcher i');
+                    if (themeIcon) {
+                        if (savedTheme === 'dark') {
+                            themeIcon.classList.remove('bi-moon-stars');
+                            themeIcon.classList.add('bi-sun');
+                        } else {
+                            themeIcon.classList.remove('bi-sun');
+                            themeIcon.classList.add('bi-moon-stars');
+                        }
+                    }
                 } else {
-                    themeIcon.classList.remove('bi-sun');
-                    themeIcon.classList.add('bi-moon-stars');
+                    localStorage.setItem('theme', 'light');
                 }
             }
-        } else {
-            localStorage.setItem('theme', 'light');
-        }
-    }
 
-    function toggleTheme() {
-        const htmlElement = document.documentElement;
-        const currentTheme = htmlElement.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        const themeIcon = document.querySelector('.theme-switcher i');
-        
-        htmlElement.setAttribute('data-bs-theme', newTheme);
-        
-        if (themeIcon) {
-            if (newTheme === 'dark') {
-                themeIcon.classList.remove('bi-moon-stars');
-                themeIcon.classList.add('bi-sun');
-            } else {
-                themeIcon.classList.remove('bi-sun');
-                themeIcon.classList.add('bi-moon-stars');
+            function toggleTheme() {
+                const htmlElement = document.documentElement;
+                const currentTheme = htmlElement.getAttribute('data-bs-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                const themeIcon = document.querySelector('.theme-switcher i');
+                
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                
+                if (themeIcon) {
+                    if (newTheme === 'dark') {
+                        themeIcon.classList.remove('bi-moon-stars');
+                        themeIcon.classList.add('bi-sun');
+                    } else {
+                        themeIcon.classList.remove('bi-sun');
+                        themeIcon.classList.add('bi-moon-stars');
+                    }
+                }
+                
+                localStorage.setItem('theme', newTheme);
+            }
+
+            async function actualizarUsuario() {
+            const form = document.getElementById('editUsuarioForm');
+            const formData = new FormData(form);
+            const datos = Object.fromEntries(formData);
+            const usuarioId = datos.id;
+
+            console.log('Datos para actualizar:', datos);
+
+
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Actualizando...';
+
+            try {
+                const response = await fetch(`/api/usuarios/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    $('#editUsuarioModal').modal('hide');
+                    form.reset();
+                    await cargarUsuarios(currentPage);
+                } else {
+                    throw new Error(data.error || data.message || 'Error al actualizar usuario');
+                }
+            } catch (error) {
+                console.error('Error en actualizarUsuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
             }
         }
-        
-        localStorage.setItem('theme', newTheme);
-    }
-
-    async function actualizarUsuario() {
-    const form = document.getElementById('editUsuarioForm');
-    const formData = new FormData(form);
-    const datos = Object.fromEntries(formData);
-    const usuarioId = datos.id;
-
-    console.log('Datos para actualizar:', datos);
-
-
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.innerHTML;
-    
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Actualizando...';
-
-    try {
-        const response = await fetch(`/api/usuarios/${usuarioId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message
-            });
-            $('#editUsuarioModal').modal('hide');
-            form.reset();
-            await cargarUsuarios(currentPage);
-        } else {
-            throw new Error(data.error || data.message || 'Error al actualizar usuario');
-        }
-    } catch (error) {
-        console.error('Error en actualizarUsuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalText;
-    }
-}
     // INICIALIZACIÓN
     document.addEventListener('DOMContentLoaded', function() {
         applySavedTheme();
@@ -1871,520 +1854,500 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-function aplicarFiltros() {
-    console.log('Aplicando filtros con búsqueda en servidor...');
+        function aplicarFiltros() {
+            console.log('Aplicando filtros con búsqueda en servidor...');
 
-    filtrosActuales = {
-        nombre: document.getElementById('searchName').value.toLowerCase().trim(),
-        cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
-        sede: document.getElementById('searchSede').value.toLowerCase().trim(),
-        rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
-    };
-    
-    console.log('Filtros activos:', filtrosActuales);
+            filtrosActuales = {
+                nombre: document.getElementById('searchName').value.toLowerCase().trim(),
+                cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
+                sede: document.getElementById('searchSede').value.toLowerCase().trim(),
+                rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
+            };
+            
+            console.log('Filtros activos:', filtrosActuales);
 
-    cargarUsuarios(1, filtrosActuales);
-}
-
-function mostrarCargaFiltros() {
-    const tbody = document.getElementById('usuariosTableBody');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="8" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Buscando...</span>
-                </div>
-                <p class="text-muted mt-2 mb-0">Buscando usuarios...</p>
-            </td>
-        </tr>
-    `;
-}
-
-function aplicarFiltros() {
-    console.log('Aplicando filtros con búsqueda en servidor...');
-    
-    mostrarCargaFiltros();
-    
-    filtrosActuales = {
-        nombre: document.getElementById('searchName').value.toLowerCase().trim(),
-        cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
-        sede: document.getElementById('searchSede').value.toLowerCase().trim(),
-        rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
-    };
-    
-    console.log('Filtros activos:', filtrosActuales);
-    
-    cargarUsuarios(1, filtrosActuales);
-}
-
-function resetFiltros() {
-    console.log('Reseteando filtros...');
-    
-    document.getElementById('searchName').value = '';
-    document.getElementById('searchCargo').value = '';
-    document.getElementById('searchSede').value = '';
-    if (document.getElementById('searchRDP')) {
-        document.getElementById('searchRDP').value = '';
-    }
-    
-    filtrosActuales = {
-        nombre: '',
-        cargo: '',
-        sede: '',
-        rdp: ''
-    };
-    
-    cargarUsuarios(1);
-    
- 
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 3000);
-}
-
-        function mostrarError(mensaje) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: mensaje
-            });
+            cargarUsuarios(1, filtrosActuales);
         }
 
-function generarPDF() {
-  
-    window.open('/api/pdf/usuarios', '_blank');
-}
-
-async function verPDF() {
-    const swalInstance = Swal.fire({
-        title: 'Generando PDF',
-        html: `
-            <div class="text-center">
-                <p class="mb-1">Preparando documento para visualización...</p>
-                <small class="text-muted">Esto puede tomar unos segundos</small>
-            </div>
-        `,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    try {
-        const timestamp = new Date().getTime();
-        const response = await fetch(`/api/pdf/usuarios/ver?t=${timestamp}`);
-        
-        if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        function mostrarCargaFiltros() {
+            const tbody = document.getElementById('usuariosTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Buscando...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Buscando usuarios...</p>
+                    </td>
+                </tr>
+            `;
         }
 
-        const pdfBlob = await response.blob();
-        
-        if (pdfBlob.size === 0) {
-            throw new Error('El PDF generado está vacío');
+        function aplicarFiltros() {
+            console.log('Aplicando filtros con búsqueda en servidor...');
+            
+            mostrarCargaFiltros();
+            
+            filtrosActuales = {
+                nombre: document.getElementById('searchName').value.toLowerCase().trim(),
+                cargo: document.getElementById('searchCargo').value.toLowerCase().trim(),
+                sede: document.getElementById('searchSede').value.toLowerCase().trim(),
+                rdp: document.getElementById('searchRDP')?.value.toLowerCase().trim() || ''
+            };
+            
+            console.log('Filtros activos:', filtrosActuales);
+            
+            cargarUsuarios(1, filtrosActuales);
         }
 
-        const pdfUrl = URL.createObjectURL(pdfBlob);
+        function resetFiltros() {
+            console.log('Reseteando filtros...');
+            
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchCargo').value = '';
+            document.getElementById('searchSede').value = '';
+            if (document.getElementById('searchRDP')) {
+                document.getElementById('searchRDP').value = '';
+            }
+            
+            filtrosActuales = {
+                nombre: '',
+                cargo: '',
+                sede: '',
+                rdp: ''
+            };
+            
+            cargarUsuarios(1);
+            
         
-        await Swal.close();
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+
+                function mostrarError(mensaje) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: mensaje
+                    });
+                }
+
+        function generarPDF() {
         
-        const newWindow = window.open(pdfUrl, '_blank');
-        
-        if (!newWindow || newWindow.closed) {
-            Swal.fire({
-                title: 'Ventana bloqueada',
+            window.open('/api/pdf/usuarios', '_blank');
+        }
+
+        async function verPDF() {
+            const swalInstance = Swal.fire({
+                title: 'Generando PDF',
                 html: `
                     <div class="text-center">
-                        <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
-                        <p>Tu navegador bloqueó la nueva ventana.</p>
-                        <p class="text-muted">El PDF se descargará automáticamente.</p>
+                        <p class="mb-1">Preparando documento para visualización...</p>
+                        <small class="text-muted">Esto puede tomar unos segundos</small>
                     </div>
                 `,
-                icon: 'warning',
-                confirmButtonText: 'Entendido',
-                didClose: () => {
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = pdfUrl;
-                    downloadLink.download = `reporte-usuarios-${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(downloadLink);
-                    downloadLink.click();
-                    document.body.removeChild(downloadLink);
-                    
-                    setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
-        } else {
-            setTimeout(() => URL.revokeObjectURL(pdfUrl), 3000);
-        }
-        
-    } catch (error) {
-        await Swal.close();
-        
-        console.error('Error generando PDF:', error);
-        
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al generar PDF',
-            html: `
-                <div class="text-start">
-                    <p class="mb-2">No se pudo generar el documento:</p>
-                    <code class="d-block bg-light p-2 rounded small">${error.message}</code>
-                    <small class="text-muted mt-2 d-block">Intenta nuevamente en unos momentos.</small>
-                </div>
-            `,
-            confirmButtonText: 'Reintentar',
-            showCancelButton: true,
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                verPDF();
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/pdf/usuarios/ver?t=${timestamp}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const pdfBlob = await response.blob();
+                
+                if (pdfBlob.size === 0) {
+                    throw new Error('El PDF generado está vacío');
+                }
+
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                
+                await Swal.close();
+                
+                const newWindow = window.open(pdfUrl, '_blank');
+                
+                if (!newWindow || newWindow.closed) {
+                    Swal.fire({
+                        title: 'Ventana bloqueada',
+                        html: `
+                            <div class="text-center">
+                                <i class="bi bi-exclamation-triangle text-warning display-4 mb-3"></i>
+                                <p>Tu navegador bloqueó la nueva ventana.</p>
+                                <p class="text-muted">El PDF se descargará automáticamente.</p>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        confirmButtonText: 'Entendido',
+                        didClose: () => {
+                            const downloadLink = document.createElement('a');
+                            downloadLink.href = pdfUrl;
+                            downloadLink.download = `reporte-usuarios-${new Date().toISOString().split('T')[0]}.pdf`;
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                            document.body.removeChild(downloadLink);
+                            
+                            setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
+                        }
+                    });
+                } else {
+                    setTimeout(() => URL.revokeObjectURL(pdfUrl), 3000);
+                }
+                
+            } catch (error) {
+                await Swal.close();
+                
+                console.error('Error generando PDF:', error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al generar PDF',
+                    html: `
+                        <div class="text-start">
+                            <p class="mb-2">No se pudo generar el documento:</p>
+                            <code class="d-block bg-light p-2 rounded small">${error.message}</code>
+                            <small class="text-muted mt-2 d-block">Intenta nuevamente en unos momentos.</small>
+                        </div>
+                    `,
+                    confirmButtonText: 'Reintentar',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        verPDF();
+                    }
+                });
             }
-        });
-    }
-}
-
-async function generarReporteIndividual(id) {
-    try {
-        const response = await fetch(`/api/usuarios/${id}/reporte/pdf`);
-        
-        if (!response.ok) {
-            throw new Error('Error al generar reporte');
         }
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `reporte-usuario-${id}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Reporte generado',
-            text: 'El reporte se ha descargado correctamente'
-        });
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
+        async function generarReporteIndividual(id) {
+            try {
+                const response = await fetch(`/api/usuarios/${id}/reporte/pdf`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al generar reporte');
+                }
 
-async function verReporteIndividual(id) {
-    try {
-        window.open(`/api/usuarios/${id}/reporte/ver`, '_blank');
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
-
-async function cargarUsuariosParaReporte() {
-    try {
-        mostrarCargaUsuariosReporte();
-        
-        const response = await fetch('/api/usuarios/para-select');
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar usuarios');
-        }
-
-        const usuarios = await response.json();
-        
-        todosLosUsuarios = usuarios.map(usuario => ({
-            ...usuario,
-            // Agregar información de equipos si no viene en la respuesta
-            equipos_activos_count: usuario.equipos_activos_count || 0,
-            equipos_totales_count: usuario.equipos_totales_count || 0
-        }));
-        
-        usuariosFiltrados = [...todosLosUsuarios];
-        
-        renderizarListaUsuariosReporte();
-        actualizarContadorUsuarios();
-        
-    } catch (error) {
-        console.error('Error cargando usuarios para reporte:', error);
-        mostrarErrorUsuariosReporte('No se pudieron cargar los usuarios');
-    }
-}
-
-// Renderizar la lista de usuarios en el modal
-function renderizarListaUsuariosReporte() {
-    const tbody = document.getElementById('listaUsuariosReporte');
-    
-    if (usuariosFiltrados.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center py-4">
-                    <i class="bi bi-people display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-2">No se encontraron usuarios</p>
-                    <small class="text-muted">Intenta con otros términos de búsqueda</small>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    tbody.innerHTML = usuariosFiltrados.map(usuario => `
-        <tr class="usuario-item">
-            <td class="fw-bold text-muted">${usuario.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="user-icon-sm me-2">
-                        ${usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <div>
-                        <div class="fw-bold">${usuario.nombre} ${usuario.apellido}</div>
-                        <small class="text-muted">${usuario.correo || 'Sin correo'}</small>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <span class="badge bg-secondary bg-opacity-25 text-dark">
-                    ${usuario.cargo}
-                </span>
-            </td>
-            <td>
-                <small class="text-muted">
-                    ${usuario.sede ? usuario.sede.nombre : 'Sin sede'}
-                </small>
-            </td>
-            <td>
-                <span class="badge ${usuario.equipos_activos_count > 0 ? 'bg-success' : 'bg-secondary'}">
-                    ${usuario.equipos_activos_count || 0} activos
-                </span>
-            </td>
-            <td class="text-center">
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-outline-primary" 
-                            onclick="generarReporteIndividual(${usuario.id})"
-                            title="Descargar PDF">
-                        <i class="bi bi-download"></i>
-                    </button>
-                    <button class="btn btn-outline-info" 
-                            onclick="verReporteIndividual(${usuario.id})"
-                            title="Ver en navegador">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// Función para mostrar carga
-function mostrarCargaUsuariosReporte() {
-    const tbody = document.getElementById('listaUsuariosReporte');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="6" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando usuarios...</span>
-                </div>
-                <p class="text-muted mt-2 mb-0">Cargando lista de usuarios...</p>
-            </td>
-        </tr>
-    `;
-}
-
-// Función para mostrar error
-function mostrarErrorUsuariosReporte(mensaje) {
-    const tbody = document.getElementById('listaUsuariosReporte');
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="6" class="text-center py-4">
-                <i class="bi bi-exclamation-triangle text-danger display-4 mb-3"></i>
-                <p class="text-danger mb-2">${mensaje}</p>
-                <button class="btn btn-sm btn-outline-primary" onclick="cargarUsuariosParaReporte()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
-                </button>
-            </td>
-        </tr>
-    `;
-}
-
-// Actualizar contador de usuarios
-function actualizarContadorUsuarios() {
-    const contador = document.getElementById('contadorUsuarios');
-    const total = todosLosUsuarios.length;
-    const mostrando = usuariosFiltrados.length;
-    
-    if (total === mostrando) {
-        contador.textContent = `${total} usuarios`;
-    } else {
-        contador.textContent = `${mostrando} de ${total} usuarios`;
-    }
-}
-
-// Filtrar usuarios en el modal
-function filtrarUsuariosReporte() {
-    const searchTerm = document.getElementById('searchUsuarioReporte').value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-        usuariosFiltrados = [...todosLosUsuarios];
-    } else {
-        usuariosFiltrados = todosLosUsuarios.filter(usuario => 
-            (usuario.nombre && usuario.nombre.toLowerCase().includes(searchTerm)) ||
-            (usuario.apellido && usuario.apellido.toLowerCase().includes(searchTerm)) ||
-            (usuario.cargo && usuario.cargo.toLowerCase().includes(searchTerm)) ||
-            (usuario.correo && usuario.correo.toLowerCase().includes(searchTerm)) ||
-            (usuario.sede && usuario.sede.nombre && usuario.sede.nombre.toLowerCase().includes(searchTerm)) ||
-            (usuario.departamento && usuario.departamento.nombre && usuario.departamento.nombre.toLowerCase().includes(searchTerm))
-        );
-    }
-    
-    renderizarListaUsuariosReporte();
-    actualizarContadorUsuarios();
-}
-
-// Función para generar reporte individual (descargar)
-async function generarReporteIndividual(id) {
-    try {
-        // Mostrar loading
-        const usuario = todosLosUsuarios.find(u => u.id === id);
-        const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario';
-        
-        Swal.fire({
-            title: 'Generando Reporte',
-            html: `
-                <div class="text-center">
-                    <div class="spinner-border text-primary mb-3" role="status"></div>
-                    <p class="mb-1">Preparando reporte para:</p>
-                    <p class="fw-bold">${nombreUsuario}</p>
-                    <small class="text-muted">Esto puede tomar unos segundos...</small>
-                </div>
-            `,
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `reporte-usuario-${id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte generado',
+                    text: 'El reporte se ha descargado correctamente'
+                });
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
-        });
-
-        const response = await fetch(`/api/usuarios/${id}/reporte/pdf`);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error al generar reporte');
         }
 
-        const blob = await response.blob();
-        
-        // Cerrar el modal
-        $('#selectUsuarioReporteModal').modal('hide');
-        
-        // Descargar el archivo
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `reporte-usuario-${nombreUsuario.replace(/\s+/g, '-')}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        
-        // Mostrar confirmación
-        Swal.fire({
-            icon: 'success',
-            title: 'Reporte Generado',
-            html: `
-                <div class="text-center">
-                    <i class="bi bi-check-circle text-success display-4 mb-3"></i>
-                    <p>El reporte de <strong>${nombreUsuario}</strong> se ha descargado correctamente.</p>
-                </div>
-            `,
-            confirmButtonText: 'Aceptar',
-            timer: 3000
-        });
-        
-    } catch (error) {
-        console.error('Error generando reporte individual:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message,
-            confirmButtonText: 'Entendido'
-        });
-    }
-}
+        async function verReporteIndividual(id) {
+            try {
+                window.open(`/api/usuarios/${id}/reporte/ver`, '_blank');
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
 
-// Función para ver reporte individual (en navegador)
-async function verReporteIndividual(id) {
-    try {
-        // Mostrar loading
-        const usuario = todosLosUsuarios.find(u => u.id === id);
-        const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario';
-        
-        Swal.fire({
-            title: 'Preparando Vista',
-            html: `
-                <div class="text-center">
-                    <div class="spinner-border text-info mb-3" role="status"></div>
-                    <p class="mb-1">Cargando reporte de:</p>
-                    <p class="fw-bold">${nombreUsuario}</p>
-                    <small class="text-muted">Abriendo en nueva pestaña...</small>
-                </div>
-            `,
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            timer: 2000
-        });
+        async function cargarUsuariosParaReporte() {
+            try {
+                mostrarCargaUsuariosReporte();
+                
+                const response = await fetch('/api/usuarios/para-select');
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar usuarios');
+                }
 
-        // Abrir en nueva pestaña
-        window.open(`/api/usuarios/${id}/reporte/ver`, '_blank');
-        
-        // Cerrar el modal después de un breve momento
-        setTimeout(() => {
-            $('#selectUsuarioReporteModal').modal('hide');
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Error viendo reporte individual:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message,
-            confirmButtonText: 'Entendido'
-        });
-    }
-}
+                const usuarios = await response.json();
+                
+                todosLosUsuarios = usuarios.map(usuario => ({
+                    ...usuario,
+                    equipos_activos_count: usuario.equipos_activos_count || 0,
+                    equipos_totales_count: usuario.equipos_totales_count || 0
+                }));
+                
+                usuariosFiltrados = [...todosLosUsuarios];
+                
+                renderizarListaUsuariosReporte();
+                actualizarContadorUsuarios();
+                
+            } catch (error) {
+                console.error('Error cargando usuarios para reporte:', error);
+                mostrarErrorUsuariosReporte('No se pudieron cargar los usuarios');
+            }
+        }
 
-// Inicializar eventos del modal
-function inicializarEventosModalReporte() {
-    // Buscador en tiempo real
-    const searchInput = document.getElementById('searchUsuarioReporte');
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(filtrarUsuariosReporte, 300));
-    }
-    
-    // Limpiar filtro cuando se cierra el modal
-    $('#selectUsuarioReporteModal').on('hidden.bs.modal', function () {
-        document.getElementById('searchUsuarioReporte').value = '';
-        usuariosFiltrados = [...todosLosUsuarios];
-        renderizarListaUsuariosReporte();
-        actualizarContadorUsuarios();
-    });
-    
-    // Cargar usuarios cuando se abre el modal
-    $('#selectUsuarioReporteModal').on('show.bs.modal', function () {
-        cargarUsuariosParaReporte();
-    });
-}
+        function renderizarListaUsuariosReporte() {
+            const tbody = document.getElementById('listaUsuariosReporte');
+            
+            if (usuariosFiltrados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <i class="bi bi-people display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-2">No se encontraron usuarios</p>
+                            <small class="text-muted">Intenta con otros términos de búsqueda</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = usuariosFiltrados.map(usuario => `
+                <tr class="usuario-item">
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="user-icon-sm me-2">
+                                ${usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${usuario.nombre} ${usuario.apellido}</div>
+                                <small class="text-muted">${usuario.correo || 'Sin correo'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary bg-opacity-25 text-dark">
+                            ${usuario.cargo}
+                        </span>
+                    </td>
+                    <td>
+                        <small class="text-muted">
+                            ${usuario.sede ? usuario.sede.nombre : 'Sin sede'}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge ${usuario.equipos_activos_count > 0 ? 'bg-success' : 'bg-secondary'}">
+                            ${usuario.equipos_activos_count || 0} activos
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" 
+                                    onclick="generarReporteIndividual(${usuario.id})"
+                                    title="Descargar PDF">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button class="btn btn-outline-info" 
+                                    onclick="verReporteIndividual(${usuario.id})"
+                                    title="Ver en navegador">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function mostrarCargaUsuariosReporte() {
+            const tbody = document.getElementById('listaUsuariosReporte');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando usuarios...</span>
+                        </div>
+                        <p class="text-muted mt-2 mb-0">Cargando lista de usuarios...</p>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function mostrarErrorUsuariosReporte(mensaje) {
+            const tbody = document.getElementById('listaUsuariosReporte');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <i class="bi bi-exclamation-triangle text-danger display-4 mb-3"></i>
+                        <p class="text-danger mb-2">${mensaje}</p>
+                        <button class="btn btn-sm btn-outline-primary" onclick="cargarUsuariosParaReporte()">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Reintentar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function actualizarContadorUsuarios() {
+            const contador = document.getElementById('contadorUsuarios');
+            const total = todosLosUsuarios.length;
+            const mostrando = usuariosFiltrados.length;
+            
+            if (total === mostrando) {
+                contador.textContent = `${total} usuarios`;
+            } else {
+                contador.textContent = `${mostrando} de ${total} usuarios`;
+            }
+        }
+
+        function filtrarUsuariosReporte() {
+            const searchTerm = document.getElementById('searchUsuarioReporte').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                usuariosFiltrados = [...todosLosUsuarios];
+            } else {
+                usuariosFiltrados = todosLosUsuarios.filter(usuario => 
+                    (usuario.nombre && usuario.nombre.toLowerCase().includes(searchTerm)) ||
+                    (usuario.apellido && usuario.apellido.toLowerCase().includes(searchTerm)) ||
+                    (usuario.cargo && usuario.cargo.toLowerCase().includes(searchTerm)) ||
+                    (usuario.correo && usuario.correo.toLowerCase().includes(searchTerm)) ||
+                    (usuario.sede && usuario.sede.nombre && usuario.sede.nombre.toLowerCase().includes(searchTerm)) ||
+                    (usuario.departamento && usuario.departamento.nombre && usuario.departamento.nombre.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            renderizarListaUsuariosReporte();
+            actualizarContadorUsuarios();
+        }
+
+        async function generarReporteIndividual(id) {
+            try {
+                const usuario = todosLosUsuarios.find(u => u.id === id);
+                const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario';
+                
+                Swal.fire({
+                    title: 'Generando Reporte',
+                    html: `
+                        <div class="text-center">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <p class="mb-1">Preparando reporte para:</p>
+                            <p class="fw-bold">${nombreUsuario}</p>
+                            <small class="text-muted">Esto puede tomar unos segundos...</small>
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const response = await fetch(`/api/usuarios/${id}/reporte/pdf`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al generar reporte');
+                }
+
+                const blob = await response.blob();
+                
+                $('#selectUsuarioReporteModal').modal('hide');
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `reporte-usuario-${nombreUsuario.replace(/\s+/g, '-')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reporte Generado',
+                    html: `
+                        <div class="text-center">
+                            <i class="bi bi-check-circle text-success display-4 mb-3"></i>
+                            <p>El reporte de <strong>${nombreUsuario}</strong> se ha descargado correctamente.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Aceptar',
+                    timer: 3000
+                });
+                
+            } catch (error) {
+                console.error('Error generando reporte individual:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+
+        async function verReporteIndividual(id) {
+            try {
+                const usuario = todosLosUsuarios.find(u => u.id === id);
+                const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario';
+                
+                Swal.fire({
+                    title: 'Preparando Vista',
+                    html: `
+                        <div class="text-center">
+                            <div class="spinner-border text-info mb-3" role="status"></div>
+                            <p class="mb-1">Cargando reporte de:</p>
+                            <p class="fw-bold">${nombreUsuario}</p>
+                            <small class="text-muted">Abriendo en nueva pestaña...</small>
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+
+                window.open(`/api/usuarios/${id}/reporte/ver`, '_blank');
+                
+                setTimeout(() => {
+                    $('#selectUsuarioReporteModal').modal('hide');
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error viendo reporte individual:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
+
+        function inicializarEventosModalReporte() {
+            const searchInput = document.getElementById('searchUsuarioReporte');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(filtrarUsuariosReporte, 300));
+            }
+            
+            $('#selectUsuarioReporteModal').on('hidden.bs.modal', function () {
+                document.getElementById('searchUsuarioReporte').value = '';
+                usuariosFiltrados = [...todosLosUsuarios];
+                renderizarListaUsuariosReporte();
+                actualizarContadorUsuarios();
+            });
+            
+            $('#selectUsuarioReporteModal').on('show.bs.modal', function () {
+                cargarUsuariosParaReporte();
+            });
+        }
     </script>
 </body>
 </html>

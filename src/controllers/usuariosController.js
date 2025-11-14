@@ -1031,7 +1031,6 @@ async generarReporteIndividual(req, res) {
         const { id } = req.params;
         console.log(`Generando reporte para usuario ID: ${id}`);
 
-        // Obtener datos del usuario SOLO con información básica
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(id) },
             include: {
@@ -1050,7 +1049,6 @@ async generarReporteIndividual(req, res) {
             });
         }
 
-        // Obtener contadores de equipos para las estadísticas
         const equipos_totales_count = await prisma.equipo_asignado.count({
             where: { usuarios_id: parseInt(id) }
         });
@@ -1116,7 +1114,6 @@ async verReporteIndividual(req, res) {
         const { id } = req.params;
         console.log(`Viendo reporte para usuario ID: ${id}`);
 
-        // Obtener datos del usuario SOLO con información básica
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(id) },
             include: {
@@ -1135,7 +1132,6 @@ async verReporteIndividual(req, res) {
             });
         }
 
-        // Obtener contadores de equipos para las estadísticas
         const equipos_totales_count = await prisma.equipo_asignado.count({
             where: { usuarios_id: parseInt(id) }
         });

@@ -247,7 +247,6 @@
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar text-white p-3 position-relative">
-            <!-- Toggle Button -->
             <button id="sidebarToggle" class="btn btn-sm btn-outline-light position-absolute end-0 top-0 m-3">
                 <i class="bi bi-chevron-double-left"></i>
             </button>
@@ -257,7 +256,6 @@
                 <small class="text-white sidebar-text">Sistema de Gestión</small>
             </div>
             
-            <!-- User Profile -->
             <div class="sidebar-user-profile d-flex align-items-center">
                 <div class="user-avatar me-3">
                     <% if (user) { %>
@@ -294,7 +292,6 @@
             
             <!-- Menu -->
             <ul class="nav flex-column">
-                <!-- Dashboard -->
                 <li class="nav-item">
                     <br>
                     <a class="nav-link text-white sidebar-link" href="/dashboard">
@@ -303,7 +300,6 @@
                     </a>
                 </li>
                 
-                <!-- Sección de Gestión -->
                 <li class="sidebar-section">
                     <i class="bi bi-gear me-1"></i> 
                     <span class="sidebar-text">Gestión</span>
@@ -399,8 +395,6 @@
                     </a>
                 </li>
             </ul>
-            
-            <!-- Bottom -->
             <div class="mt-auto p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <button class="btn btn-sm btn-outline-light theme-switcher" title="Cambiar tema">
@@ -418,7 +412,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -429,8 +422,6 @@
                         <span class="navbar-brand me-3 d-none d-lg-block">
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
-                        
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -443,7 +434,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -475,7 +465,6 @@
                     </div>
                 <% } %>
                 
-                <!-- User Management Card -->
                 <div class="card border-0 shadow mb-4">
                     <div class="card-header bg-dark text-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -489,7 +478,6 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Tabla de Usuarios -->
                         <div class="table-responsive">
                             <table class="table table-hover" style="width:100%">
                                 <thead class="table-dark">
@@ -619,154 +607,154 @@
     });
 
     function getAuthHeaders() {
-    const token = localStorage.getItem('user_token');
-    
-    if (!token) {
+        const token = localStorage.getItem('user_token');
+        
+        if (!token) {
+            return {
+                'Content-Type': 'application/json'
+            };
+        }
+        
         return {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  
         };
     }
-    
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`  
-    };
-}
 
-async function cargarUsuarios() {
-    try {
-        
-        const response = await fetch('/api/usuario', {
-            headers: getAuthHeaders()
-        });
-
-        
-        if (response.status === 401) {
-            localStorage.removeItem('user_token');
-            window.location.href = '/login';
-            return;
-        }
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        usuarios = await response.json();
-        renderizarUsuarios();
-        
-    } catch (error) {
-        
-        let errorMessage = 'No se pudieron cargar los usuarios';
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
-        } else if (error.message.includes('401')) {
-            errorMessage = 'Sesión expirada. Redirigiendo al login...';
-            setTimeout(() => window.location.href = '/login', 2000);
-        }
-
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: errorMessage
-        });
-    } finally {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        loadingIndicator.classList.add('d-none');
-    }
-}
-
- function renderizarUsuarios() {
-    const tbody = document.getElementById('usuariosTableBody');
-    tbody.innerHTML = '';
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? 'Fecha inválida' : 
-                date.toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
+        async function cargarUsuarios() {
+            try {
+                
+                const response = await fetch('/api/usuario', {
+                    headers: getAuthHeaders()
                 });
-        } catch (error) {
-            return 'Fecha inválida';
+
+                
+                if (response.status === 401) {
+                    localStorage.removeItem('user_token');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                usuarios = await response.json();
+                renderizarUsuarios();
+                
+            } catch (error) {
+                
+                let errorMessage = 'No se pudieron cargar los usuarios';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+                } else if (error.message.includes('401')) {
+                    errorMessage = 'Sesión expirada. Redirigiendo al login...';
+                    setTimeout(() => window.location.href = '/login', 2000);
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage
+                });
+            } finally {
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                loadingIndicator.classList.add('d-none');
+            }
         }
-    };
 
-    usuarios.forEach(usuario => {
-        const isCurrentUser = usuario.id === currentUserId;
-        const row = document.createElement('tr');
-        
-        const safeName = usuario.name ? usuario.name.replace(/'/g, "\\'") : '';
-        
-        row.innerHTML = `
-            <td class="fw-bold">${usuario.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="user-avatar-small bg-gradient-danger text-white me-3">
-                        ${usuario.name ? usuario.name.charAt(0).toUpperCase() : 'U'}
-                    </div>
-                    <div>
-                        <div class="fw-bold">${usuario.name}</div>
-                        <small class="text-muted">ID: ${usuario.id}</small>
-                    </div>
-                </div>
-            </td>
-            <td>${usuario.email}</td>
-            <td>
-                ${isCurrentUser ? 
-                    `<span class="badge rounded-pill bg-success">
-                        <i class="bi bi-check-circle me-1"></i>
-                        Activo (Tú)
-                    </span>` :
-                    `<span class="badge rounded-pill bg-${usuario.activo ? 'success' : 'secondary'}">
-                        <i class="bi bi-${usuario.activo ? 'check-circle' : 'x-circle'} me-1"></i>
-                        ${usuario.activo ? 'Activo' : 'Inactivo'}
-                    </span>`
-                }
-            </td>
-            <td>${formatDate(usuario.createdAt)}</td>
-            <td class="table-actions text-center">
-                <!-- Botón Editar -->
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editarUsuario(${usuario.id})"
-                        title="Editar usuario">
-                    <i class="bi bi-pencil"></i>
-                </button>
+        function renderizarUsuarios() {
+            const tbody = document.getElementById('usuariosTableBody');
+            tbody.innerHTML = '';
 
-                <!-- Botón Cambiar Estado -->
-                ${isCurrentUser ? 
-                    `<button class="btn btn-sm btn-outline-secondary action-btn me-1" disabled
-                            title="No puedes cambiar tu propio estado">
-                        <i class="bi bi-slash-circle"></i>
-                    </button>` :
-                    `<button class="btn btn-sm ${usuario.activo ? 'btn-outline-warning' : 'btn-outline-success'} action-btn me-1"
-                            onclick="cambiarEstadoUsuario(${usuario.id})"
-                            title="${usuario.activo ? 'Desactivar usuario' : 'Activar usuario'}">
-                        <i class="bi bi-${usuario.activo ? 'pause-circle' : 'play-circle'}"></i>
-                    </button>`
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                try {
+                    const date = new Date(dateString);
+                    return isNaN(date.getTime()) ? 'Fecha inválida' : 
+                        date.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
+                } catch (error) {
+                    return 'Fecha inválida';
                 }
+            };
 
-                <!-- Botón Eliminar -->
-                ${isCurrentUser ? 
-                    `<button class="btn btn-sm btn-outline-secondary action-btn" disabled
-                            title="No puedes eliminar tu propio usuario">
-                        <i class="bi bi-trash3"></i>
-                    </button>` :
-                    `<button class="btn btn-sm btn-outline-danger action-btn"
-                            onclick="eliminarUsuario(${usuario.id}, '${safeName}')"
-                            title="Eliminar usuario">
-                        <i class="bi bi-trash3"></i>
-                    </button>`
-                }
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
+            usuarios.forEach(usuario => {
+                const isCurrentUser = usuario.id === currentUserId;
+                const row = document.createElement('tr');
+                
+                const safeName = usuario.name ? usuario.name.replace(/'/g, "\\'") : '';
+                
+                row.innerHTML = `
+                    <td class="fw-bold">${usuario.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar-small bg-gradient-danger text-white me-3">
+                                ${usuario.name ? usuario.name.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${usuario.name}</div>
+                                <small class="text-muted">ID: ${usuario.id}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${usuario.email}</td>
+                    <td>
+                        ${isCurrentUser ? 
+                            `<span class="badge rounded-pill bg-success">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Activo (Tú)
+                            </span>` :
+                            `<span class="badge rounded-pill bg-${usuario.activo ? 'success' : 'secondary'}">
+                                <i class="bi bi-${usuario.activo ? 'check-circle' : 'x-circle'} me-1"></i>
+                                ${usuario.activo ? 'Activo' : 'Inactivo'}
+                            </span>`
+                        }
+                    </td>
+                    <td>${formatDate(usuario.createdAt)}</td>
+                    <td class="table-actions text-center">
+                        <!-- Botón Editar -->
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editarUsuario(${usuario.id})"
+                                title="Editar usuario">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+
+                        <!-- Botón Cambiar Estado -->
+                        ${isCurrentUser ? 
+                            `<button class="btn btn-sm btn-outline-secondary action-btn me-1" disabled
+                                    title="No puedes cambiar tu propio estado">
+                                <i class="bi bi-slash-circle"></i>
+                            </button>` :
+                            `<button class="btn btn-sm ${usuario.activo ? 'btn-outline-warning' : 'btn-outline-success'} action-btn me-1"
+                                    onclick="cambiarEstadoUsuario(${usuario.id})"
+                                    title="${usuario.activo ? 'Desactivar usuario' : 'Activar usuario'}">
+                                <i class="bi bi-${usuario.activo ? 'pause-circle' : 'play-circle'}"></i>
+                            </button>`
+                        }
+
+                        <!-- Botón Eliminar -->
+                        ${isCurrentUser ? 
+                            `<button class="btn btn-sm btn-outline-secondary action-btn" disabled
+                                    title="No puedes eliminar tu propio usuario">
+                                <i class="bi bi-trash3"></i>
+                            </button>` :
+                            `<button class="btn btn-sm btn-outline-danger action-btn"
+                                    onclick="eliminarUsuario(${usuario.id}, '${safeName}')"
+                                    title="Eliminar usuario">
+                                <i class="bi bi-trash3"></i>
+                            </button>`
+                        }
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
 
         //  TEMA 
     function applySavedTheme() {
@@ -861,137 +849,137 @@ async function cargarUsuarios() {
     }
 
 
-async function crearUsuario() {
-    const form = document.getElementById('createUserForm');
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
+        async function crearUsuario() {
+            const form = document.getElementById('createUserForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
 
-    try {
-        submitBtn.innerHTML = '<div class="loading-spinner"></div> Guardando...';
-        submitBtn.disabled = true;
+            try {
+                submitBtn.innerHTML = '<div class="loading-spinner"></div> Guardando...';
+                submitBtn.disabled = true;
 
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
 
-        if (data.password !== data.password_confirmation) {
-            throw new Error('Las contraseñas no coinciden');
+                if (data.password !== data.password_confirmation) {
+                    throw new Error('Las contraseñas no coinciden');
+                }
+
+                if (data.password.length < 6) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres');
+                }
+
+                const token = localStorage.getItem('user_token');
+                const response = await fetch('/api/usuario', {
+                    method: 'POST',
+        headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        name: data.name.trim(),
+                        email: data.email.trim(),
+                        password: data.password,
+                        activo: data.activo === 'on'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Error al crear usuario');
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: result.message
+                });
+                
+                $('#createUserModal').modal('hide');
+                form.reset();
+                await cargarUsuarios();
+
+            } catch (error) {
+                console.error('Error creando usuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         }
-
-        if (data.password.length < 6) {
-            throw new Error('La contraseña debe tener al menos 6 caracteres');
-        }
-
-        const token = localStorage.getItem('user_token');
-        const response = await fetch('/api/usuario', {
-            method: 'POST',
-  headers: getAuthHeaders(),
-            body: JSON.stringify({
-                name: data.name.trim(),
-                email: data.email.trim(),
-                password: data.password,
-                activo: data.activo === 'on'
-            })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Error al crear usuario');
-        }
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: result.message
-        });
-        
-        $('#createUserModal').modal('hide');
-        form.reset();
-        await cargarUsuarios();
-
-    } catch (error) {
-        console.error('Error creando usuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-}
 
    function editarUsuario(id) {
-    const usuario = usuarios.find(u => u.id === id);
-    if (usuario) {
-        document.getElementById('edit_user_id').value = usuario.id;
-        document.getElementById('edit_name').value = usuario.name;
-        document.getElementById('edit_email').value = usuario.email;
-        document.getElementById('edit_activo').checked = usuario.activo;
-        $('#editUserModal').modal('show');
-    }
-}
+            const usuario = usuarios.find(u => u.id === id);
+            if (usuario) {
+                document.getElementById('edit_user_id').value = usuario.id;
+                document.getElementById('edit_name').value = usuario.name;
+                document.getElementById('edit_email').value = usuario.email;
+                document.getElementById('edit_activo').checked = usuario.activo;
+                $('#editUserModal').modal('show');
+            }
+        }
 
     async function actualizarUsuario() {
-    const form = document.getElementById('editUserForm');
-    const formData = new FormData(form);
-    const userId = formData.get('id');
+        const form = document.getElementById('editUserForm');
+        const formData = new FormData(form);
+        const userId = formData.get('id');
 
-    const password = formData.get('password');
-    const passwordConfirmation = formData.get('password_confirmation');
-    
-    if (password && password !== passwordConfirmation) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Las contraseñas no coinciden'
-        });
-        return;
-    }
-
-    try {
-        const data = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            activo: formData.get('activo') === 'on'
-        };
-
-        if (password && password.trim() !== '') {
-            data.password = password;
-        }
-
-        console.log('Enviando datos:', data); 
-
-        const response = await fetch(`/api/usuario/${userId}`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
+        const password = formData.get('password');
+        const passwordConfirmation = formData.get('password_confirmation');
+        
+        if (password && password !== passwordConfirmation) {
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: result.message
+                icon: 'error',
+                title: 'Error',
+                text: 'Las contraseñas no coinciden'
             });
-            $('#editUserModal').modal('hide');
-            form.reset();
-            await cargarUsuarios();
-        } else {
-            throw new Error(result.error || 'Error al actualizar usuario');
+            return;
         }
-    } catch (error) {
-        console.error('Error al actualizar:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
+
+        try {
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                activo: formData.get('activo') === 'on'
+            };
+
+            if (password && password.trim() !== '') {
+                data.password = password;
+            }
+
+            console.log('Enviando datos:', data); 
+
+            const response = await fetch(`/api/usuario/${userId}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: result.message
+                });
+                $('#editUserModal').modal('hide');
+                form.reset();
+                await cargarUsuarios();
+            } else {
+                throw new Error(result.error || 'Error al actualizar usuario');
+            }
+        } catch (error) {
+            console.error('Error al actualizar:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
     }
-}
 
     async function cambiarEstadoUsuario(id) {
         const usuario = usuarios.find(u => u.id === id);

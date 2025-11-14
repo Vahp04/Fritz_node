@@ -440,7 +440,6 @@
 
         <!-- Main Content -->
         <div class="main-content flex-grow-1">
-            <!-- Top Navbar -->
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
                     <button class="btn btn-sm btn-outline-light me-2 d-lg-none" id="mobileSidebarToggle">
@@ -452,7 +451,6 @@
                             <i class="bi bi-tools me-2 text-white"></i> FRITZ C.A
                         </span>
                         
-                        <!-- Breadcrumb -->
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a href="/dashboard" class="text-white">Dashboard</a></li>
@@ -465,7 +463,6 @@
             
             <!-- Main Content Area -->
             <main class="p-4">
-                <!-- Page Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h2 class="mb-0">
@@ -789,7 +786,6 @@
                                         Sube una imagen del comprobante (solo al editar). Formatos: JPG, PNG, GIF, WebP. Máx: 5MB.
                                     </div>
                                     
-                                    <!-- Vista previa de la imagen actual -->
                                     <div id="imagen_actual_container" class="mt-2" style="display: none;">
                                         <label class="form-label">Imagen Actual:</label>
                                         <div class="border rounded p-2">
@@ -872,7 +868,6 @@
                         <p id="view_fecha_asignacion" class="mb-2"></p>
                     </div>
                     
-                    <!-- Contenedor para la imagen -->
                     <div class="col-12 mt-3">
                         <div id="view_imagen_container"></div>
                     </div>
@@ -977,40 +972,39 @@
         }
 
         async function cargarStockTelefonos() {
-    try {
-        console.log('Cargando TODOS los teléfonos para asignación...');
-        const response = await fetch('/api/stock_equipos/para-telefonos-completo', {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
+            try {
+                console.log('Cargando TODOS los teléfonos para asignación...');
+                const response = await fetch('/api/stock_equipos/para-telefonos-completo', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
 
-        stockTelefonos = await response.json();
-        console.log(`${stockTelefonos.length} teléfonos cargados para asignación`);
-        
-        // Ya vienen filtrados y con stock disponible
-        llenarSelectStockTelefonos(stockTelefonos);
-        
-    } catch (error) {
-        console.error('Error cargando teléfonos:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
+                stockTelefonos = await response.json();
+                console.log(`${stockTelefonos.length} teléfonos cargados para asignación`);
+                
+                llenarSelectStockTelefonos(stockTelefonos);
+                
+            } catch (error) {
+                console.error('Error cargando teléfonos:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                stockTelefonos = [];
+                llenarSelectStockTelefonos([]);
+            }
         }
-        stockTelefonos = [];
-        llenarSelectStockTelefonos([]);
-    }
-}
 
         function manejarErrorAutenticacion() {
             console.log('Redirigiendo al login...');
@@ -1588,7 +1582,6 @@ async function editTelefonoAsignado(id) {
         
         console.log('Datos para editar:', asignacion);
         
-        // Llenar campos existentes
         document.getElementById('edit_telefono_id').value = asignacion.id;
         document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
         document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
@@ -1599,18 +1592,15 @@ async function editTelefonoAsignado(id) {
         document.getElementById('edit_mail_telefono').value = asignacion.mail_telefono || '';
         document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion ? asignacion.fecha_asignacion.split('T')[0] : '';
         
-        // Manejar imagen de comprobante
         const imagenContainer = document.getElementById('imagen_actual_container');
         const imagenActual = document.getElementById('imagen_actual');
         
-        // Remover campo delete_imagen si existe
         const deleteInput = document.getElementById('delete_imagen');
         if (deleteInput) {
             deleteInput.remove();
         }
         
         if (asignacion.imagen_telefono || asignacion.imagen_url) {
-            // Mostrar imagen actual
             const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_telefono}`;
             imagenActual.src = imagenPath;
             imagenActual.style.cursor = 'pointer';
@@ -1618,7 +1608,6 @@ async function editTelefonoAsignado(id) {
             imagenActual.onclick = () => ampliarImagen(imagenPath);
             imagenContainer.style.display = 'block';
         } else {
-            // Ocultar si no hay imagen
             imagenContainer.style.display = 'none';
         }
         
@@ -1645,12 +1634,9 @@ function eliminarImagenActual() {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Ocultar la imagen actual
             document.getElementById('imagen_actual_container').style.display = 'none';
-            // Limpiar el input de archivo
             document.getElementById('edit_imagen_comprobante').value = '';
             
-            // Agregar un campo hidden para indicar que se debe eliminar la imagen
             let deleteInput = document.getElementById('delete_imagen');
             if (!deleteInput) {
                 deleteInput = document.createElement('input');
@@ -1669,73 +1655,73 @@ function eliminarImagenActual() {
 }
 
 
-async function actualizarTelefonoAsignado() {
-    const form = document.getElementById('editTelefonoAsignadoForm');
-    const formData = new FormData(form);
-    const telefonoId = formData.get('id');
+        async function actualizarTelefonoAsignado() {
+            const form = document.getElementById('editTelefonoAsignadoForm');
+            const formData = new FormData(form);
+            const telefonoId = formData.get('id');
 
-    try {
-        const response = await fetch(`/api/telefonos-asignados/${telefonoId}`, {
-            method: 'PUT',
-            body: formData // Usar FormData en lugar de JSON
-        });
+            try {
+                const response = await fetch(`/api/telefonos-asignados/${telefonoId}`, {
+                    method: 'PUT',
+                    body: formData 
+                });
 
-        const data = await response.json();
+                const data = await response.json();
 
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message || 'Asignación actualizada exitosamente'
-            });
-            $('#editTelefonoAsignadoModal').modal('hide');
-            form.reset();
-            await cargarTelefonosAsignados();
-        } else {
-            throw new Error(data.error || 'Error al actualizar asignación');
-        }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
-
-async function viewTelefonoAsignado(id) {
-    try {
-        const response = await fetch(`/api/telefonos-asignados/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar asignación');
-        }
-
-        const asignacion = await response.json();
-        
-        const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
-        const stockTelefono = asignacion.stock_equipos || asignacion.stockEquipo || {};
-        
-        let usuarioTexto = 'N/A';
-        if (usuario) {
-            if (usuario.nombre && usuario.apellido) {
-                usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
-            } else if (usuario.name) {
-                usuarioTexto = usuario.name;
-            }
-            if (usuario.cargo) {
-                usuarioTexto += ` - ${usuario.cargo}`;
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message || 'Asignación actualizada exitosamente'
+                    });
+                    $('#editTelefonoAsignadoModal').modal('hide');
+                    form.reset();
+                    await cargarTelefonosAsignados();
+                } else {
+                    throw new Error(data.error || 'Error al actualizar asignación');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
             }
         }
 
-        let telefonoTexto = 'N/A';
-        if (stockTelefono) {
-            if (stockTelefono.marca && stockTelefono.modelo) {
-                telefonoTexto = `${stockTelefono.marca || ''} ${stockTelefono.modelo || ''}`.trim();
-            } else if (stockTelefono.nombre) {
-                telefonoTexto = stockTelefono.nombre;
-            }
-        }
+        async function viewTelefonoAsignado(id) {
+            try {
+                const response = await fetch(`/api/telefonos-asignados/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar asignación');
+                }
+
+                const asignacion = await response.json();
+                
+                const usuario = asignacion.usuarios || asignacion.usuarioAsignado || {};
+                const stockTelefono = asignacion.stock_equipos || asignacion.stockEquipo || {};
+                
+                let usuarioTexto = 'N/A';
+                if (usuario) {
+                    if (usuario.nombre && usuario.apellido) {
+                        usuarioTexto = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim();
+                    } else if (usuario.name) {
+                        usuarioTexto = usuario.name;
+                    }
+                    if (usuario.cargo) {
+                        usuarioTexto += ` - ${usuario.cargo}`;
+                    }
+                }
+
+                let telefonoTexto = 'N/A';
+                if (stockTelefono) {
+                    if (stockTelefono.marca && stockTelefono.modelo) {
+                        telefonoTexto = `${stockTelefono.marca || ''} ${stockTelefono.modelo || ''}`.trim();
+                    } else if (stockTelefono.nombre) {
+                        telefonoTexto = stockTelefono.nombre;
+                    }
+                }
 
         document.getElementById('view_titulo').textContent = `Asignación #${asignacion.id}`;
         document.getElementById('view_id').textContent = `ID: ${asignacion.id}`;
@@ -1750,7 +1736,6 @@ async function viewTelefonoAsignado(id) {
         document.getElementById('view_fecha_asignacion').textContent = asignacion.fecha_asignacion ? 
             new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada';
         
-        // MOSTRAR IMAGEN DE COMPROBANTE
         const imagenContainer = document.getElementById('view_imagen_container');
         if (asignacion.imagen_telefono || asignacion.imagen_url) {
             const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_telefono}`;
@@ -1791,53 +1776,48 @@ async function viewTelefonoAsignado(id) {
     }
 }
 
-// Función para ampliar imagen
-function ampliarImagen(src) {
-    const modalHtml = `
-        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-image me-2"></i>Comprobante
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="${src}" 
-                             alt="Comprobante ampliado" 
-                             class="img-fluid"
-                             style="max-height: 80vh;">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
-                            <i class="bi bi-download me-1"></i>Descargar
-                        </a>
+        function ampliarImagen(src) {
+            const modalHtml = `
+                <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark text-white">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-image me-2"></i>Comprobante
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="${src}" 
+                                    alt="Comprobante ampliado" 
+                                    class="img-fluid"
+                                    style="max-height: 80vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
+                                    <i class="bi bi-download me-1"></i>Descargar
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-    
-    // Remover modal anterior si existe
-    const existingModal = document.getElementById('imagenAmpliadaModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // Agregar nuevo modal al body
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Mostrar modal
-    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
-    imagenModal.show();
-    
-    // Limpiar cuando se cierre
-    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
-        this.remove();
-    });
-}
+            `;
+            
+            const existingModal = document.getElementById('imagenAmpliadaModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+            imagenModal.show();
+            
+            document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
 
         async function deleteTelefonoAsignado(id) {
             const result = await Swal.fire({
@@ -1879,7 +1859,6 @@ function ampliarImagen(src) {
             }
         }
 
-        // Funciones de filtros
         function aplicarFiltros() {
             console.log('Aplicando filtros con búsqueda en servidor...');
             
@@ -1938,61 +1917,57 @@ function ampliarImagen(src) {
             cargarTelefonosAsignados(1);
         }
 
-        // Funciones de PDF
         function abrirModalSeleccionUsuario() {
             $('#seleccionUsuarioModal').modal('show');
         }
 
-function generarPDFGeneral() {
-    console.log('Abriendo PDF general de teléfonos...');
-    const url = '/api/telefonos-asignados/pdf/general';
-    
-    // Abrir en nueva pestaña
-    window.open(url, '_blank');
-}
+        function generarPDFGeneral() {
+            console.log('Abriendo PDF general de teléfonos...');
+            const url = '/api/telefonos-asignados/pdf/general';
+            
+            window.open(url, '_blank');
+        }
 
-function verPDFGeneral() {
-    console.log('Abriendo PDF general de teléfonos...');
-    const url = '/api/telefonos-asignados/pdf/general';
-    
-    // Abrir en nueva pestaña
-    window.open(url, '_blank');
-}
+        function verPDFGeneral() {
+            console.log('Abriendo PDF general de teléfonos...');
+            const url = '/api/telefonos-asignados/pdf/general';
+            
+            window.open(url, '_blank');
+        }
 
-function generarPDFUsuario(usuarioId) {
-    const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
-    console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
-    
-    // Abrir en nueva pestaña
-    window.open(url, '_blank');
-}
+        function generarPDFUsuario(usuarioId) {
+            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+            console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
+            
+            window.open(url, '_blank');
+        }
 
-function verPDFUsuario(usuarioId) {
-    const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
-    console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
-    
-    window.open(url, '_blank');
-}
+        function verPDFUsuario(usuarioId) {
+            const url = `/api/telefonos-asignados/pdf/usuario/${usuarioId}`;
+            console.log(`Abriendo PDF para usuario ${usuarioId}: ${url}`);
+            
+            window.open(url, '_blank');
+        }
 
-function generarPDFUsuarioSeleccionado() {
-    const usuarioId = document.getElementById('usuarioSeleccionado').value;
-    if (usuarioId) {
-        generarPDFUsuario(usuarioId);
-        $('#seleccionUsuarioModal').modal('hide');
-    } else {
-        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-    }
-}
+        function generarPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                generarPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
 
-function verPDFUsuarioSeleccionado() {
-    const usuarioId = document.getElementById('usuarioSeleccionado').value;
-    if (usuarioId) {
-        verPDFUsuario(usuarioId);
-        $('#seleccionUsuarioModal').modal('hide');
-    } else {
-        Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
-    }
-}
+        function verPDFUsuarioSeleccionado() {
+            const usuarioId = document.getElementById('usuarioSeleccionado').value;
+            if (usuarioId) {
+                verPDFUsuario(usuarioId);
+                $('#seleccionUsuarioModal').modal('hide');
+            } else {
+                Swal.fire('Error', 'Por favor seleccione un usuario', 'error');
+            }
+        }
 
         function mostrarError(mensaje) {
             Swal.fire({

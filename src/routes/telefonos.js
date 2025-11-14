@@ -4,7 +4,6 @@ import { telefonoAsignadoController } from '../controllers/telefonoAsignadoContr
 
 const router = express.Router();
 
-// Configuración de multer para subida de imágenes
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,

@@ -140,7 +140,6 @@ export const telefonoAsignadoController = {
         fecha_asignacion
       });
 
-      // NO procesar imagen en la creación
       console.log('Creación - No se procesa imagen');
 
       const stockEquipo = await prisma.stock_equipos.findUnique({
@@ -166,7 +165,7 @@ export const telefonoAsignadoController = {
           mac_telefono,
           mail_telefono,
           fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : new Date(),
-          imagen_telefono: null // Siempre null al crear
+          imagen_telefono: null 
         },
         include: {
           usuarios: {
@@ -234,7 +233,6 @@ async show(req, res) {
       return res.status(404).json({ error: 'Asignación de teléfono no encontrada' });
     }
 
-    // Agregar URL completa para la imagen si existe
     const telefonoConImagen = {
       ...telefonoAsignado,
       imagen_url: telefonoAsignado.imagen_telefono 
@@ -285,10 +283,8 @@ async show(req, res) {
       }
       
 
-      // PROCESAR IMAGEN SOLO EN EDICIÓN
       let imagenPath = telefonoAsignado.imagen_telefono;
 
-// Verificar si se debe eliminar la imagen existente
 if (req.body.delete_imagen === 'true') {
     if (telefonoAsignado.imagen_telefono) {
         await FileUploadService.deleteFile(telefonoAsignado.imagen_telefono);
@@ -296,24 +292,19 @@ if (req.body.delete_imagen === 'true') {
     imagenPath = null;
 }
 
-// Procesar nueva imagen si se subió
 if (req.file) {
     console.log('Procesando imagen de comprobante en edición...');
     
-    // Validar que sea una imagen
     FileUploadService.validateImage(req.file);
     
-    // Eliminar imagen anterior si existe
     if (telefonoAsignado.imagen_telefono) {
         await FileUploadService.deleteFile(telefonoAsignado.imagen_telefono);
     }
     
-    // Subir nueva imagen
     imagenPath = await FileUploadService.uploadFile(req.file, 'telefonos/comprobantes');
     console.log('Imagen subida:', imagenPath);
 }
 
-      // Lógica de actualización de stock si cambió el equipo
       const stockAnterior = telefonoAsignado.stock_equipos_id;
       const stockNuevo = parseInt(stock_equipos_id);
 
@@ -345,7 +336,7 @@ if (req.file) {
           ip_telefono,
           mac_telefono,
           mail_telefono,
-          imagen_telefono: imagenPath, // Actualizar la imagen solo si se subió una nueva
+          imagen_telefono: imagenPath,
           fecha_asignacion: fecha_asignacion ? new Date(fecha_asignacion) : telefonoAsignado.fecha_asignacion
         },
         include: {
