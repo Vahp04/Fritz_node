@@ -120,6 +120,7 @@ model equipo_asignado {
   observaciones    String?       @db.VarChar(191)
   usuario_id       Int?
   estado           String        @default("activo") @db.VarChar(191)
+  imagen_comprobante String?     @db.VarChar(500) 
   created_at       DateTime      @default(now())
   updated_at       DateTime      @default(now()) @updatedAt
   stock_equipos    stock_equipos @relation(fields: [stock_equipos_id], references: [id], onDelete: NoAction)

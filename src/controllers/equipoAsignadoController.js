@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
+import FileUploadService from '../services/fileUploadService.js';
 
 export const equipoAsignadoController = {
 async index(req, res) {
@@ -153,6 +154,9 @@ async index(req, res) {
         estado
       });
 
+      // NO procesar imagen en la creación
+      console.log('Creación - No se procesa imagen');
+
       if (!req.user || !req.user.id) {
         return res.status(401).json({ error: 'Usuario no autenticado' });
       }
@@ -180,7 +184,8 @@ async index(req, res) {
           fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
           observaciones,
           usuario_id: req.user.id,
-          estado
+          estado,
+          imagen_comprobante: null // ← Siempre null al crear
         },
         include: {
           usuarios: {
@@ -262,7 +267,10 @@ async index(req, res) {
 
       const response = {
         ...equipoAsignado,
-        numero_serie: equipoAsignado.cereal_equipo || null 
+        numero_serie: equipoAsignado.cereal_equipo || null,
+        imagen_url: equipoAsignado.imagen_comprobante 
+          ? `/uploads/${equipoAsignado.imagen_comprobante}`
+          : null
       };
 
       res.json(response);
@@ -272,38 +280,74 @@ async index(req, res) {
     }
   },
 
-async update(req, res) {
-  try {
-    const { id } = req.params;
-    const {
-      usuarios_id,
-      stock_equipos_id,
-      fecha_asignacion,
-      ip_equipo,
-      numero_serie,
-      fecha_devolucion,
-      observaciones,
-      estado
-    } = req.body;
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const {
+        usuarios_id,
+        stock_equipos_id,
+        fecha_asignacion,
+        ip_equipo,
+        numero_serie,
+        fecha_devolucion,
+        observaciones,
+        estado,
+        delete_imagen // ← Nuevo campo para eliminar imagen
+      } = req.body;
 
-    console.log('Datos recibidos para actualizar asignación:', {
-      usuarios_id,
-      stock_equipos_id,
-      fecha_asignacion,
-      ip_equipo,
-      numero_serie,
-      fecha_devolucion,
-      observaciones,
-      estado
-    });
+      console.log('Datos recibidos para actualizar asignación:', {
+        usuarios_id,
+        stock_equipos_id,
+        fecha_asignacion,
+        ip_equipo,
+        numero_serie,
+        fecha_devolucion,
+        observaciones,
+        estado,
+        delete_imagen
+      });
 
-    const equipoAsignado = await prisma.equipo_asignado.findUnique({
-      where: { id: parseInt(id) }
-    });
+      const equipoAsignado = await prisma.equipo_asignado.findUnique({
+        where: { id: parseInt(id) }
+      });
 
-    if (!equipoAsignado) {
-      return res.status(404).json({ error: 'Asignación no encontrada' });
-    }
+      if (!equipoAsignado) {
+        return res.status(404).json({ error: 'Asignación no encontrada' });
+      }
+
+      // PROCESAR IMAGEN SOLO EN EDICIÓN
+      let imagenPath = equipoAsignado.imagen_comprobante;
+      
+      // Verificar si se debe eliminar la imagen existente
+      if (delete_imagen === 'true') {
+        console.log('Eliminando imagen existente...');
+        if (equipoAsignado.imagen_comprobante) {
+          await FileUploadService.deleteFile(equipoAsignado.imagen_comprobante);
+        }
+        imagenPath = null;
+      }
+      
+      // Procesar nueva imagen si se subió
+      if (req.file) {
+        console.log('Procesando imagen de comprobante en edición...');
+        
+        try {
+          // Validar que sea una imagen
+          FileUploadService.validateImage(req.file);
+          
+          // Eliminar imagen anterior si existe
+          if (equipoAsignado.imagen_comprobante && delete_imagen !== 'true') {
+            await FileUploadService.deleteFile(equipoAsignado.imagen_comprobante);
+          }
+          
+          // Subir nueva imagen
+          imagenPath = await FileUploadService.uploadFile(req.file, 'equipos/comprobantes');
+          console.log('Imagen subida:', imagenPath);
+        } catch (uploadError) {
+          console.error('Error subiendo imagen:', uploadError);
+          return res.status(400).json({ error: `Error al subir imagen: ${uploadError.message}` });
+        }
+      }
 
     const nuevoEstado = estado;
     const estadoAnterior = equipoAsignado.estado;
@@ -371,110 +415,117 @@ async update(req, res) {
       }
     }
 
-    const updated = await prisma.equipo_asignado.update({
-      where: { id: parseInt(id) },
-      data: {
-        usuarios_id: parseInt(usuarios_id),
-        stock_equipos_id: parseInt(stock_equipos_id),
-        fecha_asignacion: new Date(fecha_asignacion),
-        ip_equipo,
-        cereal_equipo: numero_serie,
-        fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
-        observaciones,
-        estado: nuevoEstado
-      },
-      include: {
-        usuarios: {
-          select: {
-            id: true,
-            nombre: true,
-            apellido: true,
-            cargo: true,
-            correo: true
-          }
+      const updated = await prisma.equipo_asignado.update({
+        where: { id: parseInt(id) },
+        data: {
+          usuarios_id: parseInt(usuarios_id),
+          stock_equipos_id: parseInt(stock_equipos_id),
+          fecha_asignacion: new Date(fecha_asignacion),
+          ip_equipo,
+          cereal_equipo: numero_serie,
+          fecha_devolucion: fecha_devolucion ? new Date(fecha_devolucion) : null,
+          observaciones,
+          imagen_comprobante: imagenPath, // ← Actualizar imagen
+          estado: nuevoEstado
         },
-        usuario: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        stock_equipos: {
-          include: {
-            tipo_equipo: {
-              select: {
-                id: true,
-                nombre: true,
-                requiere_ip: true,
-                requiere_cereal: true
+        include: {
+          usuarios: {
+            select: {
+              id: true,
+              nombre: true,
+              apellido: true,
+              cargo: true,
+              correo: true
+            }
+          },
+          usuario: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          stock_equipos: {
+            include: {
+              tipo_equipo: {
+                select: {
+                  id: true,
+                  nombre: true,
+                  requiere_ip: true,
+                  requiere_cereal: true
+                }
               }
             }
           }
         }
-      }
-    });
+      });
 
-    res.json({
-      message: 'Asignación actualizada exitosamente.',
-      equipoAsignado: updated
-    });
+      res.json({
+        message: 'Asignación actualizada exitosamente.',
+        equipoAsignado: updated
+      });
 
-  } catch (error) {
-    console.error('Error en update:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
-
-async destroy(req, res) {  
-  try {
-    const { id } = req.params;
-    console.log('Eliminando asignación:', id);
-
-    const equipoAsignado = await prisma.equipo_asignado.findUnique({
-      where: { id: parseInt(id) }
-    });
-
-    if (!equipoAsignado) {
-      return res.status(404).json({ error: 'Asignación no encontrada' });
+    } catch (error) {
+      console.error('Error en update:', error);
+      res.status(500).json({ error: error.message });
     }
+  },
 
-    if (equipoAsignado.estado === 'obsoleto') {
+
+  async destroy(req, res) {  
+    try {
+      const { id } = req.params;
+      console.log('Eliminando asignación:', id);
+
+      const equipoAsignado = await prisma.equipo_asignado.findUnique({
+        where: { id: parseInt(id) }
+      });
+
+      if (!equipoAsignado) {
+        return res.status(404).json({ error: 'Asignación no encontrada' });
+      }
+
+      // Eliminar imagen si existe
+      if (equipoAsignado.imagen_comprobante) {
+        await FileUploadService.deleteFile(equipoAsignado.imagen_comprobante);
+      }
+
+      if (equipoAsignado.estado === 'obsoleto') {
+        await prisma.equipo_asignado.delete({
+          where: { id: parseInt(id) }
+        });
+        
+        return res.json({ 
+          message: 'Asignación obsoleta eliminada exitosamente.' 
+        });
+      }
+
+      if (equipoAsignado.estado !== 'devuelto') {
+        const stockEquipo = await prisma.stock_equipos.findUnique({
+          where: { id: equipoAsignado.stock_equipos_id }
+        });
+        if (stockEquipo) {
+          await prisma.stock_equipos.update({
+            where: { id: stockEquipo.id },
+            data: {
+              cantidad_disponible: { increment: 1 },
+              cantidad_asignada: { decrement: 1 }
+            }
+          });
+        }
+      }
+
       await prisma.equipo_asignado.delete({
         where: { id: parseInt(id) }
       });
-      
-      return res.json({ 
-        message: 'Asignación obsoleta eliminada exitosamente.' 
-      });
+
+      res.json({ message: 'Asignación eliminada exitosamente.' });
+
+    } catch (error) {
+      console.error('Error en destroy:', error);
+      res.status(500).json({ error: error.message });
     }
-
-    if (equipoAsignado.estado !== 'devuelto') {
-      const stockEquipo = await prisma.stock_equipos.findUnique({
-        where: { id: equipoAsignado.stock_equipos_id }
-      });
-      if (stockEquipo) {
-        await prisma.stock_equipos.update({
-          where: { id: stockEquipo.id },
-          data: {
-            cantidad_disponible: { increment: 1 },
-            cantidad_asignada: { decrement: 1 }
-          }
-        });
-      }
-    }
-
-    await prisma.equipo_asignado.delete({
-      where: { id: parseInt(id) }
-    });
-
-    res.json({ message: 'Asignación eliminada exitosamente.' });
-
-  } catch (error) {
-    console.error('Error en destroy:', error);
-    res.status(500).json({ error: error.message });
-  }
-},
+  },
 
   async devolver(req, res) {
     try {

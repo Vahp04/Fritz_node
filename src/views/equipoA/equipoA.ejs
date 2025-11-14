@@ -775,7 +775,7 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="editEquipoAsignadoForm">
+                 <form id="editEquipoAsignadoForm" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" id="edit_asignacion_id" name="id">
                         <div class="row">
@@ -836,6 +836,34 @@
                                 <div class="mb-3">
                                     <label class="form-label">Observaciones</label>
                                     <textarea class="form-control" name="observaciones" id="edit_observaciones" rows="3"></textarea>
+                                </div>
+                            </div>
+                             <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Imagen de Comprobante</label>
+                                    <input type="file" 
+                                        class="form-control" 
+                                        name="imagen_comprobante" 
+                                        id="edit_imagen_comprobante"
+                                        accept="image/*">
+                                    <div class="form-text">
+                                        Sube una imagen del comprobante (solo al editar). Formatos: JPG, PNG, GIF, WebP. Máx: 5MB.
+                                    </div>
+                                    
+                                    <!-- Vista previa de la imagen actual -->
+                                    <div id="imagen_actual_container" class="mt-2" style="display: none;">
+                                        <label class="form-label">Imagen Actual:</label>
+                                        <div class="border rounded p-2">
+                                            <img id="imagen_actual" src="" alt="Comprobante actual" 
+                                                class="img-fluid rounded" style="max-height: 200px;">
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="eliminarImagenActual()">
+                                                    <i class="bi bi-trash me-1"></i> Eliminar Imagen
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -906,6 +934,9 @@
                         <div class="col-12">
                             <strong>Observaciones:</strong>
                             <p id="view_observaciones" class="mb-2"></p>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <div id="view_imagen_container"></div>
                         </div>
                     </div>
                 </div>
@@ -1732,6 +1763,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        function eliminarImagenActual() {
+    Swal.fire({
+        title: '¿Eliminar imagen?',
+        text: 'Esta acción eliminará la imagen del comprobante actual.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Ocultar la imagen actual
+            document.getElementById('imagen_actual_container').style.display = 'none';
+            // Limpiar el input de archivo
+            document.getElementById('edit_imagen_comprobante').value = '';
+            
+            // Agregar un campo hidden para indicar que se debe eliminar la imagen
+            let deleteInput = document.getElementById('delete_imagen');
+            if (!deleteInput) {
+                deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete_imagen';
+                deleteInput.id = 'delete_imagen';
+                deleteInput.value = 'true';
+                document.getElementById('editEquipoAsignadoForm').appendChild(deleteInput);
+            } else {
+                deleteInput.value = 'true';
+            }
+            
+            Swal.fire('Eliminada', 'La imagen ha sido eliminada', 'success');
+        }
+    });
+}
+
    async function editEquipoAsignado(id) {
     try {
         const response = await fetch(`/api/equipos_asignados/${id}`);
@@ -1744,17 +1810,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Datos para editar:', asignacion);
         
+        // Llenar campos existentes
         document.getElementById('edit_asignacion_id').value = asignacion.id;
         document.getElementById('edit_usuarios_id').value = asignacion.usuarios_id;
         document.getElementById('edit_stock_equipos_id').value = asignacion.stock_equipos_id;
         document.getElementById('edit_fecha_asignacion').value = asignacion.fecha_asignacion.split('T')[0];
         document.getElementById('edit_estado').value = asignacion.estado;
         document.getElementById('edit_ip_equipo').value = asignacion.ip_equipo || '';
-        
         document.getElementById('edit_numero_serie').value = asignacion.numero_serie || asignacion.cereal_equipo || '';
-        
         document.getElementById('edit_fecha_devolucion').value = asignacion.fecha_devolucion ? asignacion.fecha_devolucion.split('T')[0] : '';
         document.getElementById('edit_observaciones').value = asignacion.observaciones || '';
+        
+        // Manejar imagen de comprobante
+        const imagenContainer = document.getElementById('imagen_actual_container');
+        const imagenActual = document.getElementById('imagen_actual');
+        
+        // Remover campo delete_imagen si existe
+        const deleteInput = document.getElementById('delete_imagen');
+        if (deleteInput) {
+            deleteInput.remove();
+        }
+        
+        if (asignacion.imagen_comprobante || asignacion.imagen_url) {
+            // Mostrar imagen actual
+            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
+            imagenActual.src = imagenPath;
+            imagenActual.style.cursor = 'pointer';
+            imagenActual.title = 'Click para ampliar';
+            imagenActual.onclick = () => ampliarImagen(imagenPath);
+            imagenContainer.style.display = 'block';
+        } else {
+            // Ocultar si no hay imagen
+            imagenContainer.style.display = 'none';
+        }
         
         $('#editEquipoAsignadoModal').modal('show');
         
@@ -1776,41 +1864,38 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
         async function actualizarEquipoAsignado() {
-            const form = document.getElementById('editEquipoAsignadoForm');
-            const formData = new FormData(form);
-            const asignacionId = formData.get('id');
+    const form = document.getElementById('editEquipoAsignadoForm');
+    const formData = new FormData(form);
+    const asignacionId = formData.get('id');
 
-            try {
-                const response = await fetch(`/api/equipos_asignados/${asignacionId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                });
+    try {
+        const response = await fetch(`/api/equipos_asignados/${asignacionId}`, {
+            method: 'PUT',
+            body: formData // Usar FormData en lugar de JSON
+        });
 
-                const data = await response.json();
+        const data = await response.json();
 
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.message || 'Asignación actualizada exitosamente'
-                    });
-                    $('#editEquipoAsignadoModal').modal('hide');
-                    form.reset();
-                    await cargarEquiposAsignados();
-                } else {
-                    throw new Error(data.error || 'Error al actualizar asignación');
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message || 'Asignación actualizada exitosamente'
+            });
+            $('#editEquipoAsignadoModal').modal('hide');
+            form.reset();
+            await cargarEquiposAsignados();
+        } else {
+            throw new Error(data.error || 'Error al actualizar asignación');
         }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
 
 async function viewEquipoAsignado(id) {
     try {
@@ -1906,9 +1991,38 @@ async function viewEquipoAsignado(id) {
         document.getElementById('view_observaciones').textContent = asignacion.observaciones || 'Sin observaciones';
         
         $('#viewEquipoAsignadoModal').modal('show');
+          const imagenContainer = document.getElementById('view_imagen_container');
+        if (asignacion.imagen_comprobante || asignacion.imagen_url) {
+            const imagenPath = asignacion.imagen_url || `/uploads/${asignacion.imagen_comprobante}`;
+            imagenContainer.innerHTML = `
+                <strong>Comprobante:</strong>
+                <div class="mt-2">
+                    <img src="${imagenPath}" 
+                         alt="Comprobante" 
+                         class="img-fluid rounded border" 
+                         style="max-height: 300px; cursor: pointer;"
+                         onclick="ampliarImagen('${imagenPath}')"
+                         title="Click para ampliar">
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-zoom-in me-1"></i>Click en la imagen para ampliar
+                        </small>
+                    </div>
+                </div>
+            `;
+        } else {
+            imagenContainer.innerHTML = `
+                <strong>Comprobante:</strong>
+                <p class="text-muted">
+                    <i class="bi bi-image me-1"></i>No hay imagen de comprobante
+                </p>
+            `;
+        }
+        
+        $('#viewEquipoAsignadoModal').modal('show');
         
     } catch (error) {
-        console.error('❌ Error cargando asignación:', error);
+        console.error('Error cargando asignación:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -1916,6 +2030,54 @@ async function viewEquipoAsignado(id) {
         });
     }
 }
+
+function ampliarImagen(src) {
+    const modalHtml = `
+        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-image me-2"></i>Comprobante
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${src}" 
+                             alt="Comprobante ampliado" 
+                             class="img-fluid"
+                             style="max-height: 80vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <a href="${src}" download="comprobante-equipo-${Date.now()}.jpg" class="btn btn-fritz">
+                            <i class="bi bi-download me-1"></i>Descargar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    const existingModal = document.getElementById('imagenAmpliadaModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal al body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+    imagenModal.show();
+    
+    // Limpiar cuando se cierre
+    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
 
         async function devolverEquipo(id) {
             const result = await Swal.fire({
