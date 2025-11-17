@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
+import FileUploadService from '../services/fileUploadService.js';
 
 const CARGOS_PERMITIDOS = [
   'Gerente',
@@ -13,6 +14,8 @@ const CARGOS_PERMITIDOS = [
   'Coordinador',
   'Supervisor'
 ];
+
+const USUARIOS_COMPROBANTE_PATH = 'usuarios/comprobantes';
 
 export const usuariosController = {
   async index(req, res) {
@@ -311,7 +314,7 @@ export const usuariosController = {
     }
   },
 
-  async show(req, res) {
+async show(req, res) {
     try {
       const { id } = req.params;
       console.log(`Buscando usuario ID: ${id}`);
@@ -326,7 +329,8 @@ export const usuariosController = {
           correo: true,
           rdpfis: true,      
           rdpfin: true,      
-          descripcion: true, 
+          descripcion: true,
+          comprobante: true,
           created_at: true,
           updated_at: true,
           sede: {
@@ -348,6 +352,15 @@ export const usuariosController = {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
+      // IMPORTANTE: FileUploadService guarda la ruta relativa desde 'uploads/'
+      // Por ejemplo: 'usuarios/comprobantes/123456789-abc123.jpg'
+      const usuarioConComprobante = {
+        ...usuario,
+        comprobante_url: usuario.comprobante ? `/uploads/${usuario.comprobante}` : null
+      };
+
+      console.log('Comprobante URL generada:', usuarioConComprobante.comprobante_url);
+
       const equipos_totales_count = await prisma.equipo_asignado.count({
         where: { usuarios_id: usuario.id }
       });
@@ -360,7 +373,7 @@ export const usuariosController = {
       });
 
       const usuarioConCount = {
-        ...usuario,
+        ...usuarioConComprobante,
         equipos_totales_count,
         equipos_activos_count
       };
@@ -384,7 +397,8 @@ export const usuariosController = {
             departamento_id,
             rdpfis,    
             rdpfin,    
-            descripcion 
+            descripcion,
+            delete_comprobante 
         } = req.body;
 
         console.log('Actualizando usuario ID:', id, 'RDPFis:', rdpfis, 'RDPFin:', rdpfin);
@@ -450,6 +464,38 @@ export const usuariosController = {
             }
         }
 
+         let comprobantePath = usuarioExistente.comprobante;
+
+        // Manejo de eliminación de comprobante
+        if (delete_comprobante === 'true') {
+            if (usuarioExistente.comprobante) {
+                await FileUploadService.deleteFile(usuarioExistente.comprobante);
+            }
+            comprobantePath = null;
+        }
+
+        if (req.file) {
+            console.log('Procesando comprobante para usuario...');
+            
+            try {
+                FileUploadService.validateImage(req.file);
+            } catch (error) {
+                return res.status(400).json({
+                    error: 'Archivo no válido',
+                    message: error.message
+                });
+            }
+            
+            // Eliminar comprobante anterior si existe
+            if (usuarioExistente.comprobante) {
+                await FileUploadService.deleteFile(usuarioExistente.comprobante);
+            }
+            
+            // Usar FileUploadService para subir el archivo
+            comprobantePath = await FileUploadService.uploadFile(req.file, 'usuarios/comprobantes');
+            console.log('Comprobante subido:', comprobantePath);
+        }
+
         const usuario = await prisma.usuarios.update({
             where: { id: parseInt(id) },
             data: {
@@ -460,6 +506,7 @@ export const usuariosController = {
                 rdpfis: rdpfis?.trim(),      
                 rdpfin: rdpfin?.trim(),     
                 descripcion: descripcion?.trim(), 
+                comprobante: comprobantePath,
                 sede_id: sede_id ? parseInt(sede_id) : undefined,
                 departamento_id: departamento_id ? parseInt(departamento_id) : undefined
             },
@@ -472,6 +519,7 @@ export const usuariosController = {
                 rdpfis: true,      
                 rdpfin: true,      
                 descripcion: true, 
+                comprobante: true,
                 updated_at: true,
                 sede: {
                     select: {
@@ -503,9 +551,19 @@ export const usuariosController = {
             });
         }
         
+        // Manejar errores de multer
+        if (error instanceof multer.MulterError) {
+            if (error.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    error: 'Archivo demasiado grande',
+                    message: 'El archivo no puede ser mayor a 5MB'
+                });
+            }
+        }
+        
         res.status(500).json({ error: error.message });
     }
-  },
+},
 
   async destroy(req, res) {
     try {
@@ -532,6 +590,11 @@ export const usuariosController = {
           error: 'No se puede eliminar el usuario porque tiene equipos activos asignados.' 
         });
       }
+
+       if (usuarioExistente.comprobante) {
+        await FileUploadService.deleteFile(usuarioExistente.comprobante);
+      }
+
 
       await prisma.usuarios.delete({
         where: { id: parseInt(id) }

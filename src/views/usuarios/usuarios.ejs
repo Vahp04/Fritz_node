@@ -803,6 +803,37 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="col-12">
+    <div class="mb-3">
+        <label class="form-label">Comprobante</label>
+        <input type="file" 
+               class="form-control" 
+               name="comprobante" 
+               id="edit_comprobante"
+               accept="image/*,.pdf,.doc,.docx">
+        <div class="form-text">
+            Sube un comprobante relacionado con el usuario (solo al editar). 
+            Formatos: JPG, PNG, PDF, DOC. Máx: 5MB.
+        </div>
+        
+        <div id="comprobante_actual_container" class="mt-2" style="display: none;">
+            <label class="form-label">Comprobante Actual:</label>
+            <div class="border rounded p-2">
+                <div id="comprobante_actual_content">
+                   
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                            onclick="eliminarComprobanteActual()">
+                        <i class="bi bi-trash me-1"></i> Eliminar Comprobante
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -872,6 +903,9 @@
                             <strong>Fecha de Registro:</strong>
                             <p id="view_created" class="mb-2"></p>
                         </div>
+                        <div class="col-12 mt-3">
+    <div id="view_comprobante_container"></div>
+</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1409,10 +1443,7 @@
             try {
                 const response = await fetch(`/api/usuarios/${usuarioId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(datos)
+                    body: formData
                 });
 
                 const data = await response.json();
@@ -1523,6 +1554,49 @@ function debounce(func, wait) {
     };
 }
 
+function ampliarImagen(src) {
+    const modalHtml = `
+        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-image me-2"></i>Comprobante
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${src}" 
+                            alt="Comprobante ampliado" 
+                            class="img-fluid"
+                            style="max-height: 80vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
+                            <i class="bi bi-download me-1"></i>Descargar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const existingModal = document.getElementById('imagenAmpliadaModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+    imagenModal.show();
+    
+    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+        this.remove();
+    });
+}
+
     // Funciones CRUD
 let creandoUsuario = false;
 
@@ -1609,6 +1683,38 @@ $('#createUsuarioModal').on('show.bs.modal', function () {
     creandoUsuario = false;
 });
 
+function eliminarComprobanteActual() {
+    Swal.fire({
+        title: '¿Eliminar comprobante?',
+        text: 'Esta acción eliminará el comprobante actual del usuario.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('comprobante_actual_container').style.display = 'none';
+            document.getElementById('edit_comprobante').value = '';
+            
+            let deleteInput = document.getElementById('delete_comprobante');
+            if (!deleteInput) {
+                deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete_comprobante';
+                deleteInput.id = 'delete_comprobante';
+                deleteInput.value = 'true';
+                document.getElementById('editUsuarioForm').appendChild(deleteInput);
+            } else {
+                deleteInput.value = 'true';
+            }
+            
+            Swal.fire('Eliminado', 'El comprobante ha sido eliminado', 'success');
+        }
+    });
+}
+
 async function editUsuario(id) {
     try {
         console.log(`Cargando usuario ID: ${id} para edición`);
@@ -1634,6 +1740,56 @@ async function editUsuario(id) {
         const cargoSelect = document.getElementById('edit_cargo');
         if (cargoSelect) {
             cargoSelect.value = usuario.cargo || '';
+        }
+
+        const comprobanteContainer = document.getElementById('comprobante_actual_container');
+        const comprobanteContent = document.getElementById('comprobante_actual_content');
+
+         const deleteInput = document.getElementById('delete_comprobante');
+        if (deleteInput) {
+            deleteInput.remove();
+        }
+        
+        if (usuario.comprobante || usuario.comprobante_url) {
+            const comprobantePath = usuario.comprobante_url || `/uploads/${usuario.comprobante}`;
+            const fileExtension = comprobantePath.split('.').pop().toLowerCase();
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+          
+                comprobanteContent.innerHTML = `
+                    <img src="${comprobantePath}" 
+                         alt="Comprobante" 
+                         class="img-fluid rounded" 
+                         style="max-height: 200px; cursor: pointer;"
+                         onclick="ampliarImagen('${comprobantePath}')"
+                         title="Click para ampliar">
+                    <div class="mt-1">
+                        <small class="text-muted">
+                            <i class="bi bi-image me-1"></i>Comprobante (Imagen)
+                        </small>
+                    </div>
+                `;
+            } else {
+          
+                comprobanteContent.innerHTML = `
+                    <div class="text-center">
+                        <i class="bi bi-file-earmark-text display-4 text-muted"></i>
+                        <div class="mt-2">
+                            <a href="${comprobantePath}" 
+                               target="_blank" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Descargar Comprobante
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-filetype-${fileExtension} me-1"></i>Archivo ${fileExtension.toUpperCase()}
+                        </small>
+                    </div>
+                `;
+            }
+            comprobanteContainer.style.display = 'block';
+        } else {
+            comprobanteContainer.style.display = 'none';
         }
         
         $('#editUsuarioModal').modal('show');
@@ -1761,6 +1917,55 @@ async function editUsuario(id) {
 
                 const equiposActivos = usuario.equipos_activos_count || 0;
                 const equiposDevueltos = usuario.equipos_devueltos_count || 0;
+
+                const comprobanteContainer = document.getElementById('view_comprobante_container');
+        if (usuario.comprobante || usuario.comprobante_url) {
+            const comprobantePath = usuario.comprobante_url || `/uploads/${usuario.comprobante}`;
+            const fileExtension = comprobantePath.split('.').pop().toLowerCase();
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+                comprobanteContainer.innerHTML = `
+                    <strong>Comprobante:</strong>
+                    <div class="mt-2">
+                        <img src="${comprobantePath}" 
+                             alt="Comprobante" 
+                             class="img-fluid rounded border" 
+                             style="max-height: 300px; cursor: pointer;"
+                             onclick="ampliarImagen('${comprobantePath}')"
+                             title="Click para ampliar">
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="bi bi-zoom-in me-1"></i>Click en la imagen para ampliar
+                            </small>
+                        </div>
+                    </div>
+                `;
+            } else {
+                comprobanteContainer.innerHTML = `
+                    <strong>Comprobante:</strong>
+                    <div class="mt-2 text-center">
+                        <i class="bi bi-file-earmark-text display-4 text-muted"></i>
+                        <div class="mt-2">
+                            <a href="${comprobantePath}" 
+                               target="_blank" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Descargar Comprobante
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="bi bi-filetype-${fileExtension} me-1"></i>Archivo ${fileExtension.toUpperCase()}
+                        </small>
+                    </div>
+                `;
+            }
+        } else {
+            comprobanteContainer.innerHTML = `
+                <strong>Comprobante:</strong>
+                <p class="text-muted">
+                    <i class="bi bi-file-earmark me-1"></i>No hay comprobante adjunto
+                </p>
+            `;
+        }
                 
                 let equiposHTML = '';
                 if (equiposActivos > 0) {

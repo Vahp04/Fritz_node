@@ -99,6 +99,7 @@ model usuarios {
   descripcion     String?           @db.VarChar(191)
   sede_id         Int
   departamento_id Int
+  comprobante String?           @db.VarChar(500)
   created_at      DateTime          @default(now())
   updated_at      DateTime          @default(now())
   equipo_asignado equipo_asignado[]
