@@ -874,50 +874,50 @@
 
   
         async function cargarMikrotiks(page = 1) {
-            try {
-                currentPage = page;
-                
-                const params = new URLSearchParams();
-                params.append('page', page);
-                
-                if (currentFilters.search) {
-                    params.append('search', currentFilters.search);
-                }
-                if (currentFilters.sede_id) {
-                    params.append('sede_id', currentFilters.sede_id);
-                }
-                if (currentFilters.estado) {
-                    params.append('estado', currentFilters.estado);
-                }
-                
-                const url = `/api/mikrotiks?${params.toString()}`;
-                console.log('Cargando mikrotiks con URL:', url);
-                
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('Error al cargar mikrotiks');
-                }
-
-                const data = await response.json();
-                
-                mikrotiks = data.mikrotiks || [];
-                totalPages = data.pagination?.total || 1;
-                totalRecords = data.pagination?.totalRecords || 0;
-
-                if (data.filters) {
-                    currentFilters = { ...currentFilters, ...data.filters };
-                }
-                
-                actualizarResumen();
-                renderizarMikrotiks();
-                renderizarPaginacion();
-                actualizarEstadoFiltros();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('No se pudieron cargar los mikrotiks');
-            }
+    try {
+        currentPage = page;
+        
+        const params = new URLSearchParams();
+        params.append('page', page);
+        
+        if (currentFilters.search) {
+            params.append('search', currentFilters.search);
         }
+        if (currentFilters.sede_id) {
+            params.append('sede_id', currentFilters.sede_id);
+        }
+        if (currentFilters.estado) {
+            params.append('estado', currentFilters.estado);
+        }
+        
+        const url = `/api/mikrotiks?${params.toString()}`;
+        console.log('Cargando mikrotiks con URL:', url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Error al cargar mikrotiks');
+        }
+
+        const data = await response.json();
+        
+        mikrotiks = data.mikrotiks || [];
+        totalPages = data.pagination?.total || 1;
+        totalRecords = data.pagination?.totalRecords || 0;
+
+        if (data.filters) {
+            currentFilters = { ...currentFilters, ...data.filters };
+        }
+        
+        actualizarResumen(data.estadisticas);
+        renderizarMikrotiks();
+        renderizarPaginacion();
+        actualizarEstadoFiltros();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('No se pudieron cargar los mikrotiks');
+    }
+}
 
         function actualizarEstadoFiltros() {
             document.getElementById('searchMikrotik').value = currentFilters.search;
@@ -974,96 +974,117 @@
         }
 
 
-        function actualizarResumen() {
-            const total = mikrotiks.length;
-            const activos = mikrotiks.filter(m => m.estado === 'activo').length;
-            const inactivos = mikrotiks.filter(m => m.estado === 'inactivo').length;
-            const mantenimiento = mikrotiks.filter(m => m.estado === 'mantenimiento').length;
-            const desuso = mikrotiks.filter(m => m.estado === 'desuso').length;
+        function actualizarResumen(estadisticas) {
+    // Si no se proporcionan estadísticas, calcularlas localmente (fallback)
+    if (!estadisticas) {
+        const total = mikrotiks.length;
+        const activos = mikrotiks.filter(m => m.estado === 'activo').length;
+        const inactivos = mikrotiks.filter(m => m.estado === 'inactivo').length;
+        const mantenimiento = mikrotiks.filter(m => m.estado === 'mantenimiento').length;
+        const desuso = mikrotiks.filter(m => m.estado === 'desuso').length;
 
-            document.getElementById('totalMikrotiks').textContent = total;
-            document.getElementById('totalActivos').textContent = activos;
-            document.getElementById('totalInactivos').textContent = inactivos;
-            document.getElementById('totalMantenimiento').textContent = mantenimiento;
-        }
+        estadisticas = {
+            total: total,
+            activos: activos,
+            inactivos: inactivos,
+            mantenimiento: mantenimiento,
+            desuso: desuso
+        };
+    }
+
+    document.getElementById('totalMikrotiks').textContent = estadisticas.total || 0;
+    document.getElementById('totalActivos').textContent = estadisticas.activos || 0;
+    document.getElementById('totalInactivos').textContent = estadisticas.inactivos || 0;
+    document.getElementById('totalMantenimiento').textContent = estadisticas.mantenimiento || 0;
+
+}
 
         function renderizarMikrotiks() {
-            const tbody = document.getElementById('mikrotiksTableBody');
-            tbody.innerHTML = '';
+    const tbody = document.getElementById('mikrotiksTableBody');
+    tbody.innerHTML = '';
 
-            if (mikrotiks.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-router display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron mikrotiks</p>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+    if (mikrotiks.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-router display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No se encontraron mikrotiks</p>
+                    ${currentFilters.search || currentFilters.sede_id || currentFilters.estado ? 
+                        '<small class="text-warning">Intenta con otros filtros</small>' : ''}
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            mikrotiks.forEach(mikrotik => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="fw-bold">${mikrotik.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="mikrotik-icon me-3">
-                                <i class="bi bi-router"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold">${mikrotik.stock_equipos ? mikrotik.stock_equipos.marca + ' ' + mikrotik.stock_equipos.modelo : 'Sin información'}</div>
-                                <small class="text-muted">${mikrotik.descripcion || 'Dispositivo de red'}</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column gap-1">
-                            ${mikrotik.ip_mikrotik ? `<span class="ip-address bi bi-wifi me-1">${mikrotik.ip_mikrotik}</span>` : '<small class="text-muted">Sin IP</small>'}
-                            ${mikrotik.cereal_mikrotik ? `<small class="text-muted">${mikrotik.cereal_mikrotik}</small>` : ''}
-                        </div>
-                    </td>
-                    <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">${mikrotik.sede ? mikrotik.sede.nombre : 'Sin sede'}</span>
-                            <small class="text-muted">${mikrotik.ubicacion}</small>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="status-badge status-${mikrotik.estado}">
-                            ${mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        ${new Date(mikrotik.created_at).toLocaleDateString('es-ES')}
-                    </td>
-                    <td class="table-actions text-center">
-                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewMikrotik(${mikrotik.id})"
-                                title="Ver">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editMikrotik(${mikrotik.id})"
-                                title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteMikrotik(${mikrotik.id}, '${mikrotik.descripcion || 'Mikrotik'}')"
-                                title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+    mikrotiks.forEach(mikrotik => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td class="fw-bold">${mikrotik.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="mikrotik-icon me-3">
+                        <i class="bi bi-router"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold">${mikrotik.stock_equipos ? mikrotik.stock_equipos.marca + ' ' + mikrotik.stock_equipos.modelo : 'Sin información'}</div>
+                        <small class="text-muted">${mikrotik.descripcion || 'Dispositivo de red'}</small>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="d-flex flex-column gap-1">
+                    ${mikrotik.ip_mikrotik ? `<span class="ip-address bi bi-wifi me-1">${mikrotik.ip_mikrotik}</span>` : '<small class="text-muted">Sin IP</small>'}
+                    ${mikrotik.cereal_mikrotik ? `<small class="text-muted">${mikrotik.cereal_mikrotik}</small>` : ''}
+                </div>
+            </td>
+            <td>
+                <div class="d-flex flex-column">
+                    <span class="fw-bold">${mikrotik.sede ? mikrotik.sede.nombre : 'Sin sede'}</span>
+                    <small class="text-muted">${mikrotik.ubicacion}</small>
+                </div>
+            </td>
+            <td>
+                <span class="status-badge status-${mikrotik.estado}">
+                    ${mikrotik.estado.charAt(0).toUpperCase() + mikrotik.estado.slice(1)}
+                </span>
+            </td>
+            <td>
+                ${new Date(mikrotik.created_at).toLocaleDateString('es-ES')}
+            </td>
+            <td class="table-actions text-center">
+                <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                        onclick="viewMikrotik(${mikrotik.id})"
+                        title="Ver">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editMikrotik(${mikrotik.id})"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger action-btn"
+                        onclick="deleteMikrotik(${mikrotik.id}, '${mikrotik.descripcion || 'Mikrotik'}')"
+                        title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
 
-            document.getElementById('resultCount').textContent = 
-                `Mostrando ${mikrotiks.length} de ${totalRecords} mikrotiks`;
-        }
+    // Actualizar el contador de resultados
+    const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+    const resultCount = document.getElementById('resultCount');
+    
+    if (filtrosActivos > 0) {
+        resultCount.innerHTML = `Mostrando ${mikrotiks.length} de ${totalRecords} dispositivos <span class="badge bg-warning ms-2">Filtrado</span>`;
+    } else {
+        resultCount.textContent = `Mostrando ${mikrotiks.length} de ${totalRecords} dispositivos`;
+    }
+}
 
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];

@@ -6,72 +6,89 @@ const prisma = new PrismaClient();
 
 export const mikrotikController = {
   async index(req, res) {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-      const search = req.query.search || '';
-      const sede_id = req.query.sede_id || '';
-      const estado = req.query.estado || '';
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sede_id = req.query.sede_id || '';
+    const estado = req.query.estado || '';
 
-      let where = {};
+    let where = {};
 
-      if (search) {
-        where.OR = [
-          { descripcion: { contains: search, mode: 'insensitive' } },
-          { ip_mikrotik: { contains: search, mode: 'insensitive' } },
-          { cereal_mikrotik: { contains: search, mode: 'insensitive' } },
-          { ubicacion: { contains: search, mode: 'insensitive' } }
-        ];
-      }
-
-      if (sede_id) {
-        where.sede_id = parseInt(sede_id);
-      }
-
-      if (estado) {
-        where.estado = estado;
-      }
-
-      const totalRecords = await prisma.mikrotik.count({ where });
-
-      const mikrotiks = await prisma.mikrotik.findMany({
-        where,
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true
-        },
-        orderBy: {
-          id: 'asc'
-        },
-        skip: skip,
-        take: limit
-      });
-
-      const totalPages = Math.ceil(totalRecords / limit);
-
-      res.json({
-        mikrotiks: mikrotiks,
-        pagination: {
-          current: page,
-          total: totalPages,
-          totalRecords: totalRecords
-        },
-        filters: {
-          search: search,
-          sede_id: sede_id,
-          estado: estado
-        }
-      });
-    } catch (error) {
-      console.error('Error en index:', error);
-      res.status(500).json({ error: error.message });
+    if (search) {
+      where.OR = [
+        { descripcion: { contains: search, mode: 'insensitive' } },
+        { ip_mikrotik: { contains: search, mode: 'insensitive' } },
+        { cereal_mikrotik: { contains: search, mode: 'insensitive' } },
+        { ubicacion: { contains: search, mode: 'insensitive' } }
+      ];
     }
-  },
+
+    if (sede_id) {
+      where.sede_id = parseInt(sede_id);
+    }
+
+    if (estado) {
+      where.estado = estado;
+    }
+
+    const totalRecords = await prisma.mikrotik.count({ where });
+
+    const estadisticasGlobales = await prisma.mikrotik.groupBy({
+      by: ['estado'],
+      _count: {
+        id: true
+      },
+      where: where 
+    });
+
+    const estadisticas = {
+      total: totalRecords,
+      activos: estadisticasGlobales.find(e => e.estado === 'activo')?._count.id || 0,
+      inactivos: estadisticasGlobales.find(e => e.estado === 'inactivo')?._count.id || 0,
+      mantenimiento: estadisticasGlobales.find(e => e.estado === 'mantenimiento')?._count.id || 0,
+      desuso: estadisticasGlobales.find(e => e.estado === 'desuso')?._count.id || 0
+    };
+
+    const mikrotiks = await prisma.mikrotik.findMany({
+      where,
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true
+      },
+      orderBy: {
+        id: 'asc'
+      },
+      skip: skip,
+      take: limit
+    });
+
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      mikrotiks: mikrotiks,
+      pagination: {
+        current: page,
+        total: totalPages,
+        totalRecords: totalRecords
+      },
+      filters: {
+        search: search,
+        sede_id: sede_id,
+        estado: estado
+      },
+      estadisticas: estadisticas 
+    });
+  } catch (error) {
+    console.error('Error en index:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async show(req, res) {
     try {

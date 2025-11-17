@@ -5,88 +5,108 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 const prisma = new PrismaClient();
 
 export const impresoraController = {
+async index(req, res) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const sede_id = req.query.sede_id || '';
+    const departamento_id = req.query.departamento_id || '';
+    const estado = req.query.estado || '';
 
-  async index(req, res) {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const skip = (page - 1) * limit;
-      const search = req.query.search || '';
-      const sede_id = req.query.sede_id || '';
-      const departamento_id = req.query.departamento_id || '';
-      const estado = req.query.estado || '';
+    let where = {};
 
-      let where = {};
+    if (search) {
+      where.OR = [
+        { nombre: { contains: search, mode: 'insensitive' } },
+        { descripcion: { contains: search, mode: 'insensitive' } },
+        { ip_impresora: { contains: search, mode: 'insensitive' } },
+        { cereal_impresora: { contains: search, mode: 'insensitive' } },
+        { ubicacion: { contains: search, mode: 'insensitive' } },
+        { toner: { contains: search, mode: 'insensitive' } }
+      ];
+    }
 
-      if (search) {
-        where.OR = [
-          { nombre: { contains: search, mode: 'insensitive' } },
-          { descripcion: { contains: search, mode: 'insensitive' } },
-          { ip_impresora: { contains: search, mode: 'insensitive' } },
-          { cereal_impresora: { contains: search, mode: 'insensitive' } },
-          { ubicacion: { contains: search, mode: 'insensitive' } },
-          { toner: { contains: search, mode: 'insensitive' } }
-        ];
-      }
+    if (sede_id) {
+      where.sede_id = parseInt(sede_id);
+    }
 
-      if (sede_id) {
-        where.sede_id = parseInt(sede_id);
-      }
+    if (departamento_id) {
+      where.departamento_id = parseInt(departamento_id);
+    }
 
-      if (departamento_id) {
-        where.departamento_id = parseInt(departamento_id);
-      }
+    if (estado) {
+      where.estado_impresora = estado;
+    }
 
-      if (estado) {
-        where.estado_impresora = estado;
-      }
+   
+    const totalRecords = await prisma.impresora.count({ where });
 
-      const totalRecords = await prisma.impresora.count({ where });
+  
+    const estadisticasGlobales = await prisma.impresora.groupBy({
+      by: ['estado_impresora'],
+      _count: {
+        id: true
+      },
+      where: where 
+    });
 
-      const impresoras = await prisma.impresora.findMany({
-        where,
-        skip,
-        take: limit,
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true,
-          departamento: true,
-          toner_actual: {
-            include: {
-              tipo_equipo: true
-            }
+    
+    const estadisticas = {
+      total: totalRecords,
+      activas: estadisticasGlobales.find(e => e.estado_impresora === 'activa')?._count.id || 0,
+      inactivas: estadisticasGlobales.find(e => e.estado_impresora === 'inactiva')?._count.id || 0,
+      mantenimiento: estadisticasGlobales.find(e => e.estado_impresora === 'mantenimiento')?._count.id || 0,
+      obsoletas: estadisticasGlobales.find(e => e.estado_impresora === 'obsoleta')?._count.id || 0,
+      sin_toner: estadisticasGlobales.find(e => e.estado_impresora === 'sin_toner')?._count.id || 0
+    };
+
+    const impresoras = await prisma.impresora.findMany({
+      where,
+      skip,
+      take: limit,
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
           }
         },
-        orderBy: {
-          id: 'asc'
+        sede: true,
+        departamento: true,
+        toner_actual: {
+          include: {
+            tipo_equipo: true
+          }
         }
-      });
+      },
+      orderBy: {
+        id: 'asc'
+      }
+    });
 
-      const totalPages = Math.ceil(totalRecords / limit);
+    const totalPages = Math.ceil(totalRecords / limit);
 
-      res.json({
-        impresoras: impresoras,
-        pagination: {
-          current: page,
-          total: totalPages,
-          totalRecords: totalRecords
-        },
-        filters: {
-          search: search,
-          sede_id: sede_id,
-          departamento_id: departamento_id,
-          estado: estado
-        }
-      });
-    } catch (error) {
-      console.error('Error en index impresoras:', error);
-      res.status(500).json({ error: error.message });
-    }
-  },
+    res.json({
+      impresoras: impresoras,
+      pagination: {
+        current: page,
+        total: totalPages,
+        totalRecords: totalRecords
+      },
+      filters: {
+        search: search,
+        sede_id: sede_id,
+        departamento_id: departamento_id,
+        estado: estado
+      },
+      estadisticas: estadisticas 
+    });
+  } catch (error) {
+    console.error('Error en index impresoras:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async show(req, res) {
     try {
