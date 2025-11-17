@@ -980,6 +980,7 @@
         let equiposAsignados = [];
         let usuarios = [];
         let stockEquipos = [];
+        let isSubmitting = false;
 
         // Cargar datos al iniciar
         document.addEventListener('DOMContentLoaded', function() {
@@ -1025,7 +1026,7 @@ async function cargarUsuarios() {
 
 async function cargarStockEquipos() {
     try {
-        console.log('🔍 Cargando equipos para asignación...');
+        console.log('Cargando equipos para asignación...');
         const response = await fetch('/api/stock_equipos/para-asignacion', {
             credentials: 'include',
             headers: {
@@ -1208,7 +1209,10 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
         }
         
         renderizarEquiposAsignados();
-        actualizarContadores();
+        
+        // CAMBIO: Cargar estadísticas totales por separado
+        await cargarEstadisticasTotales(filtros);
+        
         renderizarPaginacion();
         
     } catch (error) {
@@ -1226,6 +1230,71 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
         });
     }
 }
+
+// NUEVA FUNCIÓN: Cargar estadísticas totales
+async function cargarEstadisticasTotales(filtros = {}) {
+    try {
+        const params = new URLSearchParams();
+        
+        if (filtros.usuario) params.append('usuario', filtros.usuario);
+        if (filtros.equipo) params.append('equipo', filtros.equipo);
+        if (filtros.estado) params.append('estado', filtros.estado);
+        
+        console.log('Cargando estadísticas totales con filtros:', params.toString());
+        
+        const response = await fetch(`/api/equipos_asignados/estadisticas?${params.toString()}`, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const estadisticas = await response.json();
+        console.log('Estadísticas totales recibidas:', estadisticas);
+        
+        // Actualizar contadores con datos totales
+        document.getElementById('countActivos').textContent = estadisticas.asignaciones_activas || 0;
+        document.getElementById('countDevueltos').textContent = estadisticas.asignaciones_devueltas || 0;
+        document.getElementById('countObsoletos').textContent = estadisticas.asignaciones_obsoletas || 0;
+        document.getElementById('countTotal').textContent = estadisticas.total_asignaciones || 0;
+        
+        // Actualizar el contador de resultados
+        const resultCount = document.getElementById('resultCount');
+        if (resultCount) {
+            resultCount.textContent = `Mostrando ${equiposAsignados.length} de ${estadisticas.total_asignaciones || 0} asignaciones`;
+        }
+        
+    } catch (error) {
+        console.error('Error cargando estadísticas:', error);
+        // En caso de error, usar los datos de paginación como respaldo
+        actualizarContadoresConPaginacion();
+    }
+}
+
+// FUNCIÓN DE RESPALDO: Usar datos de paginación si falla la API de estadísticas
+function actualizarContadoresConPaginacion() {
+    const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
+    const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
+    const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
+    const countTotal = equiposAsignados.length;
+
+    document.getElementById('countActivos').textContent = countActivos;
+    document.getElementById('countDevueltos').textContent = countDevueltos;
+    document.getElementById('countObsoletos').textContent = countObsoletos;
+    document.getElementById('countTotal').textContent = countTotal;
+
+    const resultCount = document.getElementById('resultCount');
+    if (resultCount) {
+        resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
+    }
+}
+
+// ELIMINAR la función actualizarContadores() anterior o dejarla como respaldo
 
 
         function llenarSelectUsuarios() {
@@ -1365,158 +1434,185 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
             console.log('Selects de equipos llenados correctamente');
         }
 
-        function renderizarEquiposAsignados() {
-            const tbody = document.getElementById('equiposAsignadosTableBody');
-            const estadoFilter = document.getElementById('filterEstado').value;
-            
-            if (!tbody) {
-                console.error('No se encontró el tbody de la tabla');
-                return;
-            }
+function renderizarEquiposAsignados() {
+    const tbody = document.getElementById('equiposAsignadosTableBody');
+    const estadoFilter = document.getElementById('filterEstado').value;
+    
+    if (!tbody) {
+        console.error('No se encontró el tbody de la tabla');
+        return;
+    }
 
-            tbody.innerHTML = '';
+    tbody.innerHTML = '';
 
-            if (equiposAsignados.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-laptop display-4 text-muted mb-3"></i>
-                            <p class="text-muted mb-0">No se encontraron equipos asignados</p>
-                            <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
-                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+    if (equiposAsignados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="bi bi-laptop display-4 text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No se encontraron equipos asignados</p>
+                    <button class="btn btn-sm btn-fritz mt-2" onclick="cargarEquiposAsignados()">
+                        <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                    </button>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-            equiposAsignados.forEach(asignacion => {
-                const row = document.createElement('tr');
-                const estadoClass = `estado-${asignacion.estado || 'activo'}`;
-                const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
-                            (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
-                
-                row.className = rowClass;
-                
-            
-                if (asignacion.estado === 'obsoleto') {
+    equiposAsignados.forEach(asignacion => {
+        const row = document.createElement('tr');
+        const estadoClass = `estado-${asignacion.estado || 'activo'}`;
+        const rowClass = (asignacion.estado === 'obsoleto') ? 'obsoleto-row' : 
+                    (asignacion.estado === 'devuelto') ? 'devuelto-row' : '';
+        
+        row.className = rowClass;
+    
+        if (asignacion.estado === 'obsoleto') {
             if (estadoFilter !== '' && estadoFilter !== 'obsoleto') {
                 row.style.display = 'none';
             } else {
                 row.style.display = '';
             }
         }
-                
-                const usuario = asignacion.usuarioAsignado || {};
-                const stockEquipo = asignacion.stockEquipo || {};
-                const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
-                
-                const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
-                const cargoUsuario = usuario.cargo || 'Sin cargo';
-                const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
-                const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
+        
+        const usuario = asignacion.usuarioAsignado || {};
+        const stockEquipo = asignacion.stockEquipo || {};
+        const usuarioAsignador = asignacion.usuarioAsignador || { name: 'Sistema' };
+        
+        const nombreUsuario = `${usuario.nombre || 'N/A'} ${usuario.apellido || ''}`.trim();
+        const cargoUsuario = usuario.cargo || 'Sin cargo';
+        const inicialUsuario = usuario.nombre ? usuario.nombre.charAt(0).toUpperCase() : 'U';
+        const infoEquipo = `${stockEquipo.marca || 'N/A'} ${stockEquipo.modelo || ''}`.trim();
 
-                row.innerHTML = `
-                    <td class="fw-bold">${asignacion.id}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="equipo-icon me-3">
-                                ${inicialUsuario}
-                            </div>
-                            <div>
-                                <div class="fw-bold">${nombreUsuario}</div>
-                                <small class="text-muted">${cargoUsuario}</small>
-                                ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge equipo-badge rounded-pill">
-                            <i class="bi bi-pc me-1"></i>
-                            ${infoEquipo}
-                        </span>
-                        ${stockEquipo.tipo_equipo ? `
-                        <small class="d-block text-muted">
-                            ${stockEquipo.tipo_equipo.nombre}
-                        </small>
-                        ` : ''}
-                        ${asignacion.ip_equipo ? `
-                        <small class="d-block text-muted">
-                            <i class="bi bi-wifi me-1"></i>${asignacion.ip_equipo}
-                        </small>
-                        ` : ''}
-                        ${asignacion.numero_serie ? `
-                        <small class="d-block text-muted">
-                            <i class="bi bi-hdd-network me-1"></i>${asignacion.numero_serie}
-                        </small>
-                        ` : ''}
-                    </td>
-                    <td>
-                        <small class="d-block">
-                            ${asignacion.fecha_asignacion ? new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'No asignada'}
-                        </small>
-                        ${asignacion.fecha_devolucion ? `
-                        <small class="d-block text-muted">
-                            Dev: ${new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES')}
-                        </small>
-                        ` : ''}
-                    </td>
-                    <td>
-                        <span class="badge estado-badge ${estadoClass}">
-                            ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge asignador-badge rounded-pill">
-                            <i class="bi bi-person-check me-1"></i>
-                            ${usuarioAsignador.name}
-                        </span>
-                    </td>
-                    <td class="table-actions text-center">
-                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                                onclick="viewEquipoAsignado(${asignacion.id})"
-                                title="Ver">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        ${asignacion.estado !== 'obsoleto' ? `
-                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                                onclick="editEquipoAsignado(${asignacion.id})"
-                                title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        ` : `
-                        <button class="btn btn-sm btn-outline-secondary action-btn me-1" 
-                                onclick="reactivarEquipo(${asignacion.id})"
-                                title="Reactivar">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        `}
-                        ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
-                        <button class="btn btn-sm btn-outline-success action-btn me-1"
-                                onclick="devolverEquipo(${asignacion.id})"
-                                title="Devolver">
-                            <i class="bi bi-arrow-return-left"></i>
-                        </button>
-                        ` : ''}
-                        ${asignacion.estado !== 'obsoleto' && asignacion.estado !== 'devuelto' ? `
-        <button class="btn btn-sm btn-outline-warning action-btn me-1"
-                onclick="marcarObsoleto(${asignacion.id})"
-                title="Marcar como Obsoleto">
-            <i class="bi bi-exclamation-triangle"></i>
-        </button>
-        ` : ''}
-                        <button class="btn btn-sm btn-outline-danger action-btn"
-                                onclick="deleteEquipoAsignado(${asignacion.id})"
-                                title="Eliminar">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-        }
+        // CORRECCIÓN: Usar formato de fecha que evite problemas de zona horaria
+        const fechaAsignacion = asignacion.fecha_asignacion ? 
+            formatDateWithoutTimezone(new Date(asignacion.fecha_asignacion)) : 'No asignada';
+        
+        const fechaDevolucion = asignacion.fecha_devolucion ? 
+            formatDateWithoutTimezone(new Date(asignacion.fecha_devolucion)) : '';
+
+        row.innerHTML = `
+            <td class="fw-bold">${asignacion.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="equipo-icon me-3">
+                        ${inicialUsuario}
+                    </div>
+                    <div>
+                        <div class="fw-bold">${nombreUsuario}</div>
+                        <small class="text-muted">${cargoUsuario}</small>
+                        ${usuario.sede ? `<small class="d-block text-muted">${usuario.sede.nombre}</small>` : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge equipo-badge rounded-pill">
+                    <i class="bi bi-pc me-1"></i>
+                    ${infoEquipo}
+                </span>
+                ${stockEquipo.tipo_equipo ? `
+                <small class="d-block text-muted">
+                    ${stockEquipo.tipo_equipo.nombre}
+                </small>
+                ` : ''}
+                ${asignacion.ip_equipo ? `
+                <small class="d-block text-muted">
+                    <i class="bi bi-wifi me-1"></i>${asignacion.ip_equipo}
+                </small>
+                ` : ''}
+                ${asignacion.numero_serie ? `
+                <small class="d-block text-muted">
+                    <i class="bi bi-hdd-network me-1"></i>${asignacion.numero_serie}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <small class="d-block">
+                    ${fechaAsignacion}
+                </small>
+                ${fechaDevolucion ? `
+                <small class="d-block text-muted">
+                    Dev: ${fechaDevolucion}
+                </small>
+                ` : ''}
+            </td>
+            <td>
+                <span class="badge estado-badge ${estadoClass}">
+                    ${(asignacion.estado || 'activo').charAt(0).toUpperCase() + (asignacion.estado || 'activo').slice(1)}
+                </span>
+            </td>
+            <td>
+                <span class="badge asignador-badge rounded-pill">
+                    <i class="bi bi-person-check me-1"></i>
+                    ${usuarioAsignador.name}
+                </span>
+            </td>
+            <td class="table-actions text-center">
+                <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                        onclick="viewEquipoAsignado(${asignacion.id})"
+                        title="Ver">
+                    <i class="bi bi-eye"></i>
+                </button>
+                ${asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                        onclick="editEquipoAsignado(${asignacion.id})"
+                        title="Editar">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                ` : `
+                <button class="btn btn-sm btn-outline-secondary action-btn me-1" 
+                        onclick="reactivarEquipo(${asignacion.id})"
+                        title="Reactivar">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                `}
+                ${asignacion.estado !== 'devuelto' && asignacion.estado !== 'obsoleto' ? `
+                <button class="btn btn-sm btn-outline-success action-btn me-1"
+                        onclick="devolverEquipo(${asignacion.id})"
+                        title="Devolver">
+                    <i class="bi bi-arrow-return-left"></i>
+                </button>
+                ` : ''}
+                ${asignacion.estado !== 'obsoleto' && asignacion.estado !== 'devuelto' ? `
+                <button class="btn btn-sm btn-outline-warning action-btn me-1"
+                        onclick="marcarObsoleto(${asignacion.id})"
+                        title="Marcar como Obsoleto">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </button>
+                ` : ''}
+                <button class="btn btn-sm btn-outline-danger action-btn"
+                        onclick="deleteEquipoAsignado(${asignacion.id})"
+                        title="Eliminar">
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+function formatDateWithoutTimezone(date) {
+    if (!date || !(date instanceof Date) || isNaN(date)) {
+        return 'Fecha inválida';
+    }
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateWithoutTimezone(date) {
+    return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC' 
+    });
+}
 
         function renderizarPaginacion() {
             const paginationContainer = document.getElementById('paginationContainer');
@@ -1576,17 +1672,6 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
             cardBody.appendChild(paginationDiv);
         }
 
-        function actualizarContadores() {
-            const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
-            const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
-            const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
-            const countTotal = equiposAsignados.length;
-
-            document.getElementById('countActivos').textContent = countActivos;
-            document.getElementById('countDevueltos').textContent = countDevueltos;
-            document.getElementById('countObsoletos').textContent = countObsoletos;
-            document.getElementById('countTotal').textContent = countTotal;
-        }
 
         //  TEMA 
         function applySavedTheme() {
@@ -1718,42 +1803,95 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
             }, 150);
         });
 
-        async function crearEquipoAsignado() {
-            const form = document.getElementById('createEquipoAsignadoForm');
-            const formData = new FormData(form);
+async function crearEquipoAsignado() {
+    // Prevenir múltiples envíos simultáneos
+    if (isSubmitting) {
+        console.log('Ya se está enviando el formulario, ignorando clic adicional...');
+        return;
+    }
+    
+    isSubmitting = true;
+    
+    const form = document.getElementById('createEquipoAsignadoForm');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Guardar el estado original del botón
+    const originalText = submitButton.innerHTML;
+    const originalDisabled = submitButton.disabled;
+    
+    // Deshabilitar y mostrar estado de carga
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Creando asignación...';
 
-            try {
-                const response = await fetch('/api/equipos_asignados', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                });
+    try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        console.log('Enviando datos al servidor:', {
+            usuario: data.usuarios_id,
+            equipo: data.stock_equipos_id,
+            estado: data.estado
+        });
 
-                const data = await response.json();
+        const response = await fetch('/api/equipos_asignados', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
 
-                if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Éxito',
-                        text: data.message || 'Asignación creada exitosamente'
-                    });
-                    $('#createEquipoAsignadoModal').modal('hide');
-                    form.reset();
-                    await cargarEquiposAsignados();
-                } else {
-                    throw new Error(data.error || 'Error al crear asignación');
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log('Asignación creada exitosamente');
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: result.message || 'Asignación creada exitosamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // Cerrar modal inmediatamente
+            $('#createEquipoAsignadoModal').modal('hide');
+            
+            // Resetear el formulario después de cerrar el modal
+            setTimeout(() => {
+                form.reset();
+                
+                // Ocultar campos dinámicos
+                const ipContainer = document.querySelector('.ip-field-container');
+                const cerealContainer = document.querySelector('.cereal-field-container');
+                if (ipContainer) ipContainer.style.display = 'none';
+                if (cerealContainer) cerealContainer.style.display = 'none';
+                
+                // Recargar datos
+                cargarEquiposAsignados();
+            }, 500);
+            
+        } else {
+            console.log('Error del servidor:', result.error);
+            throw new Error(result.error || 'Error al crear asignación');
         }
+        
+    } catch (error) {
+        console.error('Error creando asignación:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message,
+            confirmButtonColor: '#DC2626'
+        });
+    } finally {
+        setTimeout(() => {
+            isSubmitting = false;
+            submitButton.disabled = originalDisabled;
+            submitButton.innerHTML = originalText;
+        }, 1000);
+    }
+}
 
         function eliminarImagenActual() {
             Swal.fire({
@@ -2258,23 +2396,6 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
-        }
-
-        function actualizarContadores() {
-            const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
-            const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
-            const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
-            const countTotal = equiposAsignados.length;
-
-            document.getElementById('countActivos').textContent = countActivos;
-            document.getElementById('countDevueltos').textContent = countDevueltos;
-            document.getElementById('countObsoletos').textContent = countObsoletos;
-            document.getElementById('countTotal').textContent = countTotal;
-
-            const resultCount = document.getElementById('resultCount');
-            if (resultCount) {
-                resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
-            }
         }
 
 

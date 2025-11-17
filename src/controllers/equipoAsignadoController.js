@@ -143,6 +143,15 @@ export const equipoAsignadoController = {
         estado = 'activo'
       } = req.body;
 
+        console.log('=== DEBUG STORE INICIADO ===');
+        console.log('Datos recibidos:', {
+            usuarios_id: parseInt(usuarios_id),
+            stock_equipos_id: parseInt(stock_equipos_id),
+            estado
+        });
+
+        
+
       console.log('Datos recibidos para crear asignación:', {
         usuarios_id,
         stock_equipos_id,
@@ -153,6 +162,39 @@ export const equipoAsignadoController = {
         observaciones,
         estado
       });
+
+           const asignacionExistente = await prisma.equipo_asignado.findFirst({
+            where: {
+                usuarios_id: parseInt(usuarios_id),
+                stock_equipos_id: parseInt(stock_equipos_id),
+                estado: {
+                    in: ['activo', 'devuelto']
+                }
+            }
+        });
+
+        console.log('Resultado de búsqueda de duplicados:', asignacionExistente);
+
+        if (asignacionExistente) {
+            console.log('DUPLICADO DETECTADO:', {
+                id_existente: asignacionExistente.id,
+                usuario_id_existente: asignacionExistente.usuarios_id,
+                equipo_id_existente: asignacionExistente.stock_equipos_id,
+                estado_existente: asignacionExistente.estado
+            });
+            return res.status(400).json({ 
+                error: 'Ya existe una asignación para este usuario y equipo' 
+            });
+        }
+
+        console.log('No se encontraron duplicados, procediendo con la creación...');
+
+        if (asignacionExistente) {
+            console.log('Asignación duplicada detectada:', asignacionExistente.id);
+            return res.status(400).json({ 
+                error: 'Ya existe una asignación para este usuario y equipo' 
+            });
+        }
 
       console.log('Creación - No se procesa imagen');
 
@@ -234,8 +276,16 @@ export const equipoAsignadoController = {
       });
 
     } catch (error) {
-      console.error('Error en store:', error);
-      res.status(500).json({ error: error.message });
+        console.error('Error en store:', error);
+        
+        // Si es error de duplicado de Prisma
+        if (error.code === 'P2002') {
+            return res.status(400).json({ 
+                error: 'Ya existe una asignación idéntica' 
+            });
+        }
+        
+        res.status(500).json({ error: error.message });
     }
   },
 
@@ -772,49 +822,85 @@ export const equipoAsignadoController = {
     }
   },
 
-  async estadisticas(req, res) {
+async estadisticas(req, res) {
     try {
-      const totalAsignaciones = await prisma.equipo_asignado.count();
-      const asignacionesActivas = await prisma.equipo_asignado.count({
-        where: { estado: 'activo' }
-      });
-      const asignacionesDevueltas = await prisma.equipo_asignado.count({
-        where: { estado: 'devuelto' }
-      });
-      const asignacionesObsoletas = await prisma.equipo_asignado.count({
-        where: { estado: 'obsoleto' }
-      });
-      
-      const asignacionesPorEstado = await prisma.equipo_asignado.groupBy({
-        by: ['estado'],
-        _count: {
-          id: true
+        const { usuario, equipo, estado } = req.query;
+        
+        let whereClause = {};
+
+        if (usuario) {
+            whereClause.usuarios = {
+                OR: [
+                    { nombre: { contains: usuario, mode: 'insensitive' } },
+                    { apellido: { contains: usuario, mode: 'insensitive' } }
+                ]
+            };
         }
-      });
 
-      const asignacionesPorMes = await prisma.$queryRaw`
-        SELECT 
-          YEAR(fecha_asignacion) as año, 
-          MONTH(fecha_asignacion) as mes, 
-          COUNT(*) as total
-        FROM equipo_asignado 
-        GROUP BY año, mes 
-        ORDER BY año DESC, mes DESC
-      `;
+        if (equipo) {
+            whereClause.stock_equipos = {
+                OR: [
+                    { marca: { contains: equipo, mode: 'insensitive' } },
+                    { modelo: { contains: equipo, mode: 'insensitive' } }
+                ]
+            };
+        }
 
-      res.json({
-        total_asignaciones: totalAsignaciones,
-        asignaciones_activas: asignacionesActivas,
-        asignaciones_devueltas: asignacionesDevueltas,
-        asignaciones_obsoletas: asignacionesObsoletas,
-        asignaciones_por_estado: asignacionesPorEstado,
-        asignaciones_por_mes: asignacionesPorMes
-      });
+        if (estado) {
+            whereClause.estado = estado;
+        }
+
+        console.log('Where clause para estadísticas:', JSON.stringify(whereClause, null, 2));
+
+        const totalAsignaciones = await prisma.equipo_asignado.count({
+            where: whereClause
+        });
+
+        const asignacionesActivas = await prisma.equipo_asignado.count({
+            where: { 
+                ...whereClause,
+                estado: 'activo' 
+            }
+        });
+
+        const asignacionesDevueltas = await prisma.equipo_asignado.count({
+            where: { 
+                ...whereClause,
+                estado: 'devuelto' 
+            }
+        });
+
+        const asignacionesObsoletas = await prisma.equipo_asignado.count({
+            where: { 
+                ...whereClause,
+                estado: 'obsoleto' 
+            }
+        });
+        
+        const asignacionesPorEstado = await prisma.equipo_asignado.groupBy({
+            by: ['estado'],
+            _count: {
+                id: true
+            },
+            where: whereClause
+        });
+
+        const asignacionesPorMes = [];
+
+        res.json({
+            total_asignaciones: totalAsignaciones,
+            asignaciones_activas: asignacionesActivas,
+            asignaciones_devueltas: asignacionesDevueltas,
+            asignaciones_obsoletas: asignacionesObsoletas,
+            asignaciones_por_estado: asignacionesPorEstado,
+            asignaciones_por_mes: asignacionesPorMes,
+            filtros_aplicados: { usuario, equipo, estado } 
+        });
     } catch (error) {
-      console.error('Error en estadisticas:', error);
-      res.status(500).json({ error: error.message });
+        console.error('Error en estadisticas:', error);
+        res.status(500).json({ error: error.message });
     }
-  },
+},
 
   async apiIndex(req, res) {
     try {

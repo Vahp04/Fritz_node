@@ -254,7 +254,18 @@
             text-overflow: ellipsis;
         }
 
+        .descripcion-cell {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         #view_correo {
+            word-break: break-all;
+        }
+
+        #view_descripcion{
             word-break: break-all;
         }
 
@@ -1056,7 +1067,7 @@
                             </div>
                             <div>
                                 <div class="fw-bold">${usuario.nombre} ${usuario.apellido}</div>
-                                ${usuario.descripcion ? `<small class="text-muted d-block">${usuario.descripcion}</small>` : ''}
+                                ${usuario.descripcion ? `<small class="text-muted d-block descripcion-cell">${usuario.descripcion}</small>` : ''}
                             </div>
                         </div>
                     </td>
