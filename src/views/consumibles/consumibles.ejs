@@ -108,6 +108,17 @@
             justify-content: center;
             font-weight: bold;
         }
+
+        .equipo-cell{
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #view_stock_equipo{
+            word-break: break-all;
+        }
         
         .action-btn {
             width: 30px;
@@ -594,11 +605,11 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th width="50px">ID</th>
-                                        <th>Consumible</th>
-                                        <th>Equipo / Stock</th>
-                                        <th>Cantidad</th>
-                                        <th>Sede / Departamento</th>
-                                        <th>Fecha Envío</th>
+                                        <th style="text-align: center;">Consumible</th>
+                                        <th style="text-align: center;">Equipo / Stock</th>
+                                        <th style="text-align: center;">Cantidad</th>
+                                        <th style="text-align: center;">Sede / Departamento</th>
+                                        <th style="text-align: center;">Fecha Envío</th>
                                         <th width="120px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -1236,8 +1247,8 @@
                         </div>
                     </td>
                     <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">${equiposList || 'Sin equipos'}</span>
+                        <div class="d-flex flex-column ">
+                            <span class="fw-bold equipo-cell">${equiposList || 'Sin equipos'}</span>
                             <small class="text-muted">${consumible.consumible_equipos.length} tipo(s) de equipo</small>
                         </div>
                     </td>
@@ -1247,7 +1258,7 @@
                         </span>
                     </td>
                     <td>
-                        <div class="d-flex flex-column">
+                        <div class="d-flex flex-column text-center">
                             <span class="fw-bold">${consumible.sede ? consumible.sede.nombre : 'Sin sede'}</span>
                             <small class="text-muted">${consumible.departamento ? consumible.departamento.nombre : 'Sin departamento'}</small>
                         </div>

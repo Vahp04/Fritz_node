@@ -122,6 +122,28 @@
         .action-btn:hover {
             transform: scale(1.1);
         }
+
+        .nombre-cell{
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #view_nombre{
+            word-break: break-all;
+        }
+
+        .cereal-cell{
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #view_cereal_impresora{
+            word-break: break-all;
+        }
         
         .btn-fritz {
             background-color: var(--fritz-red);
@@ -582,16 +604,16 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover" style="width:100%">
+                            <table class="table table-hover" >
                                 <thead class="table-dark">
                                     <tr>
                                         <th width="50px">ID</th>
-                                        <th>Impresora</th>
-                                        <th>IP / Serial</th>
-                                        <th>Sede / Departamento</th>
-                                        <th>Ubicación</th>
-                                        <th>Estado</th>
-                                        <th>Toners</th>
+                                        <th style="width:100%; text-align: center;">Impresora</th>
+                                        <th style="width:100%; text-align: center;">IP / Serial</th>
+                                        <th style="width:100%; text-align: center;">Sede / Departamento</th>
+                                        <th style="width:100%; text-align: center;">Ubicación</th>
+                                        <th style="width:100%; text-align: center;">Estado</th>
+                                        <th style="width:100%; text-align: center;">Toners</th>
                                         <th width="140px" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
@@ -1278,7 +1300,7 @@
                                 <i class="bi bi-printer"></i>
                             </div>
                             <div>
-                                <div class="fw-bold">${impresora.nombre}</div>
+                                <div class="fw-bold nombre-cell">${impresora.nombre}</div>
                                 <small class="text-muted">${impresora.stock_equipos ? impresora.stock_equipos.marca + ' ' + impresora.stock_equipos.modelo : 'Sin información'}</small>
                             </div>
                         </div>
@@ -1286,7 +1308,7 @@
                     <td>
                         <div class="d-flex flex-column gap-1">
                             ${impresora.ip_impresora ? `<span class="ip-address bi bi-wifi me-1">${impresora.ip_impresora}</span>` : '<small class="text-muted">Sin IP</small>'}
-                            ${impresora.cereal_impresora ? `<small class="text-muted ">${impresora.cereal_impresora}</small>` : ''}
+                            ${impresora.cereal_impresora ? `<small class="text-muted cereal-cell">${impresora.cereal_impresora}</small>` : ''}
                         </div>
                     </td>
                     <td>
