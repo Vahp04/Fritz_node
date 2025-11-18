@@ -563,13 +563,13 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
                                     <input type="text" class="form-control" placeholder="Buscar por teléfono..." id="searchTelefono">
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                                     <input type="text" class="form-control" placeholder="Buscar por número..." id="searchNumero">
                                 </div>
                             </div>
@@ -1015,69 +1015,70 @@
         }
 
         async function cargarTelefonosAsignados(page = 1, filtros = {}) {
-            try {
-                currentPage = page;
-                
-                const params = new URLSearchParams({
-                    page: page.toString(),
-                    limit: '10'
-                });
-                
-                if (filtros.usuario) params.append('usuario', filtros.usuario);
-                if (filtros.telefono) params.append('telefono', filtros.telefono);
-                if (filtros.num_telefono) params.append('num_telefono', filtros.num_telefono);
-                
-                console.log('Cargando teléfonos asignados con filtros:', params.toString());
-                
-                const response = await fetch(`/api/telefonos-asignados?${params.toString()}`, {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        console.error('Error 401: No autenticado');
-                        manejarErrorAutenticacion();
-                        return;
-                    }
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Respuesta teléfonos asignados:', data);
-                
-                telefonosAsignados = Array.isArray(data.telefonosAsignados) ? data.telefonosAsignados : [];
-                totalPages = data.pagination?.total || 1;
-                totalRecords = data.pagination?.totalRecords || 0;
-                
-                console.log(`${telefonosAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
-                
-                if (telefonosAsignados.length > 0) {
-                    console.log('Primera asignación:', telefonosAsignados[0]);
-                }
-                
-                renderizarTelefonosAsignados();
-                actualizarContadores();
-                renderizarPaginacion();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                if (error.message.includes('401') || error.message.includes('autenticación')) {
-                    manejarErrorAutenticacion();
-                }
-                telefonosAsignados = [];
-                renderizarTelefonosAsignados();
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'No se pudieron cargar los teléfonos asignados'
-                });
+    try {
+        currentPage = page;
+        
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: '10'
+        });
+        
+        if (filtros.usuario) params.append('usuario', filtros.usuario);
+        if (filtros.telefono) params.append('telefono', filtros.telefono);
+        if (filtros.num_telefono) params.append('num_telefono', filtros.num_telefono);
+        
+        console.log('Cargando teléfonos asignados con filtros:', params.toString());
+        
+        const response = await fetch(`/api/telefonos-asignados?${params.toString()}`, {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                console.error('Error 401: No autenticado');
+                manejarErrorAutenticacion();
+                return;
+            }
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('Respuesta teléfonos asignados:', data);
+        
+        telefonosAsignados = Array.isArray(data.telefonosAsignados) ? data.telefonosAsignados : [];
+        totalPages = data.pagination?.total || 1;
+        totalRecords = data.pagination?.totalRecords || 0;
+        
+        console.log(`${telefonosAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
+        
+        if (telefonosAsignados.length > 0) {
+            console.log('Primera asignación:', telefonosAsignados[0]);
+        }
+        
+        renderizarTelefonosAsignados();
+        actualizarContadores(data.resumenes); // Pasar los resúmenes
+        renderizarPaginacion();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        if (error.message.includes('401') || error.message.includes('autenticación')) {
+            manejarErrorAutenticacion();
+        }
+        telefonosAsignados = [];
+        renderizarTelefonosAsignados();
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudieron cargar los teléfonos asignados'
+        });
+    }
+}
+
 
         function llenarSelectUsuarios() {
             const createSelect = document.getElementById('create_usuarios_id');
@@ -1349,10 +1350,20 @@
             cardBody.appendChild(paginationDiv);
         }
 
-        function actualizarContadores() {
-            const countTotal = telefonosAsignados.length;
-            const countUsuarios = new Set(telefonosAsignados.map(t => t.usuarios_id)).size;
-            const countMarcas = new Set(telefonosAsignados.map(t => t.stockEquipo?.marca).filter(Boolean)).size;
+        function actualizarContadores(resumenes = null) {
+            let countTotal, countUsuarios, countMarcas;
+            
+            if (resumenes) {
+                // Usar resúmenes del backend
+                countTotal = resumenes.totalConFiltros || 0;
+                countUsuarios = resumenes.totalUsuariosUnicos || 0;
+                countMarcas = resumenes.totalMarcasUnicas || 0;
+            } else {
+                // Fallback a cálculo local (solo para la página actual)
+                countTotal = telefonosAsignados.length;
+                countUsuarios = new Set(telefonosAsignados.map(t => t.usuarios_id)).size;
+                countMarcas = new Set(telefonosAsignados.map(t => t.stockEquipo?.marca).filter(Boolean)).size;
+            }
 
             document.getElementById('countTotal').textContent = countTotal;
             document.getElementById('countUsuarios').textContent = countUsuarios;
@@ -1360,7 +1371,8 @@
 
             const resultCount = document.getElementById('resultCount');
             if (resultCount) {
-                resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
+                const showingCount = telefonosAsignados.length;
+                resultCount.textContent = `Mostrando ${showingCount} de ${totalRecords} asignaciones`;
             }
         }
 
@@ -1853,20 +1865,21 @@
         }
 
         function aplicarFiltros() {
-            console.log('Aplicando filtros con búsqueda en servidor...');
-            
-            mostrarCargaFiltros();
+    console.log('Aplicando filtros con búsqueda en servidor...');
+    
+    mostrarCargaFiltros();
 
-            filtrosActuales = {
-                usuario: document.getElementById('searchUsuario').value.trim(),
-                telefono: document.getElementById('searchTelefono').value.trim(),
-                num_telefono: document.getElementById('searchNumero').value.trim()
-            };
-            
-            console.log('Filtros activos:', filtrosActuales);
-            
-            cargarTelefonosAsignados(1, filtrosActuales);
-        }
+    filtrosActuales = {
+        usuario: document.getElementById('searchUsuario').value.trim(),
+        telefono: document.getElementById('searchTelefono').value.trim(),
+        num_telefono: document.getElementById('searchNumero').value.trim()
+    };
+    
+    console.log('Filtros activos:', filtrosActuales);
+    
+    // Reiniciar a página 1 cuando se aplican filtros
+    cargarTelefonosAsignados(1, filtrosActuales);
+}
 
         function mostrarCargaFiltros() {
             const tbody = document.getElementById('telefonosAsignadosTableBody');

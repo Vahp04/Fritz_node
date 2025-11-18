@@ -6,115 +6,158 @@ import FileUploadService from '../services/fileUploadService.js';
 
 export const telefonoAsignadoController = {
   async index(req, res) {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = 10;
-      const skip = (page - 1) * limit;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
 
-      const { usuario, telefono, num_telefono } = req.query;
-      
-      console.log('Filtros recibidos en teléfonos asignados:', { usuario, telefono, num_telefono });
+    const { usuario, telefono, num_telefono } = req.query;
+    
+    console.log('Filtros recibidos en teléfonos asignados:', { usuario, telefono, num_telefono });
 
-      let whereClause = {};
+    let whereClause = {};
 
-      if (usuario) {
-        whereClause.usuarios = {
-          OR: [
-            { nombre: { contains: usuario, mode: 'insensitive' } },
-            { apellido: { contains: usuario, mode: 'insensitive' } }
-          ]
-        };
-      }
+    if (usuario) {
+      whereClause.usuarios = {
+        OR: [
+          { nombre: { contains: usuario, mode: 'insensitive' } },
+          { apellido: { contains: usuario, mode: 'insensitive' } }
+        ]
+      };
+    }
 
-      if (telefono) {
-        whereClause.stock_equipos = {
-          OR: [
-            { marca: { contains: telefono, mode: 'insensitive' } },
-            { modelo: { contains: telefono, mode: 'insensitive' } }
-          ]
-        };
-      }
+    if (telefono) {
+      whereClause.stock_equipos = {
+        OR: [
+          { marca: { contains: telefono, mode: 'insensitive' } },
+          { modelo: { contains: telefono, mode: 'insensitive' } }
+        ]
+      };
+    }
 
-      if (num_telefono) {
-        whereClause.num_telefono = { contains: num_telefono, mode: 'insensitive' };
-      }
+    if (num_telefono) {
+      whereClause.num_telefono = { contains: num_telefono, mode: 'insensitive' };
+    }
 
-      console.log('Where clause para teléfonos asignados:', JSON.stringify(whereClause, null, 2));
+    console.log('Where clause para teléfonos asignados:', JSON.stringify(whereClause, null, 2));
 
-      const total = await prisma.telefonos.count({
-        where: whereClause
-      });
+    const total = await prisma.telefonos.count({
+      where: whereClause
+    });
 
-      console.log(`Total de teléfonos asignados con filtros: ${total}`);
+    console.log(`Total de teléfonos asignados con filtros: ${total}`);
 
-      let telefonosAsignados = [];
-      if (total > 0) {
-        telefonosAsignados = await prisma.telefonos.findMany({
-          where: whereClause,
-          skip,
-          take: limit,
-          include: {
-            usuarios: {
-              include: {
-                sede: true,
-                departamento: true
-              }
-            },
-            stock_equipos: {
-              include: {
-                tipo_equipo: true
-              }
+    let telefonosAsignados = [];
+    if (total > 0) {
+      telefonosAsignados = await prisma.telefonos.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        include: {
+          usuarios: {
+            include: {
+              sede: true,
+              departamento: true
             }
           },
-          orderBy: { id: 'asc' }
-        });
-      }
-
-      console.log('Teléfonos asignados encontrados:', telefonosAsignados.length);
-
-      const response = telefonosAsignados.map(asignacion => ({
-        id: asignacion.id,
-        usuarios_id: asignacion.usuarios_id,
-        stock_equipos_id: asignacion.stock_equipos_id,
-        num_telefono: asignacion.num_telefono,
-        linea_telefono: asignacion.linea_telefono, 
-        ip_telefono: asignacion.ip_telefono,
-        mac_telefono: asignacion.mac_telefono,
-        mail_telefono: asignacion.mail_telefono,
-        fecha_asignacion: asignacion.fecha_asignacion,
-        created_at: asignacion.created_at,
-        updated_at: asignacion.updated_at,
-        usuarioAsignado: asignacion.usuarios ? {
-          id: asignacion.usuarios.id,
-          nombre: asignacion.usuarios.nombre,
-          apellido: asignacion.usuarios.apellido,
-          cargo: asignacion.usuarios.cargo,
-          correo: asignacion.usuarios.correo,
-          sede: asignacion.usuarios.sede,
-          departamento: asignacion.usuarios.departamento
-        } : null,
-        stockEquipo: asignacion.stock_equipos ? {
-          id: asignacion.stock_equipos.id,
-          marca: asignacion.stock_equipos.marca,
-          modelo: asignacion.stock_equipos.modelo,
-          tipo_equipo: asignacion.stock_equipos.tipo_equipo
-        } : null
-      }));
-
-      res.json({
-        telefonosAsignados: response,
-        pagination: {
-          current: page,
-          total: Math.ceil(total / limit),
-          totalRecords: total
-        }
+          stock_equipos: {
+            include: {
+              tipo_equipo: true
+            }
+          }
+        },
+        orderBy: { id: 'asc' }
       });
-
-    } catch (error) {
-      console.error('Error en index:', error);
-      res.status(500).json({ error: error.message });
     }
-  },
+
+    console.log('Teléfonos asignados encontrados:', telefonosAsignados.length);
+
+    const totalGlobal = await prisma.telefonos.count();
+    const totalUsuariosUnicos = await prisma.telefonos.groupBy({
+      by: ['usuarios_id'],
+      _count: {
+        id: true
+      }
+    }).then(results => results.length);
+
+    const totalMarcasUnicas = await prisma.telefonos.groupBy({
+  by: ['stock_equipos_id'],
+  _count: {
+    id: true
+  }
+}).then(async (results) => {
+  const stockIds = results.map(item => item.stock_equipos_id);
+  
+  if (stockIds.length === 0) return 0;
+  
+  const stockEquipos = await prisma.stock_equipos.findMany({
+    where: {
+      id: { in: stockIds }
+    },
+    select: {
+      marca: true
+    }
+  });
+  
+  const marcas = new Set();
+  stockEquipos.forEach(item => {
+    if (item.marca) {
+      marcas.add(item.marca);
+    }
+  });
+  
+  return marcas.size;
+});
+
+    const response = telefonosAsignados.map(asignacion => ({
+      id: asignacion.id,
+      usuarios_id: asignacion.usuarios_id,
+      stock_equipos_id: asignacion.stock_equipos_id,
+      num_telefono: asignacion.num_telefono,
+      linea_telefono: asignacion.linea_telefono, 
+      ip_telefono: asignacion.ip_telefono,
+      mac_telefono: asignacion.mac_telefono,
+      mail_telefono: asignacion.mail_telefono,
+      fecha_asignacion: asignacion.fecha_asignacion,
+      created_at: asignacion.created_at,
+      updated_at: asignacion.updated_at,
+      usuarioAsignado: asignacion.usuarios ? {
+        id: asignacion.usuarios.id,
+        nombre: asignacion.usuarios.nombre,
+        apellido: asignacion.usuarios.apellido,
+        cargo: asignacion.usuarios.cargo,
+        correo: asignacion.usuarios.correo,
+        sede: asignacion.usuarios.sede,
+        departamento: asignacion.usuarios.departamento
+      } : null,
+      stockEquipo: asignacion.stock_equipos ? {
+        id: asignacion.stock_equipos.id,
+        marca: asignacion.stock_equipos.marca,
+        modelo: asignacion.stock_equipos.modelo,
+        tipo_equipo: asignacion.stock_equipos.tipo_equipo
+      } : null
+    }));
+
+    res.json({
+      telefonosAsignados: response,
+      pagination: {
+        current: page,
+        total: Math.ceil(total / limit),
+        totalRecords: total
+      },
+      resumenes: {
+        totalGlobal: totalGlobal,
+        totalUsuariosUnicos: totalUsuariosUnicos,
+        totalMarcasUnicas: totalMarcasUnicas,
+        totalConFiltros: total 
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en index:', error);
+    res.status(500).json({ error: error.message });
+  }
+},
 
   async store(req, res) {
     try {
