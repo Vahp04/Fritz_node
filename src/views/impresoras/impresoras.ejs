@@ -1264,110 +1264,108 @@
             const mantenimiento = impresoras.filter(i => i.estado_impresora === 'mantenimiento').length;
             const sinToner = impresoras.filter(i => i.estado_impresora === 'sin_toner').length;
             const obsoletas = impresoras.filter(i => i.estado_impresora === 'obsoleta').length;
-            //const totalImpresiones = impresoras.reduce((sum, impresora) => sum + (impresora.contador_impresiones || 0), 0);
 
             document.getElementById('totalImpresoras').textContent = total;
             document.getElementById('totalActivas').textContent = activas;
             document.getElementById('totalMantenimiento').textContent = mantenimiento + sinToner;
             document.getElementById('totalInactivas').textContent = inactivas;
-           // document.getElementById('totalImpresiones').textContent = totalImpresiones.toLocaleString();
         }
 
         function renderizarImpresoras() {
-    const tbody = document.getElementById('impresorasTableBody');
-    tbody.innerHTML = '';
+            const tbody = document.getElementById('impresorasTableBody');
+            tbody.innerHTML = '';
 
-    if (impresoras.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center py-4">
-                    <i class="bi bi-printer display-4 text-muted mb-3"></i>
-                    <p class="text-muted mb-0">No se encontraron impresoras</p>
-                    ${currentFilters.search || currentFilters.sede_id || currentFilters.departamento_id || currentFilters.estado ? 
-                        '<small class="text-warning">Intenta con otros filtros</small>' : ''}
-                </td>
-            </tr>
-        `;
-        return;
-    }
+            if (impresoras.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="bi bi-printer display-4 text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron impresoras</p>
+                            ${currentFilters.search || currentFilters.sede_id || currentFilters.departamento_id || currentFilters.estado ? 
+                                '<small class="text-warning">Intenta con otros filtros</small>' : ''}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
-    impresoras.forEach(impresora => {
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td class="fw-bold">${impresora.id}</td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <div class="impresora-icon me-3">
-                        <i class="bi bi-printer"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold nombre-cell">${impresora.nombre}</div>
-                        <small class="text-muted">${impresora.stock_equipos ? impresora.stock_equipos.marca + ' ' + impresora.stock_equipos.modelo : 'Sin información'}</small>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <div class="d-flex flex-column gap-1">
-                    ${impresora.ip_impresora ? `<span class="ip-address bi bi-wifi me-1">${impresora.ip_impresora}</span>` : '<small class="text-muted">Sin IP</small>'}
-                    ${impresora.cereal_impresora ? `<small class="text-muted cereal-cell">${impresora.cereal_impresora}</small>` : ''}
-                </div>
-            </td>
-            <td>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">${impresora.sede ? impresora.sede.nombre : 'Sin sede'}</span>
-                    <small class="text-muted">${impresora.departamento ? impresora.departamento.nombre : 'Sin departamento'}</small>
-                </div>
-            </td>
-            <td>
-                <small>${impresora.ubicacion}</small>
-            </td>
-            <td>
-                <span class="status-badge status-${impresora.estado_impresora}">
-                    ${impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1)}
-                </span>
-            </td>
-            <td>
-                <div class="d-flex flex-column gap-1">
-                    ${impresora.toner ? `
-                        <span class="badge bg-secondary">
-                            <i class="bi bi-tag me-1"></i>
-                            ${impresora.toner}
+            impresoras.forEach(impresora => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="fw-bold">${impresora.id}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="impresora-icon me-3">
+                                <i class="bi bi-printer"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold nombre-cell">${impresora.nombre}</div>
+                                <small class="text-muted">${impresora.stock_equipos ? impresora.stock_equipos.marca + ' ' + impresora.stock_equipos.modelo : 'Sin información'}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            ${impresora.ip_impresora ? `<span class="ip-address bi bi-wifi me-1">${impresora.ip_impresora}</span>` : '<small class="text-muted">Sin IP</small>'}
+                            ${impresora.cereal_impresora ? `<small class="text-muted cereal-cell">${impresora.cereal_impresora}</small>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">${impresora.sede ? impresora.sede.nombre : 'Sin sede'}</span>
+                            <small class="text-muted">${impresora.departamento ? impresora.departamento.nombre : 'Sin departamento'}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <small>${impresora.ubicacion}</small>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${impresora.estado_impresora}">
+                            ${impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1)}
                         </span>
-                    ` : ''}
-                </div>
-            </td>
-            <td class="table-actions text-center">
-                <button class="btn btn-sm btn-outline-info action-btn me-1" 
-                        onclick="viewImpresora(${impresora.id})"
-                        title="Ver">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-warning action-btn me-1" 
-                        onclick="editImpresora(${impresora.id})"
-                        title="Editar">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger action-btn"
-                        onclick="deleteImpresora(${impresora.id}, '${impresora.nombre}')"
-                        title="Eliminar">
-                    <i class="bi bi-trash3"></i>
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            ${impresora.toner ? `
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-tag me-1"></i>
+                                    ${impresora.toner}
+                                </span>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td class="table-actions text-center">
+                        <button class="btn btn-sm btn-outline-info action-btn me-1" 
+                                onclick="viewImpresora(${impresora.id})"
+                                title="Ver">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning action-btn me-1" 
+                                onclick="editImpresora(${impresora.id})"
+                                title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn"
+                                onclick="deleteImpresora(${impresora.id}, '${impresora.nombre}')"
+                                title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
 
-    const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
-    const resultCount = document.getElementById('resultCount');
-    
-    if (filtrosActivos > 0) {
-        resultCount.innerHTML = `Mostrando ${impresoras.length} de ${totalRecords} impresoras <span class="badge bg-warning ms-2">Filtrado</span>`;
-    } else {
-        resultCount.textContent = `Mostrando ${impresoras.length} de ${totalRecords} impresoras`;
-    }
-}
+            const filtrosActivos = Object.values(currentFilters).filter(val => val !== '').length;
+            const resultCount = document.getElementById('resultCount');
+            
+            if (filtrosActivos > 0) {
+                resultCount.innerHTML = `Mostrando ${impresoras.length} de ${totalRecords} impresoras <span class="badge bg-warning ms-2">Filtrado</span>`;
+            } else {
+                resultCount.textContent = `Mostrando ${impresoras.length} de ${totalRecords} impresoras`;
+            }
+        }
 
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
@@ -1722,9 +1720,6 @@
                 document.getElementById('view_descripcion').textContent = impresora.descripcion || 'Sin descripción';
                 document.getElementById('view_toner').textContent = impresora.toner || 'No especificado'; 
                 document.getElementById('view_stock_equipo').textContent = impresora.stock_equipos ? `${impresora.stock_equipos.marca} ${impresora.stock_equipos.modelo}` : 'No asignado';
-            // document.getElementById('view_toner_actual').textContent = impresora.toner_actual ? `${impresora.toner_actual.marca} ${impresora.toner_actual.modelo}` : 'No instalado';
-            // document.getElementById('view_fecha_instalacion_toner').textContent = impresora.fecha_instalacion_toner ? new Date(impresora.fecha_instalacion_toner).toLocaleDateString('es-ES') : 'No instalado';
-            //  document.getElementById('view_contador_instalacion_toner').textContent = impresora.contador_instalacion_toner || 0;
                 document.getElementById('view_created_at').textContent = new Date(impresora.created_at).toLocaleDateString('es-ES');
                 
                 $('#viewImpresoraModal').modal('show');
@@ -1922,25 +1917,6 @@
                 currentPage = 1;
                 cargarImpresoras(currentPage);
             }    
-
-            /*   function incrementarContadorToner() {
-            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-            const currentValue = parseInt(contadorInput.value) || 0;
-            contadorInput.value = currentValue + 1;
-        }
-
-        function decrementarContadorToner() {
-            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-            const currentValue = parseInt(contadorInput.value) || 0;
-            if (currentValue > 0) {
-                contadorInput.value = currentValue - 1;
-            }
-        }
-
-        function resetearContadorToner() {
-            const contadorInput = document.getElementById('edit_contador_instalacion_toner');
-            contadorInput.value = 0;
-        }*/
 
           function resetFiltros() {
         currentFilters = {

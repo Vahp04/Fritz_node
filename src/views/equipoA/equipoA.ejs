@@ -990,75 +990,75 @@
             inicializarEventos();
         });
 
-async function cargarUsuarios() {
-    try {
-        console.log('Cargando usuarios para select...');
-        const response = await fetch('/api/usuarios/para-select', {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+        async function cargarUsuarios() {
+            try {
+                console.log('Cargando usuarios para select...');
+                const response = await fetch('/api/usuarios/para-select', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                usuarios = await response.json();
+                console.log(`${usuarios.length} usuarios cargados para select`);
+                llenarSelectUsuarios();
+                
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                usuarios = [];
+                llenarSelectUsuarios();
             }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
         }
 
-        usuarios = await response.json();
-        console.log(`${usuarios.length} usuarios cargados para select`);
-        llenarSelectUsuarios();
-        
-    } catch (error) {
-        console.error('Error cargando usuarios:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        usuarios = [];
-        llenarSelectUsuarios();
-    }
-}
+        async function cargarStockEquipos() {
+            try {
+                console.log('Cargando equipos para asignación...');
+                const response = await fetch('/api/stock_equipos/para-asignacion', {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
 
-async function cargarStockEquipos() {
-    try {
-        console.log('Cargando equipos para asignación...');
-        const response = await fetch('/api/stock_equipos/para-asignacion', {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                stockEquipos = await response.json();
+                console.log(`${stockEquipos.length} equipos cargados para asignación`);
+                
+                llenarSelectStockEquipos();
+                inicializarEventosSelects();
+                
+            } catch (error) {
+                console.error('Error cargando equipos:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                stockEquipos = [];
+                llenarSelectStockEquipos();
             }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
-            }
-            throw new Error(`Error HTTP: ${response.status}`);
         }
-
-        stockEquipos = await response.json();
-        console.log(`${stockEquipos.length} equipos cargados para asignación`);
-        
-        llenarSelectStockEquipos();
-        inicializarEventosSelects();
-        
-    } catch (error) {
-        console.error('Error cargando equipos:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        stockEquipos = [];
-        llenarSelectStockEquipos();
-    }
-}
         function manejarErrorAutenticacion() {
             console.log('Redirigiendo al login...');
             Swal.fire({
@@ -1153,148 +1153,140 @@ async function cargarStockEquipos() {
             console.log('Eventos de selects inicializados');
         }
 
-let filtrosActuales = {
-    usuario: '',
-    equipo: '',
-    estado: ''
-};
+        let filtrosActuales = {
+            usuario: '',
+            equipo: '',
+            estado: ''
+        };
 
-let currentPage = 1;
-let totalPages = 1;
-let totalRecords = 0;
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
 
-async function cargarEquiposAsignados(page = 1, filtros = {}) {
-    try {
-        currentPage = page;
-        
-        const params = new URLSearchParams({
-            page: page.toString(),
-            limit: '10'
-        });
-        
-        if (filtros.usuario) params.append('usuario', filtros.usuario);
-        if (filtros.equipo) params.append('equipo', filtros.equipo);
-        if (filtros.estado) params.append('estado', filtros.estado);
-        
-        console.log('Cargando equipos asignados con filtros:', params.toString());
-        
-        const response = await fetch(`/api/equipos_asignados?${params.toString()}`, {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+        async function cargarEquiposAsignados(page = 1, filtros = {}) {
+            try {
+                currentPage = page;
+                
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: '10'
+                });
+                
+                if (filtros.usuario) params.append('usuario', filtros.usuario);
+                if (filtros.equipo) params.append('equipo', filtros.equipo);
+                if (filtros.estado) params.append('estado', filtros.estado);
+                
+                console.log('Cargando equipos asignados con filtros:', params.toString());
+                
+                const response = await fetch(`/api/equipos_asignados?${params.toString()}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('Error 401: No autenticado');
+                        manejarErrorAutenticacion();
+                        return;
+                    }
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Respuesta equipos asignados:', data);
+                
+                equiposAsignados = Array.isArray(data.equiposAsignados) ? data.equiposAsignados : [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                console.log(`${equiposAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
+                
+                if (equiposAsignados.length > 0) {
+                    console.log('Primera asignación:', equiposAsignados[0]);
+                }
+                
+                renderizarEquiposAsignados();
+                
+                await cargarEstadisticasTotales(filtros);
+                
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.message.includes('401') || error.message.includes('autenticación')) {
+                    manejarErrorAutenticacion();
+                }
+                equiposAsignados = [];
+                renderizarEquiposAsignados();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los equipos asignados'
+                });
             }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('Error 401: No autenticado');
-                manejarErrorAutenticacion();
-                return;
+        }
+
+        async function cargarEstadisticasTotales(filtros = {}) {
+            try {
+                const params = new URLSearchParams();
+                
+                if (filtros.usuario) params.append('usuario', filtros.usuario);
+                if (filtros.equipo) params.append('equipo', filtros.equipo);
+                if (filtros.estado) params.append('estado', filtros.estado);
+                
+                console.log('Cargando estadísticas totales con filtros:', params.toString());
+                
+                const response = await fetch(`/api/equipos_asignados/estadisticas?${params.toString()}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const estadisticas = await response.json();
+                console.log('Estadísticas totales recibidas:', estadisticas);
+                
+                document.getElementById('countActivos').textContent = estadisticas.asignaciones_activas || 0;
+                document.getElementById('countDevueltos').textContent = estadisticas.asignaciones_devueltas || 0;
+                document.getElementById('countObsoletos').textContent = estadisticas.asignaciones_obsoletas || 0;
+                document.getElementById('countTotal').textContent = estadisticas.total_asignaciones || 0;
+                
+                const resultCount = document.getElementById('resultCount');
+                if (resultCount) {
+                    resultCount.textContent = `Mostrando ${equiposAsignados.length} de ${estadisticas.total_asignaciones || 0} asignaciones`;
+                }
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                actualizarContadoresConPaginacion();
             }
-            throw new Error(`Error HTTP: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Respuesta equipos asignados:', data);
-        
-        equiposAsignados = Array.isArray(data.equiposAsignados) ? data.equiposAsignados : [];
-        totalPages = data.pagination?.total || 1;
-        totalRecords = data.pagination?.totalRecords || 0;
-        
-        console.log(`${equiposAsignados.length} asignaciones cargadas (Página ${currentPage} de ${totalPages})`);
-        
-        if (equiposAsignados.length > 0) {
-            console.log('Primera asignación:', equiposAsignados[0]);
-        }
-        
-        renderizarEquiposAsignados();
-        
-        await cargarEstadisticasTotales(filtros);
-        
-        renderizarPaginacion();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        if (error.message.includes('401') || error.message.includes('autenticación')) {
-            manejarErrorAutenticacion();
-        }
-        equiposAsignados = [];
-        renderizarEquiposAsignados();
-        
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudieron cargar los equipos asignados'
-        });
-    }
-}
+        function actualizarContadoresConPaginacion() {
+            const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
+            const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
+            const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
+            const countTotal = equiposAsignados.length;
 
-// NUEVA FUNCIÓN: Cargar estadísticas totales
-async function cargarEstadisticasTotales(filtros = {}) {
-    try {
-        const params = new URLSearchParams();
-        
-        if (filtros.usuario) params.append('usuario', filtros.usuario);
-        if (filtros.equipo) params.append('equipo', filtros.equipo);
-        if (filtros.estado) params.append('estado', filtros.estado);
-        
-        console.log('Cargando estadísticas totales con filtros:', params.toString());
-        
-        const response = await fetch(`/api/equipos_asignados/estadisticas?${params.toString()}`, {
-            credentials: 'include',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+            document.getElementById('countActivos').textContent = countActivos;
+            document.getElementById('countDevueltos').textContent = countDevueltos;
+            document.getElementById('countObsoletos').textContent = countObsoletos;
+            document.getElementById('countTotal').textContent = countTotal;
+
+            const resultCount = document.getElementById('resultCount');
+            if (resultCount) {
+                resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
         }
-
-        const estadisticas = await response.json();
-        console.log('Estadísticas totales recibidas:', estadisticas);
-        
-        // Actualizar contadores con datos totales
-        document.getElementById('countActivos').textContent = estadisticas.asignaciones_activas || 0;
-        document.getElementById('countDevueltos').textContent = estadisticas.asignaciones_devueltas || 0;
-        document.getElementById('countObsoletos').textContent = estadisticas.asignaciones_obsoletas || 0;
-        document.getElementById('countTotal').textContent = estadisticas.total_asignaciones || 0;
-        
-        // Actualizar el contador de resultados
-        const resultCount = document.getElementById('resultCount');
-        if (resultCount) {
-            resultCount.textContent = `Mostrando ${equiposAsignados.length} de ${estadisticas.total_asignaciones || 0} asignaciones`;
-        }
-        
-    } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-        // En caso de error, usar los datos de paginación como respaldo
-        actualizarContadoresConPaginacion();
-    }
-}
-
-// FUNCIÓN DE RESPALDO: Usar datos de paginación si falla la API de estadísticas
-function actualizarContadoresConPaginacion() {
-    const countActivos = equiposAsignados.filter(a => a.estado === 'activo').length;
-    const countDevueltos = equiposAsignados.filter(a => a.estado === 'devuelto').length;
-    const countObsoletos = equiposAsignados.filter(a => a.estado === 'obsoleto').length;
-    const countTotal = equiposAsignados.length;
-
-    document.getElementById('countActivos').textContent = countActivos;
-    document.getElementById('countDevueltos').textContent = countDevueltos;
-    document.getElementById('countObsoletos').textContent = countObsoletos;
-    document.getElementById('countTotal').textContent = countTotal;
-
-    const resultCount = document.getElementById('resultCount');
-    if (resultCount) {
-        resultCount.textContent = `Mostrando ${countTotal} de ${totalRecords} asignaciones`;
-    }
-}
-
-// ELIMINAR la función actualizarContadores() anterior o dejarla como respaldo
-
 
         function llenarSelectUsuarios() {
             const createSelect = document.getElementById('create_usuarios_id');

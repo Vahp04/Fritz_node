@@ -611,19 +611,16 @@
                                         </td>
                                     </tr>
                                 </tbody>
-                                
                             </table>
                             <div class="d-flex justify-content-between align-items-center mt-4">
-    <div class="text-muted" id="resultCount">
-        Mostrando 0 de 0 DVRs
-    </div>
-    
-    <nav aria-label="Paginación de DVRs">
-        <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-            <!-- La paginación se generará dinámicamente aquí -->
-        </ul>
-    </nav>
-</div>
+                                <div class="text-muted" id="resultCount">
+                                    Mostrando 0 de 0 DVRs
+                                </div>
+                                <nav aria-label="Paginación de DVRs">
+                                    <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                         
                     </div>
@@ -634,203 +631,203 @@
 
     <!-- Modal para Crear DVR -->
     <div class="modal fade" id="createDvrModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-camera-video me-2"></i> Nuevo DVR
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="createDvrForm">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Equipo en Inventario*</label>
-                                <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
-                                    <option value="">Seleccione un equipo</option>
-                                </select>
-                                <div class="form-text">Seleccione el equipo DVR del inventario</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Sede*</label>
-                                <select class="form-select" name="sede_id" id="create_sede_id" required>
-                                    <option value="">Seleccione una sede</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">IP del DVR</label>
-                                <input type="text" class="form-control" name="ip_dvr" placeholder="Ej: 192.168.1.100">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Número de Serie</label>
-                                <input type="text" class="form-control" name="cereal_dvr" placeholder="Serial del DVR">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Dirección MAC</label>
-                                <input type="text" class="form-control" name="mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Cantidad de Cámaras*</label>
-                                <input type="number" class="form-control" name="cantidad_cam" required min="1" max="64" value="1">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="toggleSwitchField" onchange="toggleSwitchField()">
-                                    <label class="form-check-label" for="toggleSwitchField">
-                                        ¿Tiene switch?
-                                    </label>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-camera-video me-2"></i> Nuevo DVR
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createDvrForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipo en Inventario*</label>
+                                    <select class="form-select" name="stock_equipos_id" id="create_stock_equipos_id" required>
+                                        <option value="">Seleccione un equipo</option>
+                                    </select>
+                                    <div class="form-text">Seleccione el equipo DVR del inventario</div>
                                 </div>
                             </div>
-                            <div class="mb-3 switch-field-container" id="switchFieldContainer" style="display: none;">
-                                <label class="form-label">Switch Conectado</label>
-                                <input type="text" class="form-control" name="switch" id="create_switch" placeholder="Switch de conexión">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="create_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="mb-3">
-                                <label class="form-label">Ubicación*</label>
-                                <input type="text" class="form-control" name="ubicacion" required placeholder="Ej: Recepción, Estacionamiento">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del DVR</label>
+                                    <input type="text" class="form-control" name="ip_dvr" placeholder="Ej: 192.168.1.100">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" name="cereal_dvr" placeholder="Serial del DVR">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Dirección MAC</label>
+                                    <input type="text" class="form-control" name="mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Estado*</label>
-                                <select class="form-select" name="estado" required>
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="desuso">Dañado</option>
-                                </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad de Cámaras*</label>
+                                    <input type="number" class="form-control" name="cantidad_cam" required min="1" max="64" value="1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="toggleSwitchField" onchange="toggleSwitchField()">
+                                        <label class="form-check-label" for="toggleSwitchField">
+                                            ¿Tiene switch?
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3 switch-field-container" id="switchFieldContainer" style="display: none;">
+                                    <label class="form-label">Switch Conectado</label>
+                                    <input type="text" class="form-control" name="switch" id="create_switch" placeholder="Switch de conexión">
+                                </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Ubicación*</label>
+                                    <input type="text" class="form-control" name="ubicacion" required placeholder="Ej: Recepción, Estacionamiento">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="desuso">Dañado</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del DVR y su ubicación específica"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" name="descripcion" rows="3" placeholder="Descripción del DVR y su ubicación específica"></textarea>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-fritz">Guardar DVR</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-fritz">Guardar DVR</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-    <!-- Modal para Editar DVR -->
-<div class="modal fade" id="editDvrModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i> Editar DVR
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editDvrForm">
-                <div class="modal-body">
-                    <input type="hidden" id="edit_dvr_id" name="id">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Sede*</label>
-                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
-                                    <option value="">Seleccione una sede</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Estado*</label>
-                                <select class="form-select" name="estado" id="edit_estado" required>
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="desuso">Dañado</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">IP del DVR</label>
-                                <input type="text" class="form-control" name="ip_dvr" id="edit_ip_dvr" placeholder="Ej: 192.168.1.100">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Número de Serie</label>
-                                <input type="text" class="form-control" name="cereal_dvr" id="edit_cereal_dvr" placeholder="Serial del DVR">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Dirección MAC</label>
-                                <input type="text" class="form-control" name="mac_dvr" id="edit_mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Cantidad de Cámaras*</label>
-                                <input type="number" class="form-control" name="cantidad_cam" id="edit_cantidad_cam" required min="1" max="64">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="toggleSwitchFieldEdit" onchange="toggleSwitchFieldEdit()">
-                                    <label class="form-check-label" for="toggleSwitchFieldEdit">
-                                        ¿Tiene Switch?
-                                    </label>
+        <!-- Modal para Editar DVR -->
+    <div class="modal fade" id="editDvrModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar DVR
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editDvrForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_dvr_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="mb-3 switch-field-container" id="switchFieldContainerEdit" style="display: none;">
-                                <label class="form-label">Switch Conectado</label>
-                                <input type="text" class="form-control" name="switch" id="edit_switch" placeholder="Switch de conexión">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado*</label>
+                                    <select class="form-select" name="estado" id="edit_estado" required>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="desuso">Dañado</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">IP del DVR</label>
+                                    <input type="text" class="form-control" name="ip_dvr" id="edit_ip_dvr" placeholder="Ej: 192.168.1.100">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Número de Serie</label>
+                                    <input type="text" class="form-control" name="cereal_dvr" id="edit_cereal_dvr" placeholder="Serial del DVR">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Dirección MAC</label>
+                                    <input type="text" class="form-control" name="mac_dvr" id="edit_mac_dvr" placeholder="Ej: 00:1B:44:11:3A:B7">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Cantidad de Cámaras*</label>
+                                    <input type="number" class="form-control" name="cantidad_cam" id="edit_cantidad_cam" required min="1" max="64">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="toggleSwitchFieldEdit" onchange="toggleSwitchFieldEdit()">
+                                        <label class="form-check-label" for="toggleSwitchFieldEdit">
+                                            ¿Tiene Switch?
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3 switch-field-container" id="switchFieldContainerEdit" style="display: none;">
+                                    <label class="form-label">Switch Conectado</label>
+                                    <input type="text" class="form-control" name="switch" id="edit_switch" placeholder="Switch de conexión">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ubicación*</label>
+                            <input type="text" class="form-control" name="ubicacion" id="edit_ubicacion" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ubicación*</label>
-                        <input type="text" class="form-control" name="ubicacion" id="edit_ubicacion" required>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar DVR</button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripción</label>
-                        <textarea class="form-control" name="descripcion" id="edit_descripcion" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">Actualizar DVR</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Modal para Ver DVR -->
     <div class="modal fade" id="viewDvrModal" tabindex="-1">
@@ -908,6 +905,7 @@
         </div>
     </div>
 
+    <!--Modal para seleccionar Reporte por Sede-->
     <div class="modal fade" id="selectSedeDvrModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1494,8 +1492,6 @@
             resultCount.innerHTML = texto;
         }
 
-
-
         // Funciones CRUD
         async function crearDvr() {
             const form = document.getElementById('createDvrForm');
@@ -1555,7 +1551,6 @@
             }
         }
 
-
         async function editDvr(id) {
             try {
                 console.log('Cargando DVR con ID:', id);
@@ -1583,7 +1578,6 @@
                 document.getElementById('edit_ubicacion').value = dvr.ubicacion;
                 document.getElementById('edit_descripcion').value = dvr.descripcion || '';
                 
-                // Inicializar el campo Switch
                 inicializarSwitchFieldEdit(dvr);
                 
                 console.log('Formulario llenado con datos');
@@ -1598,8 +1592,6 @@
                 });
             }
         }
-
-
 
         async function actualizarDvr() {
             const form = document.getElementById('editDvrForm');
@@ -1791,15 +1783,15 @@
             setTimeout(inicializarSwitches, 100);
         });
         function aplicarFiltros() {
-    currentFilters = {
-        search: document.getElementById('searchDvr').value.trim(),
-        sede_id: document.getElementById('filterSede').value,
-        estado: document.getElementById('filterEstado').value
-    };
-    
-    currentPage = 1; 
-    cargarDvrs(currentPage);
-}
+            currentFilters = {
+                search: document.getElementById('searchDvr').value.trim(),
+                sede_id: document.getElementById('filterSede').value,
+                estado: document.getElementById('filterEstado').value
+            };
+            
+            currentPage = 1; 
+            cargarDvrs(currentPage);
+        }
 
         function aplicarBusquedaRapida() {
             currentFilters.search = document.getElementById('searchDvr').value;
@@ -1808,39 +1800,38 @@
         }
 
         function inicializarBusqueda() {
-    let searchTimeout;
-    const searchInput = document.getElementById('searchDvr');
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            aplicarFiltros();
-        }, 500);
-    });
-    
-    // Permitir búsqueda con Enter
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            aplicarFiltros();
+            let searchTimeout;
+            const searchInput = document.getElementById('searchDvr');
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    aplicarFiltros();
+                }, 500);
+            });
+            
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    aplicarFiltros();
+                }
+            });
         }
-    });
-}
 
 
         function resetFiltros() {
-    currentFilters = {
-        search: '',
-        sede_id: '',
-        estado: ''
-    };
-    
-    document.getElementById('searchDvr').value = '';
-    document.getElementById('filterSede').value = '';
-    document.getElementById('filterEstado').value = '';
-    
-    currentPage = 1;
-    cargarDvrs(currentPage);
-}
+            currentFilters = {
+                search: '',
+                sede_id: '',
+                estado: ''
+            };
+            
+            document.getElementById('searchDvr').value = '';
+            document.getElementById('filterSede').value = '';
+            document.getElementById('filterEstado').value = '';
+            
+            currentPage = 1;
+            cargarDvrs(currentPage);
+        }
 
         function mostrarError(mensaje) {
             Swal.fire({
@@ -1935,13 +1926,11 @@
         await actualizarDvr();
     });
 
-    // Inicializar búsqueda
     inicializarBusqueda();
     
     document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
     document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
     
-    // Inicializar los switches
     inicializarSwitches();
 }
 

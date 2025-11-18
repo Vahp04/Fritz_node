@@ -808,39 +808,39 @@
             </div>
         </div>
     </div>
-
+    <!--Modal para reporte por Sede-->
     <div class="modal fade" id="selectSedeServidorModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-building me-2"></i> Seleccionar Sede
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Seleccione una sede para generar el reporte:</label>
-                    <select class="form-select" id="select_sede_servidor_reporte">
-                        <option value="">Seleccione una sede</option>
-                    </select>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-building me-2"></i> Seleccionar Sede
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="alert alert-info">
-                    <small>
-                        <i class="bi bi-info-circle me-1"></i>
-                        Se generará un reporte PDF con todos los servidores de la sede seleccionada.
-                    </small>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione una sede para generar el reporte:</label>
+                        <select class="form-select" id="select_sede_servidor_reporte">
+                            <option value="">Seleccione una sede</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Se generará un reporte PDF con todos los servidores de la sede seleccionada.
+                        </small>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="generarReporteServidorConSedeSeleccionada()">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarReporteServidorConSedeSeleccionada()">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Generar Reporte
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

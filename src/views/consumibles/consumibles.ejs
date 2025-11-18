@@ -715,82 +715,83 @@
             </div>
         </div>
     </div>
-<!-- Modal para Editar consumible-->
-<div class="modal fade" id="editConsumibleModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i> Editar Consumible
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editConsumibleForm">
-                <div class="modal-body">
-                    <input type="hidden" id="edit_consumible_id" name="id">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Nombre del Consumible*</label>
-                                <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Sede*</label>
-                                <select class="form-select" name="sede_id" id="edit_sede_id" required>
-                                    <option value="">Seleccione una sede</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Departamento*</label>
-                                <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
-                                    <option value="">Seleccione un departamento</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Fecha de Envío*</label>
-                                <input type="datetime-local" class="form-control" name="fecha_enviado" id="edit_fecha_enviado" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Equipos del Inventario</label>
-                        <div class="alert alert-info">
-                            <small>
-                                <i class="bi bi-info-circle me-1"></i>
-                                Puedes modificar las cantidades, eliminar equipos o agregar nuevos equipos
-                            </small>
-                        </div>
-                        
-                        <div id="equiposContainerEdit">
-                           
-                        </div>
-                        
-                        <button type="button" class="btn btn-outline-primary w-100 add-equipo-btn py-2 mt-3" onclick="agregarEquipoEdit()">
-                            <i class="bi bi-plus-circle me-2"></i> Agregar otro equipo
-                        </button>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Detalles</label>
-                        <textarea class="form-control" name="detalles" id="edit_detalles" rows="3"></textarea>
+    <!-- Modal para Editar consumible-->
+    <div class="modal fade" id="editConsumibleModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square me-2"></i> Editar Consumible
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editConsumibleForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_consumible_id" name="id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre del Consumible*</label>
+                                    <input type="text" class="form-control" name="nombre" id="edit_nombre" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Sede*</label>
+                                    <select class="form-select" name="sede_id" id="edit_sede_id" required>
+                                        <option value="">Seleccione una sede</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departamento*</label>
+                                    <select class="form-select" name="departamento_id" id="edit_departamento_id" required>
+                                        <option value="">Seleccione un departamento</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fecha de Envío*</label>
+                                    <input type="datetime-local" class="form-control" name="fecha_enviado" id="edit_fecha_enviado" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Equipos del Inventario</label>
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Puedes modificar las cantidades, eliminar equipos o agregar nuevos equipos
+                                </small>
+                            </div>
+                            
+                            <div id="equiposContainerEdit">
+                            
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline-primary w-100 add-equipo-btn py-2 mt-3" onclick="agregarEquipoEdit()">
+                                <i class="bi bi-plus-circle me-2"></i> Agregar otro equipo
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Detalles</label>
+                            <textarea class="form-control" name="detalles" id="edit_detalles" rows="3"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">Actualizar Consumible</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar Consumible</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Modal para Ver Consumible -->
     <div class="modal fade" id="viewConsumibleModal" tabindex="-1">
@@ -852,58 +853,59 @@
         </div>
     </div>
 
-<div class="modal fade" id="selectConsumibleOrdenModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-file-text me-2"></i> Generar Orden de Salida
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Seleccione la sede de origen:*</label>
-                            <select class="form-select" id="select_sede_origen_orden" required>
-                                <option value="">Seleccione una sede</option>
-                            </select>
+    <!--Modal para Orden de Salida -->
+    <div class="modal fade" id="selectConsumibleOrdenModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-file-text me-2"></i> Generar Orden de Salida
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Seleccione la sede de origen:*</label>
+                                <select class="form-select" id="select_sede_origen_orden" required>
+                                    <option value="">Seleccione una sede</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Seleccione el consumible:*</label>
+                                <select class="form-select" id="select_consumible_orden" required>
+                                    <option value="">Seleccione un consumible</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Seleccione el consumible:*</label>
-                            <select class="form-select" id="select_consumible_orden" required>
-                                <option value="">Seleccione un consumible</option>
-                            </select>
-                        </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            <strong>Sede de origen:</strong> Desde donde salen los equipos<br>
+                            <strong>Sede de destino:</strong> La sede guardada en el consumible (se mostrará en la vista previa)<br>
+                            Se generará una orden de salida en formato PDF con dos copias (archivo y destinatario)
+                        </small>
+                    </div>
+                    
+                    <div id="consumiblePreview" class="mt-3 p-3 border rounded" style="display: none;">
+                        <h6>Información de la Orden de Salida:</h6>
+                        <div id="previewContent"></div>
                     </div>
                 </div>
-                
-                <div class="alert alert-info">
-                    <small>
-                        <i class="bi bi-info-circle me-1"></i>
-                        <strong>Sede de origen:</strong> Desde donde salen los equipos<br>
-                        <strong>Sede de destino:</strong> La sede guardada en el consumible (se mostrará en la vista previa)<br>
-                        Se generará una orden de salida en formato PDF con dos copias (archivo y destinatario)
-                    </small>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="generarOrdenSalida()" id="btnGenerarOrden">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Generar Orden
+                    </button>
                 </div>
-                
-                <div id="consumiblePreview" class="mt-3 p-3 border rounded" style="display: none;">
-                    <h6>Información de la Orden de Salida:</h6>
-                    <div id="previewContent"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="generarOrdenSalida()" id="btnGenerarOrden">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Generar Orden
-                </button>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1049,6 +1051,8 @@
                     equipo.tipo_equipo.nombre.toLowerCase().includes('consumible') ||
                     equipo.tipo_equipo.nombre.toLowerCase().includes('toners') ||
                     equipo.tipo_equipo.nombre.toLowerCase().includes('tinta') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('batería') ||
+                    equipo.tipo_equipo.nombre.toLowerCase().includes('bateria') ||
                     equipo.tipo_equipo.nombre.toLowerCase().includes('cartucho');
                 console.log(`Equipo ${equipo.marca} ${equipo.modelo}: ${esConsumible ? 'ES consumible' : 'NO es consumible'}`);
                 return esConsumible;
@@ -1360,76 +1364,75 @@
         }
 
        function renderizarPaginacion() {
-        const pagination = document.getElementById('paginationContainer');
-        pagination.innerHTML = '';
+            const pagination = document.getElementById('paginationContainer');
+            pagination.innerHTML = '';
 
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-        `;
-        pagination.appendChild(prevLi);
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            `;
+            pagination.appendChild(prevLi);
 
-        const maxPagesToShow = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            const maxPagesToShow = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-        if (endPage - startPage + 1 < maxPagesToShow) {
-            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-        }
-
-        if (startPage > 1) {
-            const firstLi = document.createElement('li');
-            firstLi.className = 'page-item';
-            firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
-            pagination.appendChild(firstLi);
-            
-            if (startPage > 2) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
-                pagination.appendChild(ellipsisLi);
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
             }
-        }
 
-        for (let i = startPage; i <= endPage; i++) {
-            const pageLi = document.createElement('li');
-            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-            pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
-            pagination.appendChild(pageLi);
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
-                pagination.appendChild(ellipsisLi);
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(1)">1</a>`;
+                pagination.appendChild(firstLi);
+                
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
             }
-            
-            const lastLi = document.createElement('li');
-            lastLi.className = 'page-item';
-            lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
-            pagination.appendChild(lastLi);
-        }
 
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        `;
-        pagination.appendChild(nextLi);
-    }
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${i})">${i}</a>`;
+                pagination.appendChild(pageLi);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = `<span class="page-link">...</span>`;
+                    pagination.appendChild(ellipsisLi);
+                }
+                
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" onclick="cambiarPagina(${totalPages})">${totalPages}</a>`;
+                pagination.appendChild(lastLi);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
 
     function cambiarPagina(page) {
         if (page < 1 || page > totalPages || page === currentPage) return;
         cargarConsumibles(page);
     }
-
 
         // Funciones CRUD
         async function crearConsumible() {
@@ -1534,329 +1537,329 @@
             }
         }
 
-async function editConsumible(id) {
-    try {
-        const response = await fetch(`/api/consumibles/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar consumible');
+        async function editConsumible(id) {
+            try {
+                const response = await fetch(`/api/consumibles/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar consumible');
+                }
+
+                const consumible = await response.json();
+                
+                console.log('Consumible cargado para edición:', consumible);
+                
+                document.getElementById('edit_consumible_id').value = consumible.id;
+                document.getElementById('edit_nombre').value = consumible.nombre;
+                document.getElementById('edit_sede_id').value = consumible.sede_id;
+                document.getElementById('edit_departamento_id').value = consumible.departamento_id;
+                document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
+                document.getElementById('edit_detalles').value = consumible.detalles || '';
+                
+                const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+                equiposContainerEdit.innerHTML = '';
+                equipoCounterEdit = 0;
+                
+                if (consumible.consumible_equipos && consumible.consumible_equipos.length > 0) {
+                    consumible.consumible_equipos.forEach(ce => {
+                        agregarEquipoEdicion(ce.stock_equipos_id, ce.cantidad, ce.stock_equipos);
+                    });
+                } else {
+                    agregarEquipoEdit();
+                }
+                
+                $('#editConsumibleModal').modal('show');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
         }
 
-        const consumible = await response.json();
-        
-        console.log('Consumible cargado para edición:', consumible);
-        
-        document.getElementById('edit_consumible_id').value = consumible.id;
-        document.getElementById('edit_nombre').value = consumible.nombre;
-        document.getElementById('edit_sede_id').value = consumible.sede_id;
-        document.getElementById('edit_departamento_id').value = consumible.departamento_id;
-        document.getElementById('edit_fecha_enviado').value = consumible.fecha_enviado.slice(0, 16);
-        document.getElementById('edit_detalles').value = consumible.detalles || '';
-        
-        const equiposContainerEdit = document.getElementById('equiposContainerEdit');
-        equiposContainerEdit.innerHTML = '';
-        equipoCounterEdit = 0;
-        
-        if (consumible.consumible_equipos && consumible.consumible_equipos.length > 0) {
-            consumible.consumible_equipos.forEach(ce => {
-                agregarEquipoEdicion(ce.stock_equipos_id, ce.cantidad, ce.stock_equipos);
+        function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
+            equipoCounterEdit++;
+            const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+            
+            const equipoDiv = document.createElement('div');
+            equipoDiv.className = 'equipo-item';
+            equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
+            
+            const stockDisponibleReal = stockEquipo ? 
+                (stockEquipo.cantidad_disponible + cantidad) : 
+                stockEquipos.find(e => e.id == stockEquiposId)?.cantidad_disponible || 0;
+            
+            equipoDiv.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Equipo en Inventario*</label>
+                            <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
+                                <option value="">Seleccione un equipo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad*</label>
+                            <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" value="${cantidad}" placeholder="Cantidad">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label text-white">.</label>
+                            <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <small class="text-muted" id="stock-edit-${equipoCounterEdit}">Stock disponible: ${stockDisponibleReal} unidades</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            equiposContainerEdit.appendChild(equipoDiv);
+
+            const select = equipoDiv.querySelector('.equipo-select-edit');
+            renderizarOpcionesStockEquiposEdit(select, stockEquiposId);
+        }
+
+        function agregarEquipoEdit() {
+            equipoCounterEdit++;
+            const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+            
+            const equipoDiv = document.createElement('div');
+            equipoDiv.className = 'equipo-item';
+            equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
+            
+            equipoDiv.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Equipo en Inventario*</label>
+                            <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
+                                <option value="">Seleccione un equipo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad*</label>
+                            <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" placeholder="Cantidad">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label text-white">.</label>
+                            <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <small class="text-muted" id="stock-edit-${equipoCounterEdit}"></small>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            equiposContainerEdit.appendChild(equipoDiv);
+
+            const select = equipoDiv.querySelector('.equipo-select-edit');
+            renderizarOpcionesStockEquiposEdit(select);
+        }
+
+        function actualizarStockDisponibleEdit(selectElement, targetId) {
+            const equipoId = selectElement.value;
+            const equipo = stockEquipos.find(e => e.id == equipoId);
+            const targetElement = document.getElementById(targetId);
+            
+            if (equipo) {
+                targetElement.textContent = `Stock disponible: ${equipo.cantidad_disponible} unidades`;
+                targetElement.className = 'text-success';
+            } else {
+                targetElement.textContent = '';
+            }
+        }
+
+        function renderizarOpcionesStockEquiposEdit(selectElement, selectedId = null) {
+            if (stockEquipos.length === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No hay equipos consumibles disponibles";
+                option.disabled = true;
+                selectElement.appendChild(option);
+                return;
+            }
+
+            stockEquipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo.id;
+                option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
+                
+                if (selectedId && equipo.id == selectedId) {
+                    option.selected = true;
+                }
+                
+                selectElement.appendChild(option);
             });
-        } else {
-            agregarEquipoEdit();
         }
-        
-        $('#editConsumibleModal').modal('show');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
-function agregarEquipoEdicion(stockEquiposId, cantidad, stockEquipo) {
-    equipoCounterEdit++;
-    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
-    
-    const equipoDiv = document.createElement('div');
-    equipoDiv.className = 'equipo-item';
-    equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
-    
-    const stockDisponibleReal = stockEquipo ? 
-        (stockEquipo.cantidad_disponible + cantidad) : 
-        stockEquipos.find(e => e.id == stockEquiposId)?.cantidad_disponible || 0;
-    
-    equipoDiv.innerHTML = `
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Equipo en Inventario*</label>
-                    <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
-                        <option value="">Seleccione un equipo</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label class="form-label">Cantidad*</label>
-                    <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" value="${cantidad}" placeholder="Cantidad">
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="mb-3">
-                    <label class="form-label text-white">.</label>
-                    <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-2">
-                    <small class="text-muted" id="stock-edit-${equipoCounterEdit}">Stock disponible: ${stockDisponibleReal} unidades</small>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    equiposContainerEdit.appendChild(equipoDiv);
+        async function actualizarConsumible() {
+            const form = document.getElementById('editConsumibleForm');
+            const formData = new FormData(form);
+            const consumibleId = formData.get('id');
 
-    const select = equipoDiv.querySelector('.equipo-select-edit');
-    renderizarOpcionesStockEquiposEdit(select, stockEquiposId);
-}
+            const equiposContainerEdit = document.getElementById('equiposContainerEdit');
+            const equipoItems = equiposContainerEdit.querySelectorAll('.equipo-item');
+            
+            if (equipoItems.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Debe tener al menos un equipo del inventario'
+                });
+                return;
+            }
 
-function agregarEquipoEdit() {
-    equipoCounterEdit++;
-    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
-    
-    const equipoDiv = document.createElement('div');
-    equipoDiv.className = 'equipo-item';
-    equipoDiv.id = `equipo-edit-${equipoCounterEdit}`;
-    
-    equipoDiv.innerHTML = `
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label">Equipo en Inventario*</label>
-                    <select class="form-select equipo-select-edit" name="equipos[${equipoCounterEdit}][stock_equipos_id]" required onchange="actualizarStockDisponibleEdit(this, 'stock-edit-${equipoCounterEdit}')">
-                        <option value="">Seleccione un equipo</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label class="form-label">Cantidad*</label>
-                    <input type="number" class="form-control" name="equipos[${equipoCounterEdit}][cantidad]" required min="1" placeholder="Cantidad">
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="mb-3">
-                    <label class="form-label text-white">.</label>
-                    <button type="button" class="btn btn-outline-danger w-100" onclick="removerEquipoEdit(${equipoCounterEdit})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-2">
-                    <small class="text-muted" id="stock-edit-${equipoCounterEdit}"></small>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    equiposContainerEdit.appendChild(equipoDiv);
+            const equiposData = [];
+            let hayErrores = false;
 
-    const select = equipoDiv.querySelector('.equipo-select-edit');
-    renderizarOpcionesStockEquiposEdit(select);
-}
+        equipoItems.forEach(item => {
+            const stockId = item.querySelector('.equipo-select-edit').value;
+            const cantidadInput = item.querySelector('input[name*="[cantidad]"]');
+            const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 0;
 
-function actualizarStockDisponibleEdit(selectElement, targetId) {
-    const equipoId = selectElement.value;
-    const equipo = stockEquipos.find(e => e.id == equipoId);
-    const targetElement = document.getElementById(targetId);
-    
-    if (equipo) {
-        targetElement.textContent = `Stock disponible: ${equipo.cantidad_disponible} unidades`;
-        targetElement.className = 'text-success';
-    } else {
-        targetElement.textContent = '';
-    }
-}
+            if (!stockId || !cantidad) {
+                hayErrores = true;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Todos los campos de equipo deben estar completos'
+                });
+                return;
+            }
 
-function renderizarOpcionesStockEquiposEdit(selectElement, selectedId = null) {
-    if (stockEquipos.length === 0) {
-        const option = document.createElement('option');
-        option.value = "";
-        option.textContent = "No hay equipos consumibles disponibles";
-        option.disabled = true;
-        selectElement.appendChild(option);
-        return;
-    }
+            const equipo = stockEquipos.find(e => e.id == stockId);
+            if (equipo && equipo.cantidad_disponible < cantidad) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: `Stock insuficiente para ${equipo.marca} ${equipo.modelo}. Disponible: ${equipo.cantidad_disponible}, Solicitado: ${cantidad}`
+                });
+                hayErrores = true;
+                return;
+            }
 
-    stockEquipos.forEach(equipo => {
-        const option = document.createElement('option');
-        option.value = equipo.id;
-        option.textContent = `${equipo.marca} ${equipo.modelo} - ${equipo.cantidad_disponible} disponibles`;
-        
-        if (selectedId && equipo.id == selectedId) {
-            option.selected = true;
-        }
-        
-        selectElement.appendChild(option);
-    });
-}
-
-async function actualizarConsumible() {
-    const form = document.getElementById('editConsumibleForm');
-    const formData = new FormData(form);
-    const consumibleId = formData.get('id');
-
-    const equiposContainerEdit = document.getElementById('equiposContainerEdit');
-    const equipoItems = equiposContainerEdit.querySelectorAll('.equipo-item');
-    
-    if (equipoItems.length === 0) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Debe tener al menos un equipo del inventario'
-        });
-        return;
-    }
-
-    const equiposData = [];
-    let hayErrores = false;
-
-    equipoItems.forEach(item => {
-        const stockId = item.querySelector('.equipo-select-edit').value;
-        const cantidadInput = item.querySelector('input[name*="[cantidad]"]');
-        const cantidad = cantidadInput ? parseInt(cantidadInput.value) : 0;
-
-        if (!stockId || !cantidad) {
-            hayErrores = true;
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Todos los campos de equipo deben estar completos'
+                equiposData.push({
+                    stock_equipos_id: parseInt(stockId),
+                    cantidad: cantidad
+                });
             });
-            return;
+
+            if (hayErrores) {
+                return;
+            }
+
+            const datos = {
+                nombre: formData.get('nombre'),
+                sede_id: parseInt(formData.get('sede_id')),
+                departamento_id: parseInt(formData.get('departamento_id')),
+                fecha_enviado: formData.get('fecha_enviado'),
+                detalles: formData.get('detalles'),
+                equipos: equiposData
+            };
+
+            console.log('Datos a enviar para actualizar:', datos);
+
+            try {
+                const response = await fetch(`/api/consumibles/${consumibleId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error del servidor');
+                }
+
+                const data = await response.json();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: data.message
+                });
+                $('#editConsumibleModal').modal('hide');
+                form.reset();
+                
+                document.getElementById('equiposContainerEdit').innerHTML = '';
+                equipoCounterEdit = 0;
+                
+                await cargarConsumibles(currentPage);
+                await cargarStockEquipos();
+                
+            } catch (error) {
+                console.error('Error al actualizar:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Error al actualizar el consumible'
+                });
+            }
         }
 
-        const equipo = stockEquipos.find(e => e.id == stockId);
-        if (equipo && equipo.cantidad_disponible < cantidad) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: `Stock insuficiente para ${equipo.marca} ${equipo.modelo}. Disponible: ${equipo.cantidad_disponible}, Solicitado: ${cantidad}`
-            });
-            hayErrores = true;
-            return;
+
+        async function viewConsumible(id) {
+            try {
+                const response = await fetch(`/api/consumibles/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar consumible');
+                }
+
+                const consumible = await response.json();
+                
+                const cantidadTotal = consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0);
+                const equiposList = consumible.consumible_equipos.map(ce => 
+                    `<li>${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} - ${ce.cantidad} unidades (${ce.stock_equipos.tipo_equipo.nombre})</li>`
+                ).join('');
+                
+                document.getElementById('view_nombre_header').textContent = consumible.nombre;
+                document.getElementById('view_id').textContent = `ID: ${consumible.id}`;
+                document.getElementById('view_consumible_id').textContent = consumible.id;
+                document.getElementById('view_cantidad').textContent = `${cantidadTotal.toLocaleString()} unidades totales`;
+                document.getElementById('view_sede').textContent = consumible.sede ? consumible.sede.nombre : 'Sin sede';
+                document.getElementById('view_departamento').textContent = consumible.departamento ? consumible.departamento.nombre : 'Sin departamento';
+                document.getElementById('view_fecha_enviado').textContent = new Date(consumible.fecha_enviado).toLocaleDateString('es-ES');
+                document.getElementById('view_created_at').textContent = new Date(consumible.created_at).toLocaleDateString('es-ES');
+                document.getElementById('view_stock_equipo').innerHTML = equiposList ? `<ul>${equiposList}</ul>` : 'No asignado';
+                document.getElementById('view_detalles').textContent = consumible.detalles || 'Sin detalles';
+                
+                $('#viewConsumibleModal').modal('show');
+                
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
         }
-
-        equiposData.push({
-            stock_equipos_id: parseInt(stockId),
-            cantidad: cantidad
-        });
-    });
-
-    if (hayErrores) {
-        return;
-    }
-
-    const datos = {
-        nombre: formData.get('nombre'),
-        sede_id: parseInt(formData.get('sede_id')),
-        departamento_id: parseInt(formData.get('departamento_id')),
-        fecha_enviado: formData.get('fecha_enviado'),
-        detalles: formData.get('detalles'),
-        equipos: equiposData
-    };
-
-    console.log('Datos a enviar para actualizar:', datos);
-
-    try {
-        const response = await fetch(`/api/consumibles/${consumibleId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(datos)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Error del servidor');
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-            icon: 'success',
-            title: 'Éxito',
-            text: data.message
-        });
-        $('#editConsumibleModal').modal('hide');
-        form.reset();
-        
-        document.getElementById('equiposContainerEdit').innerHTML = '';
-        equipoCounterEdit = 0;
-        
-        await cargarConsumibles(currentPage);
-        await cargarStockEquipos();
-        
-    } catch (error) {
-        console.error('Error al actualizar:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message || 'Error al actualizar el consumible'
-        });
-    }
-}
-
-
-async function viewConsumible(id) {
-    try {
-        const response = await fetch(`/api/consumibles/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar consumible');
-        }
-
-        const consumible = await response.json();
-        
-        const cantidadTotal = consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0);
-        const equiposList = consumible.consumible_equipos.map(ce => 
-            `<li>${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} - ${ce.cantidad} unidades (${ce.stock_equipos.tipo_equipo.nombre})</li>`
-        ).join('');
-        
-        document.getElementById('view_nombre_header').textContent = consumible.nombre;
-        document.getElementById('view_id').textContent = `ID: ${consumible.id}`;
-        document.getElementById('view_consumible_id').textContent = consumible.id;
-        document.getElementById('view_cantidad').textContent = `${cantidadTotal.toLocaleString()} unidades totales`;
-        document.getElementById('view_sede').textContent = consumible.sede ? consumible.sede.nombre : 'Sin sede';
-        document.getElementById('view_departamento').textContent = consumible.departamento ? consumible.departamento.nombre : 'Sin departamento';
-        document.getElementById('view_fecha_enviado').textContent = new Date(consumible.fecha_enviado).toLocaleDateString('es-ES');
-        document.getElementById('view_created_at').textContent = new Date(consumible.created_at).toLocaleDateString('es-ES');
-        document.getElementById('view_stock_equipo').innerHTML = equiposList ? `<ul>${equiposList}</ul>` : 'No asignado';
-        document.getElementById('view_detalles').textContent = consumible.detalles || 'Sin detalles';
-        
-        $('#viewConsumibleModal').modal('show');
-        
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
 
         async function deleteConsumible(id, nombre) {
             const result = await Swal.fire({
@@ -1914,37 +1917,37 @@ async function viewConsumible(id) {
             }
         }
 
-    function aplicarFiltros() {
-        currentFilters = {
-            search: document.getElementById('searchConsumible').value,
-            sede_id: document.getElementById('filterSede').value,
-            departamento_id: document.getElementById('filterDepartamento').value
-        };
-        
-        currentPage = 1;
-        cargarConsumibles(currentPage);
-    }
+            function aplicarFiltros() {
+                currentFilters = {
+                    search: document.getElementById('searchConsumible').value,
+                    sede_id: document.getElementById('filterSede').value,
+                    departamento_id: document.getElementById('filterDepartamento').value
+                };
+                
+                currentPage = 1;
+                cargarConsumibles(currentPage);
+            }
 
-    function aplicarBusquedaRapida() {
-        currentFilters.search = document.getElementById('searchConsumible').value;
-        currentPage = 1;
-        cargarConsumibles(currentPage);
-    }
+            function aplicarBusquedaRapida() {
+                currentFilters.search = document.getElementById('searchConsumible').value;
+                currentPage = 1;
+                cargarConsumibles(currentPage);
+            }
 
-    function resetFiltros() {
-        currentFilters = {
-            search: '',
-            sede_id: '',
-            departamento_id: ''
-        };
-        
-        document.getElementById('searchConsumible').value = '';
-        document.getElementById('filterSede').value = '';
-        document.getElementById('filterDepartamento').value = '';
-        
-        currentPage = 1;
-        cargarConsumibles(currentPage);
-    }
+            function resetFiltros() {
+                currentFilters = {
+                    search: '',
+                    sede_id: '',
+                    departamento_id: ''
+                };
+                
+                document.getElementById('searchConsumible').value = '';
+                document.getElementById('filterSede').value = '';
+                document.getElementById('filterDepartamento').value = '';
+                
+                currentPage = 1;
+                cargarConsumibles(currentPage);
+            }
 
 
         function resetFiltros() {
@@ -2032,200 +2035,200 @@ async function viewConsumible(id) {
             }
         }
 
-    function inicializarEventos() {
-        document.getElementById('logoutForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            this.submit();
-        });
+            function inicializarEventos() {
+                document.getElementById('logoutForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    this.submit();
+                });
 
-        document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await crearConsumible();
-        });
+                document.getElementById('createConsumibleForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    await crearConsumible();
+                });
 
-        document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await actualizarConsumible();
-        });
+                document.getElementById('editConsumibleForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    await actualizarConsumible();
+                });
 
-        let searchTimeout;
-        document.getElementById('searchConsumible').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
-        });
+                let searchTimeout;
+                document.getElementById('searchConsumible').addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
+                });
 
-        document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
-        document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
+                document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+                document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
 
-        $('#createConsumibleModal').on('hidden.bs.modal', function () {
-            document.getElementById('equiposContainer').innerHTML = '';
-            equipoCounter = 0;
-        });
-    }
+                $('#createConsumibleModal').on('hidden.bs.modal', function () {
+                    document.getElementById('equiposContainer').innerHTML = '';
+                    equipoCounter = 0;
+                });
+            }
 
-        $('#editConsumibleModal').on('show.bs.modal', function () {
-    const equiposContainer = document.getElementById('equiposContainer');
-    if (!document.querySelector('.add-equipo-btn-edicion')) {
-        const addButton = document.createElement('button');
-        addButton.type = 'button';
-        addButton.className = 'btn btn-outline-primary w-100 add-equipo-btn add-equipo-btn-edicion py-2 mt-3';
-        addButton.innerHTML = '<i class="bi bi-plus-circle me-2"></i> Agregar otro equipo';
-        addButton.onclick = function() {
-            agregarEquipo();
-        };
-        equiposContainer.parentNode.appendChild(addButton);
-    }
-});
-
-$('#editConsumibleModal').on('hidden.bs.modal', function () {
-    document.getElementById('equiposContainerEdit').innerHTML = '';
-    equipoCounterEdit = 0;
-});
-
-function abrirModalOrdenSalida() {
-    if (consumibles.length === 0 || sedes.length === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Datos incompletos',
-            text: 'No se han cargado los consumibles o sedes. Por favor, espere un momento e intente nuevamente.'
-        });
-        return;
-    }
-
-    const selectSedeOrigen = document.getElementById('select_sede_origen_orden');
-    selectSedeOrigen.innerHTML = '<option value="">Seleccione una sede</option>';
-    
-    sedes.forEach(sede => {
-        const option = document.createElement('option');
-        option.value = sede.id;
-        option.textContent = sede.nombre;
-        selectSedeOrigen.appendChild(option);
-    });
-
-    const selectConsumible = document.getElementById('select_consumible_orden');
-    selectConsumible.innerHTML = '<option value="">Seleccione un consumible</option>';
-    
-    consumibles.forEach(consumible => {
-        const option = document.createElement('option');
-        option.value = consumible.id;
-        option.textContent = `${consumible.nombre} - Destino: ${consumible.sede ? consumible.sede.nombre : 'Sin sede'} - ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}`;
-        selectConsumible.appendChild(option);
-    });
-
-    selectSedeOrigen.onchange = actualizarVistaPrevia;
-    selectConsumible.onchange = actualizarVistaPrevia;
-
-    document.getElementById('consumiblePreview').style.display = 'none';
-
-    document.getElementById('btnGenerarOrden').disabled = true;
-
-    $('#selectConsumibleOrdenModal').modal('show');
-}
-
-function actualizarVistaPrevia() {
-    const sedeOrigenId = document.getElementById('select_sede_origen_orden').value;
-    const consumibleId = document.getElementById('select_consumible_orden').value;
-    const previewDiv = document.getElementById('consumiblePreview');
-    const previewContent = document.getElementById('previewContent');
-    const btnGenerar = document.getElementById('btnGenerarOrden');
-
-    if (!sedeOrigenId || !consumibleId) {
-        previewDiv.style.display = 'none';
-        btnGenerar.disabled = true;
-        return;
-    }
-
-    const sedeOrigen = sedes.find(s => s.id == sedeOrigenId);
-    const consumible = consumibles.find(c => c.id == consumibleId);
-
-    if (!sedeOrigen || !consumible) {
-        previewDiv.style.display = 'none';
-        btnGenerar.disabled = true;
-        return;
-    }
-
-    const cantidadTotal = consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0);
-    const equiposList = consumible.consumible_equipos.map(ce => 
-        `<li>${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} - ${ce.cantidad} unidades</li>`
-    ).join('');
-
-    previewContent.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Sede de Origen:</strong><br>${sedeOrigen.nombre}</p>
-            </div>
-            <div class="col-md-6">
-                <p><strong>Sede de Destino:</strong><br>${consumible.sede ? consumible.sede.nombre : 'No especificada'}</p>
-            </div>
-        </div>
-        <p><strong>Consumible:</strong> ${consumible.nombre}</p>
-        <p><strong>Fecha de Envío:</strong> ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}</p>
-        <p><strong>Total Unidades:</strong> ${cantidadTotal}</p>
-        <p><strong>Equipos:</strong></p>
-        <ul>${equiposList}</ul>
-        <p><strong>Detalles:</strong> ${consumible.detalles || 'Sin detalles'}</p>
-    `;
-
-    previewDiv.style.display = 'block';
-    btnGenerar.disabled = false;
-}
-
-async function generarOrdenSalida() {
-    const sedeOrigenId = document.getElementById('select_sede_origen_orden').value;
-    const consumibleId = document.getElementById('select_consumible_orden').value;
-    
-    if (!sedeOrigenId || !consumibleId) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Datos incompletos',
-            text: 'Por favor seleccione tanto la sede de origen como el consumible.'
-        });
-        return;
-    }
-
-    const sedeOrigenSelect = document.getElementById('select_sede_origen_orden');
-    const consumibleSelect = document.getElementById('select_consumible_orden');
-    
-    const sedeOrigenNombre = sedeOrigenSelect.options[sedeOrigenSelect.selectedIndex].text;
-    const consumibleNombre = consumibleSelect.options[consumibleSelect.selectedIndex].text;
-
-    $('#selectConsumibleOrdenModal').modal('hide');
-
-    try {
-        console.log(`Generando orden de salida para consumible ID: ${consumibleId}, sede origen ID: ${sedeOrigenId}`);
-        
-        Swal.fire({
-            title: 'Generando Orden de Salida',
-            text: 'Por favor espere...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
+                $('#editConsumibleModal').on('show.bs.modal', function () {
+            const equiposContainer = document.getElementById('equiposContainer');
+            if (!document.querySelector('.add-equipo-btn-edicion')) {
+                const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'btn btn-outline-primary w-100 add-equipo-btn add-equipo-btn-edicion py-2 mt-3';
+                addButton.innerHTML = '<i class="bi bi-plus-circle me-2"></i> Agregar otro equipo';
+                addButton.onclick = function() {
+                    agregarEquipo();
+                };
+                equiposContainer.parentNode.appendChild(addButton);
             }
         });
 
-        window.open(`/api/consumibles/orden-salida/${consumibleId}/${sedeOrigenId}`, '_blank');
-        
-        Swal.close();
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'Orden Generada',
-            text: `La orden de salida se ha generado y abierto en una nueva pestaña`,
-            timer: 3000,
-            showConfirmButton: false
+        $('#editConsumibleModal').on('hidden.bs.modal', function () {
+            document.getElementById('equiposContainerEdit').innerHTML = '';
+            equipoCounterEdit = 0;
         });
-        
-    } catch (error) {
-        console.error('Error generando orden de salida:', error);
-        Swal.close();
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            html: `No se pudo generar la orden de salida:<br><small>${error.message}</small>`,
-            confirmButtonText: 'Entendido'
-        });
-    }
-}
+
+        function abrirModalOrdenSalida() {
+            if (consumibles.length === 0 || sedes.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos incompletos',
+                    text: 'No se han cargado los consumibles o sedes. Por favor, espere un momento e intente nuevamente.'
+                });
+                return;
+            }
+
+            const selectSedeOrigen = document.getElementById('select_sede_origen_orden');
+            selectSedeOrigen.innerHTML = '<option value="">Seleccione una sede</option>';
+            
+            sedes.forEach(sede => {
+                const option = document.createElement('option');
+                option.value = sede.id;
+                option.textContent = sede.nombre;
+                selectSedeOrigen.appendChild(option);
+            });
+
+            const selectConsumible = document.getElementById('select_consumible_orden');
+            selectConsumible.innerHTML = '<option value="">Seleccione un consumible</option>';
+            
+            consumibles.forEach(consumible => {
+                const option = document.createElement('option');
+                option.value = consumible.id;
+                option.textContent = `${consumible.nombre} - Destino: ${consumible.sede ? consumible.sede.nombre : 'Sin sede'} - ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}`;
+                selectConsumible.appendChild(option);
+            });
+
+            selectSedeOrigen.onchange = actualizarVistaPrevia;
+            selectConsumible.onchange = actualizarVistaPrevia;
+
+            document.getElementById('consumiblePreview').style.display = 'none';
+
+            document.getElementById('btnGenerarOrden').disabled = true;
+
+            $('#selectConsumibleOrdenModal').modal('show');
+        }
+
+        function actualizarVistaPrevia() {
+            const sedeOrigenId = document.getElementById('select_sede_origen_orden').value;
+            const consumibleId = document.getElementById('select_consumible_orden').value;
+            const previewDiv = document.getElementById('consumiblePreview');
+            const previewContent = document.getElementById('previewContent');
+            const btnGenerar = document.getElementById('btnGenerarOrden');
+
+            if (!sedeOrigenId || !consumibleId) {
+                previewDiv.style.display = 'none';
+                btnGenerar.disabled = true;
+                return;
+            }
+
+            const sedeOrigen = sedes.find(s => s.id == sedeOrigenId);
+            const consumible = consumibles.find(c => c.id == consumibleId);
+
+            if (!sedeOrigen || !consumible) {
+                previewDiv.style.display = 'none';
+                btnGenerar.disabled = true;
+                return;
+            }
+
+            const cantidadTotal = consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0);
+            const equiposList = consumible.consumible_equipos.map(ce => 
+                `<li>${ce.stock_equipos.marca} ${ce.stock_equipos.modelo} - ${ce.cantidad} unidades</li>`
+            ).join('');
+
+            previewContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Sede de Origen:</strong><br>${sedeOrigen.nombre}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Sede de Destino:</strong><br>${consumible.sede ? consumible.sede.nombre : 'No especificada'}</p>
+                    </div>
+                </div>
+                <p><strong>Consumible:</strong> ${consumible.nombre}</p>
+                <p><strong>Fecha de Envío:</strong> ${new Date(consumible.fecha_enviado).toLocaleDateString('es-ES')}</p>
+                <p><strong>Total Unidades:</strong> ${cantidadTotal}</p>
+                <p><strong>Equipos:</strong></p>
+                <ul>${equiposList}</ul>
+                <p><strong>Detalles:</strong> ${consumible.detalles || 'Sin detalles'}</p>
+            `;
+
+            previewDiv.style.display = 'block';
+            btnGenerar.disabled = false;
+        }
+
+        async function generarOrdenSalida() {
+            const sedeOrigenId = document.getElementById('select_sede_origen_orden').value;
+            const consumibleId = document.getElementById('select_consumible_orden').value;
+            
+            if (!sedeOrigenId || !consumibleId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos incompletos',
+                    text: 'Por favor seleccione tanto la sede de origen como el consumible.'
+                });
+                return;
+            }
+
+            const sedeOrigenSelect = document.getElementById('select_sede_origen_orden');
+            const consumibleSelect = document.getElementById('select_consumible_orden');
+            
+            const sedeOrigenNombre = sedeOrigenSelect.options[sedeOrigenSelect.selectedIndex].text;
+            const consumibleNombre = consumibleSelect.options[consumibleSelect.selectedIndex].text;
+
+            $('#selectConsumibleOrdenModal').modal('hide');
+
+            try {
+                console.log(`Generando orden de salida para consumible ID: ${consumibleId}, sede origen ID: ${sedeOrigenId}`);
+                
+                Swal.fire({
+                    title: 'Generando Orden de Salida',
+                    text: 'Por favor espere...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                window.open(`/api/consumibles/orden-salida/${consumibleId}/${sedeOrigenId}`, '_blank');
+                
+                Swal.close();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Orden Generada',
+                    text: `La orden de salida se ha generado y abierto en una nueva pestaña`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                
+            } catch (error) {
+                console.error('Error generando orden de salida:', error);
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: `No se pudo generar la orden de salida:<br><small>${error.message}</small>`,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        }
     </script>
 </body>
 </html>

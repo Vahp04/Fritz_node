@@ -933,40 +933,40 @@
            stock: ''
         };
         
-async function cargarStockEquipos(page = 1, filtros = {}) {
-    try {
-        currentPage = page;
-        
-        const params = new URLSearchParams({
-            page: page.toString(),
-            limit: '10'
-        });
-        
-        if (filtros.nombre) params.append('nombre', filtros.nombre);
-        if (filtros.tipo) params.append('tipo', filtros.tipo);
-        if (filtros.stock) params.append('stock', filtros.stock);
-        
-        const response = await fetch(`/api/stock_equipos?${params.toString()}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar equipos');
-        }
+        async function cargarStockEquipos(page = 1, filtros = {}) {
+            try {
+                currentPage = page;
+                
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    limit: '10'
+                });
+                
+                if (filtros.nombre) params.append('nombre', filtros.nombre);
+                if (filtros.tipo) params.append('tipo', filtros.tipo);
+                if (filtros.stock) params.append('stock', filtros.stock);
+                
+                const response = await fetch(`/api/stock_equipos?${params.toString()}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar equipos');
+                }
 
-        const data = await response.json();
-        
-        stockEquipos = data.stockEquipos || [];
-        totalPages = data.pagination?.total || 1;
-        totalRecords = data.pagination?.totalRecords || 0;
-        
-        await actualizarResumen();
-        renderizarStockEquipos();
-        renderizarPaginacion();
-        
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarError('No se pudieron cargar los equipos');
-    }
-}
+                const data = await response.json();
+                
+                stockEquipos = data.stockEquipos || [];
+                totalPages = data.pagination?.total || 1;
+                totalRecords = data.pagination?.totalRecords || 0;
+                
+                await actualizarResumen();
+                renderizarStockEquipos();
+                renderizarPaginacion();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('No se pudieron cargar los equipos');
+            }
+        }
 
         async function cargarTipoEquipos() {
             try {
@@ -1109,25 +1109,25 @@ async function cargarStockEquipos(page = 1, filtros = {}) {
         }
 
         function formatDateWithoutTimezone(date) {
-    if (!date || !(date instanceof Date) || isNaN(date)) {
-        return 'Fecha inválida';
-    }
-    
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    
-    return `${day}/${month}/${year}`;
-}
+            if (!date || !(date instanceof Date) || isNaN(date)) {
+                return 'Fecha inválida';
+            }
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            return `${day}/${month}/${year}`;
+        }
 
-function formatDateWithoutTimezone(date) {
-    return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        timeZone: 'UTC'
-    });
-}
+        function formatDateWithoutTimezone(date) {
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                timeZone: 'UTC'
+            });
+        }
 
         function renderizarTipoEquipos() {
             const selects = [
@@ -1153,37 +1153,37 @@ function formatDateWithoutTimezone(date) {
             });
         }
 
-    function renderizarPaginacion() {
-        const pagination = document.getElementById('paginationContainer');
-        pagination.innerHTML = '';
+        function renderizarPaginacion() {
+            const pagination = document.getElementById('paginationContainer');
+            pagination.innerHTML = '';
 
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-        `;
-        pagination.appendChild(prevLi);
-
-        for (let i = 1; i <= totalPages; i++) {
-            const pageLi = document.createElement('li');
-            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="cargarStockEquipos(${i}, filtrosActuales)">${i}</a>
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage - 1}, filtrosActuales)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
             `;
-            pagination.appendChild(pageLi);
-        }
+            pagination.appendChild(prevLi);
 
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `
-            <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        `;
-        pagination.appendChild(nextLi);
-    }
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                pageLi.innerHTML = `
+                    <a class="page-link" href="#" onclick="cargarStockEquipos(${i}, filtrosActuales)">${i}</a>
+                `;
+                pagination.appendChild(pageLi);
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" onclick="cargarStockEquipos(${currentPage + 1}, filtrosActuales)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            `;
+            pagination.appendChild(nextLi);
+        }
 
         function calcularCantidadesNuevo() {
             const cantidadTotal = parseInt(document.getElementById('cantidad_total').value) || 0;
@@ -1334,7 +1334,7 @@ function formatDateWithoutTimezone(date) {
             const formData = new FormData(form);
 
             try {
-                console.log('Datos a enviar:', Object.fromEntries(formData)); // Debug
+                console.log('Datos a enviar:', Object.fromEntries(formData)); 
 
                 const response = await fetch('/api/stock_equipos', {
                     method: 'POST',
@@ -1492,7 +1492,7 @@ function formatDateWithoutTimezone(date) {
             }
         }
 
-      async function deleteStockEquipo(id, nombre) {
+        async function deleteStockEquipo(id, nombre) {
             const result = await Swal.fire({
                 title: '¿Estás seguro?',
                 text: `Vas a eliminar el equipo "${nombre}". Esta acción no se puede deshacer.`,
@@ -1580,7 +1580,6 @@ function formatDateWithoutTimezone(date) {
             };
         }
 
-        // Función para resetear filtros
         function resetFiltros() {
             console.log('Reseteando filtros...');
             
@@ -1594,10 +1593,8 @@ function formatDateWithoutTimezone(date) {
                 stock: ''
             };
             
-            // Recargar todos los equipos
             cargarStockEquipos(1);
             
-            // Mostrar notificación
             const toast = document.createElement('div');
             toast.className = 'position-fixed bottom-0 end-0 p-3';
             toast.style.zIndex = '11';

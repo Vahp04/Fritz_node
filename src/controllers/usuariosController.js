@@ -352,8 +352,6 @@ async show(req, res) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      // IMPORTANTE: FileUploadService guarda la ruta relativa desde 'uploads/'
-      // Por ejemplo: 'usuarios/comprobantes/123456789-abc123.jpg'
       const usuarioConComprobante = {
         ...usuario,
         comprobante_url: usuario.comprobante ? `/uploads/${usuario.comprobante}` : null
@@ -466,7 +464,6 @@ async show(req, res) {
 
          let comprobantePath = usuarioExistente.comprobante;
 
-        // Manejo de eliminación de comprobante
         if (delete_comprobante === 'true') {
             if (usuarioExistente.comprobante) {
                 await FileUploadService.deleteFile(usuarioExistente.comprobante);
@@ -486,12 +483,10 @@ async show(req, res) {
                 });
             }
             
-            // Eliminar comprobante anterior si existe
             if (usuarioExistente.comprobante) {
                 await FileUploadService.deleteFile(usuarioExistente.comprobante);
             }
             
-            // Usar FileUploadService para subir el archivo
             comprobantePath = await FileUploadService.uploadFile(req.file, 'usuarios/comprobantes');
             console.log('Comprobante subido:', comprobantePath);
         }
@@ -551,7 +546,6 @@ async show(req, res) {
             });
         }
         
-        // Manejar errores de multer
         if (error instanceof multer.MulterError) {
             if (error.code === 'LIMIT_FILE_SIZE') {
                 return res.status(400).json({

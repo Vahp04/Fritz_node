@@ -657,7 +657,8 @@ async equiposConsumibles(req, res) {
             return tipoNombre.includes('consumible') || 
                    tipoNombre.includes('toner') ||
                    tipoNombre.includes('cartucho') ||
-                   tipoNombre.includes('batería') ||
+                   tipoNombre.includes('baterías') ||
+                   tipoNombre.includes('baterias') ||
                    tipoNombre.includes('ups') ||
                    tipoNombre.includes('tinta');
         });

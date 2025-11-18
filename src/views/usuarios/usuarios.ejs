@@ -803,37 +803,35 @@
                                     </select>
                                 </div>
                             </div>
-
                             <div class="col-12">
-    <div class="mb-3">
-        <label class="form-label">Comprobante</label>
-        <input type="file" 
-               class="form-control" 
-               name="comprobante" 
-               id="edit_comprobante"
-               accept="image/*,.pdf,.doc,.docx">
-        <div class="form-text">
-            Sube un comprobante relacionado con el usuario (solo al editar). 
-            Formatos: JPG, PNG, PDF, DOC. Máx: 5MB.
-        </div>
-        
-        <div id="comprobante_actual_container" class="mt-2" style="display: none;">
-            <label class="form-label">Comprobante Actual:</label>
-            <div class="border rounded p-2">
-                <div id="comprobante_actual_content">
-                   
-                </div>
-                <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                            onclick="eliminarComprobanteActual()">
-                        <i class="bi bi-trash me-1"></i> Eliminar Comprobante
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+                                <div class="mb-3">
+                                    <label class="form-label">Comprobante</label>
+                                    <input type="file" 
+                                        class="form-control" 
+                                        name="comprobante" 
+                                        id="edit_comprobante"
+                                        accept="image/*,.pdf,.doc,.docx">
+                                    <div class="form-text">
+                                        Sube un comprobante relacionado con el usuario (solo al editar). 
+                                        Formatos: JPG, PNG, PDF, DOC. Máx: 5MB.
+                                    </div>
+                                    
+                                    <div id="comprobante_actual_container" class="mt-2" style="display: none;">
+                                        <label class="form-label">Comprobante Actual:</label>
+                                        <div class="border rounded p-2">
+                                            <div id="comprobante_actual_content">
+                                            
+                                            </div>
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="eliminarComprobanteActual()">
+                                                    <i class="bi bi-trash me-1"></i> Eliminar Comprobante
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -904,8 +902,8 @@
                             <p id="view_created" class="mb-2"></p>
                         </div>
                         <div class="col-12 mt-3">
-    <div id="view_comprobante_container"></div>
-</div>
+                            <div id="view_comprobante_container"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -996,18 +994,17 @@
             inicializarSelectsCargo();
         });
         
-  let filtrosActuales = {
-    nombre: '',
-    cargo: '',
-    sede: '',
-    rdp: ''
-};
+        let filtrosActuales = {
+            nombre: '',
+            cargo: '',
+            sede: '',
+            rdp: ''
+        };
 
         async function cargarUsuarios(page = 1, filtros = {}) {
             try {
                 currentPage = page;
                 
-                // Construir query string con filtros
                 const params = new URLSearchParams({
                     page: page.toString(),
                     limit: '10'
@@ -1038,7 +1035,6 @@
                 mostrarError('No se pudieron cargar los usuarios');
             }
         }
-
 
         function debugRDP() {
             console.log('=== DEBUG RDP ===');
@@ -1473,426 +1469,426 @@
             }
         }
     // INICIALIZACIÓN
-    document.addEventListener('DOMContentLoaded', function() {
-        applySavedTheme();
+        document.addEventListener('DOMContentLoaded', function() {
+            applySavedTheme();
 
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                const sidebar = document.querySelector('.sidebar');
-                sidebar.classList.toggle('sidebar-collapsed');
-                
-                const icon = this.querySelector('i');
-                icon.classList.toggle('bi-chevron-double-left');
-                icon.classList.toggle('bi-chevron-double-right');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-chevron-double-left');
+                    icon.classList.toggle('bi-chevron-double-right');
+                });
+            }
+
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            const themeSwitcher = document.querySelector('.theme-switcher');
+            if (themeSwitcher) {
+                themeSwitcher.addEventListener('click', toggleTheme);
+            }
+        });
+
+        let eventosInicializados = false;
+
+        function inicializarEventos() {
+            if (eventosInicializados) {
+                console.log('Eventos ya inicializados, omitiendo...');
+                return;
+            }
+            
+            console.log('Inicializando eventos...');
+            eventosInicializados = true;
+
+            document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Evento submit del formulario crear capturado');
+                crearUsuario();
             });
-        }
 
-        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', function() {
-                document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+            document.getElementById('editUsuarioForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Evento submit del formulario editar capturado');
+                actualizarUsuario();
             });
+
+            const searchName = document.getElementById('searchName');
+            const searchCargo = document.getElementById('searchCargo');
+            const searchSede = document.getElementById('searchSede');
+            const searchRDP = document.getElementById('searchRDP');
+            const resetFilters = document.getElementById('resetFilters');
+
+            if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchCargo) searchCargo.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchSede) searchSede.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (searchRDP) searchRDP.addEventListener('input', debounce(aplicarFiltros, 500));
+            if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
+
+            inicializarEventosModalReporte();
+
+
+            console.log('Todos los eventos inicializados correctamente');
         }
 
-        const themeSwitcher = document.querySelector('.theme-switcher');
-        if (themeSwitcher) {
-            themeSwitcher.addEventListener('click', toggleTheme);
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
-    });
 
-let eventosInicializados = false;
-
-function inicializarEventos() {
-    if (eventosInicializados) {
-        console.log('Eventos ya inicializados, omitiendo...');
-        return;
-    }
-    
-    console.log('Inicializando eventos...');
-    eventosInicializados = true;
-
-    document.getElementById('createUsuarioForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('Evento submit del formulario crear capturado');
-        crearUsuario();
-    });
-
-    document.getElementById('editUsuarioForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log('Evento submit del formulario editar capturado');
-        actualizarUsuario();
-    });
-
-    const searchName = document.getElementById('searchName');
-    const searchCargo = document.getElementById('searchCargo');
-    const searchSede = document.getElementById('searchSede');
-    const searchRDP = document.getElementById('searchRDP');
-    const resetFilters = document.getElementById('resetFilters');
-
-    if (searchName) searchName.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (searchCargo) searchCargo.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (searchSede) searchSede.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (searchRDP) searchRDP.addEventListener('input', debounce(aplicarFiltros, 500));
-    if (resetFilters) resetFilters.addEventListener('click', resetFiltros);
-
-     inicializarEventosModalReporte();
-
-
-    console.log('Todos los eventos inicializados correctamente');
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-function ampliarImagen(src) {
-    const modalHtml = `
-        <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-image me-2"></i>Comprobante
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img src="${src}" 
-                            alt="Comprobante ampliado" 
-                            class="img-fluid"
-                            style="max-height: 80vh;">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
-                            <i class="bi bi-download me-1"></i>Descargar
-                        </a>
+        function ampliarImagen(src) {
+            const modalHtml = `
+                <div class="modal fade" id="imagenAmpliadaModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark text-white">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-image me-2"></i>Comprobante
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="${src}" 
+                                    alt="Comprobante ampliado" 
+                                    class="img-fluid"
+                                    style="max-height: 80vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <a href="${src}" download="comprobante-${Date.now()}.jpg" class="btn btn-fritz">
+                                    <i class="bi bi-download me-1"></i>Descargar
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `;
-    
-    const existingModal = document.getElementById('imagenAmpliadaModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
-    imagenModal.show();
-    
-    document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
-        this.remove();
-    });
-}
+            `;
+            
+            const existingModal = document.getElementById('imagenAmpliadaModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            const imagenModal = new bootstrap.Modal(document.getElementById('imagenAmpliadaModal'));
+            imagenModal.show();
+            
+            document.getElementById('imagenAmpliadaModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+            });
+        }
 
     // Funciones CRUD
-let creandoUsuario = false;
+        let creandoUsuario = false;
 
-async function crearUsuario() {
-    if (creandoUsuario) {
-        console.log('Ya se está creando un usuario, ignorando...');
-        return;
-    }
-    
-    console.log('=== INICIANDO CREACIÓN DE USUARIO ===');
-    creandoUsuario = true;
-    
-    const form = document.getElementById('createUsuarioForm');
-    const formData = new FormData(form);
-    const datos = Object.fromEntries(formData);
-    
-    console.log('Datos del formulario:', datos);
+        async function crearUsuario() {
+            if (creandoUsuario) {
+                console.log('Ya se está creando un usuario, ignorando...');
+                return;
+            }
+            
+            console.log('=== INICIANDO CREACIÓN DE USUARIO ===');
+            creandoUsuario = true;
+            
+            const form = document.getElementById('createUsuarioForm');
+            const formData = new FormData(form);
+            const datos = Object.fromEntries(formData);
+            
+            console.log('Datos del formulario:', datos);
 
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.innerHTML;
-    
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
 
-    try {
-        const inicio = Date.now();
-        const response = await fetch('/api/usuarios', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
+            try {
+                const inicio = Date.now();
+                const response = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                const tiempo = Date.now() - inicio;
+                console.log(`Tiempo de respuesta: ${tiempo}ms`);
+                console.log('Estado de respuesta:', response.status);
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                if (response.ok) {
+                    console.log('Usuario creado exitosamente');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    
+                    $('#createUsuarioModal').modal('hide');
+                    form.reset();
+                    await cargarUsuarios(currentPage);
+                } else {
+                    console.error('Error del servidor:', data.error);
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error en crearUsuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+                creandoUsuario = false;
+                console.log('=== FIN DE CREAR USUARIO ===');
+            }
+        }
+
+        $('#createUsuarioModal').on('hidden.bs.modal', function () {
+            console.log('Modal cerrado, reseteando estado...');
+            creandoUsuario = false;
+            
+            const form = document.getElementById('createUsuarioForm');
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Guardar Usuario';
         });
 
-        const tiempo = Date.now() - inicio;
-        console.log(`Tiempo de respuesta: ${tiempo}ms`);
-        console.log('Estado de respuesta:', response.status);
+        $('#createUsuarioModal').on('show.bs.modal', function () {
+            console.log('Modal abierto, estado reset');
+            creandoUsuario = false;
+        });
 
-        const data = await response.json();
-        console.log('Respuesta del servidor:', data);
-
-        if (response.ok) {
-            console.log('Usuario creado exitosamente');
+        function eliminarComprobanteActual() {
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message
+                title: '¿Eliminar comprobante?',
+                text: 'Esta acción eliminará el comprobante actual del usuario.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('comprobante_actual_container').style.display = 'none';
+                    document.getElementById('edit_comprobante').value = '';
+                    
+                    let deleteInput = document.getElementById('delete_comprobante');
+                    if (!deleteInput) {
+                        deleteInput = document.createElement('input');
+                        deleteInput.type = 'hidden';
+                        deleteInput.name = 'delete_comprobante';
+                        deleteInput.id = 'delete_comprobante';
+                        deleteInput.value = 'true';
+                        document.getElementById('editUsuarioForm').appendChild(deleteInput);
+                    } else {
+                        deleteInput.value = 'true';
+                    }
+                    
+                    Swal.fire('Eliminado', 'El comprobante ha sido eliminado', 'success');
+                }
             });
-            
-            $('#createUsuarioModal').modal('hide');
-            form.reset();
-            await cargarUsuarios(currentPage);
-        } else {
-            console.error('Error del servidor:', data.error);
-            throw new Error(data.error);
-        }
-    } catch (error) {
-        console.error('Error en crearUsuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalText;
-        creandoUsuario = false;
-        console.log('=== FIN DE CREAR USUARIO ===');
-    }
-}
-
-$('#createUsuarioModal').on('hidden.bs.modal', function () {
-    console.log('Modal cerrado, reseteando estado...');
-    creandoUsuario = false;
-    
-    const form = document.getElementById('createUsuarioForm');
-    const submitButton = form.querySelector('button[type="submit"]');
-    submitButton.disabled = false;
-    submitButton.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Guardar Usuario';
-});
-
-$('#createUsuarioModal').on('show.bs.modal', function () {
-    console.log('Modal abierto, estado reset');
-    creandoUsuario = false;
-});
-
-function eliminarComprobanteActual() {
-    Swal.fire({
-        title: '¿Eliminar comprobante?',
-        text: 'Esta acción eliminará el comprobante actual del usuario.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#DC2626',
-        cancelButtonColor: '#6B7280',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('comprobante_actual_container').style.display = 'none';
-            document.getElementById('edit_comprobante').value = '';
-            
-            let deleteInput = document.getElementById('delete_comprobante');
-            if (!deleteInput) {
-                deleteInput = document.createElement('input');
-                deleteInput.type = 'hidden';
-                deleteInput.name = 'delete_comprobante';
-                deleteInput.id = 'delete_comprobante';
-                deleteInput.value = 'true';
-                document.getElementById('editUsuarioForm').appendChild(deleteInput);
-            } else {
-                deleteInput.value = 'true';
-            }
-            
-            Swal.fire('Eliminado', 'El comprobante ha sido eliminado', 'success');
-        }
-    });
-}
-
-async function editUsuario(id) {
-    try {
-        console.log(`Cargando usuario ID: ${id} para edición`);
-        
-        const response = await fetch(`/api/usuarios/${id}`);
-        
-        if (!response.ok) {
-            throw new Error('Error al cargar usuario');
         }
 
-        const usuario = await response.json();
-        
-        console.log('Datos del usuario para editar:', usuario);
-        
-        document.getElementById('edit_usuario_id').value = usuario.id;
-        document.getElementById('edit_nombre').value = usuario.nombre || '';
-        document.getElementById('edit_apellido').value = usuario.apellido || '';
-        document.getElementById('edit_correo').value = usuario.correo || '';
-        document.getElementById('edit_rdpfis').value = usuario.rdpfis || '';
-        document.getElementById('edit_rdpfin').value = usuario.rdpfin || '';
-        document.getElementById('edit_descripcion').value = usuario.descripcion || '';
-        
-        const cargoSelect = document.getElementById('edit_cargo');
-        if (cargoSelect) {
-            cargoSelect.value = usuario.cargo || '';
-        }
-
-        const comprobanteContainer = document.getElementById('comprobante_actual_container');
-        const comprobanteContent = document.getElementById('comprobante_actual_content');
-
-         const deleteInput = document.getElementById('delete_comprobante');
-        if (deleteInput) {
-            deleteInput.remove();
-        }
-        
-        if (usuario.comprobante || usuario.comprobante_url) {
-            const comprobantePath = usuario.comprobante_url || `/uploads/${usuario.comprobante}`;
-            const fileExtension = comprobantePath.split('.').pop().toLowerCase();
-            
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
-          
-                comprobanteContent.innerHTML = `
-                    <img src="${comprobantePath}" 
-                         alt="Comprobante" 
-                         class="img-fluid rounded" 
-                         style="max-height: 200px; cursor: pointer;"
-                         onclick="ampliarImagen('${comprobantePath}')"
-                         title="Click para ampliar">
-                    <div class="mt-1">
-                        <small class="text-muted">
-                            <i class="bi bi-image me-1"></i>Comprobante (Imagen)
-                        </small>
-                    </div>
-                `;
-            } else {
-          
-                comprobanteContent.innerHTML = `
-                    <div class="text-center">
-                        <i class="bi bi-file-earmark-text display-4 text-muted"></i>
-                        <div class="mt-2">
-                            <a href="${comprobantePath}" 
-                               target="_blank" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download me-1"></i>Descargar Comprobante
-                            </a>
-                        </div>
-                        <small class="text-muted d-block mt-1">
-                            <i class="bi bi-filetype-${fileExtension} me-1"></i>Archivo ${fileExtension.toUpperCase()}
-                        </small>
-                    </div>
-                `;
-            }
-            comprobanteContainer.style.display = 'block';
-        } else {
-            comprobanteContainer.style.display = 'none';
-        }
-        
-        $('#editUsuarioModal').modal('show');
-        
-        const establecerValoresSelects = () => {
-            console.log('Estableciendo valores de sede y departamento...');
-            
-            const sedeSelect = document.getElementById('edit_sede_id');
-            const departamentoSelect = document.getElementById('edit_departamento_id');
-            
-            if (sedeSelect && sedeSelect.options.length > 1) {
-                console.log(`Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
+        async function editUsuario(id) {
+            try {
+                console.log(`Cargando usuario ID: ${id} para edición`);
                 
-                let sedeEncontrada = false;
-                for (let i = 0; i < sedeSelect.options.length; i++) {
-                    if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
-                        sedeSelect.value = usuario.sede_id;
-                        sedeEncontrada = true;
-                        console.log(`Sede encontrada y establecida: ${sedeSelect.value}`);
-                        break;
-                    }
+                const response = await fetch(`/api/usuarios/${id}`);
+                
+                if (!response.ok) {
+                    throw new Error('Error al cargar usuario');
+                }
+
+                const usuario = await response.json();
+                
+                console.log('Datos del usuario para editar:', usuario);
+                
+                document.getElementById('edit_usuario_id').value = usuario.id;
+                document.getElementById('edit_nombre').value = usuario.nombre || '';
+                document.getElementById('edit_apellido').value = usuario.apellido || '';
+                document.getElementById('edit_correo').value = usuario.correo || '';
+                document.getElementById('edit_rdpfis').value = usuario.rdpfis || '';
+                document.getElementById('edit_rdpfin').value = usuario.rdpfin || '';
+                document.getElementById('edit_descripcion').value = usuario.descripcion || '';
+                
+                const cargoSelect = document.getElementById('edit_cargo');
+                if (cargoSelect) {
+                    cargoSelect.value = usuario.cargo || '';
+                }
+
+                const comprobanteContainer = document.getElementById('comprobante_actual_container');
+                const comprobanteContent = document.getElementById('comprobante_actual_content');
+
+                const deleteInput = document.getElementById('delete_comprobante');
+                if (deleteInput) {
+                    deleteInput.remove();
                 }
                 
-                if (!sedeEncontrada) {
-                    console.warn(`No se encontró la sede_id: ${usuario.sede_id}`);
-                    if (sedeSelect.options.length > 1) {
-                        sedeSelect.selectedIndex = 1;
-                        console.log(`Estableciendo primera sede disponible: ${sedeSelect.value}`);
-                    }
-                }
-            } else {
-                console.warn('Select de sede no disponible o sin opciones');
-            }
-            
-            if (departamentoSelect && departamentoSelect.options.length > 1) {
-                console.log(`Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
+                if (usuario.comprobante || usuario.comprobante_url) {
+                    const comprobantePath = usuario.comprobante_url || `/uploads/${usuario.comprobante}`;
+                    const fileExtension = comprobantePath.split('.').pop().toLowerCase();
+                    
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
                 
-                let departamentoEncontrado = false;
-                for (let i = 0; i < departamentoSelect.options.length; i++) {
-                    if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
-                        departamentoSelect.value = usuario.departamento_id;
-                        departamentoEncontrado = true;
-                        console.log(`Departamento encontrado y establecido: ${departamentoSelect.value}`);
-                        break;
+                        comprobanteContent.innerHTML = `
+                            <img src="${comprobantePath}" 
+                                alt="Comprobante" 
+                                class="img-fluid rounded" 
+                                style="max-height: 200px; cursor: pointer;"
+                                onclick="ampliarImagen('${comprobantePath}')"
+                                title="Click para ampliar">
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    <i class="bi bi-image me-1"></i>Comprobante (Imagen)
+                                </small>
+                            </div>
+                        `;
+                    } else {
+                
+                        comprobanteContent.innerHTML = `
+                            <div class="text-center">
+                                <i class="bi bi-file-earmark-text display-4 text-muted"></i>
+                                <div class="mt-2">
+                                    <a href="${comprobantePath}" 
+                                    target="_blank" 
+                                    class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download me-1"></i>Descargar Comprobante
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="bi bi-filetype-${fileExtension} me-1"></i>Archivo ${fileExtension.toUpperCase()}
+                                </small>
+                            </div>
+                        `;
                     }
+                    comprobanteContainer.style.display = 'block';
+                } else {
+                    comprobanteContainer.style.display = 'none';
                 }
                 
-                if (!departamentoEncontrado) {
-                    console.warn(`No se encontró el departamento_id: ${usuario.departamento_id}`);
-                    if (departamentoSelect.options.length > 1) {
-                        departamentoSelect.selectedIndex = 1;
-                        console.log(`Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
+                $('#editUsuarioModal').modal('show');
+                
+                const establecerValoresSelects = () => {
+                    console.log('Estableciendo valores de sede y departamento...');
+                    
+                    const sedeSelect = document.getElementById('edit_sede_id');
+                    const departamentoSelect = document.getElementById('edit_departamento_id');
+                    
+                    if (sedeSelect && sedeSelect.options.length > 1) {
+                        console.log(`Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
+                        
+                        let sedeEncontrada = false;
+                        for (let i = 0; i < sedeSelect.options.length; i++) {
+                            if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
+                                sedeSelect.value = usuario.sede_id;
+                                sedeEncontrada = true;
+                                console.log(`Sede encontrada y establecida: ${sedeSelect.value}`);
+                                break;
+                            }
+                        }
+                        
+                        if (!sedeEncontrada) {
+                            console.warn(`No se encontró la sede_id: ${usuario.sede_id}`);
+                            if (sedeSelect.options.length > 1) {
+                                sedeSelect.selectedIndex = 1;
+                                console.log(`Estableciendo primera sede disponible: ${sedeSelect.value}`);
+                            }
+                        }
+                    } else {
+                        console.warn('Select de sede no disponible o sin opciones');
                     }
+                    
+                    if (departamentoSelect && departamentoSelect.options.length > 1) {
+                        console.log(`Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
+                        
+                        let departamentoEncontrado = false;
+                        for (let i = 0; i < departamentoSelect.options.length; i++) {
+                            if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
+                                departamentoSelect.value = usuario.departamento_id;
+                                departamentoEncontrado = true;
+                                console.log(`Departamento encontrado y establecido: ${departamentoSelect.value}`);
+                                break;
+                            }
+                        }
+                        
+                        if (!departamentoEncontrado) {
+                            console.warn(`No se encontró el departamento_id: ${usuario.departamento_id}`);
+                            if (departamentoSelect.options.length > 1) {
+                                departamentoSelect.selectedIndex = 1;
+                                console.log(`Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
+                            }
+                        }
+                    } else {
+                        console.warn('Select de departamento no disponible o sin opciones');
+                    }
+                };
+                
+                console.log('Cargando datos para edición...');
+                
+                let sedesCargadas = sedes.length > 0;
+                let departamentosCargados = departamentos.length > 0;
+                
+                const promesasCarga = [];
+                
+                if (!sedesCargadas) {
+                    console.log('Cargando sedes...');
+                    promesasCarga.push(cargarSedes());
                 }
-            } else {
-                console.warn('Select de departamento no disponible o sin opciones');
-            }
-        };
-        
-        console.log('Cargando datos para edición...');
-        
-        let sedesCargadas = sedes.length > 0;
-        let departamentosCargados = departamentos.length > 0;
-        
-        const promesasCarga = [];
-        
-        if (!sedesCargadas) {
-            console.log('Cargando sedes...');
-            promesasCarga.push(cargarSedes());
-        }
-        
-        if (!departamentosCargados) {
-            console.log('Cargando departamentos...');
-            promesasCarga.push(cargarDepartamentos());
-        }
-        
-        if (promesasCarga.length > 0) {
-            await Promise.all(promesasCarga);
-            console.log('Todos los datos cargados');
-        } else {
-            console.log('Datos ya cargados previamente');
-        }
-        
-        renderizarSedes(false, 'edit_sede_id');
-        renderizarDepartamentos(false, 'edit_departamento_id');
+                
+                if (!departamentosCargados) {
+                    console.log('Cargando departamentos...');
+                    promesasCarga.push(cargarDepartamentos());
+                }
+                
+                if (promesasCarga.length > 0) {
+                    await Promise.all(promesasCarga);
+                    console.log('Todos los datos cargados');
+                } else {
+                    console.log('Datos ya cargados previamente');
+                }
+                
+                renderizarSedes(false, 'edit_sede_id');
+                renderizarDepartamentos(false, 'edit_departamento_id');
 
-        setTimeout(() => {
-            establecerValoresSelects();
-        }, 100);
-        
-        setTimeout(() => {
-            establecerValoresSelects();
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error en editUsuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    }
-}
+                setTimeout(() => {
+                    establecerValoresSelects();
+                }, 100);
+                
+                setTimeout(() => {
+                    establecerValoresSelects();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error en editUsuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
         async function viewUsuario(id) {
             try {
                 const response = await fetch(`/api/usuarios/${id}`);
@@ -1994,38 +1990,38 @@ async function editUsuario(id) {
             }
         }
 
-function inicializarSelectsCargo() {
-    const cargos = [
-        "Gerente", "Jefe", "Analista", "Especialista", "Becario", 
-        "Pasante", "Coordinador", "Supervisor"
-    ];
-    
-    const selects = ['create_cargo', 'edit_cargo'];
-    
-    selects.forEach(selectId => {
-        const select = document.getElementById(selectId);
-        if (select) {
-            while (select.options.length > 1) {
-                select.remove(1);
-            }
+        function inicializarSelectsCargo() {
+            const cargos = [
+                "Gerente", "Jefe", "Analista", "Especialista", "Becario", 
+                "Pasante", "Coordinador", "Supervisor"
+            ];
             
-            cargos.forEach(cargo => {
-                const option = document.createElement('option');
-                option.value = cargo;
-                option.textContent = cargo;
-                select.appendChild(option);
+            const selects = ['create_cargo', 'edit_cargo'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+                    
+                    cargos.forEach(cargo => {
+                        const option = document.createElement('option');
+                        option.value = cargo;
+                        option.textContent = cargo;
+                        select.appendChild(option);
+                    });
+                }
             });
         }
-    });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    inicializarSelectsCargo();
-    cargarUsuarios();
-    cargarSedes();
-    cargarDepartamentos();
-    inicializarEventos();
-});
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarSelectsCargo();
+            cargarUsuarios();
+            cargarSedes();
+            cargarDepartamentos();
+            inicializarEventos();
+        });
 
         async function deleteUsuario(id, nombre) {
             const result = await Swal.fire({
@@ -2146,13 +2142,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         }
 
-                function mostrarError(mensaje) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: mensaje
-                    });
-                }
+        function mostrarError(mensaje) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje
+            });
+        }
 
         function generarPDF() {
         

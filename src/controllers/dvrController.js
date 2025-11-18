@@ -37,7 +37,6 @@ export const dvrController = {
 
       const totalRecords = await prisma.dvr.count({ where });
 
-      // Obtener estadísticas totales por estado
       const estadisticasTotales = await prisma.dvr.groupBy({
         by: ['estado'],
         _count: {
@@ -46,7 +45,6 @@ export const dvrController = {
         where: where
       });
 
-      // Convertir estadísticas a un objeto más fácil de usar
       const estadisticas = {
         activos: 0,
         inactivos: 0,
