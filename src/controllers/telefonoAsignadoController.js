@@ -129,17 +129,6 @@ export const telefonoAsignadoController = {
         fecha_asignacion
       } = req.body;
 
-      console.log('Datos recibidos para crear asignación de teléfono:', {
-        usuarios_id,
-        stock_equipos_id,
-        num_telefono,
-        linea_telefono, 
-        ip_telefono,
-        mac_telefono,
-        mail_telefono,
-        fecha_asignacion
-      });
-
       console.log('Creación - No se procesa imagen');
 
       const stockEquipo = await prisma.stock_equipos.findUnique({
@@ -154,6 +143,42 @@ export const telefonoAsignadoController = {
       if (stockEquipo.cantidad_disponible <= 0) {
         return res.status(400).json({ error: 'El teléfono seleccionado no tiene stock disponible' });
       }
+
+          if (num_telefono) {
+      const numTelefonoExistente = await prisma.telefonos.findFirst({
+        where: { num_telefono }
+      });
+      if (numTelefonoExistente) {
+        return res.status(400).json({ error: 'El número de teléfono ya está en uso' });
+      }
+    }
+
+    if (ip_telefono) {
+      const ipExistente = await prisma.telefonos.findFirst({
+        where: { ip_telefono }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro teléfono' });
+      }
+    }
+
+    if (mac_telefono) {
+      const macExistente = await prisma.telefonos.findFirst({
+        where: { mac_telefono }
+      });
+      if (macExistente) {
+        return res.status(400).json({ error: 'La dirección MAC ya está en uso por otro teléfono' });
+      }
+    }
+
+    if (mail_telefono) {
+      const mailExistente = await prisma.telefonos.findFirst({
+        where: { mail_telefono }
+      });
+      if (mailExistente) {
+        return res.status(400).json({ error: 'El IMEI ya está en uso por otro teléfono' });
+      }
+    }
 
       const telefonoAsignado = await prisma.telefonos.create({
         data: {
@@ -204,9 +229,21 @@ export const telefonoAsignadoController = {
       });
 
     } catch (error) {
-      console.error('Error en store:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        num_telefono: 'El número de teléfono ya está en uso',
+        ip_telefono: 'La dirección IP ya está en uso',
+        mac_telefono: 'La dirección MAC ya está en uso',
+        mail_telefono: 'El IMEI ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en store:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
 async show(req, res) {
@@ -260,17 +297,57 @@ async show(req, res) {
         mail_telefono,
         fecha_asignacion
       } = req.body;
+      
+      const telefonoId = parseInt(id);
 
-      console.log('Datos recibidos para actualizar asignación de teléfono:', {
-        usuarios_id,
-        stock_equipos_id,
-        num_telefono,
-        linea_telefono, 
-        ip_telefono,
-        mac_telefono,
-        mail_telefono,
-        fecha_asignacion
+    // Validaciones de unicidad excluyendo el registro actual
+    if (num_telefono) {
+      const numTelefonoExistente = await prisma.telefonos.findFirst({
+        where: {
+          num_telefono,
+          id: { not: telefonoId }
+        }
       });
+      if (numTelefonoExistente) {
+        return res.status(400).json({ error: 'El número de teléfono ya está en uso' });
+      }
+    }
+
+    if (ip_telefono) {
+      const ipExistente = await prisma.telefonos.findFirst({
+        where: {
+          ip_telefono,
+          id: { not: telefonoId }
+        }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro teléfono' });
+      }
+    }
+
+    if (mac_telefono) {
+      const macExistente = await prisma.telefonos.findFirst({
+        where: {
+          mac_telefono,
+          id: { not: telefonoId }
+        }
+      });
+      if (macExistente) {
+        return res.status(400).json({ error: 'La dirección MAC ya está en uso por otro teléfono' });
+      }
+    }
+
+    if (mail_telefono) {
+      const mailExistente = await prisma.telefonos.findFirst({
+        where: {
+          mail_telefono,
+          id: { not: telefonoId }
+        }
+      });
+      if (mailExistente) {
+        return res.status(400).json({ error: 'El IMEI ya está en uso por otro teléfono' });
+      }
+    }
 
       const telefonoAsignado = await prisma.telefonos.findUnique({
         where: { id: parseInt(id) }

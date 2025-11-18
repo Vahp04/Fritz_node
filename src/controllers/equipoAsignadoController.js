@@ -143,14 +143,30 @@ export const equipoAsignadoController = {
         estado = 'activo'
       } = req.body;
 
+          if (ip_equipo) {
+        const ipExistente = await prisma.equipo_asignado.findFirst({
+          where: { ip_equipo }
+        });
+        if (ipExistente) {
+          return res.status(400).json({ error: 'La dirección IP ya está en uso por otro equipo' });
+        }
+      }
+
+      if (numero_serie) {
+        const cerealExistente = await prisma.equipo_asignado.findFirst({
+          where: { cereal_equipo: numero_serie }
+        });
+        if (cerealExistente) {
+          return res.status(400).json({ error: 'El número de serie ya está en uso por otro equipo' });
+        }
+      }
+
         console.log('=== DEBUG STORE INICIADO ===');
         console.log('Datos recibidos:', {
             usuarios_id: parseInt(usuarios_id),
             stock_equipos_id: parseInt(stock_equipos_id),
             estado
         });
-
-        
 
       console.log('Datos recibidos para crear asignación:', {
         usuarios_id,
@@ -276,17 +292,21 @@ export const equipoAsignadoController = {
       });
 
     } catch (error) {
-        console.error('Error en store:', error);
-        
-        // Si es error de duplicado de Prisma
-        if (error.code === 'P2002') {
-            return res.status(400).json({ 
-                error: 'Ya existe una asignación idéntica' 
-            });
-        }
-        
-        res.status(500).json({ error: error.message });
+    console.error('Error en store:', error);
+    
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_equipo: 'La dirección IP ya está en uso',
+        cereal_equipo: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async show(req, res) {
@@ -344,18 +364,6 @@ export const equipoAsignadoController = {
         delete_imagen 
       } = req.body;
 
-      console.log('Datos recibidos para actualizar asignación:', {
-        usuarios_id,
-        stock_equipos_id,
-        fecha_asignacion,
-        ip_equipo,
-        numero_serie,
-        fecha_devolucion,
-        observaciones,
-        estado,
-        delete_imagen
-      });
-
       const equipoAsignado = await prisma.equipo_asignado.findUnique({
         where: { id: parseInt(id) }
       });
@@ -363,6 +371,32 @@ export const equipoAsignadoController = {
       if (!equipoAsignado) {
         return res.status(404).json({ error: 'Asignación no encontrada' });
       }
+
+
+       const equipoId = parseInt(id);
+      if (ip_equipo) {
+      const ipExistente = await prisma.equipo_asignado.findFirst({
+        where: {
+          ip_equipo,
+          id: { not: equipoId }
+        }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro equipo' });
+      }
+    }
+
+    if (numero_serie) {
+      const cerealExistente = await prisma.equipo_asignado.findFirst({
+        where: {
+          cereal_equipo: numero_serie,
+          id: { not: equipoId }
+        }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro equipo' });
+      }
+    }
 
       let imagenPath = equipoAsignado.imagen_comprobante;
       
@@ -509,9 +543,19 @@ export const equipoAsignadoController = {
       });
 
     } catch (error) {
-      console.error('Error en update:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_equipo: 'La dirección IP ya está en uso',
+        cereal_equipo: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en update:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
 

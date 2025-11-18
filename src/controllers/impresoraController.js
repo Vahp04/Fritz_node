@@ -157,6 +157,24 @@ async index(req, res) {
         toner 
       } = req.body;
 
+          if (ip_impresora) {
+      const ipExistente = await prisma.impresora.findFirst({
+        where: { ip_impresora }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otra impresora' });
+      }
+    }
+
+    if (cereal_impresora) {
+      const cerealExistente = await prisma.impresora.findFirst({
+        where: { cereal_impresora }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otra impresora' });
+      }
+    }
+
       console.log('Datos recibidos para crear impresora:', req.body);
 
       const stockEquiposId = parseInt(stock_equipos_id);
@@ -240,9 +258,19 @@ async index(req, res) {
       });
 
     } catch (error) {
-      console.error('Error en store impresora:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_impresora: 'La dirección IP ya está en uso',
+        cereal_impresora: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en store impresora:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async update(req, res) {
@@ -263,6 +291,29 @@ async index(req, res) {
       } = req.body;
 
       const impresoraId = parseInt(id);
+        if (ip_impresora) {
+      const ipExistente = await prisma.impresora.findFirst({
+        where: {
+          ip_impresora,
+          id: { not: impresoraId }
+        }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otra impresora' });
+      }
+    }
+
+    if (cereal_impresora) {
+      const cerealExistente = await prisma.impresora.findFirst({
+        where: {
+          cereal_impresora,
+          id: { not: impresoraId }
+        }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otra impresora' });
+      }
+    }
       const sedeId = sede_id ? parseInt(sede_id) : undefined;
       const departamentoId = departamento_id ? parseInt(departamento_id) : undefined;
 
@@ -496,9 +547,19 @@ async index(req, res) {
       });
 
     } catch (error) {
-      console.error('Error en update impresora:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_impresora: 'La dirección IP ya está en uso',
+        cereal_impresora: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en update impresora:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async destroy(req, res) {

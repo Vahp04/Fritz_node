@@ -113,6 +113,24 @@ export const servidoresController = {
         estado 
       } = req.body;
 
+       if (ip_servidores) {
+      const ipExistente = await prisma.servidores.findFirst({
+        where: { ip_servidores }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro servidor' });
+      }
+    }
+
+    if (cereal_servidores) {
+      const cerealExistente = await prisma.servidores.findFirst({
+        where: { cereal_servidores }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro servidor' });
+      }
+    }
+
       console.log('Datos recibidos para crear servidor:', req.body);
 
       const stockEquiposId = parseInt(stock_equipos_id);
@@ -170,9 +188,19 @@ export const servidoresController = {
       });
 
     } catch (error) {
-      console.error('Error en store:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_servidores: 'La dirección IP ya está en uso',
+        cereal_servidores: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en store:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async update(req, res) {
@@ -190,6 +218,31 @@ export const servidoresController = {
       console.log('Datos recibidos para actualizar:', req.body);
 
       const servidorId = parseInt(id);
+
+      if (ip_servidores) {
+      const ipExistente = await prisma.servidores.findFirst({
+        where: {
+          ip_servidores,
+          id: { not: servidorId }
+        }
+      });
+      
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro servidor' });
+      }
+    }
+
+    if (cereal_servidores) {
+      const cerealExistente = await prisma.servidores.findFirst({
+        where: {
+          cereal_servidores,
+          id: { not: servidorId }
+        }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro servidor' });
+      }
+    }
       const sedeId = sede_id ? parseInt(sede_id) : undefined;
 
       const servidorActual = await prisma.servidores.findUnique({
@@ -323,9 +376,19 @@ export const servidoresController = {
       });
 
     } catch (error) {
-      console.error('Error en update:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_servidores: 'La dirección IP ya está en uso',
+        cereal_servidores: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en update:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async destroy(req, res) {

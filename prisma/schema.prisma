@@ -115,8 +115,8 @@ model equipo_asignado {
   usuarios_id      Int
   stock_equipos_id Int
   fecha_asignacion DateTime?
-  ip_equipo        String?       @db.VarChar(191)
-  cereal_equipo    String?       @db.VarChar(191)  
+  ip_equipo        String?       @unique
+  cereal_equipo    String?       @unique
   fecha_devolucion DateTime?
   observaciones    String?       @db.VarChar(191)
   usuario_id       Int?
@@ -136,8 +136,8 @@ model impresora {
   stock_equipos_id Int           
   nombre           String        @db.VarChar(191)
   descripcion      String?       @db.VarChar(191)
-  ip_impresora     String?       @db.VarChar(191)
-  cereal_impresora String?       @db.VarChar(191)
+  ip_impresora     String?       @unique
+  cereal_impresora String?       @unique
   sede_id          Int   
   departamento_id  Int
   ubicacion        String?       @db.VarChar(191)
@@ -165,8 +165,8 @@ model mikrotik {
   id               Int           @id @default(autoincrement())
   stock_equipos_id Int           
   descripcion      String?       @db.VarChar(191)
-  ip_mikrotik      String?       @db.VarChar(191)
-  cereal_mikrotik  String?       @db.VarChar(191)
+  ip_mikrotik      String?       @unique
+  cereal_mikrotik  String?       @unique
   sede_id          Int
   ubicacion        String        @db.VarChar(191)
   estado           EstadoMikrotik @default(activo) 
@@ -212,8 +212,8 @@ model servidores {
   id                Int           @id @default(autoincrement())
   stock_equipos_id  Int           
   descripcion       String?       
-  ip_servidores     String?       @db.VarChar(191)
-  cereal_servidores String?       @db.VarChar(191)
+  ip_servidores     String?       @unique
+  cereal_servidores String?       @unique
   sede_id           Int
   ubicacion         String        @db.VarChar(191)
   estado            EstadoServidor @default(activo) 
@@ -230,10 +230,10 @@ model dvr{
   stock_equipos_id  Int            
   sede_id           Int             
   descripcion       String?        @db.VarChar(500)
-  cantidad_cam      Int            
-  ip_dvr            String?        @db.VarChar(191)
-  cereal_dvr        String?        @db.VarChar(191)
-  mac_dvr           String?        @db.VarChar(191)
+  cantidad_cam      Int            @default(1)
+  ip_dvr            String?        @unique
+  cereal_dvr        String?        @unique
+  mac_dvr           String?        @unique
   estado            EstadoDvr      @default(activo)
   switch            String?        @db.VarChar(191)
   ubicacion         String?        @db.VarChar(191)
@@ -249,11 +249,11 @@ model dvr{
     id                Int             @id @default(autoincrement())
     usuarios_id       Int
     stock_equipos_id  Int
-    num_telefono      String          @db.VarChar(191)
+    num_telefono      String          @unique
     linea_telefono    String          @db.VarChar(191)
-    ip_telefono       String          @db.VarChar(191)
-    mac_telefono      String?         @db.VarChar(191)
-    mail_telefono     String          @db.VarChar(191)
+    ip_telefono       String?          @unique
+    mac_telefono      String?         @unique
+    mail_telefono     String?          @unique
     fecha_asignacion  DateTime?
     imagen_telefono   String?         @db.VarChar(500)
     created_at        DateTime        @default(now())

@@ -130,6 +130,24 @@ export const mikrotikController = {
         estado 
       } = req.body;
 
+         if (ip_mikrotik) {
+      const ipExistente = await prisma.mikrotik.findFirst({
+        where: { ip_mikrotik }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro Mikrotik' });
+      }
+    }
+
+    if (cereal_mikrotik) {
+      const cerealExistente = await prisma.mikrotik.findFirst({
+        where: { cereal_mikrotik }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro Mikrotik' });
+      }
+    }
+
       console.log('Datos recibidos para crear mikrotik:', req.body);
 
       const stockEquiposId = parseInt(stock_equipos_id);
@@ -180,9 +198,19 @@ export const mikrotikController = {
       });
 
     } catch (error) {
-      console.error('Error en store:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_mikrotik: 'La dirección IP ya está en uso',
+        cereal_mikrotik: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en store:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
   async update(req, res) {
@@ -200,6 +228,29 @@ export const mikrotikController = {
       console.log('Datos recibidos para actualizar:', req.body);
 
       const mikrotikId = parseInt(id);
+        if (ip_mikrotik) {
+      const ipExistente = await prisma.mikrotik.findFirst({
+        where: {
+          ip_mikrotik,
+          id: { not: mikrotikId }
+        }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro Mikrotik' });
+      }
+    }
+
+    if (cereal_mikrotik) {
+      const cerealExistente = await prisma.mikrotik.findFirst({
+        where: {
+          cereal_mikrotik,
+          id: { not: mikrotikId }
+        }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro Mikrotik' });
+      }
+    }
       const sedeId = sede_id ? parseInt(sede_id) : undefined;
 
       const mikrotikActual = await prisma.mikrotik.findUnique({
@@ -338,9 +389,19 @@ export const mikrotikController = {
       });
 
     } catch (error) {
-      console.error('Error en update:', error);
-      res.status(500).json({ error: error.message });
+    if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_mikrotik: 'La dirección IP ya está en uso',
+        cereal_mikrotik: 'El número de serie ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en update:', error);
+    res.status(500).json({ error: error.message });
+  }
   },
 
 

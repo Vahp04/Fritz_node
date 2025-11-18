@@ -203,6 +203,32 @@ export const dvrController = {
       if (dvrStock.cantidad_disponible <= 0) {
         return res.status(400).json({ error: 'No hay stock disponible para este equipo' });
       }
+       if (ip_dvr) {
+      const ipExistente = await prisma.dvr.findFirst({
+        where: { ip_dvr }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro DVR' });
+      }
+    }
+
+    if (cereal_dvr) {
+      const cerealExistente = await prisma.dvr.findFirst({
+        where: { cereal_dvr }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro DVR' });
+      }
+    }
+
+    if (mac_dvr) {
+      const macExistente = await prisma.dvr.findFirst({
+        where: { mac_dvr }
+      });
+      if (macExistente) {
+        return res.status(400).json({ error: 'La dirección MAC ya está en uso por otro DVR' });
+      }
+    }
 
       const resultado = await prisma.$transaction(async (tx) => {
         const dvr = await tx.dvr.create({
@@ -250,9 +276,23 @@ export const dvrController = {
       });
 
     } catch (error) {
-      console.error('Error en store:', error);
-      res.status(500).json({ error: error.message });
+  
+      if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_dvr: 'La dirección IP ya está en uso',
+        cereal_dvr: 'El número de serie ya está en uso',
+        mac_dvr: 'La dirección MAC ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en store:', error);
+    res.status(500).json({ error: error.message });
+  }
+    
+    
   },
 
   async update(req, res) {
@@ -277,6 +317,41 @@ export const dvrController = {
       }
 
       const dvrId = parseInt(id);
+      if (ip_dvr) {
+      const ipExistente = await prisma.dvr.findFirst({
+        where: {
+          ip_dvr,
+          id: { not: dvrId }
+        }
+      });
+      if (ipExistente) {
+        return res.status(400).json({ error: 'La dirección IP ya está en uso por otro DVR' });
+      }
+    }
+
+    if (cereal_dvr) {
+      const cerealExistente = await prisma.dvr.findFirst({
+        where: {
+          cereal_dvr,
+          id: { not: dvrId }
+        }
+      });
+      if (cerealExistente) {
+        return res.status(400).json({ error: 'El número de serie ya está en uso por otro DVR' });
+      }
+    }
+
+    if (mac_dvr) {
+      const macExistente = await prisma.dvr.findFirst({
+        where: {
+          mac_dvr,
+          id: { not: dvrId }
+        }
+      });
+      if (macExistente) {
+        return res.status(400).json({ error: 'La dirección MAC ya está en uso por otro DVR' });
+      }
+    }
       const sedeId = sede_id ? parseInt(sede_id) : undefined;
       const cantidadCam = cantidad_cam ? parseInt(cantidad_cam) : undefined;
 
@@ -414,9 +489,21 @@ export const dvrController = {
       });
 
     } catch (error) {
-      console.error('Error en update:', error);
-      res.status(500).json({ error: error.message });
+       if (error.code === 'P2002') {
+      const campo = error.meta?.target?.[0];
+      const mensajes = {
+        ip_dvr: 'La dirección IP ya está en uso',
+        cereal_dvr: 'El número de serie ya está en uso',
+        mac_dvr: 'La dirección MAC ya está en uso'
+      };
+      return res.status(400).json({ 
+        error: mensajes[campo] || 'El valor ya existe en otro registro' 
+      });
     }
+    console.error('Error en update:', error);
+    res.status(500).json({ error: error.message });
+  }
+
   },
 
   async destroy(req, res) {
