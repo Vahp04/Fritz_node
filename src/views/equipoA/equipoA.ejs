@@ -1210,7 +1210,6 @@ async function cargarEquiposAsignados(page = 1, filtros = {}) {
         
         renderizarEquiposAsignados();
         
-        // CAMBIO: Cargar estadísticas totales por separado
         await cargarEstadisticasTotales(filtros);
         
         renderizarPaginacion();

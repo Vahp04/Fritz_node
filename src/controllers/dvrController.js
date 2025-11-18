@@ -37,6 +37,40 @@ export const dvrController = {
 
       const totalRecords = await prisma.dvr.count({ where });
 
+      // Obtener estadísticas totales por estado
+      const estadisticasTotales = await prisma.dvr.groupBy({
+        by: ['estado'],
+        _count: {
+          id: true
+        },
+        where: where
+      });
+
+      // Convertir estadísticas a un objeto más fácil de usar
+      const estadisticas = {
+        activos: 0,
+        inactivos: 0,
+        mantenimiento: 0,
+        desuso: 0
+      };
+
+      estadisticasTotales.forEach(item => {
+        switch (item.estado) {
+          case 'activo':
+            estadisticas.activos = item._count.id;
+            break;
+          case 'inactivo':
+            estadisticas.inactivos = item._count.id;
+            break;
+          case 'mantenimiento':
+            estadisticas.mantenimiento = item._count.id;
+            break;
+          case 'desuso':
+            estadisticas.desuso = item._count.id;
+            break;
+        }
+      });
+
       const dvrs = await prisma.dvr.findMany({
         where,
         include: {
@@ -90,6 +124,13 @@ export const dvrController = {
           current: page,
           total: totalPages,
           totalRecords: totalRecords
+        },
+        estadisticas: {
+          total: totalRecords,
+          activos: estadisticas.activos,
+          inactivos: estadisticas.inactivos,
+          mantenimiento: estadisticas.mantenimiento,
+          desuso: estadisticas.desuso
         },
         filters: {
           search: search,

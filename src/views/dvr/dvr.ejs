@@ -611,18 +611,21 @@
                                         </td>
                                     </tr>
                                 </tbody>
+                                
                             </table>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-muted" id="resultCount">
+        Mostrando 0 de 0 DVRs
+    </div>
+    
+    <nav aria-label="Paginación de DVRs">
+        <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+            <!-- La paginación se generará dinámicamente aquí -->
+        </ul>
+    </nav>
+</div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <div class="text-muted" id="resultCount">
-                                Mostrando 0 de 0 DVRs
-                            </div>
-                            
-                            <nav aria-label="Paginación de DVRs">
-                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
-                                </ul>
-                            </nav>
-                        </div>
+                        
                     </div>
                 </div>
             </main>
@@ -956,6 +959,13 @@
             estado: ''
         };
 
+        let estadisticasTotales = {
+            total: 0,
+            activos: 0,
+            inactivos: 0,
+            mantenimiento: 0,
+            desuso: 0
+        };
         // Enviar datos al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             cargarDvrs();
@@ -1094,20 +1104,22 @@
             }
         }
 
-        function actualizarResumen() {
-            const total = dvrs.length;
-            const activos = dvrs.filter(d => d.estado === 'activo').length;
-            const inactivos = dvrs.filter(d => d.estado === 'inactivo').length;
-            const mantenimiento = dvrs.filter(d => d.estado === 'mantenimiento').length;
-            const desuso = dvrs.filter(d => d.estado === 'desuso').length;
-
-            document.getElementById('totalDvrs').textContent = total;
-            document.getElementById('totalActivos').textContent = activos;
-            document.getElementById('totalInactivos').textContent = inactivos;
-            document.getElementById('totalMantenimiento').textContent = mantenimiento;
-
-        
+        function actualizarResumen(data) {
+            if (data.estadisticas) {
+                estadisticasTotales = data.estadisticas;
+                
+                document.getElementById('totalDvrs').textContent = estadisticasTotales.total;
+                document.getElementById('totalActivos').textContent = estadisticasTotales.activos;
+                document.getElementById('totalInactivos').textContent = estadisticasTotales.inactivos;
+                document.getElementById('totalMantenimiento').textContent = estadisticasTotales.mantenimiento;
+                
+                const desusoElement = document.getElementById('totalDesuso');
+                if (desusoElement) {
+                    desusoElement.textContent = estadisticasTotales.desuso;
+                }
+            }
         }
+
 
         function renderizarDvrs() {
             const tbody = document.getElementById('dvrsTableBody');
@@ -1207,8 +1219,23 @@
             try {
                 currentPage = page;
                 
+                const tbody = document.getElementById('dvrsTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr id="loadingRow">
+                            <td colspan="8" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="text-muted mt-2 mb-0">Cargando DVRs...</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
                 const params = new URLSearchParams();
                 params.append('page', page);
+                params.append('limit', '10');
                 
                 if (currentFilters.search) {
                     params.append('search', currentFilters.search);
@@ -1230,23 +1257,17 @@
                 }
 
                 const data = await response.json();
-                console.log('Datos recibidos:', data);
                 
                 if (data.dvrs && Array.isArray(data.dvrs)) {
                     dvrs = data.dvrs;
                     totalPages = data.pagination?.total || 1;
-                    totalRecords = data.pagination?.totalRecords || data.dvrs.length;
+                    totalRecords = data.pagination?.totalRecords || 0;
                     
-                    console.log(`Cargados ${dvrs.length} DVRs`);
+                    console.log(`Cargados ${dvrs.length} DVRs, página ${currentPage} de ${totalPages}, total: ${totalRecords}`);
                     
-                    dvrs.forEach((dvr, index) => {
-                        console.log(`DVR ${index + 1}:`, {
-                            id: dvr.id,
-                            ubicacion: dvr.ubicacion,
-                            descripcion: dvr.descripcion,
-                            sede: dvr.sede?.nombre
-                        });
-                    });
+                    if (data.estadisticas) {
+                        console.log('Estadísticas recibidas:', data.estadisticas);
+                    }
                 } else {
                     console.warn('Estructura de datos inesperada:', data);
                     dvrs = [];
@@ -1254,25 +1275,52 @@
                     totalRecords = 0;
                 }
 
-                actualizarResumen();
+                actualizarResumen(data);
                 renderizarDvrs();
                 renderizarPaginacion();
+                actualizarContadorResultados();
                 actualizarEstadoFiltros();
                 
             } catch (error) {
                 console.error('Error cargando DVRs:', error);
                 
                 dvrs = [];
-                renderizarDvrs();
+                const tbody = document.getElementById('dvrsTableBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-triangle display-4"></i>
+                                <h5>Error al cargar los DVRs</h5>
+                                <p class="mb-3">${error.message}</p>
+                                <button class="btn btn-fritz" onclick="cargarDvrs(1)">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Reintentar
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
                 
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'No se pudieron cargar los DVRs: ' + error.message
+                    text: 'No se pudieron cargar los DVRs: ' + error.message,
+                    timer: 3000
                 });
             }
         }
 
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch('/api/dvrs/estadisticas');
+                if (response.ok) {
+                    const data = await response.json();
+                    actualizarResumen({ estadisticas: data });
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+}
 
         function renderizarSedes() {
             const selects = ['filterSede', 'create_sede_id', 'edit_sede_id'];
@@ -1361,7 +1409,7 @@
             prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
             prevLi.innerHTML = `
                 <a class="page-link" href="#" onclick="cambiarPagina(${currentPage - 1})" aria-label="Anterior">
-                    <i class="bi bi-chevron-left"></i>
+                    <span aria-hidden="true">&laquo;</span>
                 </a>
             `;
             pagination.appendChild(prevLi);
@@ -1413,18 +1461,42 @@
             nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
             nextLi.innerHTML = `
                 <a class="page-link" href="#" onclick="cambiarPagina(${currentPage + 1})" aria-label="Siguiente">
-                    <i class="bi bi-chevron-right"></i>
+                    <span aria-hidden="true">&raquo;</span>
                 </a>
             `;
             pagination.appendChild(nextLi);
         }
 
-        function cambiarPagina(page) {
+                function cambiarPagina(page) {
             if (page < 1 || page > totalPages || page === currentPage) return;
             cargarDvrs(page);
         }
 
-// Funciones CRUD
+        function actualizarContadorResultados() {
+            const resultCount = document.getElementById('resultCount');
+            const startItem = ((currentPage - 1) * 10) + 1;
+            const endItem = Math.min(currentPage * 10, totalRecords);
+            
+            let texto = `Mostrando ${startItem}-${endItem} de ${totalRecords} DVRs`;
+            
+            const filtrosActivos = [];
+            if (currentFilters.search) filtrosActivos.push(`búsqueda: "${currentFilters.search}"`);
+            if (currentFilters.sede_id) {
+                const sedeNombre = document.getElementById('filterSede').options[document.getElementById('filterSede').selectedIndex]?.text || '';
+                filtrosActivos.push(`sede: ${sedeNombre}`);
+            }
+            if (currentFilters.estado) filtrosActivos.push(`estado: ${currentFilters.estado}`);
+            
+            if (filtrosActivos.length > 0) {
+                texto += ` <span class="badge bg-warning ms-2" title="Filtros: ${filtrosActivos.join(', ')}">Filtrado</span>`;
+            }
+            
+            resultCount.innerHTML = texto;
+        }
+
+
+
+        // Funciones CRUD
         async function crearDvr() {
             const form = document.getElementById('createDvrForm');
             const formData = new FormData(form);
@@ -1719,15 +1791,15 @@
             setTimeout(inicializarSwitches, 100);
         });
         function aplicarFiltros() {
-            currentFilters = {
-                search: document.getElementById('searchDvr').value,
-                sede_id: document.getElementById('filterSede').value,
-                estado: document.getElementById('filterEstado').value
-            };
-            
-            currentPage = 1;
-            cargarDvrs(currentPage);
-        }
+    currentFilters = {
+        search: document.getElementById('searchDvr').value.trim(),
+        sede_id: document.getElementById('filterSede').value,
+        estado: document.getElementById('filterEstado').value
+    };
+    
+    currentPage = 1; 
+    cargarDvrs(currentPage);
+}
 
         function aplicarBusquedaRapida() {
             currentFilters.search = document.getElementById('searchDvr').value;
@@ -1735,20 +1807,40 @@
             cargarDvrs(currentPage);
         }
 
-        function resetFiltros() {
-            currentFilters = {
-                search: '',
-                sede_id: '',
-                estado: ''
-            };
-            
-            document.getElementById('searchDvr').value = '';
-            document.getElementById('filterSede').value = '';
-            document.getElementById('filterEstado').value = '';
-            
-            currentPage = 1;
-            cargarDvrs(currentPage);
+        function inicializarBusqueda() {
+    let searchTimeout;
+    const searchInput = document.getElementById('searchDvr');
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            aplicarFiltros();
+        }, 500);
+    });
+    
+    // Permitir búsqueda con Enter
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            aplicarFiltros();
         }
+    });
+}
+
+
+        function resetFiltros() {
+    currentFilters = {
+        search: '',
+        sede_id: '',
+        estado: ''
+    };
+    
+    document.getElementById('searchDvr').value = '';
+    document.getElementById('filterSede').value = '';
+    document.getElementById('filterEstado').value = '';
+    
+    currentPage = 1;
+    cargarDvrs(currentPage);
+}
 
         function mostrarError(mensaje) {
             Swal.fire({
@@ -1828,35 +1920,30 @@
         }
 
         function inicializarEventos() {
-            document.getElementById('logoutForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                this.submit();
-            });
+    document.getElementById('logoutForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        this.submit();
+    });
 
-            document.getElementById('createDvrForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await crearDvr();
-            });
+    document.getElementById('createDvrForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await crearDvr();
+    });
 
-            document.getElementById('editDvrForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                await actualizarDvr();
-            });
+    document.getElementById('editDvrForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await actualizarDvr();
+    });
 
-            let searchTimeout;
-            document.getElementById('searchDvr').addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(aplicarBusquedaRapida, 500);
-            });
-
-            document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
-            document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
-            
-            // Inicializar los switches
-            inicializarSwitches();
-        }
-
-
+    // Inicializar búsqueda
+    inicializarBusqueda();
+    
+    document.getElementById('filterSede').addEventListener('change', aplicarFiltros);
+    document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
+    
+    // Inicializar los switches
+    inicializarSwitches();
+}
 
 
         function inicializarSwitchFieldEdit(dvr) {

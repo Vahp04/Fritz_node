@@ -300,7 +300,6 @@ async show(req, res) {
       
       const telefonoId = parseInt(id);
 
-    // Validaciones de unicidad excluyendo el registro actual
     if (num_telefono) {
       const numTelefonoExistente = await prisma.telefonos.findFirst({
         where: {
