@@ -937,14 +937,14 @@
                     </div>
                 </div>
 
-                <div class="table-responsive" style="max-height: 400px;">
+                <div class="table-responsive" style="max-height: 350px;">
                     <table class="table table-hover table-sm">
                         <thead class="table-light sticky-top">
                             <tr>
                                 <th>Usuario</th>
                                 <th>Cargo</th>
                                 <th>Sede</th>
-                                <th>Equipos</th>
+                               
                                 <th width="80px" class="text-center">Acción</th>
                             </tr>
                         </thead>
@@ -1035,6 +1035,43 @@
                 mostrarError('No se pudieron cargar los usuarios');
             }
         }
+
+        async function cargarSedes() {
+            try {
+                    const response = await fetch('/api/sedes');
+                    
+                    if (!response.ok) {
+                        throw new Error('Error al cargar sedes');
+                    }
+
+                    sedes = await response.json();
+                    renderizarSedes();
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+
+        async function cargarDepartamentos() {
+            try {
+                console.log(' Iniciando carga de departamentos...');
+                const response = await fetch('/api/departamentos?all=true');
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status} al cargar departamentos`);
+                }
+
+                departamentos = await response.json();
+                console.log(` ${departamentos.length} departamentos cargados correctamente`);
+                renderizarDepartamentos();
+                return departamentos;
+                
+            } catch (error) {
+                console.error('Error cargando departamentos:', error);
+                return [];
+            }
+        }
+
 
         function debugRDP() {
             console.log('=== DEBUG RDP ===');
@@ -1163,25 +1200,16 @@
                 `Mostrando ${usuarios.length} de ${totalRecords} usuarios`;
         }
 
-        function renderizarSedes(preservarValores = false, selectId = null) {
-            const selects = selectId ? [selectId] : ['create_sede_id', 'edit_sede_id'];
+        function renderizarSedes() {
+            const selects =  ['create_sede_id', 'edit_sede_id'];
 
             selects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 if (select) {
-                    const currentValue = preservarValores ? select.value : null;
+                    
                     
                     while (select.options.length > 1) {
                         select.remove(1);
-                    }
-
-                    if (sedes.length === 0) {
-                        console.warn('No hay sedes cargadas para renderizar');
-                        const option = document.createElement('option');
-                        option.value = "";
-                        option.textContent = "No hay sedes disponibles";
-                        select.appendChild(option);
-                        return;
                     }
 
                     sedes.forEach(sede => {
@@ -1191,14 +1219,6 @@
                         select.appendChild(option);
                     });
                     
-                    if (preservarValores && currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
-                        select.value = currentValue;
-                        console.log(`Valor restaurado en ${selectId}: ${currentValue}`);
-                    }
-                    
-                    console.log(`Select ${selectId} renderizado con ${sedes.length} sedes`);
-                } else {
-                    console.warn(`No se encontró el select: ${selectId}`);
                 }
             });
         }
@@ -1241,99 +1261,6 @@
                     console.warn(`No se encontró el select: ${selectId}`);
                 }
             });
-        }
-
-        async function cargarDatosParaEdicion(usuario) {
-            try {
-                console.log(' Cargando datos para edición...');
-                
-                if (sedes.length === 0) {
-                    console.log(' Cargando sedes...');
-                    await cargarSedes();
-                }
-                
-                if (departamentos.length === 0) {
-                    console.log('Cargando departamentos...');
-                    await cargarDepartamentos();
-                }
-                
-                console.log(` Sedes cargadas: ${sedes.length}, Departamentos cargados: ${departamentos.length}`);
-                
-                renderizarSedes(true, 'edit_sede_id');
-                renderizarDepartamentos(true, 'edit_departamento_id');
-                
-                const sedeSelect = document.getElementById('edit_sede_id');
-                const departamentoSelect = document.getElementById('edit_departamento_id');
-                
-                if (sedeSelect) {
-                    console.log(` Estableciendo sede_id: ${usuario.sede_id} en select con ${sedeSelect.options.length} opciones`);
-                    sedeSelect.value = usuario.sede_id || '';
-                    
-                    if (sedeSelect.value !== usuario.sede_id?.toString()) {
-                        console.warn(' No se pudo establecer sede_id. Valor actual:', sedeSelect.value);
-                        setTimeout(() => {
-                            sedeSelect.value = usuario.sede_id || '';
-                            console.log('Reintentando establecer sede_id:', sedeSelect.value);
-                        }, 100);
-                    }
-                }
-                
-                if (departamentoSelect) {
-                    console.log(` Estableciendo departamento_id: ${usuario.departamento_id} en select con ${departamentoSelect.options.length} opciones`);
-                    departamentoSelect.value = usuario.departamento_id || '';
-                    
-                    if (departamentoSelect.value !== usuario.departamento_id?.toString()) {
-                        console.warn(' No se pudo establecer departamento_id. Valor actual:', departamentoSelect.value);
-                        setTimeout(() => {
-                            departamentoSelect.value = usuario.departamento_id || '';
-                            console.log(' Reintentando establecer departamento_id:', departamentoSelect.value);
-                        }, 100);
-                    }
-                }
-                
-            } catch (error) {
-                console.error(' Error cargando datos para edición:', error);
-            }
-        }
-
-        async function cargarSedes() {
-            try {
-                console.log('Iniciando carga de sedes...');
-                const response = await fetch('/api/sedes');
-                
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status} al cargar sedes`);
-                }
-
-                sedes = await response.json();
-                console.log(` ${sedes.length} sedes cargadas correctamente`);
-                renderizarSedes();
-                return sedes;
-                
-            } catch (error) {
-                console.error(' Error cargando sedes:', error);
-                return [];
-            }
-        }
-
-        async function cargarDepartamentos() {
-            try {
-                console.log(' Iniciando carga de departamentos...');
-                const response = await fetch('/api/departamentos?all=true');
-                
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status} al cargar departamentos`);
-                }
-
-                departamentos = await response.json();
-                console.log(` ${departamentos.length} departamentos cargados correctamente`);
-                renderizarDepartamentos();
-                return departamentos;
-                
-            } catch (error) {
-                console.error('Error cargando departamentos:', error);
-                return [];
-            }
         }
 
         function renderizarPaginacion() {
@@ -1731,6 +1658,8 @@
                 document.getElementById('edit_correo').value = usuario.correo || '';
                 document.getElementById('edit_rdpfis').value = usuario.rdpfis || '';
                 document.getElementById('edit_rdpfin').value = usuario.rdpfin || '';
+                document.getElementById('edit_sede_id').value = usuario.sede.id || '';
+                document.getElementById('edit_departamento_id').value = usuario.departamento.id || '';
                 document.getElementById('edit_descripcion').value = usuario.descripcion || '';
                 
                 const cargoSelect = document.getElementById('edit_cargo');
@@ -1790,96 +1719,7 @@
                 
                 $('#editUsuarioModal').modal('show');
                 
-                const establecerValoresSelects = () => {
-                    console.log('Estableciendo valores de sede y departamento...');
-                    
-                    const sedeSelect = document.getElementById('edit_sede_id');
-                    const departamentoSelect = document.getElementById('edit_departamento_id');
-                    
-                    if (sedeSelect && sedeSelect.options.length > 1) {
-                        console.log(`Buscando sede_id: ${usuario.sede_id} en ${sedeSelect.options.length} opciones`);
-                        
-                        let sedeEncontrada = false;
-                        for (let i = 0; i < sedeSelect.options.length; i++) {
-                            if (sedeSelect.options[i].value === usuario.sede_id?.toString()) {
-                                sedeSelect.value = usuario.sede_id;
-                                sedeEncontrada = true;
-                                console.log(`Sede encontrada y establecida: ${sedeSelect.value}`);
-                                break;
-                            }
-                        }
-                        
-                        if (!sedeEncontrada) {
-                            console.warn(`No se encontró la sede_id: ${usuario.sede_id}`);
-                            if (sedeSelect.options.length > 1) {
-                                sedeSelect.selectedIndex = 1;
-                                console.log(`Estableciendo primera sede disponible: ${sedeSelect.value}`);
-                            }
-                        }
-                    } else {
-                        console.warn('Select de sede no disponible o sin opciones');
-                    }
-                    
-                    if (departamentoSelect && departamentoSelect.options.length > 1) {
-                        console.log(`Buscando departamento_id: ${usuario.departamento_id} en ${departamentoSelect.options.length} opciones`);
-                        
-                        let departamentoEncontrado = false;
-                        for (let i = 0; i < departamentoSelect.options.length; i++) {
-                            if (departamentoSelect.options[i].value === usuario.departamento_id?.toString()) {
-                                departamentoSelect.value = usuario.departamento_id;
-                                departamentoEncontrado = true;
-                                console.log(`Departamento encontrado y establecido: ${departamentoSelect.value}`);
-                                break;
-                            }
-                        }
-                        
-                        if (!departamentoEncontrado) {
-                            console.warn(`No se encontró el departamento_id: ${usuario.departamento_id}`);
-                            if (departamentoSelect.options.length > 1) {
-                                departamentoSelect.selectedIndex = 1;
-                                console.log(`Estableciendo primer departamento disponible: ${departamentoSelect.value}`);
-                            }
-                        }
-                    } else {
-                        console.warn('Select de departamento no disponible o sin opciones');
-                    }
-                };
-                
-                console.log('Cargando datos para edición...');
-                
-                let sedesCargadas = sedes.length > 0;
-                let departamentosCargados = departamentos.length > 0;
-                
-                const promesasCarga = [];
-                
-                if (!sedesCargadas) {
-                    console.log('Cargando sedes...');
-                    promesasCarga.push(cargarSedes());
-                }
-                
-                if (!departamentosCargados) {
-                    console.log('Cargando departamentos...');
-                    promesasCarga.push(cargarDepartamentos());
-                }
-                
-                if (promesasCarga.length > 0) {
-                    await Promise.all(promesasCarga);
-                    console.log('Todos los datos cargados');
-                } else {
-                    console.log('Datos ya cargados previamente');
-                }
-                
-                renderizarSedes(false, 'edit_sede_id');
-                renderizarDepartamentos(false, 'edit_departamento_id');
 
-                setTimeout(() => {
-                    establecerValoresSelects();
-                }, 100);
-                
-                setTimeout(() => {
-                    establecerValoresSelects();
-                }, 500);
-                
             } catch (error) {
                 console.error('Error en editUsuario:', error);
                 Swal.fire({
@@ -2356,11 +2196,7 @@
                             ${usuario.sede ? usuario.sede.nombre : 'Sin sede'}
                         </small>
                     </td>
-                    <td>
-                        <span class="badge ${usuario.equipos_activos_count > 0 ? 'bg-success' : 'bg-secondary'}">
-                            ${usuario.equipos_activos_count || 0} activos
-                        </span>
-                    </td>
+                    
                     <td class="text-center">
                         <div class="btn-group btn-group-sm" role="group">
                            
