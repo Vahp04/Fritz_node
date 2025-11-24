@@ -12,7 +12,8 @@ const CARGOS_PERMITIDOS = [
   'Becario',
   'Pasante',
   'Coordinador',
-  'Supervisor'
+  'Supervisor',
+  'Auxiliar'
 ];
 
 const USUARIOS_COMPROBANTE_PATH = 'usuarios/comprobantes';

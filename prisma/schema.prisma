@@ -265,6 +265,7 @@ model dvr{
   }
 
 enum cargo {
+  
   Gerente
   Jefe
   Analista
@@ -273,6 +274,7 @@ enum cargo {
   Pasante
   Coordinador
   Supervisor
+  Auxiliar
 }
 
 enum EstadoMikrotik {
