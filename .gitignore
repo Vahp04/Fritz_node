@@ -5,3 +5,8 @@ node_modules
 /src/generated/prisma
 
 /src/generated/prisma
+
+.txt
+# ... tus otras líneas
+*.txt
+index.html
