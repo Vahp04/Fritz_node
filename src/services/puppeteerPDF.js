@@ -1,4 +1,4 @@
-// PuppeteerPDF.js - Versión con puppeteer normal
+// PuppeteerPDF.js - Con ruta específica
 import puppeteer from 'puppeteer';
 
 class PuppeteerPDF {
@@ -7,9 +7,12 @@ class PuppeteerPDF {
     try {
       console.log('=== INICIANDO GENERACIÓN DE PDF ===');
       
-      // Configuración simple y directa
+      // Ruta EXACTA del Chrome instalado por Puppeteer
+      const chromePath = 'C:\\Users\\Administrador\\.cache\\puppeteer\\chrome\\win64-142.0.7444.175\\chrome-win64\\chrome.exe';
+      
       const browserOptions = {
-        headless: true,
+        executablePath: chromePath, // ← Ruta específica
+        headless: 'new',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -17,20 +20,18 @@ class PuppeteerPDF {
           '--disable-gpu',
           '--disable-software-rasterizer',
           '--no-first-run',
-          '--no-default-browser-check'
+          '--no-default-browser-check',
+          '--single-process'
         ],
         timeout: 30000
       };
 
-      console.log('Lanzando navegador...');
+      console.log('Lanzando Chrome desde:', chromePath);
       browser = await puppeteer.launch(browserOptions);
-      console.log('Navegador lanzado exitosamente');
+      console.log('Chrome lanzado exitosamente');
 
       const page = await browser.newPage();
       page.setDefaultTimeout(15000);
-
-      console.log('Configurando vista...');
-      await page.setViewport({ width: 1200, height: 800 });
 
       console.log('Cargando contenido HTML...');
       await page.setContent(htmlContent, {
