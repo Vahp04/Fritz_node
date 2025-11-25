@@ -1,36 +1,18 @@
 import puppeteer from 'puppeteer';
-import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 class PuppeteerPDF {
-  static async generatePDF(htmlContent, options = {}) {
-    let browser;
-    try {
-      console.log('Iniciando generación de PDF con Puppeteer...');
+  static browserInstance = null;
+  static userDataDir = path.join(os.tmpdir(), 'puppeteer_shared_profile');
+
+  static async getBrowser() {
+    if (!PuppeteerPDF.browserInstance) {
+      console.log('Iniciando nueva instancia de browser...');
       
-      // Rutas comunes de Chrome en Windows
-      const chromePaths = [
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
-        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
-      ];
-
-      let executablePath = null;
-      for (const path of chromePaths) {
-        if (fs.existsSync(path)) {
-          executablePath = path;
-          console.log('Chrome encontrado en:', executablePath);
-          break;
-        }
-      }
-
-      if (!executablePath) {
-        throw new Error('No se pudo encontrar Chrome instalado en las rutas comunes');
-      }
-
       const browserOptions = {
         headless: true,
-        executablePath: executablePath, // Especificar la ruta explícita
+        userDataDir: PuppeteerPDF.userDataDir,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -42,16 +24,33 @@ class PuppeteerPDF {
           '--font-render-hinting=none',
           '--disable-web-security',
           '--disable-features=VizDisplayCompositor',
-          '--single-process' // Importante para entornos con recursos limitados
+          '--single-process'
         ],
         timeout: 60000
       };
 
-      browser = await puppeteer.launch(browserOptions);
-      const page = await browser.newPage();
+      PuppeteerPDF.browserInstance = await puppeteer.launch(browserOptions);
+      
+      // Manejar cierre graceful
+      process.on('beforeExit', async () => {
+        if (PuppeteerPDF.browserInstance) {
+          await PuppeteerPDF.browserInstance.close();
+        }
+      });
+    }
+    
+    return PuppeteerPDF.browserInstance;
+  }
+
+  static async generatePDF(htmlContent, options = {}) {
+    let page;
+    try {
+      console.log('Iniciando generación de PDF con Puppeteer...');
+      
+      const browser = await this.getBrowser();
+      page = await browser.newPage();
 
       await page.setViewport({ width: 1200, height: 800 });
-
       page.setDefaultTimeout(60000);
 
       try {
@@ -101,9 +100,16 @@ class PuppeteerPDF {
       console.error('Error en generatePDF:', error);
       throw error;
     } finally {
-      if (browser) {
-        await browser.close().catch(console.error);
+      if (page) {
+        await page.close().catch(console.error);
       }
+    }
+  }
+
+  static async closeBrowser() {
+    if (PuppeteerPDF.browserInstance) {
+      await PuppeteerPDF.browserInstance.close();
+      PuppeteerPDF.browserInstance = null;
     }
   }
 }
