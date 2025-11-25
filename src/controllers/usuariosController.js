@@ -886,7 +886,8 @@ export const usuariosController = {
 
   async generarPdf(req, res) {
     console.log('=== GENERAR PDF USUARIOS INICIADO ===');
-
+    req.setTimeout(120000); // 2 minutos
+      res.setTimeout(120000);
     try {
       const usuarios = await prisma.usuarios.findMany({
         include: {
@@ -967,7 +968,8 @@ export const usuariosController = {
 
   async verPdf(req, res) {
     console.log('=== VER PDF USUARIOS INICIADO ===');
-
+    req.setTimeout(120000); // 2 minutos
+    res.setTimeout(120000);
     try {
       const usuarios = await prisma.usuarios.findMany({
         include: {
@@ -1085,7 +1087,8 @@ export const usuariosController = {
 
   async generarReporteIndividual(req, res) {
     console.log('=== GENERAR REPORTE INDIVIDUAL USUARIO ===');
-
+      req.setTimeout(120000); // 2 minutos
+      res.setTimeout(120000);
     try {
       const { id } = req.params;
       console.log(`Generando reporte para usuario ID: ${id}`);
@@ -1168,7 +1171,8 @@ export const usuariosController = {
 
   async verReporteIndividual(req, res) {
     console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
-
+    req.setTimeout(120000); // 2 minutos
+      res.setTimeout(120000);
     try {
       const { id } = req.params;
       console.log(`Viendo reporte para usuario ID: ${id}`);
