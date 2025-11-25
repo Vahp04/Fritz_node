@@ -1,81 +1,104 @@
-// PuppeteerPDF.js - CON CACHE PERSONALIZADA
 import puppeteer from 'puppeteer';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('=== INICIANDO GENERACIÓN DE PDF ===');
+      console.log('Iniciando generación de PDF con Microsoft Edge...');
       
-      // Crear carpeta de cache en tu proyecto
-      const cacheDir = join(process.cwd(), 'puppeteer-cache');
-      if (!existsSync(cacheDir)) {
-        mkdirSync(cacheDir, { recursive: true });
-      }
-      
-      console.log('Usando carpeta de cache:', cacheDir);
-
-      // Configuración con cache personalizada
       const browserOptions = {
-        headless: 'new',
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu',
+          '--disable-accelerated-2d-canvas',
           '--no-first-run',
-          '--no-default-browser-check',
-          '--disable-extensions'
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--font-render-hinting=none',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
         ],
-        // Configurar variables de entorno para la cache
-        env: {
-          ...process.env,
-          PUPPETEER_CACHE_DIR: cacheDir
-        },
-        userDataDir: join(cacheDir, 'user-data'),
-        timeout: 60000
+        timeout: 120000,
+        dumpio: true
       };
 
-      console.log('Lanzando Puppeteer con cache personalizada...');
+      // Usar Microsoft Edge en lugar de Chrome
+      const edgePaths = [
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+      ];
+      
+      for (const path of edgePaths) {
+        try {
+          const fs = require('fs');
+          if (fs.existsSync(path)) {
+            browserOptions.executablePath = path;
+            console.log('Edge encontrado en:', path);
+            break;
+          }
+        } catch (e) {
+          console.log('Edge no encontrado en:', path);
+        }
+      }
+      
+      // Si no encuentra Edge, usar Chromium de Puppeteer
+      if (!browserOptions.executablePath) {
+        console.log('Usando Chromium incluido con Puppeteer');
+      }
+
+      console.log('Lanzando navegador con opciones:', browserOptions);
       browser = await puppeteer.launch(browserOptions);
-      console.log('Puppeteer lanzado exitosamente');
-
+      
       const page = await browser.newPage();
-      page.setDefaultTimeout(30000);
+      page.setDefaultTimeout(120000);
+      page.setDefaultNavigationTimeout(120000);
 
+      await page.setViewport({ width: 1200, height: 800 });
+
+      // Cargar contenido
       console.log('Cargando contenido HTML...');
       await page.setContent(htmlContent, {
-        waitUntil: 'networkidle0',
-        timeout: 15000
+        waitUntil: ['networkidle0', 'domcontentloaded'],
+        timeout: 30000
       });
 
-      console.log('Esperando renderizado...');
-      await page.waitForTimeout(1000);
+      // Esperar a que todo cargue
+      await page.evaluateHandle('document.fonts.ready');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const pdfOptions = {
+        format: options.format || 'A4',
+        landscape: options.landscape || false,
+        printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        omitBackground: false,
+        timeout: 60000,
+        margin: {
+          top: options.marginTop || '20mm',
+          right: options.marginRight || '15mm',
+          bottom: options.marginBottom || '20mm',
+          left: options.marginLeft || '15mm'
+        }
+      };
 
       console.log('Generando PDF...');
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      });
+      const pdfBuffer = await page.pdf(pdfOptions);
+      
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('El PDF generado está vacío');
+      }
 
-      console.log(`PDF generado exitosamente - ${pdfBuffer.length} bytes`);
+      console.log('PDF generado exitosamente con Edge, tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('ERROR en generatePDF:', error.message);
-      
-      if (error.message.includes('Could not find')) {
-        console.log('Forzando instalación local...');
-        throw new Error('Ejecuta: npx puppeteer install --cache-dir ./puppeteer-cache');
-      }
+      console.error('Error en generatePDF:', error);
       throw error;
     } finally {
       if (browser) {
