@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [73, 50, 108, 65, 50, 62, 25, 25, 50];
+      const colWidths = [72, 50, 108, 68, 50, 60, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -167,7 +167,7 @@ class PDFKitGenerator {
         }
 
         const rowData = [
-          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 18),
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 20),
           (usuario.cargo || '').substring(0, 12),
           (usuario.correo || '').substring(0, 30),
           `${usuario.rdpfin || ''}`.substring(0, 12),
