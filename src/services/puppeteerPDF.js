@@ -1,5 +1,7 @@
-// PuppeteerPDF.js - VERSIÓN DEFINITIVA
+// PuppeteerPDF.js - CON CACHE PERSONALIZADA
 import puppeteer from 'puppeteer';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
@@ -7,46 +9,50 @@ class PuppeteerPDF {
     try {
       console.log('=== INICIANDO GENERACIÓN DE PDF ===');
       
-      // Configuración específica para Windows Server
+      // Crear carpeta de cache en tu proyecto
+      const cacheDir = join(process.cwd(), 'puppeteer-cache');
+      if (!existsSync(cacheDir)) {
+        mkdirSync(cacheDir, { recursive: true });
+      }
+      
+      console.log('Usando carpeta de cache:', cacheDir);
+
+      // Configuración con cache personalizada
       const browserOptions = {
-        headless: 'new', // Usar el nuevo motor headless
+        headless: 'new',
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--disable-software-rasterizer',
           '--no-first-run',
           '--no-default-browser-check',
-          '--disable-extensions',
-          '--disable-background-timer-throttling'
+          '--disable-extensions'
         ],
-        // Forzar cache en una ubicación accesible
-        cacheDirectory: './node_modules/.cache/puppeteer',
+        // Configurar variables de entorno para la cache
+        env: {
+          ...process.env,
+          PUPPETEER_CACHE_DIR: cacheDir
+        },
+        userDataDir: join(cacheDir, 'user-data'),
         timeout: 60000
       };
 
-      console.log('Lanzando Puppeteer con configuración Windows...');
+      console.log('Lanzando Puppeteer con cache personalizada...');
       browser = await puppeteer.launch(browserOptions);
       console.log('Puppeteer lanzado exitosamente');
 
       const page = await browser.newPage();
-      
-      // Configurar timeouts
       page.setDefaultTimeout(30000);
-      page.setDefaultNavigationTimeout(30000);
-
-      console.log('Configurando vista...');
-      await page.setViewport({ width: 1200, height: 800 });
 
       console.log('Cargando contenido HTML...');
       await page.setContent(htmlContent, {
-        waitUntil: ['load', 'domcontentloaded', 'networkidle0'],
-        timeout: 20000
+        waitUntil: 'networkidle0',
+        timeout: 15000
       });
 
-      console.log('Esperando recursos...');
-      await page.waitForTimeout(2000);
+      console.log('Esperando renderizado...');
+      await page.waitForTimeout(1000);
 
       console.log('Generando PDF...');
       const pdfBuffer = await page.pdf({
@@ -57,30 +63,23 @@ class PuppeteerPDF {
           right: '15mm',
           bottom: '20mm',
           left: '15mm'
-        },
-        timeout: 30000
+        }
       });
 
       console.log(`PDF generado exitosamente - ${pdfBuffer.length} bytes`);
       return pdfBuffer;
 
     } catch (error) {
-      console.error('ERROR en generatePDF:', error);
+      console.error('ERROR en generatePDF:', error.message);
       
-      // Manejo específico de errores
       if (error.message.includes('Could not find')) {
-        console.log('Ejecuta: npx puppeteer install');
-        throw new Error('Chromium no encontrado. Ejecuta: npx puppeteer install');
+        console.log('Forzando instalación local...');
+        throw new Error('Ejecuta: npx puppeteer install --cache-dir ./puppeteer-cache');
       }
       throw error;
     } finally {
       if (browser) {
-        try {
-          await browser.close();
-          console.log('Navegador cerrado');
-        } catch (closeError) {
-          console.error('Error cerrando navegador:', closeError);
-        }
+        await browser.close().catch(console.error);
       }
     }
   }
