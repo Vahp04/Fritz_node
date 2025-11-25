@@ -1,89 +1,84 @@
 import puppeteer from 'puppeteer';
 
 class PuppeteerPDF {
-  static queue = [];
-  static processing = false;
-
   static async generatePDF(htmlContent, options = {}) {
-    // Agregar a la cola y esperar turno
-    return new Promise((resolve, reject) => {
-      this.queue.push({ htmlContent, options, resolve, reject });
-      this.processQueue();
-    });
-  }
-
-  static async processQueue() {
-    if (this.processing || this.queue.length === 0) return;
-    
-    this.processing = true;
-    const task = this.queue.shift();
-    
+    let browser;
     try {
-      console.log('Procesando tarea PDF en cola...');
-      const result = await this._generatePDFInternal(task.htmlContent, task.options);
-      task.resolve(result);
-    } catch (error) {
-      task.reject(error);
-    } finally {
-      this.processing = false;
-      this.processQueue(); // Procesar siguiente tarea
-    }
-  }
-
-  static async _generatePDFInternal(htmlContent, options = {}) {
-    let browser = null;
-    
-    try {
-      console.log('=== GENERACIÓN PDF CON COLA ===');
-
+      console.log('Iniciando generación de PDF con Puppeteer...');
+      
       const browserOptions = {
-        headless: 'new', // Modo headless moderno
+        headless: true,
         args: [
           '--no-sandbox',
-          '--disable-setuid-sandbox', 
+          '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu',
+          '--disable-accelerated-2d-canvas',
           '--no-first-run',
-          '--disable-extensions'
+          '--no-zygote',
+          '--disable-gpu',
+          '--font-render-hinting=none',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
         ],
-        timeout: 30000
+        timeout: 60000
       };
 
-      console.log('Lanzando browser...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Browser iniciado');
-
       const page = await browser.newPage();
+
       await page.setViewport({ width: 1200, height: 800 });
 
-      await page.setContent(htmlContent, {
-        waitUntil: 'networkidle0',
-        timeout: 30000
-      });
+      page.setDefaultTimeout(60000);
 
-      await new Promise(resolve => setTimeout(resolve, 200));
+      try {
+        await page.setContent(htmlContent, {
+          waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
+          timeout: 60000
+        });
+      } catch (contentError) {
+        console.warn('Error en setContent, continuando...', contentError.message);
+      }
 
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
+      try {
+        await page.evaluateHandle('document.fonts.ready');
+      } catch (fontError) {
+        console.warn('Error cargando fuentes:', fontError.message);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const pdfOptions = {
+        format: options.format || 'A4',
+        landscape: options.landscape || false,
         printBackground: true,
+        preferCSSPageSize: true,
+        displayHeaderFooter: false,
+        omitBackground: false,
+        timeout: 60000,
         margin: {
-          top: '20mm',
-          right: '15mm', 
-          bottom: '20mm',
-          left: '15mm'
+          top: options.marginTop || '20mm',
+          right: options.marginRight || '15mm',
+          bottom: options.marginBottom || '20mm',
+          left: options.marginLeft || '15mm'
         }
-      });
+      };
 
-      console.log('PDF generado exitosamente');
+      console.log('Generando PDF buffer...');
+      const pdfBuffer = await page.pdf(pdfOptions);
+      
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('El PDF generado está vacío');
+      }
+
+      console.log('PDF generado exitosamente, tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('Error en generatePDF:', error.message);
+      console.error('Error en generatePDF:', error);
       throw error;
     } finally {
       if (browser) {
         await browser.close().catch(console.error);
-        console.log('Browser cerrado');
       }
     }
   }
