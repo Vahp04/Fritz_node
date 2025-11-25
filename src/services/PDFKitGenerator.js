@@ -200,7 +200,7 @@ class PDFKitGenerator {
         // Línea separadora entre filas
         doc.moveTo(margin, yPosition)
            .lineTo(margin + pageWidth, yPosition)
-           .lineWidth(1.5)
+           .lineWidth(0.5)
            .strokeColor('#cccccc')
            .stroke();
         
