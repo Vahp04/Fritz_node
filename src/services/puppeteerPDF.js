@@ -1,18 +1,23 @@
 import puppeteer from 'puppeteer';
+import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
 class PuppeteerPDF {
-  static browserInstance = null;
-  static userDataDir = path.join(os.tmpdir(), 'puppeteer_shared_profile');
-
-  static async getBrowser() {
-    if (!PuppeteerPDF.browserInstance) {
-      console.log('Iniciando nueva instancia de browser...');
+  static async generatePDF(htmlContent, options = {}) {
+    let browser;
+    let userDataDir = null;
+    
+    try {
+      console.log('Iniciando generación de PDF con Puppeteer...');
       
+      // Crear directorio temporal único para cada instancia
+      userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
+      console.log('Usando userDataDir:', userDataDir);
+
       const browserOptions = {
         headless: true,
-        userDataDir: PuppeteerPDF.userDataDir,
+        userDataDir: userDataDir, // Directorio único por instancia
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -29,26 +34,8 @@ class PuppeteerPDF {
         timeout: 60000
       };
 
-      PuppeteerPDF.browserInstance = await puppeteer.launch(browserOptions);
-      
-      // Manejar cierre graceful
-      process.on('beforeExit', async () => {
-        if (PuppeteerPDF.browserInstance) {
-          await PuppeteerPDF.browserInstance.close();
-        }
-      });
-    }
-    
-    return PuppeteerPDF.browserInstance;
-  }
-
-  static async generatePDF(htmlContent, options = {}) {
-    let page;
-    try {
-      console.log('Iniciando generación de PDF con Puppeteer...');
-      
-      const browser = await this.getBrowser();
-      page = await browser.newPage();
+      browser = await puppeteer.launch(browserOptions);
+      const page = await browser.newPage();
 
       await page.setViewport({ width: 1200, height: 800 });
       page.setDefaultTimeout(60000);
@@ -100,16 +87,19 @@ class PuppeteerPDF {
       console.error('Error en generatePDF:', error);
       throw error;
     } finally {
-      if (page) {
-        await page.close().catch(console.error);
+      // Cerrar el browser primero
+      if (browser) {
+        await browser.close().catch(console.error);
       }
-    }
-  }
-
-  static async closeBrowser() {
-    if (PuppeteerPDF.browserInstance) {
-      await PuppeteerPDF.browserInstance.close();
-      PuppeteerPDF.browserInstance = null;
+      
+      // Limpiar el directorio temporal después de cerrar el browser
+      if (userDataDir && fs.existsSync(userDataDir)) {
+        try {
+          fs.rmSync(userDataDir, { recursive: true, force: true });
+        } catch (cleanupError) {
+          console.warn('No se pudo limpiar userDataDir:', cleanupError.message);
+        }
+      }
     }
   }
 }
