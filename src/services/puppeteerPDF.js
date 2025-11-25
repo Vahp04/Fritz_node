@@ -1,42 +1,52 @@
-// PuppeteerPDF-simple.js - La solución más confiable
+// PuppeteerPDF.js - VERSIÓN DEFINITIVA
 import puppeteer from 'puppeteer';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('=== USANDO CHROMIUM DE PUPPETEER ===');
+      console.log('=== INICIANDO GENERACIÓN DE PDF ===');
       
-      // Configuración mínima - Puppeteer usará su propio Chromium
+      // Configuración específica para Windows Server
       const browserOptions = {
-        headless: true,
+        headless: 'new', // Usar el nuevo motor headless
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
+          '--disable-software-rasterizer',
           '--no-first-run',
           '--no-default-browser-check',
-          '--single-process'
+          '--disable-extensions',
+          '--disable-background-timer-throttling'
         ],
-        timeout: 30000
+        // Forzar cache en una ubicación accesible
+        cacheDirectory: './node_modules/.cache/puppeteer',
+        timeout: 60000
       };
 
-      console.log('Lanzando Chromium de Puppeteer...');
+      console.log('Lanzando Puppeteer con configuración Windows...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Chromium lanzado exitosamente');
+      console.log('Puppeteer lanzado exitosamente');
 
       const page = await browser.newPage();
-      page.setDefaultTimeout(15000);
+      
+      // Configurar timeouts
+      page.setDefaultTimeout(30000);
+      page.setDefaultNavigationTimeout(30000);
+
+      console.log('Configurando vista...');
+      await page.setViewport({ width: 1200, height: 800 });
 
       console.log('Cargando contenido HTML...');
       await page.setContent(htmlContent, {
-        waitUntil: 'networkidle0',
-        timeout: 10000
+        waitUntil: ['load', 'domcontentloaded', 'networkidle0'],
+        timeout: 20000
       });
 
-      console.log('Esperando renderizado...');
-      await page.waitForTimeout(1000);
+      console.log('Esperando recursos...');
+      await page.waitForTimeout(2000);
 
       console.log('Generando PDF...');
       const pdfBuffer = await page.pdf({
@@ -47,18 +57,30 @@ class PuppeteerPDF {
           right: '15mm',
           bottom: '20mm',
           left: '15mm'
-        }
+        },
+        timeout: 30000
       });
 
       console.log(`PDF generado exitosamente - ${pdfBuffer.length} bytes`);
       return pdfBuffer;
 
     } catch (error) {
-      console.error('ERROR en generatePDF:', error.message);
+      console.error('ERROR en generatePDF:', error);
+      
+      // Manejo específico de errores
+      if (error.message.includes('Could not find')) {
+        console.log('Ejecuta: npx puppeteer install');
+        throw new Error('Chromium no encontrado. Ejecuta: npx puppeteer install');
+      }
       throw error;
     } finally {
       if (browser) {
-        await browser.close().catch(console.error);
+        try {
+          await browser.close();
+          console.log('Navegador cerrado');
+        } catch (closeError) {
+          console.error('Error cerrando navegador:', closeError);
+        }
       }
     }
   }
