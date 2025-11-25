@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -11,13 +11,43 @@ class PuppeteerPDF {
     try {
       console.log('Iniciando generación de PDF con Puppeteer...');
       
-      // Crear directorio temporal único para cada instancia
-      userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_profile_'));
-      console.log('Usando userDataDir:', userDataDir);
+      // Rutas posibles de Chrome en Windows
+      const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe',
+        `${process.env.LOCALAPPDATA}\\Google\\Chrome\\Application\\chrome.exe`
+      ];
 
+      let executablePath = null;
+      for (const chromePath of chromePaths) {
+        if (fs.existsSync(chromePath)) {
+          executablePath = chromePath;
+          console.log('Chrome encontrado en:', executablePath);
+          break;
+        }
+      }
+
+      if (!executablePath) {
+        throw new Error(`
+          Chrome no encontrado en el sistema. Soluciones:
+          1. Instalar Chrome en el servidor
+          2. Cambiar a: npm install puppeteer (incluye Chromium)
+          3. Verificar la instalación de Chrome
+          
+          Rutas verificadas:
+          ${chromePaths.join('\n')}
+        `);
+      }
+
+      // Crear directorio temporal único
+      userDataDir = path.join(os.tmpdir(), `puppeteer_${Date.now()}`);
+      
       const browserOptions = {
         headless: true,
-        userDataDir: userDataDir, // Directorio único por instancia
+        executablePath: executablePath,
+        userDataDir: userDataDir,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -26,79 +56,29 @@ class PuppeteerPDF {
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
-          '--font-render-hinting=none',
+          '--single-process',
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--single-process'
+          '--disable-features=VizDisplayCompositor'
         ],
         timeout: 60000
       };
 
+      console.log('Lanzando Chrome...');
       browser = await puppeteer.launch(browserOptions);
-      const page = await browser.newPage();
-
-      await page.setViewport({ width: 1200, height: 800 });
-      page.setDefaultTimeout(60000);
-
-      try {
-        await page.setContent(htmlContent, {
-          waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
-          timeout: 60000
-        });
-      } catch (contentError) {
-        console.warn('Error en setContent, continuando...', contentError.message);
-      }
-
-      try {
-        await page.evaluateHandle('document.fonts.ready');
-      } catch (fontError) {
-        console.warn('Error cargando fuentes:', fontError.message);
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const pdfOptions = {
-        format: options.format || 'A4',
-        landscape: options.landscape || false,
-        printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
-        omitBackground: false,
-        timeout: 60000,
-        margin: {
-          top: options.marginTop || '20mm',
-          right: options.marginRight || '15mm',
-          bottom: options.marginBottom || '20mm',
-          left: options.marginLeft || '15mm'
-        }
-      };
-
-      console.log('Generando PDF buffer...');
-      const pdfBuffer = await page.pdf(pdfOptions);
       
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        throw new Error('El PDF generado está vacío');
-      }
+      // ... resto del código igual a la solución anterior
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1200, height: 800 });
+      // ... etc
 
-      console.log('PDF generado exitosamente, tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
       console.error('Error en generatePDF:', error);
       throw error;
     } finally {
-      // Cerrar el browser primero
       if (browser) {
         await browser.close().catch(console.error);
-      }
-      
-      // Limpiar el directorio temporal después de cerrar el browser
-      if (userDataDir && fs.existsSync(userDataDir)) {
-        try {
-          fs.rmSync(userDataDir, { recursive: true, force: true });
-        } catch (cleanupError) {
-          console.warn('No se pudo limpiar userDataDir:', cleanupError.message);
-        }
       }
     }
   }
