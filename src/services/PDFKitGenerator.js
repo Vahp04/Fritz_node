@@ -94,21 +94,21 @@ class PDFKitGenerator {
     // Fecha de generación
     doc.fontSize(10)
        .font('Helvetica-Bold')
-       .text('Fecha de generación:', margin + 40, yPosition + 10);
+       .text('Fecha de generación:', margin + 10, yPosition + 10);
     doc.font('Helvetica')
-       .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 150, yPosition + 10);
+       .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 180, yPosition + 10);
     
     // Total de usuarios
     doc.font('Helvetica-Bold')
-       .text('Total de usuarios:', margin + 40, yPosition + 25);
+       .text('Total de usuarios:', margin + 10, yPosition + 25);
     doc.font('Helvetica')
-       .text(data.totalUsuarios?.toString() || '0', margin + 150, yPosition + 25);
+       .text(data.totalUsuarios?.toString() || '0', margin + 180, yPosition + 25);
     
     // Usuarios con equipos activos
     doc.font('Helvetica-Bold')
-       .text('Usuarios con equipos activos:', margin + 40, yPosition + 40);
+       .text('Usuarios con equipos activos:', margin + 10, yPosition + 40);
     doc.font('Helvetica')
-       .text(data.totalConEquipos?.toString() || '0', margin + 150, yPosition + 40);
+       .text(data.totalConEquipos?.toString() || '0', margin + 180, yPosition + 40);
     
     yPosition += 70;
 
@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [73, 50, 113, 68, 50, 50, 25, 25, 50];
+      const colWidths = [73, 50, 112, 68, 50, 50, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -168,7 +168,7 @@ class PDFKitGenerator {
 
         const rowData = [
           `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 22),
-          (usuario.cargo || '').substring(0, 12),
+          (usuario.cargo || '').substring(0, 11),
           (usuario.correo || '').substring(0, 33),
           `${usuario.rdpfin || ''}`.substring(0, 19),
           (usuario.sede?.nombre || 'N/A').substring(0, 12),
