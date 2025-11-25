@@ -971,8 +971,7 @@ export const usuariosController = {
   async verPdf(req, res) {
   console.log('=== VER PDF USUARIOS INICIADO ===');
 
-  const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+  
 
   try {
     const usuarios = await prisma.usuarios.findMany({
@@ -1021,7 +1020,7 @@ const __dirname = path.dirname(__filename);
       fechaGeneracion: new Date().toLocaleString('es-ES'),
       totalUsuarios: usuarios.length,
       totalConEquipos: usuariosConContadores.filter(u => u.equipos_activos_count > 0).length,
-      totalSinEquipos: usuariosConContadores.filter(u => u.equipos_activos_count === 0).length,
+      totalSinEquipos: usuariosConContadores.filter(u => u.equipos_activos_count === 0).length
     };
 
     // Usar PDFKitGenerator - SOLO PASA LOS DATOS, NO EL HTML
