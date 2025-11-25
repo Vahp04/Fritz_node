@@ -1,13 +1,40 @@
 import puppeteer from 'puppeteer';
+import fs from 'fs';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('Iniciando generación de PDF...');
+      console.log('Iniciando generación de PDF con Microsoft Edge...');
 
-      // CONFIGURACIÓN MÍNIMA Y ESTABLE
+      // Buscar Microsoft Edge en las rutas comunes de Windows
+      const edgePaths = [
+        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+        process.env.PROGRAMFILES + '\\Microsoft\\Edge\\Application\\msedge.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Microsoft\\Edge\\Application\\msedge.exe'
+      ];
+
+      let edgePath = null;
+      for (const path of edgePaths) {
+        try {
+          if (fs.existsSync(path)) {
+            edgePath = path;
+            console.log('Edge encontrado en:', path);
+            break;
+          }
+        } catch (error) {
+          console.log('Edge no encontrado en:', path);
+        }
+      }
+
+      if (!edgePath) {
+        throw new Error('Microsoft Edge no encontrado en el sistema');
+      }
+
+      // Configuración específica para Edge
       const browserOptions = {
+        executablePath: edgePath,
         headless: true,
         args: [
           '--no-sandbox',
@@ -17,14 +44,18 @@ class PuppeteerPDF {
           '--disable-software-rasterizer',
           '--no-first-run',
           '--no-zygote',
-          '--disable-extensions'
+          '--disable-extensions',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--font-render-hinting=none'
         ],
-        ignoreHTTPSErrors: true
+        ignoreHTTPSErrors: true,
+        timeout: 30000
       };
 
-      console.log('Configuración del navegador lista');
+      console.log('Lanzando Microsoft Edge...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Navegador lanzado exitosamente');
+      console.log('Edge lanzado exitosamente');
 
       const page = await browser.newPage();
       
@@ -36,14 +67,14 @@ class PuppeteerPDF {
 
       console.log('Cargando contenido HTML...');
       
-      // Cargar contenido SIN timeout excesivo
+      // Cargar contenido
       await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded'
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
       });
 
       console.log('Esperando renderizado...');
-      // Espera mínima
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log('Generando PDF...');
       const pdfBuffer = await page.pdf({
@@ -61,20 +92,11 @@ class PuppeteerPDF {
         throw new Error('PDF generado está vacío');
       }
 
-      console.log('PDF generado exitosamente - Tamaño:', pdfBuffer.length, 'bytes');
+      console.log('PDF generado exitosamente con Edge - Tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('ERROR CRÍTICO en generatePDF:', error.message);
-      
-      // Manejo específico de errores comunes
-      if (error.message.includes('Target closed')) {
-        throw new Error('El navegador se cerró abruptamente. Posible falta de memoria.');
-      }
-      if (error.message.includes('Protocol error')) {
-        throw new Error('Error de comunicación con el navegador.');
-      }
-      
+      console.error('ERROR en generatePDF:', error.message);
       throw error;
     } finally {
       if (browser) {
@@ -82,7 +104,7 @@ class PuppeteerPDF {
           await browser.close();
           console.log('Navegador cerrado');
         } catch (closeError) {
-          console.log('Error al cerrar navegador (normal):', closeError.message);
+          console.log('Error al cerrar navegador:', closeError.message);
         }
       }
     }
