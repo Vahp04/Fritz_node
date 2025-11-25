@@ -1,24 +1,43 @@
-// PuppeteerPDF.js - Con ruta específica
+// PuppeteerPDF.js - Usar Chrome del sistema
 import puppeteer from 'puppeteer';
+import { existsSync } from 'fs';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('=== INICIANDO GENERACIÓN DE PDF ===');
+      console.log('=== BUSCANDO CHROME EN EL SISTEMA ===');
       
-      // Ruta EXACTA del Chrome instalado por Puppeteer
-      const chromePath = 'C:\\Users\\Administrador\\.cache\\puppeteer\\chrome\\win64-142.0.7444.175\\chrome-win64\\chrome.exe';
+      // Buscar Chrome en rutas comunes del sistema
+      const possiblePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
+      ];
       
+      let executablePath = '';
+      for (const path of possiblePaths) {
+        if (existsSync(path)) {
+          executablePath = path;
+          console.log('Chrome encontrado en:', path);
+          break;
+        }
+      }
+      
+      if (!executablePath) {
+        console.log('Chrome no encontrado en rutas del sistema');
+        console.log('Usando Chromium incluido con Puppeteer');
+      }
+
       const browserOptions = {
-        executablePath: chromePath, // ← Ruta específica
-        headless: 'new',
+        executablePath: executablePath || undefined, // Si no hay path, usa el de Puppeteer
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
-          '--disable-software-rasterizer',
           '--no-first-run',
           '--no-default-browser-check',
           '--single-process'
@@ -26,9 +45,9 @@ class PuppeteerPDF {
         timeout: 30000
       };
 
-      console.log('Lanzando Chrome desde:', chromePath);
+      console.log('Lanzando navegador...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Chrome lanzado exitosamente');
+      console.log('Navegador lanzado exitosamente');
 
       const page = await browser.newPage();
       page.setDefaultTimeout(15000);
