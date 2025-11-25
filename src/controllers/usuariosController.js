@@ -966,83 +966,83 @@ export const usuariosController = {
   },
 
   async verPdf(req, res) {
-    console.log('=== VER PDF USUARIOS INICIADO ===');
+  console.log('=== VER PDF USUARIOS INICIADO ===');
 
-    try {
-      const usuarios = await prisma.usuarios.findMany({
-        include: {
-          sede: {
-            select: { nombre: true }
-          },
-          departamento: {
-            select: { nombre: true }
-          }
+  try {
+    const usuarios = await prisma.usuarios.findMany({
+      include: {
+        sede: {
+          select: { nombre: true }
         },
-        orderBy: { id: 'asc' }
-      });
+        departamento: {
+          select: { nombre: true }
+        }
+      },
+      orderBy: { id: 'asc' }
+    });
 
-      const usuariosConContadores = await Promise.all(
-        usuarios.map(async (usuario) => {
-          const equipos_totales_count = await prisma.equipo_asignado.count({
-            where: { usuarios_id: usuario.id }
-          });
+    const usuariosConContadores = await Promise.all(
+      usuarios.map(async (usuario) => {
+        const equipos_totales_count = await prisma.equipo_asignado.count({
+          where: { usuarios_id: usuario.id }
+        });
 
-          const equipos_activos_count = await prisma.equipo_asignado.count({
-            where: {
-              usuarios_id: usuario.id,
-              estado: 'activo'
-            }
-          });
+        const equipos_activos_count = await prisma.equipo_asignado.count({
+          where: {
+            usuarios_id: usuario.id,
+            estado: 'activo'
+          }
+        });
 
-          const equipos_devueltos_count = await prisma.equipo_asignado.count({
-            where: {
-              usuarios_id: usuario.id,
-              estado: 'devuelto'
-            }
-          });
+        const equipos_devueltos_count = await prisma.equipo_asignado.count({
+          where: {
+            usuarios_id: usuario.id,
+            estado: 'devuelto'
+          }
+        });
 
-          return {
-            ...usuario,
-            equipos_totales_count,
-            equipos_activos_count,
-            equipos_devueltos_count
-          };
-        })
-      );
+        return {
+          ...usuario,
+          equipos_totales_count,
+          equipos_activos_count,
+          equipos_devueltos_count
+        };
+      })
+    );
 
-      const data = {
-        usuarios: usuariosConContadores,
-        fechaGeneracion: new Date().toLocaleString('es-ES'),
-        totalUsuarios: usuarios.length,
-        totalConEquipos: usuariosConContadores.filter(u => u.equipos_activos_count > 0).length,
-        totalSinEquipos: usuariosConContadores.filter(u => u.equipos_activos_count === 0).length
-      };
+    const data = {
+      usuarios: usuariosConContadores,
+      fechaGeneracion: new Date().toLocaleString('es-ES'),
+      totalUsuarios: usuarios.length,
+      totalConEquipos: usuariosConContadores.filter(u => u.equipos_activos_count > 0).length,
+      totalSinEquipos: usuariosConContadores.filter(u => u.equipos_activos_count === 0).length
+    };
 
-      const htmlContent = await renderTemplate(req.app, 'pdfs/usuarios', data);
-      const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
-        format: 'Letter',
-        landscape: false
-      });
+    // Usar PDFKitGenerator - SOLO PASA LOS DATOS, NO EL HTML
+    const pdfBuffer = await PDFKitGenerator.generatePDF(null, {
+      title: 'Reporte de Usuarios',
+      data: data
+    });
 
-      console.log('=== VER PDF GENERADO EXITOSAMENTE ===');
+    console.log('=== VER PDF GENERADO EXITOSAMENTE ===');
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline; filename="reporte-usuarios.pdf"');
-      res.setHeader('Content-Length', pdfBuffer.length);
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="reporte-usuarios.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
 
-      res.end(pdfBuffer);
+    res.end(pdfBuffer);
 
-    } catch (error) {
-      console.error('ERROR viendo PDF de usuarios:', error);
-      res.status(500).json({
-        error: 'Error al cargar el PDF: ' + error.message
-      });
-    }
-  },
+  } catch (error) {
+    console.error('ERROR viendo PDF de usuarios:', error);
+    res.status(500).json({
+      error: 'Error al cargar el PDF: ' + error.message
+    });
+  }
+},
 
   async usuariosParaSelect(req, res) {
     try {
