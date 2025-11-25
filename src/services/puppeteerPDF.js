@@ -1,17 +1,41 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
-import { execSync } from 'child_process';
-import net from 'net';
 
 class PuppeteerPDF {
+  static queue = [];
+  static processing = false;
+
   static async generatePDF(htmlContent, options = {}) {
+    // Agregar a la cola y esperar turno
+    return new Promise((resolve, reject) => {
+      this.queue.push({ htmlContent, options, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  static async processQueue() {
+    if (this.processing || this.queue.length === 0) return;
+    
+    this.processing = true;
+    const task = this.queue.shift();
+    
+    try {
+      console.log('Procesando tarea PDF en cola...');
+      const result = await this._generatePDFInternal(task.htmlContent, task.options);
+      task.resolve(result);
+    } catch (error) {
+      task.reject(error);
+    } finally {
+      this.processing = false;
+      this.processQueue(); // Procesar siguiente tarea
+    }
+  }
+
+  static async _generatePDFInternal(htmlContent, options = {}) {
     let browser;
     
     try {
-      console.log('=== GENERACIÓN PDF CON PUERTO ESPECÍFICO ===');
-
-      // Matar procesos existentes
-      await this.killChromeProcesses();
+      console.log('=== GENERACIÓN PDF CON COLA ===');
 
       const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -31,31 +55,23 @@ class PuppeteerPDF {
         throw new Error('No se encontró Chrome instalado');
       }
 
-      // Generar puerto aleatorio
-      const port = 9222 + Math.floor(Math.random() * 100);
-      
-      // Verificar que el puerto esté disponible
-      await this.checkPortAvailable(port);
-
       const browserOptions = {
         headless: 'new',
         executablePath: executablePath,
         args: [
-          `--remote-debugging-port=${port}`,
           '--no-sandbox',
-          '--disable-setuid-sandbox',
+          '--disable-setuid-sandbox', 
           '--disable-dev-shm-usage',
           '--no-first-run',
           '--disable-gpu',
-          '--single-process',
-          '--disable-web-security'
+          '--single-process'
         ],
         timeout: 10000
       };
 
-      console.log(`Lanzando browser en puerto ${port}...`);
+      console.log('Lanzando browser...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Browser iniciado correctamente');
+      console.log('Browser iniciado');
 
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 800 });
@@ -72,7 +88,7 @@ class PuppeteerPDF {
         printBackground: true,
         margin: {
           top: '20mm',
-          right: '15mm',
+          right: '15mm', 
           bottom: '20mm',
           left: '15mm'
         }
@@ -86,54 +102,10 @@ class PuppeteerPDF {
       throw error;
     } finally {
       if (browser) {
-        try {
-          await browser.close();
-          console.log('Browser cerrado');
-        } catch (closeError) {
-          console.warn('Forzando cierre...');
-          await this.killChromeProcesses();
-        }
+        await browser.close().catch(console.error);
+        console.log('Browser cerrado');
       }
     }
-  }
-
-  static async killChromeProcesses() {
-    try {
-      const commands = [
-        'taskkill /f /im chrome.exe /t',
-        'taskkill /f /im chromium.exe /t', 
-        'taskkill /f /im headless_shell.exe /t'
-      ];
-      
-      for (const cmd of commands) {
-        try {
-          execSync(cmd, { stdio: 'ignore', windowsHide: true });
-        } catch (e) {
-          // Ignorar errores (procesos no existentes)
-        }
-      }
-      
-      console.log('Procesos Chrome eliminados');
-    } catch (error) {
-      console.log('No había procesos activos');
-    }
-  }
-
-  static async checkPortAvailable(port) {
-    return new Promise((resolve, reject) => {
-      const server = net.createServer();
-      
-      server.once('error', (err) => {
-        reject(new Error(`Puerto ${port} no disponible`));
-      });
-      
-      server.once('listening', () => {
-        server.close();
-        resolve();
-      });
-      
-      server.listen(port);
-    });
   }
 }
 
