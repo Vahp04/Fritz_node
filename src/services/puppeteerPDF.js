@@ -56,19 +56,13 @@ class PuppeteerPDF {
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 800 });
 
-      // Configurar timeout para la página
-      page.setDefaultTimeout(30000);
-
-      console.log('Estableciendo contenido HTML...');
       await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
         timeout: 30000
       });
 
-      // Esperar a que se renderice completamente
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      console.log('Generando PDF...');
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -77,8 +71,7 @@ class PuppeteerPDF {
           right: '15mm', 
           bottom: '20mm',
           left: '15mm'
-        },
-        timeout: 30000
+        }
       });
 
       console.log('PDF generado exitosamente');
