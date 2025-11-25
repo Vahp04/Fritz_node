@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawn } from 'child_process';
+import os from 'os'; // Importar os en lugar de usar require
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +65,7 @@ class PuppeteerPDF {
       }
 
       // Usar el directorio temporal del sistema con un nombre más único
-      const userDataDir = path.join(require('os').tmpdir(), `puppeteer_${instanceId}`);
+      const userDataDir = path.join(os.tmpdir(), `puppeteer_${instanceId}`);
       
       // Asegurarse de que el directorio no exista
       await this.forceDeleteDirectory(userDataDir);
@@ -208,7 +209,7 @@ class PuppeteerPDF {
 
   // Método para limpiar todos los directorios temporales al iniciar la aplicación
   static async cleanupOldTempFiles() {
-    const tempDir = require('os').tmpdir();
+    const tempDir = os.tmpdir(); // Usar os.tmpdir() en lugar de require('os').tmpdir()
     try {
       const files = fs.readdirSync(tempDir);
       for (const file of files) {
