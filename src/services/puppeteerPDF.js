@@ -1,18 +1,18 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import net from 'net';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     
     try {
-      console.log('=== INICIANDO GENERACIÓN PDF ===');
+      console.log('=== GENERACIÓN PDF CON PUERTO ESPECÍFICO ===');
 
-      // 1. Matar procesos de Chrome existentes antes de empezar
+      // Matar procesos existentes
       await this.killChromeProcesses();
-      
-      // 2. Buscar Chrome
+
       const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -31,43 +31,41 @@ class PuppeteerPDF {
         throw new Error('No se encontró Chrome instalado');
       }
 
-      // 3. Configuración SIN userDataDir y con puerto específico
+      // Generar puerto aleatorio
+      const port = 9222 + Math.floor(Math.random() * 100);
+      
+      // Verificar que el puerto esté disponible
+      await this.checkPortAvailable(port);
+
       const browserOptions = {
         headless: 'new',
         executablePath: executablePath,
         args: [
+          `--remote-debugging-port=${port}`,
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--no-first-run',
           '--disable-gpu',
           '--single-process',
-          '--disable-web-security',
-          '--no-default-browser-check',
-          '--disable-component-extensions-with-background-pages',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-features=TranslateUI,BlinkGenPropertyTrees'
+          '--disable-web-security'
         ],
-        timeout: 15000 // Timeout más corto
+        timeout: 10000
       };
 
-      console.log('Lanzando browser...');
+      console.log(`Lanzando browser en puerto ${port}...`);
       browser = await puppeteer.launch(browserOptions);
       console.log('Browser iniciado correctamente');
 
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 800 });
-      page.setDefaultTimeout(30000);
 
       await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded', // Más rápido que networkidle0
-        timeout: 30000
+        waitUntil: 'domcontentloaded',
+        timeout: 20000
       });
 
-      await page.evaluateHandle('document.fonts.ready');
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -87,49 +85,55 @@ class PuppeteerPDF {
       console.error('Error en generatePDF:', error.message);
       throw error;
     } finally {
-      // Cerrar browser de manera agresiva
       if (browser) {
         try {
           await browser.close();
           console.log('Browser cerrado');
         } catch (closeError) {
-          console.warn('Forzando cierre de browser...');
+          console.warn('Forzando cierre...');
           await this.killChromeProcesses();
         }
       }
-      
-      // Matar cualquier proceso residual
-      await this.killChromeProcesses();
     }
   }
 
   static async killChromeProcesses() {
     try {
-      console.log('Matando procesos de Chrome...');
+      const commands = [
+        'taskkill /f /im chrome.exe /t',
+        'taskkill /f /im chromium.exe /t', 
+        'taskkill /f /im headless_shell.exe /t'
+      ];
       
-      // En Windows
-      execSync('taskkill /f /im chrome.exe /t', { 
-        stdio: 'ignore',
-        windowsHide: true 
-      });
+      for (const cmd of commands) {
+        try {
+          execSync(cmd, { stdio: 'ignore', windowsHide: true });
+        } catch (e) {
+          // Ignorar errores (procesos no existentes)
+        }
+      }
       
-      // También matar procesos de Chromium por si acaso
-      execSync('taskkill /f /im chromium.exe /t', { 
-        stdio: 'ignore',
-        windowsHide: true 
-      });
-      
-      execSync('taskkill /f /im headless_shell.exe /t', { 
-        stdio: 'ignore',
-        windowsHide: true 
-      });
-      
-      console.log('Procesos de Chrome eliminados');
-      
+      console.log('Procesos Chrome eliminados');
     } catch (error) {
-      // No hacer nada si no hay procesos que matar
-      console.log('No había procesos de Chrome activos');
+      console.log('No había procesos activos');
     }
+  }
+
+  static async checkPortAvailable(port) {
+    return new Promise((resolve, reject) => {
+      const server = net.createServer();
+      
+      server.once('error', (err) => {
+        reject(new Error(`Puerto ${port} no disponible`));
+      });
+      
+      server.once('listening', () => {
+        server.close();
+        resolve();
+      });
+      
+      server.listen(port);
+    });
   }
 }
 
