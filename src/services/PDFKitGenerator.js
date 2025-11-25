@@ -172,7 +172,7 @@ class PDFKitGenerator {
           (usuario.correo || '').substring(0, 40),
           `${usuario.rdpfin || ''}`.substring(0, 25),
           (usuario.sede?.nombre || 'N/A').substring(0, 12),
-          (usuario.departamento?.nombre || 'N/A').substring(0, 20),
+          (usuario.departamento?.nombre || 'N/A').substring(0, 22),
           (usuario.equipos_totales_count || 0).toString(),
           (usuario.equipos_activos_count || 0).toString(),
           this.getEstadoText(usuario.equipos_activos_count || 0, usuario.equipos_totales_count || 0)
@@ -200,7 +200,7 @@ class PDFKitGenerator {
         // Línea separadora entre filas
         doc.moveTo(margin, yPosition)
            .lineTo(margin + pageWidth, yPosition)
-           .lineWidth(0.2)
+           .lineWidth(0.8)
            .strokeColor('#cccccc')
            .stroke();
         
