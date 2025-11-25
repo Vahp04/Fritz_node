@@ -4,11 +4,12 @@ class PDFKitGenerator {
   static async generatePDF(htmlContent, options = {}) {
     return new Promise((resolve, reject) => {
       try {
-        console.log('🚀 Generando PDF con PDFKit...');
+        console.log('🚀 Generando PDF con diseño similar a HTML...');
         
         const doc = new PDFDocument({
           margin: 20,
-          size: 'A4'
+          size: 'A4',
+          bufferPages: true
         });
         
         const chunks = [];
@@ -23,8 +24,8 @@ class PDFKitGenerator {
           reject(error);
         });
 
-        // Procesar el HTML básico (puedes mejorar esto según tus necesidades)
-        this.addContentToPDF(doc, htmlContent, options);
+        // Procesar los datos para crear un diseño similar
+        this.generateStyledPDF(doc, options.data || {});
         
         doc.end();
         
@@ -35,88 +36,219 @@ class PDFKitGenerator {
     });
   }
 
-  static addContentToPDF(doc, htmlContent, options) {
-    // Configuración básica
-    const title = options.title || 'Reporte';
+  static generateStyledPDF(doc, data) {
     const margin = 50;
+    const pageWidth = 500;
     let yPosition = margin;
 
-    // Título
+    // ===== ENCABEZADO =====
+    // Logo (usaremos texto como placeholder)
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', margin, yPosition);
+    
+    yPosition += 15;
+
+    // Título principal
     doc.fontSize(18)
        .font('Helvetica-Bold')
-       .text(title, margin, yPosition, { align: 'center' });
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', margin, yPosition, { align: 'center' });
     
-    yPosition += 40;
+    yPosition += 25;
 
-    // Fecha
-    doc.fontSize(10)
+    // Subtítulo
+    doc.fontSize(12)
        .font('Helvetica')
-       .text(`Generado el: ${new Date().toLocaleDateString()}`, margin, yPosition, { align: 'center' });
+       .fillColor('#666666')
+       .text('Reporte de Usuarios', margin, yPosition, { align: 'center' });
     
     yPosition += 30;
 
-    // Procesar contenido HTML básico
-    this.parseSimpleHTML(doc, htmlContent, margin, yPosition);
+    // Línea separadora (simulando border-bottom)
+    doc.moveTo(margin, yPosition)
+       .lineTo(margin + pageWidth, yPosition)
+       .lineWidth(2)
+       .strokeColor('#DC2626')
+       .stroke();
+    
+    yPosition += 20;
+
+    // ===== INFORMACIÓN GENERAL =====
+    // Fondo gris para la sección de información
+    doc.rect(margin, yPosition, pageWidth, 60)
+       .fillColor('#f5f5f5')
+       .fill();
+    
+    // Texto de información
+    doc.fillColor('#333333');
+    
+    // Fecha de generación
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .text('Fecha de generación:', margin + 10, yPosition + 10);
+    doc.font('Helvetica')
+       .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 150, yPosition + 10);
+    
+    // Total de usuarios
+    doc.font('Helvetica-Bold')
+       .text('Total de usuarios:', margin + 10, yPosition + 25);
+    doc.font('Helvetica')
+       .text(data.totalUsuarios?.toString() || '0', margin + 150, yPosition + 25);
+    
+    // Usuarios con equipos activos
+    doc.font('Helvetica-Bold')
+       .text('Usuarios con equipos activos:', margin + 10, yPosition + 40);
+    doc.font('Helvetica')
+       .text(data.totalConEquipos?.toString() || '0', margin + 150, yPosition + 40);
+    
+    yPosition += 70;
+
+    // ===== TABLA DE USUARIOS =====
+    if (data.usuarios && data.usuarios.length > 0) {
+      // Título de la tabla
+      doc.fontSize(12)
+         .font('Helvetica-Bold')
+         .fillColor('#000000')
+         .text('LISTA DE USUARIOS', margin, yPosition);
+      
+      yPosition += 20;
+
+      // Encabezados de la tabla
+      const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
+      const colWidths = [60, 50, 80, 50, 50, 50, 25, 25, 40];
+      
+      // Fondo rojo para encabezados
+      doc.rect(margin, yPosition, pageWidth, 15)
+         .fillColor('#DC2626')
+         .fill();
+      
+      // Texto de encabezados en blanco
+      doc.fontSize(8)
+         .font('Helvetica-Bold')
+         .fillColor('#ffffff');
+      
+      let x = margin;
+      headers.forEach((header, i) => {
+        doc.text(header, x + 2, yPosition + 4, {
+          width: colWidths[i],
+          align: 'left'
+        });
+        x += colWidths[i];
+      });
+      
+      yPosition += 20;
+
+      // Datos de usuarios
+      doc.fontSize(7)
+         .font('Helvetica')
+         .fillColor('#000000');
+
+      data.usuarios.forEach((usuario, index) => {
+        // Verificar si necesitamos nueva página
+        if (yPosition > 700) {
+          doc.addPage();
+          yPosition = margin;
+        }
+
+        // Fondo alternado para filas
+        if (index % 2 === 0) {
+          doc.rect(margin, yPosition, pageWidth, 12)
+             .fillColor('#f9f9f9')
+             .fill();
+        }
+
+        const rowData = [
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 15),
+          (usuario.cargo || '').substring(0, 12),
+          (usuario.correo || '').substring(0, 20),
+          `${usuario.rdpfis || ''} ${usuario.rdpfin || ''}`.substring(0, 12),
+          (usuario.sede?.nombre || 'N/A').substring(0, 12),
+          (usuario.departamento?.nombre || 'N/A').substring(0, 12),
+          (usuario.equipos_totales_count || 0).toString(),
+          (usuario.equipos_activos_count || 0).toString(),
+          this.getEstadoText(usuario.equipos_activos_count || 0, usuario.equipos_totales_count || 0)
+        ];
+
+        let x = margin;
+        rowData.forEach((text, i) => {
+          // Para la columna de estado, aplicar colores
+          if (i === 8) {
+            const estadoColor = this.getEstadoColor(usuario.equipos_activos_count || 0, usuario.equipos_totales_count || 0);
+            doc.fillColor(estadoColor);
+          } else {
+            doc.fillColor('#000000');
+          }
+          
+          doc.text(text, x + 2, yPosition + 2, {
+            width: colWidths[i] - 4,
+            align: i >= 6 ? 'center' : 'left'
+          });
+          x += colWidths[i];
+        });
+
+        yPosition += 15;
+
+        // Línea separadora entre filas
+        doc.moveTo(margin, yPosition)
+           .lineTo(margin + pageWidth, yPosition)
+           .lineWidth(0.5)
+           .strokeColor('#cccccc')
+           .stroke();
+        
+        yPosition += 3;
+      });
+    } else {
+      // Mensaje cuando no hay datos
+      yPosition += 20;
+      doc.fontSize(14)
+         .font('Helvetica-Bold')
+         .fillColor('#666666')
+         .text('No hay usuarios registrados', margin, yPosition, { align: 'center' });
+      
+      yPosition += 20;
+      doc.fontSize(10)
+         .font('Helvetica')
+         .text('No se encontraron usuarios en el sistema.', margin, yPosition, { align: 'center' });
+    }
+
+    // ===== PIE DE PÁGINA =====
+    yPosition = 750;
+    doc.moveTo(margin, yPosition)
+       .lineTo(margin + pageWidth, yPosition)
+       .lineWidth(1)
+       .strokeColor('#cccccc')
+       .stroke();
+    
+    yPosition += 10;
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Sistema de Gestión de Equipos - FRITZ C.A', margin, yPosition, { align: 'center' });
+    
+    yPosition += 10;
+    doc.text(`Generado el: ${data.fechaGeneracion || new Date().toLocaleString('es-ES')}`, margin, yPosition, { align: 'center' });
   }
 
-  static parseSimpleHTML(doc, htmlContent, margin, startY) {
-    let y = startY;
-    const lineHeight = 15;
-    const pageHeight = 700;
-
-    // Remover etiquetas HTML básicas y extraer texto
-    const textContent = htmlContent
-      .replace(/<[^>]*>/g, ' ') // Remover etiquetas HTML
-      .replace(/\s+/g, ' ')     // Normalizar espacios
-      .trim();
-
-    // Dividir en párrafos
-    const paragraphs = textContent.split(/\n/).filter(p => p.trim());
-
-    doc.fontSize(12).font('Helvetica');
-
-    for (const paragraph of paragraphs) {
-      // Verificar si necesitamos nueva página
-      if (y > pageHeight) {
-        doc.addPage();
-        y = margin;
-      }
-
-      const lines = doc.text(paragraph, margin, y, {
-        width: 500,
-        align: 'left',
-        lineGap: 5
-      });
-
-      y += lines.length * lineHeight + 10;
+  static getEstadoText(activos, total) {
+    if (activos > 0) {
+      return 'Con equipos';
+    } else if (total > 0) {
+      return 'Solo devueltos';
+    } else {
+      return 'Sin equipos';
     }
   }
 
-  // Método para generar tablas básicas
-  static addTable(doc, data, headers, startY) {
-    const margin = 50;
-    const rowHeight = 20;
-    const colWidth = 100;
-    let y = startY;
-
-    // Encabezados
-    doc.font('Helvetica-Bold');
-    headers.forEach((header, i) => {
-      doc.text(header, margin + (i * colWidth), y);
-    });
-
-    y += rowHeight;
-    doc.font('Helvetica');
-
-    // Datos
-    data.forEach(row => {
-      headers.forEach((header, i) => {
-        doc.text(row[header] || '', margin + (i * colWidth), y);
-      });
-      y += rowHeight;
-    });
-
-    return y;
+  static getEstadoColor(activos, total) {
+    if (activos > 0) {
+      return '#155724'; // Verde oscuro (success)
+    } else if (total > 0) {
+      return '#856404'; // Amarillo oscuro (warning)
+    } else {
+      return '#495057'; // Gris (secondary)
+    }
   }
 }
 
