@@ -94,19 +94,19 @@ class PDFKitGenerator {
     // Fecha de generación
     doc.fontSize(10)
        .font('Helvetica-Bold')
-       .text('Fecha de generación:', margin + 10, yPosition + 10);
+       .text('Fecha de generación:', margin + 20, yPosition + 10);
     doc.font('Helvetica')
        .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 150, yPosition + 10);
     
     // Total de usuarios
     doc.font('Helvetica-Bold')
-       .text('Total de usuarios:', margin + 10, yPosition + 25);
+       .text('Total de usuarios:', margin + 20, yPosition + 25);
     doc.font('Helvetica')
        .text(data.totalUsuarios?.toString() || '0', margin + 150, yPosition + 25);
     
     // Usuarios con equipos activos
     doc.font('Helvetica-Bold')
-       .text('Usuarios con equipos activos:', margin + 10, yPosition + 40);
+       .text('Usuarios con equipos activos:', margin + 20, yPosition + 40);
     doc.font('Helvetica')
        .text(data.totalConEquipos?.toString() || '0', margin + 150, yPosition + 40);
     
@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [60, 50, 80, 50, 50, 50, 25, 25, 40];
+      const colWidths = [90, 55, 100, 60, 50, 70, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
