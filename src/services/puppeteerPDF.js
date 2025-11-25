@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import fs from 'fs';
 
 class PuppeteerPDF {
   static queue = [];
@@ -35,20 +36,61 @@ class PuppeteerPDF {
     try {
       console.log('=== GENERACIÓN PDF CON COLA ===');
 
+      // Buscar Chrome en rutas comunes del servidor Windows
+      const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        'D:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'D:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
+      ];
+
+      let executablePath = null;
+      for (const chromePath of chromePaths) {
+        if (fs.existsSync(chromePath)) {
+          executablePath = chromePath;
+          console.log('Chrome encontrado en servidor:', executablePath);
+          break;
+        }
+      }
+
+      if (!executablePath) {
+        // Si no encuentra Chrome, intentar usar where para buscar en PATH
+        try {
+          const { execSync } = await import('child_process');
+          const chromePath = execSync('where chrome.exe', { encoding: 'utf8' }).split('\n')[0].trim();
+          if (chromePath && fs.existsSync(chromePath)) {
+            executablePath = chromePath;
+            console.log('Chrome encontrado via where:', executablePath);
+          }
+        } catch (e) {
+          console.log('No se pudo encontrar Chrome via where');
+        }
+      }
+
+      if (!executablePath) {
+        throw new Error('No se encontró Chrome instalado en el servidor. Rutas verificadas: ' + chromePaths.join(', '));
+      }
+
       const browserOptions = {
-        headless: 'new',
+        executablePath: executablePath,
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox', 
           '--disable-dev-shm-usage',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--no-first-run',
+          '--disable-extensions',
+          '--single-process'
         ],
         timeout: 30000
       };
 
-      console.log('Lanzando browser...');
+      console.log('Lanzando browser en servidor...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Browser iniciado');
+      console.log('Browser iniciado en servidor');
 
       const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 800 });
@@ -71,16 +113,16 @@ class PuppeteerPDF {
         }
       });
 
-      console.log('PDF generado exitosamente');
+      console.log('PDF generado exitosamente en servidor');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('Error en generatePDF:', error.message);
+      console.error('Error en generatePDF en servidor:', error.message);
       throw error;
     } finally {
       if (browser) {
         await browser.close().catch(console.error);
-        console.log('Browser cerrado');
+        console.log('Browser cerrado en servidor');
       }
     }
   }
