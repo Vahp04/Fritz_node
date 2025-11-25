@@ -167,12 +167,12 @@ class PDFKitGenerator {
         }
 
         const rowData = [
-          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 20),
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 22),
           (usuario.cargo || '').substring(0, 12),
           (usuario.correo || '').substring(0, 30),
           `${usuario.rdpfin || ''}`.substring(0, 12),
           (usuario.sede?.nombre || 'N/A').substring(0, 12),
-          (usuario.departamento?.nombre || 'N/A').substring(0, 20),
+          (usuario.departamento?.nombre || 'N/A').substring(0, 18),
           (usuario.equipos_totales_count || 0).toString(),
           (usuario.equipos_activos_count || 0).toString(),
           this.getEstadoText(usuario.equipos_activos_count || 0, usuario.equipos_totales_count || 0)
