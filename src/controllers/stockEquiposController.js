@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PlaywrightPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 export const stockEquiposController = {
@@ -522,7 +522,7 @@ async apiIndex(req, res) {
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/stock', data);
-        const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+        const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
             format: 'Letter',
             landscape: true
         });
@@ -601,7 +601,7 @@ async apiIndex(req, res) {
         };
 
         const htmlContent = await renderTemplate(req.app, 'pdfs/stock', data);
-        const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+        const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
             format: 'Letter',
             landscape: true
         });

@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import PuppeteerPDF from '../services/puppeteerPDF.js'; 
+import PlaywrightPDF from '../services/puppeteerPDF.js'; 
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
@@ -1184,7 +1184,7 @@ async index(req, res) {
         }
       };
 
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+      const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
       console.log('PDF generado exitosamente');
       res.writeHead(200, {
         'Content-Type': 'application/pdf',
@@ -1300,7 +1300,7 @@ async index(req, res) {
         }
       };
 
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
+      const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
       
       console.log('PDF generado exitosamente');
 

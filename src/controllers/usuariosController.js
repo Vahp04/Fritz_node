@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PlaywrightPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 import multer from 'multer';
@@ -941,7 +941,7 @@ export const usuariosController = {
 
       const htmlContent = await renderTemplate(req.app, 'pdfs/usuarios', data);
 
-      const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+      const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
         format: 'Letter',
         landscape: false
       });
@@ -1019,7 +1019,7 @@ export const usuariosController = {
       };
 
       const htmlContent = await renderTemplate(req.app, 'pdfs/usuarios', data);
-      const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+      const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
         format: 'Letter',
         landscape: false
       });
@@ -1142,7 +1142,7 @@ export const usuariosController = {
 
       const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
 
-      const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+      const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
         format: 'Letter',
         landscape: true
       });
@@ -1222,7 +1222,7 @@ export const usuariosController = {
       };
 
       const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
-      const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
+      const pdfBuffer = await PlaywrightPDF.generatePDF(htmlContent, {
         format: 'Letter',
         landscape: true
       });
