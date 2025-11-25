@@ -1,15 +1,11 @@
 import puppeteer from 'puppeteer-core';
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 class PuppeteerPDF {
   static queue = [];
   static processing = false;
+  static browserInstance = null;
+  static browserInitializing = false;
 
   static async generatePDF(htmlContent, options = {}) {
     return new Promise((resolve, reject) => {
@@ -36,14 +32,23 @@ class PuppeteerPDF {
     }
   }
 
-  static async _generatePDFInternal(htmlContent, options = {}) {
-    let browser = null;
-    let userDataDir = null;
-    
-    try {
-      console.log('=== GENERACIÓN PDF CON COLA ===');
+  static async getBrowserInstance() {
+    // Si ya tenemos una instancia, retornarla
+    if (this.browserInstance) {
+      return this.browserInstance;
+    }
 
-      // Buscar Chrome
+    // Si se está inicializando, esperar
+    if (this.browserInitializing) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return this.getBrowserInstance();
+    }
+
+    this.browserInitializing = true;
+
+    try {
+      console.log('=== INICIALIZANDO BROWSER PERSISTENTE ===');
+
       const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -64,18 +69,9 @@ class PuppeteerPDF {
         throw new Error('No se encontró Chrome instalado');
       }
 
-      // Crear directorio temporal único
-      const tempDir = path.join(__dirname, '..', '..', 'temp_puppeteer');
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-      }
-
-      userDataDir = path.join(tempDir, `profile_${Date.now()}_${Math.random().toString(36).substring(7)}`);
-
       const browserOptions = {
         executablePath: executablePath,
         headless: true,
-        userDataDir: userDataDir,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -83,21 +79,46 @@ class PuppeteerPDF {
           '--disable-gpu',
           '--no-first-run',
           '--disable-extensions',
-          '--disable-component-extensions-with-background-pages',
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--remote-debugging-port=0'
+          '--disable-renderer-backgrounding'
         ],
         timeout: 30000
       };
 
-      console.log('Lanzando browser con userDataDir único...');
-      browser = await puppeteer.launch(browserOptions);
-      console.log('Browser iniciado');
+      console.log('Lanzando browser persistente...');
+      this.browserInstance = await puppeteer.launch(browserOptions);
+      console.log('✅ Browser persistente iniciado');
 
-      const page = await browser.newPage();
+      // Manejar cierre inesperado del browser
+      this.browserInstance.on('disconnected', () => {
+        console.log('⚠️ Browser desconectado, reiniciando...');
+        this.browserInstance = null;
+        this.browserInitializing = false;
+      });
+
+      return this.browserInstance;
+
+    } catch (error) {
+      this.browserInitializing = false;
+      console.error('Error inicializando browser:', error);
+      throw error;
+    }
+  }
+
+  static async _generatePDFInternal(htmlContent, options = {}) {
+    let page = null;
+    
+    try {
+      console.log('=== GENERACIÓN PDF CON BROWSER PERSISTENTE ===');
+
+      const browser = await this.getBrowserInstance();
+      
+      console.log('Creando nueva página...');
+      page = await browser.newPage();
+      
       await page.setViewport({ width: 1200, height: 800 });
+      page.setDefaultTimeout(30000);
 
       await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
@@ -117,64 +138,61 @@ class PuppeteerPDF {
         }
       });
 
-      console.log('PDF generado exitosamente');
+      console.log('✅ PDF generado exitosamente');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('Error en generatePDF:', error.message);
-      throw error;
-    } finally {
-      // Cerrar browser primero
-      if (browser) {
-        try {
-          await browser.close();
-          console.log('Browser cerrado');
-        } catch (closeError) {
-          console.error('Error cerrando browser:', closeError.message);
-          await this.killChromeProcesses();
-        }
+      console.error('❌ Error en generatePDF:', error.message);
+      
+      // Si el error es por browser desconectado, resetear la instancia
+      if (error.message.includes('Target closed') || error.message.includes('Session closed')) {
+        console.log('🔄 Reiniciando browser por error de conexión...');
+        this.browserInstance = null;
+        this.browserInitializing = false;
       }
       
-      // Limpiar directorio temporal después de cerrar el browser
-      if (userDataDir) {
-        await this.cleanupUserDataDir(userDataDir);
-      }
-    }
-  }
-
-  static async cleanupUserDataDir(userDataDir) {
-    if (!fs.existsSync(userDataDir)) return;
-    
-    // Esperar un poco antes de limpiar
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3 });
-        console.log('Directorio temporal limpiado:', userDataDir);
-        break;
-      } catch (error) {
-        console.log(`Intento ${attempt + 1} de limpieza falló:`, error.message);
-        if (attempt === 2) {
-          console.error('No se pudo limpiar el directorio:', userDataDir);
+      throw error;
+    } finally {
+      if (page) {
+        try {
+          await page.close();
+          console.log('📄 Página cerrada');
+        } catch (closeError) {
+          console.error('Error cerrando página:', closeError.message);
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
   }
 
-  static async killChromeProcesses() {
-    return new Promise((resolve) => {
+  // Método para cerrar el browser manualmente si es necesario
+  static async closeBrowser() {
+    if (this.browserInstance) {
       try {
-        const taskkill = spawn('taskkill', ['/f', '/im', 'chrome.exe', '/t']);
-        taskkill.on('close', () => resolve());
-        taskkill.on('error', () => resolve());
-        setTimeout(resolve, 3000);
+        await this.browserInstance.close();
+        console.log('🔴 Browser persistente cerrado');
       } catch (error) {
-        resolve();
+        console.error('Error cerrando browser:', error.message);
+      } finally {
+        this.browserInstance = null;
+        this.browserInitializing = false;
       }
-    });
+    }
+  }
+
+  // Limpiar al cerrar la aplicación
+  static async cleanup() {
+    await this.closeBrowser();
   }
 }
+
+// Cerrar el browser cuando se cierra la aplicación
+process.on('beforeExit', async () => {
+  await PuppeteerPDF.cleanup();
+});
+
+process.on('SIGINT', async () => {
+  await PuppeteerPDF.cleanup();
+  process.exit(0);
+});
 
 export default PuppeteerPDF;
