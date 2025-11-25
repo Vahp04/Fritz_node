@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import fs from 'fs';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
@@ -6,8 +7,30 @@ class PuppeteerPDF {
     try {
       console.log('Iniciando generación de PDF con Puppeteer...');
       
+      // Rutas comunes de Chrome en Windows
+      const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
+      ];
+
+      let executablePath = null;
+      for (const path of chromePaths) {
+        if (fs.existsSync(path)) {
+          executablePath = path;
+          console.log('Chrome encontrado en:', executablePath);
+          break;
+        }
+      }
+
+      if (!executablePath) {
+        throw new Error('No se pudo encontrar Chrome instalado en las rutas comunes');
+      }
+
       const browserOptions = {
         headless: true,
+        executablePath: executablePath, // Especificar la ruta explícita
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -18,7 +41,8 @@ class PuppeteerPDF {
           '--disable-gpu',
           '--font-render-hinting=none',
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor'
+          '--disable-features=VizDisplayCompositor',
+          '--single-process' // Importante para entornos con recursos limitados
         ],
         timeout: 60000
       };
