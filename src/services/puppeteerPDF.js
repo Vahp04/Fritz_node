@@ -6,7 +6,7 @@ class PuppeteerPDF {
     try {
       console.log('Iniciando generación de PDF...');
 
-      // Configuración optimizada para Windows Server
+      // CONFIGURACIÓN MÍNIMA Y ESTABLE
       const browserOptions = {
         headless: true,
         args: [
@@ -15,29 +15,20 @@ class PuppeteerPDF {
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--disable-software-rasterizer',
-          '--disable-web-security',
           '--no-first-run',
           '--no-zygote',
-          '--single-process', // Importante para estabilidad
-          '--disable-extensions',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--max-old-space-size=2048'
+          '--disable-extensions'
         ],
-        timeout: 30000,
-        dumpio: false // Reducir logs
+        ignoreHTTPSErrors: true
       };
 
-      console.log('Lanzando navegador con Chromium de Puppeteer...');
+      console.log('Configuración del navegador lista');
       browser = await puppeteer.launch(browserOptions);
-      
+      console.log('Navegador lanzado exitosamente');
+
       const page = await browser.newPage();
       
-      // Timeouts realistas
-      page.setDefaultTimeout(45000);
-      page.setDefaultNavigationTimeout(45000);
-
+      // Configurar viewport
       await page.setViewport({ 
         width: 1200, 
         height: 800 
@@ -45,16 +36,17 @@ class PuppeteerPDF {
 
       console.log('Cargando contenido HTML...');
       
-      // Cargar contenido de forma eficiente
+      // Cargar contenido SIN timeout excesivo
       await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded',
-        timeout: 20000
+        waitUntil: 'domcontentloaded'
       });
 
-      // Espera corta para renderizado
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Esperando renderizado...');
+      // Espera mínima
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      const pdfOptions = {
+      console.log('Generando PDF...');
+      const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
         margin: {
@@ -63,23 +55,34 @@ class PuppeteerPDF {
           bottom: '20mm',
           left: '15mm'
         }
-      };
+      });
 
-      console.log('Generando PDF...');
-      const pdfBuffer = await page.pdf(pdfOptions);
-      
-      console.log('PDF generado exitosamente');
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('PDF generado está vacío');
+      }
+
+      console.log('PDF generado exitosamente - Tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('Error en generatePDF:', error.message);
-      throw new Error(`Error generando PDF: ${error.message}`);
+      console.error('ERROR CRÍTICO en generatePDF:', error.message);
+      
+      // Manejo específico de errores comunes
+      if (error.message.includes('Target closed')) {
+        throw new Error('El navegador se cerró abruptamente. Posible falta de memoria.');
+      }
+      if (error.message.includes('Protocol error')) {
+        throw new Error('Error de comunicación con el navegador.');
+      }
+      
+      throw error;
     } finally {
       if (browser) {
         try {
           await browser.close();
+          console.log('Navegador cerrado');
         } catch (closeError) {
-          // Ignorar errores al cerrar
+          console.log('Error al cerrar navegador (normal):', closeError.message);
         }
       }
     }
