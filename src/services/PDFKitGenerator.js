@@ -7,7 +7,7 @@ class PDFKitGenerator {
         console.log('Generando PDF con diseño similar a HTML...');
         
         const doc = new PDFDocument({
-          margin: 15,
+          margin: 13,
           size: 'Letter',
           bufferPages: true
         });
@@ -96,19 +96,19 @@ class PDFKitGenerator {
        .font('Helvetica-Bold')
        .text('Fecha de generación:', margin + 10, yPosition + 10);
     doc.font('Helvetica')
-       .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 180, yPosition + 10);
+       .text(data.fechaGeneracion || new Date().toLocaleString('es-ES'), margin + 200, yPosition + 10);
     
     // Total de usuarios
     doc.font('Helvetica-Bold')
        .text('Total de usuarios:', margin + 10, yPosition + 25);
     doc.font('Helvetica')
-       .text(data.totalUsuarios?.toString() || '0', margin + 180, yPosition + 25);
+       .text(data.totalUsuarios?.toString() || '0', margin + 200, yPosition + 25);
     
     // Usuarios con equipos activos
     doc.font('Helvetica-Bold')
        .text('Usuarios con equipos activos:', margin + 10, yPosition + 40);
     doc.font('Helvetica')
-       .text(data.totalConEquipos?.toString() || '0', margin + 180, yPosition + 40);
+       .text(data.totalConEquipos?.toString() || '0', margin + 200, yPosition + 40);
     
     yPosition += 70;
 
@@ -200,7 +200,7 @@ class PDFKitGenerator {
         // Línea separadora entre filas
         doc.moveTo(margin, yPosition)
            .lineTo(margin + pageWidth, yPosition)
-           .lineWidth(0.8)
+           .lineWidth(1.0)
            .strokeColor('#cccccc')
            .stroke();
         
