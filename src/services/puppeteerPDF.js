@@ -1,37 +1,14 @@
-// PuppeteerPDF.js - Usar Chrome del sistema
+// PuppeteerPDF-simple.js - La solución más confiable
 import puppeteer from 'puppeteer';
-import { existsSync } from 'fs';
 
 class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('=== BUSCANDO CHROME EN EL SISTEMA ===');
+      console.log('=== USANDO CHROMIUM DE PUPPETEER ===');
       
-      // Buscar Chrome en rutas comunes del sistema
-      const possiblePaths = [
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
-        process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
-      ];
-      
-      let executablePath = '';
-      for (const path of possiblePaths) {
-        if (existsSync(path)) {
-          executablePath = path;
-          console.log('Chrome encontrado en:', path);
-          break;
-        }
-      }
-      
-      if (!executablePath) {
-        console.log('Chrome no encontrado en rutas del sistema');
-        console.log('Usando Chromium incluido con Puppeteer');
-      }
-
+      // Configuración mínima - Puppeteer usará su propio Chromium
       const browserOptions = {
-        executablePath: executablePath || undefined, // Si no hay path, usa el de Puppeteer
         headless: true,
         args: [
           '--no-sandbox',
@@ -45,9 +22,9 @@ class PuppeteerPDF {
         timeout: 30000
       };
 
-      console.log('Lanzando navegador...');
+      console.log('Lanzando Chromium de Puppeteer...');
       browser = await puppeteer.launch(browserOptions);
-      console.log('Navegador lanzado exitosamente');
+      console.log('Chromium lanzado exitosamente');
 
       const page = await browser.newPage();
       page.setDefaultTimeout(15000);
