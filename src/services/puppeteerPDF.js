@@ -4,7 +4,7 @@ class PuppeteerPDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('Iniciando generación de PDF con Microsoft Edge...');
+      console.log('Iniciando generación de PDF con Puppeteer...');
       
       const browserOptions = {
         headless: true,
@@ -16,60 +16,36 @@ class PuppeteerPDF {
           '--no-first-run',
           '--no-zygote',
           '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
           '--font-render-hinting=none',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
         ],
-        timeout: 120000,
-        dumpio: true
+        timeout: 60000
       };
 
-      // Usar Microsoft Edge en lugar de Chrome
-      const edgePaths = [
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
-      ];
-      
-      for (const path of edgePaths) {
-        try {
-          const fs = require('fs');
-          if (fs.existsSync(path)) {
-            browserOptions.executablePath = path;
-            console.log('Edge encontrado en:', path);
-            break;
-          }
-        } catch (e) {
-          console.log('Edge no encontrado en:', path);
-        }
-      }
-      
-      // Si no encuentra Edge, usar Chromium de Puppeteer
-      if (!browserOptions.executablePath) {
-        console.log('Usando Chromium incluido con Puppeteer');
-      }
-
-      console.log('Lanzando navegador con opciones:', browserOptions);
       browser = await puppeteer.launch(browserOptions);
-      
       const page = await browser.newPage();
-      page.setDefaultTimeout(120000);
-      page.setDefaultNavigationTimeout(120000);
 
       await page.setViewport({ width: 1200, height: 800 });
 
-      // Cargar contenido
-      console.log('Cargando contenido HTML...');
-      await page.setContent(htmlContent, {
-        waitUntil: ['networkidle0', 'domcontentloaded'],
-        timeout: 30000
-      });
+      page.setDefaultTimeout(60000);
 
-      // Esperar a que todo cargue
-      await page.evaluateHandle('document.fonts.ready');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      try {
+        await page.setContent(htmlContent, {
+          waitUntil: ['load', 'networkidle0', 'domcontentloaded'],
+          timeout: 60000
+        });
+      } catch (contentError) {
+        console.warn('Error en setContent, continuando...', contentError.message);
+      }
+
+      try {
+        await page.evaluateHandle('document.fonts.ready');
+      } catch (fontError) {
+        console.warn('Error cargando fuentes:', fontError.message);
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const pdfOptions = {
         format: options.format || 'A4',
@@ -87,14 +63,14 @@ class PuppeteerPDF {
         }
       };
 
-      console.log('Generando PDF...');
+      console.log('Generando PDF buffer...');
       const pdfBuffer = await page.pdf(pdfOptions);
       
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error('El PDF generado está vacío');
       }
 
-      console.log('PDF generado exitosamente con Edge, tamaño:', pdfBuffer.length, 'bytes');
+      console.log('PDF generado exitosamente, tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
