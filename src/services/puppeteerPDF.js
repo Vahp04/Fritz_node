@@ -9,25 +9,69 @@ class PuppeteerPDF {
     let userDataDir = null;
     
     try {
-      console.log('=== INICIANDO PUPPETEER COMPLETO ===');
-      
-      // Configurar cache directory para Puppeteer
-      const cacheDir = path.join(os.tmpdir(), 'puppeteer_cache');
-      if (!fs.existsSync(cacheDir)) {
-        fs.mkdirSync(cacheDir, { recursive: true });
+      console.log('=== INICIANDO GENERACIÓN PDF ===');
+
+      // Configurar directorio de cache personalizado
+      const customCacheDir = path.join(process.cwd(), 'puppeteer_cache');
+      if (!fs.existsSync(customCacheDir)) {
+        fs.mkdirSync(customCacheDir, { recursive: true });
       }
+
+      // Configurar variables de entorno
+      process.env.PUPPETEER_CACHE_DIR = customCacheDir;
+      process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'false';
       
-      process.env.PUPPETEER_CACHE_DIR = cacheDir;
-      
-      // Directorio de usuario único
+      console.log('Cache directory:', customCacheDir);
+
+      // Obtener la ruta ejecutable de Puppeteer
+      let executablePath = puppeteer.executablePath();
+      console.log('Executable path from puppeteer:', executablePath);
+
+      // Si no existe, forzar descarga
+      if (!executablePath || !fs.existsSync(executablePath)) {
+        console.log('Chromium no encontrado, forzando descarga...');
+        // Usar una ruta alternativa
+        executablePath = path.join(customCacheDir, 'chrome-win64', 'chrome.exe');
+        
+        // Si tampoco existe ahí, usar Chrome del sistema
+        if (!fs.existsSync(executablePath)) {
+          console.log('Buscando Chrome instalado en el sistema...');
+          const systemChromePaths = [
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+            process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+            process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
+          ];
+          
+          for (const chromePath of systemChromePaths) {
+            if (fs.existsSync(chromePath)) {
+              executablePath = chromePath;
+              console.log('Usando Chrome del sistema:', executablePath);
+              break;
+            }
+          }
+        }
+      }
+
+      // Si no encontramos ningún navegador, lanzar error claro
+      if (!executablePath || !fs.existsSync(executablePath)) {
+        throw new Error(`
+          No se pudo encontrar ningún navegador. Soluciones:
+          1. Ejecutar: npx puppeteer browsers install chrome
+          2. Instalar Chrome en el servidor
+          3. Verificar permisos de escritura en: ${customCacheDir}
+        `);
+      }
+
+      console.log('Usando executablePath:', executablePath);
+
+      // Directorio de usuario temporal
       userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_'));
       console.log('UserDataDir:', userDataDir);
 
-      // OPCIONES ESPECÍFICAS PARA PUPPETEER COMPLETO
       const browserOptions = {
         headless: 'new',
-        // Forzar el uso del Chromium incluido con Puppeteer
-        executablePath: puppeteer.executablePath(),
+        executablePath: executablePath,
         userDataDir: userDataDir,
         args: [
           '--no-sandbox',
@@ -45,9 +89,7 @@ class PuppeteerPDF {
         timeout: 120000
       };
 
-      console.log('Executable path:', puppeteer.executablePath());
-      console.log('Lanzando browser con puppeteer completo...');
-
+      console.log('Lanzando browser...');
       browser = await puppeteer.launch(browserOptions);
       console.log('Browser iniciado correctamente');
 
