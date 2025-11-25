@@ -5,6 +5,9 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 import multer from 'multer';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const CARGOS_PERMITIDOS = [
   'Gerente',
   'Jefe',
@@ -968,6 +971,8 @@ export const usuariosController = {
   async verPdf(req, res) {
   console.log('=== VER PDF USUARIOS INICIADO ===');
 
+  
+
   try {
     const usuarios = await prisma.usuarios.findMany({
       include: {
@@ -1010,6 +1015,17 @@ export const usuariosController = {
       })
     );
 
+    let logoBase64 = null;
+    try {
+      const logoPath = path.join(__dirname, '..', 'public', 'images', 'logo.png');
+      if (fs.existsSync(logoPath)) {
+        const imageBuffer = fs.readFileSync(logoPath);
+        logoBase64 = imageBuffer.toString('base64');
+      }
+    } catch (error) {
+      console.log('⚠️ No se pudo cargar el logo:', error.message);
+    }
+    
     const data = {
       usuarios: usuariosConContadores,
       fechaGeneracion: new Date().toLocaleString('es-ES'),

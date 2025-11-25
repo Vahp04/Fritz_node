@@ -4,11 +4,11 @@ class PDFKitGenerator {
   static async generatePDF(htmlContent, options = {}) {
     return new Promise((resolve, reject) => {
       try {
-        console.log('🚀 Generando PDF con diseño similar a HTML...');
+        console.log('Generando PDF con diseño similar a HTML...');
         
         const doc = new PDFDocument({
           margin: 20,
-          size: 'A4',
+          size: 'Letter',
           bufferPages: true
         });
         
@@ -16,11 +16,11 @@ class PDFKitGenerator {
         
         doc.on('data', (chunk) => chunks.push(chunk));
         doc.on('end', () => {
-          console.log('✅ PDF generado exitosamente con PDFKit');
+          console.log('PDF generado exitosamente con PDFKit');
           resolve(Buffer.concat(chunks));
         });
         doc.on('error', (error) => {
-          console.error('❌ Error generando PDF con PDFKit:', error);
+          console.error('Error generando PDF con PDFKit:', error);
           reject(error);
         });
 
@@ -30,7 +30,7 @@ class PDFKitGenerator {
         doc.end();
         
       } catch (error) {
-        console.error('❌ Error en PDFKit:', error);
+        console.error('Error en PDFKit:', error);
         reject(error);
       }
     });
@@ -41,14 +41,21 @@ class PDFKitGenerator {
     const pageWidth = 500;
     let yPosition = margin;
 
-    // ===== ENCABEZADO =====
-    // Logo (usaremos texto como placeholder)
-    doc.fontSize(10)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text('FRITZ C.A', margin, yPosition);
-    
-    yPosition += 15;
+      if (data.logoBase64) {
+    try {
+      const logoBuffer = Buffer.from(data.logoBase64, 'base64');
+      doc.image(logoBuffer, margin, yPosition, { 
+        width: 70, 
+        height: 50
+      });
+      console.log('Logo cargado desde Base64');
+    } catch (error) {
+      console.log('Error cargando logo Base64:', error.message);
+      this.drawTextLogo(doc, margin, yPosition);
+    }
+  } else {
+    this.drawTextLogo(doc, margin, yPosition);
+  }
 
     // Título principal
     doc.fontSize(18)
@@ -250,6 +257,13 @@ class PDFKitGenerator {
       return '#495057'; // Gris (secondary)
     }
   }
+
+  static drawTextLogo(doc, x, y) {
+  doc.fontSize(10)
+     .font('Helvetica-Bold')
+     .fillColor('#DC2626')
+     .text('FRITZ C.A', x, y + 15);
+}
 }
 
 export default PDFKitGenerator;
