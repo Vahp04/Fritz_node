@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [85, 50, 105, 60, 50, 67, 25, 25, 50];
+      const colWidths = [80, 50, 105, 60, 50, 65, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -167,12 +167,12 @@ class PDFKitGenerator {
         }
 
         const rowData = [
-          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 18),
-          (usuario.cargo || '').substring(0, 10),
-          (usuario.correo || '').substring(0, 28),
-          `${usuario.rdpfis || ''} ${usuario.rdpfin || ''}`.substring(0, 16),
+          `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 16),
+          (usuario.cargo || '').substring(0, 12),
+          (usuario.correo || '').substring(0, 30),
+          `${usuario.rdpfis || ''} ${usuario.rdpfin || ''}`.substring(0, 18),
           (usuario.sede?.nombre || 'N/A').substring(0, 12),
-          (usuario.departamento?.nombre || 'N/A').substring(0, 18),
+          (usuario.departamento?.nombre || 'N/A').substring(0, 20),
           (usuario.equipos_totales_count || 0).toString(),
           (usuario.equipos_activos_count || 0).toString(),
           this.getEstadoText(usuario.equipos_activos_count || 0, usuario.equipos_totales_count || 0)
