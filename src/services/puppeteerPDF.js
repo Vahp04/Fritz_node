@@ -1,12 +1,16 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class PuppeteerPDF {
   static queue = [];
   static processing = false;
 
   static async generatePDF(htmlContent, options = {}) {
-    // Agregar a la cola y esperar turno
     return new Promise((resolve, reject) => {
       this.queue.push({ htmlContent, options, resolve, reject });
       this.processQueue();
@@ -27,7 +31,7 @@ class PuppeteerPDF {
       task.reject(error);
     } finally {
       this.processing = false;
-      this.processQueue(); // Procesar siguiente tarea
+      this.processQueue();
     }
   }
 
@@ -55,18 +59,28 @@ class PuppeteerPDF {
         throw new Error('No se encontró Chrome instalado');
       }
 
+      // Crear directorio temporal único para esta instancia
+      const tempDir = path.join(__dirname, '..', '..', 'temp_puppeteer');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      const userDataDir = path.join(tempDir, `profile_${Date.now()}_${Math.random().toString(36).substring(7)}`);
+
       const browserOptions = {
         headless: 'new',
         executablePath: executablePath,
+        userDataDir: userDataDir, // Directorio único por instancia
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox', 
           '--disable-dev-shm-usage',
           '--no-first-run',
           '--disable-gpu',
-          '--single-process'
+          '--single-process',
+          '--disable-features=VizDisplayCompositor'
         ],
-        timeout: 10000
+        timeout: 30000 // Aumentar timeout
       };
 
       console.log('Lanzando browser...');
@@ -77,11 +91,12 @@ class PuppeteerPDF {
       await page.setViewport({ width: 1200, height: 800 });
 
       await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded',
-        timeout: 20000
+        waitUntil: 'networkidle0', // Cambiar a networkidle0 para mejor espera
+        timeout: 30000
       });
 
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Esperar a que se carguen recursos externos si los hay
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -91,7 +106,8 @@ class PuppeteerPDF {
           right: '15mm', 
           bottom: '20mm',
           left: '15mm'
-        }
+        },
+        timeout: 30000
       });
 
       console.log('PDF generado exitosamente');
@@ -102,8 +118,25 @@ class PuppeteerPDF {
       throw error;
     } finally {
       if (browser) {
-        await browser.close().catch(console.error);
-        console.log('Browser cerrado');
+        try {
+          await browser.close();
+          console.log('Browser cerrado');
+        } catch (closeError) {
+          console.error('Error cerrando browser:', closeError.message);
+        }
+      }
+    }
+  }
+
+  // Método para limpiar directorios temporales (opcional)
+  static async cleanupTempFiles() {
+    const tempDir = path.join(__dirname, '..', '..', 'temp_puppeteer');
+    if (fs.existsSync(tempDir)) {
+      try {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+        console.log('Directorio temporal limpiado');
+      } catch (error) {
+        console.error('Error limpiando directorio temporal:', error.message);
       }
     }
   }
