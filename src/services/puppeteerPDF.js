@@ -1,16 +1,19 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import { execSync } from 'child_process';
 
-class PuppeteerPDF {
+class EdgePDF {
   static async generatePDF(htmlContent, options = {}) {
     let browser;
     try {
-      console.log('Iniciando generación de PDF con Microsoft Edge 142...');
+      console.log('BUSCANDO MICROSOFT EDGE...');
 
-      // Ruta específica para Edge (basado en tu versión)
+      // Método 1: Buscar Edge en rutas comunes
       const edgePaths = [
         'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe'
+        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+        process.env.PROGRAMFILES + '\\Microsoft\\Edge\\Application\\msedge.exe',
+        process.env['PROGRAMFILES(X86)'] + '\\Microsoft\\Edge\\Application\\msedge.exe'
       ];
 
       let edgePath = null;
@@ -18,25 +21,46 @@ class PuppeteerPDF {
         try {
           if (fs.existsSync(path)) {
             edgePath = path;
-            console.log('Edge 142 encontrado en:', path);
+            console.log('EDGE ENCONTRADO:', path);
             break;
           }
-        } catch (error) {
-          console.log('Edge no encontrado en:', path);
+        } catch (e) {
+          // Continuar con la siguiente ruta
+        }
+      }
+
+      // Método 2: Buscar en el registro de Windows
+      if (!edgePath) {
+        try {
+          const registryPath = execSync('reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe" /ve 2>nul', { encoding: 'utf8' });
+          const match = registryPath.match(/REG_SZ\s+(.*)/);
+          if (match && match[1]) {
+            edgePath = match[1].trim();
+            console.log('EDGE ENCONTRADO EN REGISTRO:', edgePath);
+          }
+        } catch (e) {
+          console.log('Edge no encontrado en registro');
         }
       }
 
       if (!edgePath) {
-        throw new Error('Microsoft Edge 142 no encontrado en el sistema');
+        throw new Error('MICROSOFT EDGE NO ENCONTRADO. Verifique que esté instalado.');
       }
 
-      // CONFIGURACIÓN ESPECÍFICA PARA EDGE 142
+      // VERIFICAR QUE EL ARCHIVO EXISTA
+      if (!fs.existsSync(edgePath)) {
+        throw new Error(`Edge encontrado pero el archivo no existe: ${edgePath}`);
+      }
+
+      console.log('CONFIGURANDO PUPPETEER CON EDGE...');
+
+      // CONFIGURACIÓN CRÍTICA - Forzar uso de Edge
       const browserOptions = {
-        executablePath: edgePath,
+        executablePath: edgePath, // ESTA LÍNEA ES CRÍTICA
         headless: true,
         args: [
           '--no-sandbox',
-          '--disable-setuid-sandbox',
+          '--disable-setuid-sandbox', 
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--disable-software-rasterizer',
@@ -44,119 +68,70 @@ class PuppeteerPDF {
           '--no-zygote',
           '--disable-extensions',
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
+          '--single-process',
           '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-ipc-flooding-protection',
-          '--disable-hang-monitor',
-          '--disable-popup-blocking',
-          '--disable-prompt-on-repost',
-          '--disable-back-forward-cache',
-          '--disable-component-update',
-          '--disable-default-apps',
-          '--disable-domain-reliability',
-          '--disable-client-side-phishing-detection',
-          '--disable-sync',
-          '--disable-translate',
-          '--metrics-recording-only',
-          '--mute-audio',
-          '--no-default-browser-check',
-          '--use-mock-keychain',
-          '--single-process'  // IMPORTANTE para servidores Windows
+          '--disable-renderer-backgrounding'
         ],
-        ignoreHTTPSErrors: true,
-        ignoreDefaultArgs: ['--disable-extensions', '--enable-automation'],
-        timeout: 60000,
-        dumpio: false  // Desactivar logs detallados
+        ignoreHTTPSErrors: true
       };
 
-      console.log('Configurando Edge 142...');
+      console.log('EJECUTABLE PATH:', browserOptions.executablePath);
+      console.log('LANZANDO EDGE...');
+
       browser = await puppeteer.launch(browserOptions);
-      console.log('Edge 142 lanzado exitosamente');
+      console.log('EDGE LANZADO EXITOSAMENTE');
 
       const page = await browser.newPage();
       
-      // Configurar timeouts
-      page.setDefaultTimeout(60000);
-      page.setDefaultNavigationTimeout(60000);
+      // Configuración básica
+      await page.setViewport({ width: 1200, height: 800 });
 
-      // Configurar viewport
-      await page.setViewport({ 
-        width: options.viewportWidth || 1200, 
-        height: options.viewportHeight || 800 
+      console.log('CARGANDO CONTENIDO HTML...');
+      await page.setContent(htmlContent, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 15000 
       });
 
-      // Manejar errores de consola silenciosamente
-      page.on('console', msg => {
-        if (msg.type() === 'error') {
-          console.log('Página ERROR:', msg.text());
+      console.log('ESPERANDO RENDERIZADO...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      console.log('GENERANDO PDF...');
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '15mm', 
+          bottom: '20mm',
+          left: '15mm'
         }
       });
 
-      page.on('pageerror', error => {
-        console.log('Error de página:', error.message);
-      });
-
-      console.log('Cargando contenido HTML...');
-      
-      // Cargar contenido con opciones optimizadas
-      await page.setContent(htmlContent, {
-        waitUntil: 'domcontentloaded',
-        timeout: 30000
-      });
-
-      console.log('Esperando renderizado...');
-      // Espera mínima para renderizado
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Configuración de PDF optimizada para Edge
-      const pdfOptions = {
-        format: options.format || 'A4',
-        landscape: options.landscape || false,
-        printBackground: true,
-        preferCSSPageSize: false,  // Edge funciona mejor con false
-        displayHeaderFooter: false,
-        margin: {
-          top: options.marginTop || '20mm',
-          right: options.marginRight || '15mm',
-          bottom: options.marginBottom || '20mm',
-          left: options.marginLeft || '15mm'
-        },
-        timeout: 30000
-      };
-
-      console.log('Generando PDF con Edge 142...');
-      const pdfBuffer = await page.pdf(pdfOptions);
-
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        throw new Error('El PDF generado está vacío');
-      }
-
-      console.log('PDF generado exitosamente - Tamaño:', pdfBuffer.length, 'bytes');
+      console.log('PDF GENERADO - Tamaño:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('ERROR en generatePDF:', error.message);
+      console.error('ERROR CRÍTICO:', error.message);
+      console.error('Stack:', error.stack);
       
-      // Información adicional para debugging
-      if (error.message.includes('Target closed') || error.message.includes('Protocol error')) {
-        console.error('Posible solución: Verificar memoria disponible en el servidor');
-        console.error('Reducir el tamaño del HTML o usar menos recursos');
-      }
+      // Información de diagnóstico
+      console.log('DIAGNÓSTICO:');
+      console.log(' - Node.js version:', process.version);
+      console.log(' - Platform:', process.platform);
+      console.log(' - Arch:', process.arch);
       
-      throw new Error(`Error generando PDF con Edge: ${error.message}`);
+      throw new Error(`FALLÓ GENERACIÓN PDF: ${error.message}`);
     } finally {
       if (browser) {
         try {
           await browser.close();
-          console.log('Navegador cerrado correctamente');
-        } catch (closeError) {
-          console.log('Error menor al cerrar navegador:', closeError.message);
+          console.log('NAVEGADOR CERRADO');
+        } catch (e) {
+          console.log('Error cerrando navegador:', e.message);
         }
       }
     }
   }
 }
 
-export default PuppeteerPDF;
+export default EdgePDF;
