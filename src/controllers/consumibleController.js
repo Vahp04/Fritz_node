@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import PDFKitGenerator from '../services/PDFKitGenerator.js';
+import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
@@ -701,7 +701,7 @@ export const consumibleController = {
         }
       };
 
-      const pdfBuffer = await PDFKitGenerator.generatePDF(html, pdfOptions);
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
       
       console.log('PDF generado exitosamente');
       console.log('Tamaño del buffer PDF:', pdfBuffer.length);
