@@ -11,59 +11,49 @@ class PuppeteerPDF {
     try {
       console.log('=== INICIANDO GENERACIÓN PDF ===');
 
-      // Configurar directorio de cache personalizado
-      const customCacheDir = path.join(process.cwd(), 'puppeteer_cache');
-      if (!fs.existsSync(customCacheDir)) {
-        fs.mkdirSync(customCacheDir, { recursive: true });
+      // CONFIGURACIÓN CRÍTICA: Directorio de cache personalizado
+      const puppeteerCacheDir = path.join(process.cwd(), 'puppeteer_cache');
+      if (!fs.existsSync(puppeteerCacheDir)) {
+        fs.mkdirSync(puppeteerCacheDir, { recursive: true });
       }
 
-      // Configurar variables de entorno
-      process.env.PUPPETEER_CACHE_DIR = customCacheDir;
+      // Configurar variables de entorno ANTES de usar puppeteer
+      process.env.PUPPETEER_CACHE_DIR = puppeteerCacheDir;
       process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'false';
-      
-      console.log('Cache directory:', customCacheDir);
+      process.env.PUPPETEER_DOWNLOAD_PATH = puppeteerCacheDir;
 
-      // Obtener la ruta ejecutable de Puppeteer
-      let executablePath = puppeteer.executablePath();
-      console.log('Executable path from puppeteer:', executablePath);
+      console.log('Cache directory configurado:', puppeteerCacheDir);
 
-      // Si no existe, forzar descarga
-      if (!executablePath || !fs.existsSync(executablePath)) {
-        console.log('Chromium no encontrado, forzando descarga...');
-        // Usar una ruta alternativa
-        executablePath = path.join(customCacheDir, 'chrome-win64', 'chrome.exe');
+      // Verificar instalación de Chrome/Chromium
+      const possiblePaths = [
+        // Ruta de puppeteer cache personalizado
+        path.join(puppeteerCacheDir, 'chrome', 'win64-142.0.7444.175', 'chrome-win64', 'chrome.exe'),
+        path.join(puppeteerCacheDir, 'chromium', 'win64-142.0.7444.175', 'chrome-win64', 'chrome.exe'),
         
-        // Si tampoco existe ahí, usar Chrome del sistema
-        if (!fs.existsSync(executablePath)) {
-          console.log('Buscando Chrome instalado en el sistema...');
-          const systemChromePaths = [
-            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-            process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
-            process.env['PROGRAMFILES(X86)'] + '\\Google\\Chrome\\Application\\chrome.exe'
-          ];
-          
-          for (const chromePath of systemChromePaths) {
-            if (fs.existsSync(chromePath)) {
-              executablePath = chromePath;
-              console.log('Usando Chrome del sistema:', executablePath);
-              break;
-            }
-          }
+        // Rutas del sistema
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        
+        // Chromium instalado por puppeteer
+        puppeteer.executablePath()
+      ];
+
+      let executablePath = null;
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          executablePath = possiblePath;
+          console.log('Navegador encontrado en:', executablePath);
+          break;
         }
       }
 
-      // Si no encontramos ningún navegador, lanzar error claro
-      if (!executablePath || !fs.existsSync(executablePath)) {
-        throw new Error(`
-          No se pudo encontrar ningún navegador. Soluciones:
-          1. Ejecutar: npx puppeteer browsers install chrome
-          2. Instalar Chrome en el servidor
-          3. Verificar permisos de escritura en: ${customCacheDir}
-        `);
+      // Si no se encuentra ningún navegador, usar puppeteer sin path específico
+      if (!executablePath) {
+        console.log('No se encontró navegador, usando puppeteer sin executablePath');
+        // Puppeteer intentará encontrar o descargar automáticamente
+      } else {
+        console.log('Usando executablePath:', executablePath);
       }
-
-      console.log('Usando executablePath:', executablePath);
 
       // Directorio de usuario temporal
       userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'puppeteer_'));
@@ -71,7 +61,6 @@ class PuppeteerPDF {
 
       const browserOptions = {
         headless: 'new',
-        executablePath: executablePath,
         userDataDir: userDataDir,
         args: [
           '--no-sandbox',
@@ -82,12 +71,21 @@ class PuppeteerPDF {
           '--no-zygote',
           '--disable-gpu',
           '--single-process',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--font-render-hinting=none'
+          '--disable-web-security'
         ],
         timeout: 120000
       };
+
+      // Solo agregar executablePath si existe
+      if (executablePath) {
+        browserOptions.executablePath = executablePath;
+      }
+
+      console.log('Opciones del browser:', {
+        headless: browserOptions.headless,
+        hasExecutablePath: !!browserOptions.executablePath,
+        userDataDir: browserOptions.userDataDir
+      });
 
       console.log('Lanzando browser...');
       browser = await puppeteer.launch(browserOptions);
@@ -97,55 +95,31 @@ class PuppeteerPDF {
       await page.setViewport({ width: 1200, height: 800 });
       page.setDefaultTimeout(60000);
 
-      // Configurar manejo de errores
-      page.on('console', msg => console.log('PAGE LOG:', msg.text()));
-      page.on('pageerror', error => console.log('Page error:', error));
+      console.log('Configurando contenido HTML...');
+      await page.setContent(htmlContent, {
+        waitUntil: 'networkidle0',
+        timeout: 60000
+      });
 
-      try {
-        await page.setContent(htmlContent, {
-          waitUntil: ['networkidle0', 'domcontentloaded'],
-          timeout: 60000
-        });
-      } catch (contentError) {
-        console.warn('Error en setContent, continuando...', contentError.message);
-      }
-
-      try {
-        await page.evaluateHandle('document.fonts.ready');
-      } catch (fontError) {
-        console.warn('Error cargando fuentes:', fontError.message);
-      }
-
+      await page.evaluateHandle('document.fonts.ready');
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const pdfOptions = {
-        format: options.format || 'A4',
-        landscape: options.landscape || false,
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
         printBackground: true,
-        preferCSSPageSize: true,
-        displayHeaderFooter: false,
-        omitBackground: false,
-        timeout: 60000,
         margin: {
-          top: options.marginTop || '20mm',
-          right: options.marginRight || '15mm',
-          bottom: options.marginBottom || '20mm',
-          left: options.marginLeft || '15mm'
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
         }
-      };
-
-      console.log('Generando PDF buffer...');
-      const pdfBuffer = await page.pdf(pdfOptions);
-      
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        throw new Error('El PDF generado está vacío');
-      }
+      });
 
       console.log('PDF generado exitosamente');
       return pdfBuffer;
 
     } catch (error) {
-      console.error('Error en generatePDF:', error);
+      console.error('Error en generatePDF:', error.message);
       throw error;
     } finally {
       if (browser) {
