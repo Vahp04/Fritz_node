@@ -7,7 +7,7 @@ class PDFKitGenerator {
         console.log('Generando PDF con diseño similar a HTML...');
         
         const doc = new PDFDocument({
-          margin: 18,
+          margin: 15,
           size: 'Letter',
           bufferPages: true
         });
@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [73, 48, 117, 71, 50, 43, 25, 25, 50];
+      const colWidths = [73, 48, 120, 75, 50, 43, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -169,8 +169,8 @@ class PDFKitGenerator {
         const rowData = [
           `${usuario.nombre || ''} ${usuario.apellido || ''}`.substring(0, 22),
           (usuario.cargo || '').substring(0, 12),
-          (usuario.correo || '').substring(0, 37),
-          `${usuario.rdpfin || ''}`.substring(0, 22),
+          (usuario.correo || '').substring(0, 40),
+          `${usuario.rdpfin || ''}`.substring(0, 25),
           (usuario.sede?.nombre || 'N/A').substring(0, 12),
           (usuario.departamento?.nombre || 'N/A').substring(0, 20),
           (usuario.equipos_totales_count || 0).toString(),
@@ -221,7 +221,7 @@ class PDFKitGenerator {
     }
 
     // ===== PIE DE PÁGINA =====
-    yPosition = 780;
+    yPosition = 700;
     doc.moveTo(margin, yPosition)
        .lineTo(margin + pageWidth, yPosition)
        .lineWidth(1)
