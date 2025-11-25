@@ -971,7 +971,8 @@ export const usuariosController = {
   async verPdf(req, res) {
   console.log('=== VER PDF USUARIOS INICIADO ===');
 
-  
+  const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
   try {
     const usuarios = await prisma.usuarios.findMany({
