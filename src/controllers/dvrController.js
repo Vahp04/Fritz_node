@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import PlaywrightPDF from '../services/puppeteerPDF.js';
+import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
@@ -1038,7 +1038,7 @@ export const dvrController = {
         }
       };
 
-      const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
       console.log('PDF generado exitosamente');
       console.log('Tamaño del buffer PDF:', pdfBuffer.length);
 
@@ -1173,7 +1173,7 @@ export const dvrController = {
         }
       };
 
-      const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
+      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
       
       console.log('PDF generado exitosamente');
       console.log('Tamaño del buffer PDF:', pdfBuffer.length);

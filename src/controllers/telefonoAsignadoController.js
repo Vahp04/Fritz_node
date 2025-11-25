@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
-import PlaywrightPDF from '../services/puppeteerPDF.js';
+import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 
@@ -869,7 +869,7 @@ async generarPDFPorUsuario(req, res) {
       }
     };
 
-    const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
     
     console.log('PDF de teléfonos generado exitosamente');
     console.log('Número de documento:', numeroDocumento);
@@ -1016,7 +1016,7 @@ async generarPDFGeneral(req, res) {
       }
     };
 
-    const pdfBuffer = await PlaywrightPDF.generatePDF(html, pdfOptions);
+    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
     
     console.log('PDF general de teléfonos generado exitosamente');
 
