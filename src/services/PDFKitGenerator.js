@@ -7,7 +7,7 @@ class PDFKitGenerator {
         console.log('Generando PDF con diseño similar a HTML...');
         
         const doc = new PDFDocument({
-          margin: 20,
+          margin: 18,
           size: 'Letter',
           bufferPages: true
         });
@@ -221,7 +221,7 @@ class PDFKitGenerator {
     }
 
     // ===== PIE DE PÁGINA =====
-    yPosition = 750;
+    yPosition = 720;
     doc.moveTo(margin, yPosition)
        .lineTo(margin + pageWidth, yPosition)
        .lineWidth(1)
