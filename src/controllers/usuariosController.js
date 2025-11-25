@@ -5,8 +5,6 @@ import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 import multer from 'multer';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const CARGOS_PERMITIDOS = [
   'Gerente',
