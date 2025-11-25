@@ -124,7 +124,7 @@ class PDFKitGenerator {
 
       // Encabezados de la tabla
       const headers = ['Usuario', 'Cargo', 'Correo', 'RDP', 'Sede', 'Depto', 'Total', 'Activos', 'Estado'];
-      const colWidths = [73, 48, 120, 75, 50, 41, 25, 25, 50];
+      const colWidths = [73, 48, 120, 75, 50, 42, 25, 25, 50];
       
       // Fondo rojo para encabezados
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -200,7 +200,7 @@ class PDFKitGenerator {
         // Línea separadora entre filas
         doc.moveTo(margin, yPosition)
            .lineTo(margin + pageWidth, yPosition)
-           .lineWidth(0.5)
+           .lineWidth(0.2)
            .strokeColor('#cccccc')
            .stroke();
         
