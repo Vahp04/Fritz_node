@@ -1,118 +1,80 @@
-import puppeteer from 'puppeteer-core';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
-import os from 'os'; // Importar os en lugar de usar require
+import puppeteer from 'puppeteer';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+class StablePuppeteerPDF {
+  static browser = null;
+  static initializationPromise = null;
+  static isInitializing = false;
 
-class PuppeteerPDF {
-  static queue = [];
-  static processing = false;
-  static activeInstances = new Set();
+  static async getBrowser() {
+    // Si ya está inicializado, retornar el browser
+    if (this.browser) {
+      return this.browser;
+    }
+
+    // Si se está inicializando, esperar a que termine
+    if (this.isInitializing) {
+      return this.initializationPromise;
+    }
+
+    this.isInitializing = true;
+    
+    this.initializationPromise = (async () => {
+      try {
+        console.log('Iniciando browser Puppeteer...');
+        
+        this.browser = await puppeteer.launch({
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--disable-extensions',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding'
+          ],
+          timeout: 30000
+        });
+
+        console.log('Browser Puppeteer iniciado exitosamente');
+        return this.browser;
+
+      } catch (error) {
+        console.error('Error iniciando browser:', error);
+        this.browser = null;
+        this.isInitializing = false;
+        this.initializationPromise = null;
+        throw error;
+      }
+    })();
+
+    return this.initializationPromise;
+  }
 
   static async generatePDF(htmlContent, options = {}) {
-    return new Promise((resolve, reject) => {
-      this.queue.push({ htmlContent, options, resolve, reject });
-      this.processQueue();
-    });
-  }
-
-  static async processQueue() {
-    if (this.processing || this.queue.length === 0) return;
-    
-    this.processing = true;
-    const task = this.queue.shift();
+    let page = null;
     
     try {
-      console.log('Procesando tarea PDF en cola...');
-      const result = await this._generatePDFInternal(task.htmlContent, task.options);
-      task.resolve(result);
-    } catch (error) {
-      task.reject(error);
-    } finally {
-      this.processing = false;
-      this.processQueue();
-    }
-  }
-
-  static async _generatePDFInternal(htmlContent, options = {}) {
-    let browser = null;
-    const instanceId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    try {
-      console.log(`=== GENERACIÓN PDF [${instanceId}] ===`);
-
-      const chromePaths = [
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
-      ];
-
-      let executablePath = null;
-      for (const chromePath of chromePaths) {
-        if (fs.existsSync(chromePath)) {
-          executablePath = chromePath;
-          console.log('Chrome encontrado:', executablePath);
-          break;
-        }
-      }
-
-      if (!executablePath) {
-        throw new Error('No se encontró Chrome instalado');
-      }
-
-      // Usar el directorio temporal del sistema con un nombre más único
-      const userDataDir = path.join(os.tmpdir(), `puppeteer_${instanceId}`);
+      const browser = await this.getBrowser();
       
-      // Asegurarse de que el directorio no exista
-      await this.forceDeleteDirectory(userDataDir);
-
-      const browserOptions = {
-        executablePath: executablePath,
-        headless: true,
-        userDataDir: userDataDir,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-software-rasterizer',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--no-first-run',
-          '--no-default-browser-check',
-          '--disable-default-apps',
-          '--disable-translate',
-          '--disable-extensions',
-          '--remote-debugging-port=0',
-          '--disable-features=TranslateUI',
-          '--disable-component-extensions-with-background-pages',
-          `--user-data-dir=${userDataDir}`
-        ],
-        timeout: 30000
-      };
-
-      console.log(`[${instanceId}] Iniciando browser...`);
-      this.activeInstances.add(instanceId);
+      console.log('Creando nueva página...');
+      page = await browser.newPage();
       
-      browser = await puppeteer.launch(browserOptions);
-      console.log(`[${instanceId}] Browser iniciado exitosamente`);
-
-      const page = await browser.newPage();
       await page.setViewport({ width: 1200, height: 800 });
       page.setDefaultTimeout(30000);
 
+      console.log('Estableciendo contenido HTML...');
       await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
         timeout: 30000
       });
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Esperar a que se renderice completamente
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
+      console.log('Generando PDF...');
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -125,106 +87,75 @@ class PuppeteerPDF {
         timeout: 30000
       });
 
-      console.log(`[${instanceId}] PDF generado exitosamente`);
+      console.log('PDF generado exitosamente');
       return pdfBuffer;
 
     } catch (error) {
-      console.error(`[${instanceId}] Error en generatePDF:`, error.message);
+      console.error('Error generando PDF:', error);
       
-      // Forzar cierre de procesos de Chrome huérfanos
-      await this.killChromeProcesses();
+      // Si el error es por conexión del browser, reiniciarlo
+      if (error.message.includes('Target closed') || error.message.includes('Session closed')) {
+        await this.restartBrowser();
+      }
+      
       throw error;
-      
     } finally {
-      this.activeInstances.delete(instanceId);
-      
-      // Cerrar browser y limpiar de forma agresiva
-      if (browser) {
+      if (page) {
         try {
-          const userDataDir = browser.options.userDataDir;
-          await browser.close();
-          console.log(`[${instanceId}] Browser cerrado`);
-          
-          // Limpieza agresiva del directorio
-          setTimeout(() => {
-            this.forceDeleteDirectory(userDataDir).catch(() => {});
-          }, 1000);
-          
+          await page.close();
+          console.log('Página cerrada');
         } catch (closeError) {
-          console.error(`[${instanceId}] Error cerrando browser:`, closeError.message);
-          // Si no se puede cerrar, matar procesos
-          await this.killChromeProcesses();
+          console.error('Error cerrando página:', closeError);
         }
       }
     }
   }
 
-  static async forceDeleteDirectory(dirPath) {
-    if (!fs.existsSync(dirPath)) return;
-    
-    for (let attempt = 0; attempt < 3; attempt++) {
+  static async restartBrowser() {
+    if (this.browser) {
       try {
-        // Usar diferentes métodos de eliminación
-        fs.rmSync(dirPath, { recursive: true, force: true, maxRetries: 3 });
-        console.log('Directorio eliminado:', dirPath);
-        break;
+        await this.browser.close();
       } catch (error) {
-        console.log(`Intento ${attempt + 1} de eliminar directorio falló:`, error.message);
-        
-        if (attempt === 2) {
-          console.error('No se pudo eliminar el directorio:', dirPath);
-          break;
-        }
-        
-        // Esperar y intentar cerrar procesos de Chrome
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await this.killChromeProcesses();
+        console.error('Error cerrando browser:', error);
       }
     }
+    
+    this.browser = null;
+    this.isInitializing = false;
+    this.initializationPromise = null;
+    
+    // Forzar cierre de procesos Chrome huérfanos
+    await this.killChromeProcesses();
   }
 
   static async killChromeProcesses() {
+    const { spawn } = await import('child_process');
+    
     return new Promise((resolve) => {
       try {
-        // Usar taskkill para forzar cierre de procesos Chrome
         const taskkill = spawn('taskkill', ['/f', '/im', 'chrome.exe', '/t']);
-        
-        taskkill.on('close', (code) => {
-          if (code === 0) {
-            console.log('Procesos Chrome terminados forzosamente');
-          }
-          resolve();
-        });
-        
+        taskkill.on('close', () => resolve());
         taskkill.on('error', () => resolve());
-        
-        // Timeout por si acaso
-        setTimeout(resolve, 5000);
+        setTimeout(resolve, 3000);
       } catch (error) {
-        console.error('Error terminando procesos Chrome:', error.message);
         resolve();
       }
     });
   }
 
-  // Método para limpiar todos los directorios temporales al iniciar la aplicación
-  static async cleanupOldTempFiles() {
-    const tempDir = os.tmpdir(); // Usar os.tmpdir() en lugar de require('os').tmpdir()
-    try {
-      const files = fs.readdirSync(tempDir);
-      for (const file of files) {
-        if (file.startsWith('puppeteer_')) {
-          const fullPath = path.join(tempDir, file);
-          this.forceDeleteDirectory(fullPath).catch(() => {});
-        }
-      }
-    } catch (error) {
-      console.error('Error limpiando archivos temporales viejos:', error.message);
-    }
+  static async close() {
+    await this.restartBrowser();
   }
 }
 
-// Limpiar archivos temporales al cargar el módulo
-PuppeteerPDF.cleanupOldTempFiles().catch(() => {});
+// Cerrar el browser cuando se cierra la aplicación
+process.on('beforeExit', async () => {
+  await StablePuppeteerPDF.close();
+});
 
-export default PuppeteerPDF;
+process.on('SIGINT', async () => {
+  await StablePuppeteerPDF.close();
+  process.exit(0);
+});
+
+export default StablePuppeteerPDF;
