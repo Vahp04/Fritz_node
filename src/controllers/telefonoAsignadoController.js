@@ -891,7 +891,7 @@ async generarPDFPorUsuario(req, res) {
 
       // Títulos
       doc.fillColor('#f73737')
-         .fontSize(16)
+         .fontSize(12)
          .text('FRITZ C.A', x + 60, currentY, { 
              width: width - 70, 
              align: 'center' 
@@ -900,7 +900,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 12;
 
       doc.fillColor('#666')
-         .fontSize(14)
+         .fontSize(10)
          .text('Reporte de Teléfonos Asignados', x + 60, currentY, { 
              width: width - 70, 
              align: 'center' 
@@ -909,7 +909,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 12;
 
       doc.fillColor('#000')
-         .fontSize(12)
+         .fontSize(10)
          .text('Generado el: ' + data.fecha, x + 60, currentY, { 
              width: width - 70, 
              align: 'center' 
@@ -927,11 +927,11 @@ async generarPDFPorUsuario(req, res) {
       currentY += 20;
 
       // ===== INFORMACIÓN DEL USUARIO =====
-      doc.rect(x + 10, currentY, width - 15, 50)
+      doc.rect(x + 10, currentY, width - 25, 60)
          .fillColor('#e9ecef')
          .fill();
       
-      doc.rect(x + 10, currentY, 4, 50)
+      doc.rect(x + 10, currentY, 4, 60)
          .fillColor('#DC2626')
          .fill();
 
@@ -956,7 +956,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 50;
 
       // ===== RESUMEN DE TELÉFONOS =====
-      doc.rect(x + 10, currentY, width - 15, 30)
+      doc.rect(x + 10, currentY, width - 25, 30)
          .fillColor('#e9ecef')
          .fill();
 
@@ -1089,7 +1089,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 20;
 
       // ===== FIRMAS =====
-      const firmaWidth = (width - 24) / 2;
+      const firmaWidth = (width - 35) / 2;
       
       // Firma Usuario
       doc.moveTo(x + 10, currentY + 20)
