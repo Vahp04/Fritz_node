@@ -1996,7 +1996,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 15;
 
             // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 20, 45)
+            doc.rect(x + 10, currentY, width - 15, 45)
                .fillColor('#f8f9fa')
                .fill();
             
@@ -2009,7 +2009,7 @@ async verPdfPorUsuario(req, res) {
                .font('Helvetica-Bold')
                .text('Información del Usuario', x + 20, currentY + 8);
 
-            currentY += 15;
+            currentY += 20;
 
             const infoUsuario = [
                 `Nombre: ${usuario.nombre} ${usuario.apellido}`,
@@ -2229,15 +2229,7 @@ async verPdfPorUsuario(req, res) {
             });
 
             // ===== NOTA DE COPIA =====
-            if (esCopia) {
-                doc.fillColor('#ff0000')
-                   .fontSize(9)
-                   .font('Helvetica-Bold')
-                   .text('COPIA', x + 10, y + height - 15, { 
-                       width: width - 20, 
-                       align: 'center' 
-                   });
-            }
+            
 
             return currentY;
         };
