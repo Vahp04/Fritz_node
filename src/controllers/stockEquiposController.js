@@ -893,7 +893,7 @@ async verPdfStock(req, res) {
 
             let summaryY = yPosition + 28;
             summaryData.forEach(item => {
-                doc.font('Helvetica-Bold')
+                doc.font('Helvetica')
                    .text(item.label, 30, summaryY);
                 
                 if (item.highlight) {
