@@ -984,7 +984,7 @@ async generarPDFPorUsuario(req, res) {
       if (data.telefonos && data.telefonos.length > 0) {
         // Encabezados de tabla
         const headers = ['Número', 'Marca/Modelo', 'IP', 'MAC', 'IMEI', 'Línea'];
-        const columnWidths = [width * 0.15, width * 0.18, width * 0.17, width * 0.18, width * 0.15, width * 0.13];
+        const columnWidths = [width * 0.15, width * 0.18, width * 0.17, width * 0.18, width * 0.15, width * 0.10];
         
         let headerX = x + 10;
         
