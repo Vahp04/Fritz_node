@@ -1615,7 +1615,7 @@ async verPdfAsignaciones(req, res) {
 
             let summaryY = yPosition + 25;
             summaryData.forEach(item => {
-                doc.font('Helvetica-Bold')
+                doc.font('Helvetica')
                    .text(item.label, 25, summaryY);
                 
                 doc.font('Helvetica')
