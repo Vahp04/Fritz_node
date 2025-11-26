@@ -1799,7 +1799,7 @@ async verPdfAsignaciones(req, res) {
       }
   },
 
-async verReporteIndividual(req, res) {
+async verPdfPorUsuario(req, res) {
     console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
 
     try {
