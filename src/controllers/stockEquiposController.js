@@ -547,6 +547,9 @@ async apiIndex(req, res) {
   },
 
 
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+
 async verPdfStock(req, res) {
     console.log('=== VER PDF STOCK INICIADO ===');
     
@@ -605,7 +608,7 @@ async verPdfStock(req, res) {
 
         // Crear documento PDF
         const doc = new PDFDocument({ 
-            margin: 30,
+            margin: 25,
             size: 'LETTER',
             layout: 'landscape'
         });
@@ -632,50 +635,57 @@ async verPdfStock(req, res) {
             return (value * 100).toFixed(1) + '%';
         };
 
+        // Función helper para texto largo (descripción)
+        const truncateText = (text, maxLength) => {
+            if (!text) return 'N/A';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength - 3) + '...';
+        };
+
         // ===== HEADER =====
         // Logo placeholder
         doc.fillColor('#DC2626')
-           .rect(30, 30, 60, 40)
+           .rect(25, 25, 50, 35)
            .fill()
            .fillColor('white')
-           .fontSize(10)
-           .text('FRITZ C.A', 35, 45, { width: 50, align: 'center' });
+           .fontSize(8)
+           .text('FRITZ C.A', 30, 38, { width: 40, align: 'center' });
 
         // Título
         doc.fillColor('#DC2626')
-           .fontSize(20)
+           .fontSize(18)
            .font('Helvetica-Bold')
-           .text('Reporte de Stock de Equipos', 100, 35, {align:'center'});
+           .text('Reporte de Stock de Equipos', 85, 30);
         
         doc.fillColor('#666')
-           .fontSize(12)
+           .fontSize(10)
            .font('Helvetica')
-           .text('Sistema de Gestión de Inventario', 100, 60, {align:'center'});
+           .text('Sistema de Gestión de Inventario', 85, 50);
 
-        doc.moveTo(30, 80)
-           .lineTo(770, 80)
+        doc.moveTo(25, 75)
+           .lineTo(770, 75)
            .strokeColor('#DC2626')
            .lineWidth(2)
            .stroke();
 
-        let yPosition = 100;
+        let yPosition = 90;
 
         // ===== INFORMACIÓN GENERAL =====
         doc.fillColor('#333')
-           .fontSize(10)
+           .fontSize(9)
            .font('Helvetica-Bold')
-           .text('Fecha de generación:', 30, yPosition)
+           .text('Fecha de generación:', 25, yPosition)
            .font('Helvetica')
-           .text(data.fechaGeneracion, 200, yPosition, { align: 'right' });
+           .text(data.fechaGeneracion, 180, yPosition, { align: 'right' });
         
-        yPosition += 15;
+        yPosition += 12;
         
         doc.font('Helvetica-Bold')
-           .text('Total de equipos en inventario:', 30, yPosition)
+           .text('Total de equipos en inventario:', 25, yPosition)
            .font('Helvetica')
-           .text(data.stockEquipos.length + ' tipos diferentes', 200, yPosition, { align: 'right' });
+           .text(data.stockEquipos.length + ' tipos diferentes', 180, yPosition, { align: 'right' });
 
-        yPosition += 25;
+        yPosition += 20;
 
         // ===== ESTADÍSTICAS =====
         const stats = [
@@ -685,115 +695,154 @@ async verPdfStock(req, res) {
             { label: 'Stock Bajo', value: data.stockBajoCount.toLocaleString() }
         ];
 
-        const statWidth = 180;
+        const statWidth = 175;
         stats.forEach((stat, index) => {
-            const x = 30 + (index * statWidth);
+            const x = 25 + (index * statWidth);
             
-            doc.rect(x, yPosition, statWidth - 10, 40)
+            doc.rect(x, yPosition, statWidth - 10, 35)
                .fillColor('#e9ecef')
                .fill();
             
             doc.fillColor('#DC2626')
-               .fontSize(16)
+               .fontSize(14)
                .font('Helvetica-Bold')
                .text(stat.value, x + 5, yPosition + 5, { width: statWidth - 20, align: 'center' });
             
             doc.fillColor('#666')
-               .fontSize(9)
+               .fontSize(8)
                .font('Helvetica')
-               .text(stat.label, x + 5, yPosition + 25, { width: statWidth - 20, align: 'center' });
+               .text(stat.label, x + 5, yPosition + 22, { width: statWidth - 20, align: 'center' });
         });
 
-        yPosition += 60;
+        yPosition += 50;
 
         // ===== DISTRIBUCIÓN POR TIPO =====
-        doc.rect(30, yPosition, 740, 60)
+        doc.rect(25, yPosition, 745, 50)
            .fillColor('#e9ecef')
            .fill();
         
         doc.fillColor('#333')
-           .fontSize(11)
+           .fontSize(10)
            .font('Helvetica-Bold')
-           .text('Distribución por Tipo de Equipo', 35, yPosition + 8);
+           .text('Distribución por Tipo de Equipo', 30, yPosition + 8);
 
-        let tipoY = yPosition + 25;
-        let tipoX = 35;
+        let tipoY = yPosition + 20;
+        let tipoX = 30;
         Object.entries(data.equiposPorTipo).forEach(([tipo, cantidad]) => {
             if (tipoX > 600) {
-                tipoX = 35;
-                tipoY += 15;
+                tipoX = 30;
+                tipoY += 12;
             }
             
-            doc.rect(tipoX, tipoY, 180, 12)
+            doc.rect(tipoX, tipoY, 170, 10)
                .fillColor('white')
                .fill();
             
-            doc.rect(tipoX, tipoY, 3, 12)
+            doc.rect(tipoX, tipoY, 3, 10)
                .fillColor('#DC2626')
                .fill();
             
             doc.fillColor('#333')
-               .fontSize(8)
-               .text(tipo + ': ' + cantidad + ' equipos', tipoX + 8, tipoY + 2);
+               .fontSize(7)
+               .text(tipo + ': ' + cantidad + ' equipos', tipoX + 6, tipoY + 1);
             
-            tipoX += 190;
+            tipoX += 175;
         });
 
-        yPosition += 80;
+        yPosition += 65;
 
         // ===== TABLA DE EQUIPOS =====
         if (data.stockEquipos.length > 0) {
-            // Encabezados de tabla
-            const headers = ['Tipo', 'Marca', 'Modelo', 'Total', 'Disp.', 'Asig.', 'Mín.', 'Estado', 'Valor Unit.'];
-            const columnWidths = [80, 70, 80, 40, 40, 40, 40, 50, 70];
-  
-
-            let headerX = 100;
-            doc.fontSize(8)
-            .font('Helvetica-Bold')
-            .fillColor('#ffffff');
+            // Encabezados de tabla - CORREGIDOS CON DESCRIPCIÓN
+            const headers = ['Tipo', 'Marca', 'Modelo', 'Descripción', 'Total', 'Disp.', 'Asig.', 'Mín.', 'Estado', 'Valor Unit.'];
+            const columnWidths = [60, 50, 60, 100, 30, 30, 30, 30, 40, 50];
             
+            let headerX = 25;
+            
+            // Dibujar fondo de encabezados
             headers.forEach((header, index) => {
-                doc.rect(headerX, yPosition, columnWidths[index], 20)
+                doc.rect(headerX, yPosition, columnWidths[index], 15)
                    .fillColor('#DC2626')
                    .fill();
+                headerX += columnWidths[index];
+            });
+
+            // Escribir texto de encabezados
+            headerX = 25;
+            doc.fillColor('white')
+               .fontSize(7)
+               .font('Helvetica-Bold');
+            
+            headers.forEach((header, index) => {
+                const alignment = index >= 4 && index !== 9 ? 'center' : 
+                                index === 9 ? 'right' : 'left';
                 
-                doc.text(header, headerX + 5, yPosition + 7, { 
-                    width: columnWidths[index] - 10, 
-                    align: index >= 3 ? 'center' : 'left' 
+                doc.text(header, headerX + 3, yPosition + 4, { 
+                    width: columnWidths[index] - 6, 
+                    align: alignment 
                 });
                 
                 headerX += columnWidths[index];
             });
 
-            yPosition += 20;
+            yPosition += 15;
 
             // Filas de datos
             data.stockEquipos.forEach((equipo, rowIndex) => {
-                if (yPosition > 500) {
-                    // Nueva página si nos quedamos sin espacio
+                // Verificar si necesitamos nueva página
+                if (yPosition > 520) {
                     doc.addPage();
                     yPosition = 50;
+                    
+                    // Redibujar encabezados de tabla en nueva página
+                    let newHeaderX = 25;
+                    headers.forEach((header, index) => {
+                        doc.rect(newHeaderX, yPosition, columnWidths[index], 15)
+                           .fillColor('#DC2626')
+                           .fill();
+                        newHeaderX += columnWidths[index];
+                    });
+
+                    newHeaderX = 25;
+                    doc.fillColor('white')
+                       .fontSize(7)
+                       .font('Helvetica-Bold');
+                    
+                    headers.forEach((header, index) => {
+                        const alignment = index >= 4 && index !== 9 ? 'center' : 
+                                        index === 9 ? 'right' : 'left';
+                        
+                        doc.text(header, newHeaderX + 3, yPosition + 4, { 
+                            width: columnWidths[index] - 6, 
+                            align: alignment 
+                        });
+                        
+                        newHeaderX += columnWidths[index];
+                    });
+
+                    yPosition += 15;
                 }
 
                 const esStockBajo = equipo.cantidad_disponible <= equipo.minimo_stock;
                 const valorUnitario = equipo.valor_adquisicion || 0;
                 
+                // Fondo de fila
                 if (esStockBajo) {
-                    doc.rect(30, yPosition, 740, 15)
+                    doc.rect(25, yPosition, 745, 12)
                        .fillColor('#fff3cd')
                        .fill();
                 } else if (rowIndex % 2 === 0) {
-                    doc.rect(30, yPosition, 740, 15)
+                    doc.rect(25, yPosition, 745, 12)
                        .fillColor('#f8f9fa')
                        .fill();
                 }
 
-                let cellX = 100;
+                let cellX = 25;
                 const rowData = [
                     equipo.tipo_equipo?.nombre || 'N/A',
                     equipo.marca,
                     equipo.modelo,
+                    truncateText(equipo.descripcion, 35), // Descripción truncada
                     equipo.cantidad_total?.toString() || '0',
                     equipo.cantidad_disponible?.toString() || '0',
                     equipo.cantidad_asignada?.toString() || '0',
@@ -803,35 +852,35 @@ async verPdfStock(req, res) {
                 ];
 
                 doc.fillColor('#333')
-                   .fontSize(8)
+                   .fontSize(7)
                    .font('Helvetica');
 
                 rowData.forEach((cell, index) => {
-                    const alignment = index >= 3 && index !== 8 ? 'center' : 
-                                    index === 8 ? 'right' : 'left';
+                    const alignment = index >= 4 && index !== 9 ? 'center' : 
+                                    index === 9 ? 'right' : 'left';
                     
-                    doc.text(cell, cellX + 5, yPosition + 4, { 
-                        width: columnWidths[index] - 10, 
+                    doc.text(cell, cellX + 3, yPosition + 2, { 
+                        width: columnWidths[index] - 6, 
                         align: alignment 
                     });
                     
                     cellX += columnWidths[index];
                 });
 
-                yPosition += 15;
+                yPosition += 12;
             });
 
-            yPosition += 20;
+            yPosition += 15;
 
             // ===== RESUMEN FINANCIERO =====
-            doc.rect(30, yPosition, 740, 80)
+            doc.rect(25, yPosition, 745, 65)
                .fillColor('#e9ecef')
                .fill();
             
             doc.fillColor('#333')
-               .fontSize(11)
+               .fontSize(10)
                .font('Helvetica-Bold')
-               .text('Resumen Financiero del Inventario', 35, yPosition + 8);
+               .text('Resumen Financiero del Inventario', 30, yPosition + 8);
 
             const tasaAsignacion = data.totalEquipos > 0 ? 
                 (data.totalAsignado / data.totalEquipos) : 0;
@@ -846,46 +895,46 @@ async verPdfStock(req, res) {
                 { label: 'Valor promedio por equipo:', value: '$' + formatCurrency(valorPromedio) }
             ];
 
-            let summaryY = yPosition + 25;
+            let summaryY = yPosition + 20;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
-                   .text(item.label, 35, summaryY);
+                   .text(item.label, 30, summaryY);
                 
                 if (item.highlight) {
                     doc.fillColor('#DC2626')
-                       .fontSize(12);
+                       .fontSize(11);
                 } else {
                     doc.fillColor('#333')
-                       .fontSize(10);
+                       .fontSize(9);
                 }
                 
                 doc.text(item.value, 300, summaryY, { align: 'right' });
                 
                 if (item.highlight) {
                     doc.fillColor('#333')
-                       .fontSize(10);
+                       .fontSize(9);
                 }
                 
-                summaryY += 12;
+                summaryY += 10;
             });
         } else {
             doc.fillColor('#666')
-               .fontSize(14)
-               .text('No hay equipos en stock', 30, yPosition, { align: 'center' });
+               .fontSize(12)
+               .text('No hay equipos en stock', 25, yPosition, { align: 'center' });
         }
 
         // ===== FOOTER =====
-        const footerY = 550;
-        doc.moveTo(30, footerY)
+        const footerY = 560;
+        doc.moveTo(25, footerY)
            .lineTo(770, footerY)
            .strokeColor('#ddd')
            .lineWidth(1)
            .stroke();
         
         doc.fillColor('#666')
-           .fontSize(9)
-           .text('Sistema de Gestión - FRITZ C.A', 30, footerY + 8, { align: 'left' })
-           .text('Generado el ' + data.fechaGeneracion, 30, footerY + 8, { align: 'right' });
+           .fontSize(8)
+           .text('Sistema de Gestión - FRITZ C.A', 25, footerY + 8)
+           .text('Generado el ' + data.fechaGeneracion, 25, footerY + 8, { align: 'right' });
 
         // Función helper para estado
         function getEstadoTexto(equipo) {
