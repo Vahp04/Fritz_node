@@ -1365,7 +1365,7 @@ async verPdfAsignaciones(req, res) {
 
         // Título
         doc.fillColor('#DC2626')
-           .fontSize(12)
+           .fontSize(10)
            .font('Helvetica-Bold')
            .text('Reporte de Equipos Asignados', 90, 25, {align: 'center'});
         
@@ -2069,7 +2069,7 @@ async verPdfPorUsuario(req, res) {
             if (data.equiposAsignados.length > 0) {
                 // Encabezados de tabla
                 const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asig.', 'Estado', 'Observaciones'];
-                const columnWidths = [20, width * 0.30, width * 0.20, width * 0.20, width * 0.20, width * 0.25];
+                const columnWidths = [20, width * 0.20, width * 0.10, width * 0.10, width * 0.10, width * 0.25];
                 
                 let headerX = x + 10;
                 
@@ -2218,7 +2218,7 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#333')
                .fontSize(10)
-               .text('Observaciones Generales:', x + 18, currentY + 10);
+               .text('Observaciones Generales:', x + 18, currentY + 5);
 
             currentY += 15;
 
