@@ -1799,77 +1799,123 @@ async verPdfAsignaciones(req, res) {
       }
   },
 
-async verPdfPorUsuario(req, res) {
-    console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
 
+async verPdfPorUsuario(req, res) {
+    console.log('=== VER PDF POR USUARIO INICIADO ===');
     try {
-        const { id } = req.params;
-        console.log(`Viendo reporte para usuario ID: ${id}`);
+        const { usuarioId } = req.params;
+
+        // Validar que el usuarioId esté presente
+        if (!usuarioId) {
+            return res.status(400).json({ error: 'ID de usuario es requerido' });
+        }
+
+        let contador = await prisma.$transaction(async (tx) => {
+            let counter = await tx.contadorRegistros.findUnique({
+                where: { tipo: 'reporte_equipos' }
+            });
+
+            if (!counter) {
+                counter = await tx.contadorRegistros.create({
+                    data: {
+                        tipo: 'reporte_equipos',
+                        ultimoNumero: 1
+                    }
+                });
+            } else {
+                counter = await tx.contadorRegistros.update({
+                    where: { tipo: 'reporte_equipos' },
+                    data: {
+                        ultimoNumero: { increment: 1 }
+                    }
+                });
+            }
+
+            return counter;
+        });
+
+        const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
+        console.log(`Número de registro generado: ${numeroRegistro}`);
 
         const usuario = await prisma.usuarios.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(usuarioId) },
             include: {
-                sede: {
-                    select: { nombre: true }
-                },
-                departamento: {
-                    select: { nombre: true }
-                }
+                sede: { select: { nombre: true } },
+                departamento: { select: { nombre: true } }
             }
         });
 
         if (!usuario) {
-            return res.status(404).json({
-                error: 'Usuario no encontrado'
-            });
+            return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        // Obtener equipos asignados del usuario
         const equiposAsignados = await prisma.equipo_asignado.findMany({
-            where: { usuarios_id: parseInt(id) },
-            include: {
+            where: { usuarios_id: parseInt(usuarioId) },
+            select: {
+                id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, 
+                estado: true,
                 stock_equipos: {
                     include: {
-                        tipo_equipo: {
-                            select: {
-                                nombre: true
-                            }
-                        }
+                        tipo_equipo: { select: { nombre: true } }
                     }
+                },
+                usuario: {
+                    select: { name: true }
                 }
             },
-            orderBy: {
-                fecha_asignacion: 'desc'
-            }
+            orderBy: [
+                { estado: 'asc' },
+                { fecha_asignacion: 'desc' }
+            ]
         });
 
-        const equipos_totales_count = equiposAsignados.length;
-        const equipos_activos_count = equiposAsignados.filter(e => e.estado === 'activo').length;
-        const equipos_devueltos_count = equiposAsignados.filter(e => e.estado === 'devuelto').length;
+        const equiposProcesados = equiposAsignados.map(asignacion => {
+            const stock = asignacion.stock_equipos || {};
+            const tipoEquipo = stock.tipo_equipo || {};
+            const asignador = asignacion.usuario || {};
+            
+            return {
+                id: asignacion.id,
+                fecha_asignacion: asignacion.fecha_asignacion,
+                fecha_devolucion: asignacion.fecha_devolucion,
+                ip_equipo: asignacion.ip_equipo,
+                cereal_equipo: asignacion.cereal_equipo, 
+                estado: asignacion.estado,
+                
+                stockEquipo: {
+                    id: stock.id || 0,
+                    marca: stock.marca || 'N/A',
+                    modelo: stock.modelo || '',
+                    descripcion: stock.descripcion || '',
+                    tipoEquipo: {
+                        nombre: tipoEquipo.nombre || 'Sin tipo'
+                    }
+                },
+                usuarioAsignador: {
+                    name: asignador.name || 'Sistema'
+                }
+            };
+        });
 
-        // Procesar equipos para el PDF
-        const equiposProcesados = equiposAsignados.map(asignacion => ({
-            id: asignacion.id,
-            equipo: asignacion.stock_equipos ? 
-                `${asignacion.stock_equipos.marca || 'N/A'} ${asignacion.stock_equipos.modelo || ''}` : 
-                'Equipo no encontrado',
-            tipo: asignacion.stock_equipos?.tipo_equipo?.nombre || 'Sin tipo',
-            fecha_asignacion: asignacion.fecha_asignacion,
-            estado: asignacion.estado,
-            descripcion: asignacion.stock_equipos?.descripcion || ''
-        }));
+        const totalEquipos = equiposProcesados.length;
+        const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
+        const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
+        const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
 
         const data = {
-            usuario,
+            usuario: usuario,
             equiposAsignados: equiposProcesados,
-            titulo: 'Reporte Individual de Usuario',
             fechaGeneracion: new Date().toLocaleString('es-ES'),
-            numeroRegistro: `${usuario.id}-${Date.now().toString().slice(-6)}`,
-            estadisticas: {
-                totales: equipos_totales_count,
-                activos: equipos_activos_count,
-                devueltos: equipos_devueltos_count
-            }
+            totalEquipos: totalEquipos,
+            equiposActivos: equiposActivos,
+            equiposDevueltos: equiposDevueltos,
+            equiposObsoletos: equiposObsoletos,
+            formatoDuplicado: true,
+            numeroRegistro: numeroRegistro
         };
 
         console.log('Generando PDF con PDFKit...');
@@ -1910,9 +1956,9 @@ async verPdfPorUsuario(req, res) {
                .fontSize(8)
                .text('FRITZ C.A', x + 15, currentY + 10, { width: 30, align: 'center' });
 
-            // Título
+            // Títulos
             doc.fillColor('#f73737')
-               .fontSize(14)
+               .fontSize(16)
                .font('Helvetica-Bold')
                .text('FRITZ C.A', x + 60, currentY, { 
                    width: width - 70, 
@@ -1922,7 +1968,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 12;
 
             doc.fillColor('#666')
-               .fontSize(12)
+               .fontSize(14)
                .font('Helvetica')
                .text('Reporte de Equipos Asignados', x + 60, currentY, { 
                    width: width - 70, 
@@ -1932,7 +1978,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 12;
 
             doc.fillColor('#000')
-               .fontSize(10)
+               .fontSize(12)
                .text('Generado el: ' + data.fechaGeneracion, x + 60, currentY, { 
                    width: width - 70, 
                    align: 'center' 
@@ -1959,7 +2005,7 @@ async verPdfPorUsuario(req, res) {
                .fill();
 
             doc.fillColor('#333')
-               .fontSize(10)
+               .fontSize(11)
                .font('Helvetica-Bold')
                .text('Información del Usuario', x + 20, currentY + 8);
 
@@ -1992,7 +2038,7 @@ async verPdfPorUsuario(req, res) {
             if (data.equiposAsignados.length > 0) {
                 // Encabezados de tabla
                 const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado'];
-                const columnWidths = [30, width * 0.35, width * 0.2, width * 0.2, width * 0.15];
+                const columnWidths = [25, width * 0.4, width * 0.15, width * 0.15, width * 0.15];
                 
                 let headerX = x + 10;
                 
@@ -2025,7 +2071,7 @@ async verPdfPorUsuario(req, res) {
                 data.equiposAsignados.forEach((equipo, index) => {
                     // Fondo alternado para filas
                     if (index % 2 === 0) {
-                        doc.rect(x + 10, currentY, width - 20, 20)
+                        doc.rect(x + 10, currentY, width - 20, 25)
                            .fillColor('#f8f9fa')
                            .fill();
                     }
@@ -2042,19 +2088,20 @@ async verPdfPorUsuario(req, res) {
                        .font('Helvetica');
 
                     // ID
-                    doc.text(equipo.id.toString(), cellX + 3, currentY + 3, { 
+                    doc.text(equipo.id.toString(), cellX + 3, currentY + 5, { 
                         width: columnWidths[0] - 6 
                     });
                     cellX += columnWidths[0];
 
                     // Equipo
-                    doc.text(equipo.equipo, cellX + 3, currentY + 3, { 
+                    const equipoTexto = `${equipo.stockEquipo.marca} ${equipo.stockEquipo.modelo}`;
+                    doc.text(equipoTexto, cellX + 3, currentY + 3, { 
                         width: columnWidths[1] - 6 
                     });
                     
-                    if (equipo.descripcion) {
+                    if (equipo.stockEquipo.descripcion) {
                         doc.fontSize(6)
-                           .text(equipo.descripcion, cellX + 3, currentY + 10, { 
+                           .text(equipo.stockEquipo.descripcion, cellX + 3, currentY + 10, { 
                                width: columnWidths[1] - 6 
                            });
                     }
@@ -2062,36 +2109,36 @@ async verPdfPorUsuario(req, res) {
 
                     // Tipo
                     doc.fontSize(7)
-                       .text(equipo.tipo, cellX + 3, currentY + 6, { 
+                       .text(equipo.stockEquipo.tipoEquipo.nombre, cellX + 3, currentY + 8, { 
                            width: columnWidths[2] - 6 
                        });
                     cellX += columnWidths[2];
 
                     // Fecha Asignación
-                    doc.text(fechaAsignacion, cellX + 3, currentY + 6, { 
+                    doc.text(fechaAsignacion, cellX + 3, currentY + 8, { 
                         width: columnWidths[3] - 6 
                     });
                     cellX += columnWidths[3];
 
                     // Estado (con badge)
                     const estadoWidth = columnWidths[4] - 10;
-                    doc.rect(cellX + 5, currentY + 2, estadoWidth, 8)
+                    doc.rect(cellX + 5, currentY + 5, estadoWidth, 8)
                        .fillColor(estadoColor.background)
                        .fill();
                     
                     doc.fillColor(estadoColor.text)
                        .fontSize(6)
                        .font('Helvetica-Bold')
-                       .text(estadoTexto, cellX + 5, currentY + 4, { 
+                       .text(estadoTexto, cellX + 5, currentY + 7, { 
                            width: estadoWidth, 
                            align: 'center' 
                        });
 
-                    currentY += 20;
+                    currentY += 25;
                 });
 
                 // Bordes de la tabla
-                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 20), width - 20, (data.equiposAsignados.length * 20) + 12)
+                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 25), width - 20, (data.equiposAsignados.length * 25) + 12)
                    .strokeColor('#000')
                    .lineWidth(0.5)
                    .stroke();
@@ -2126,14 +2173,14 @@ async verPdfPorUsuario(req, res) {
                .stroke();
 
             doc.fillColor('#000')
-               .fontSize(8)
+               .fontSize(9)
                .font('Helvetica-Bold')
                .text(`${usuario.nombre} ${usuario.apellido}`, x + 10, currentY + 23, { 
                    width: firmaWidth, 
                    align: 'center' 
                });
 
-            doc.fontSize(7)
+            doc.fontSize(8)
                .font('Helvetica')
                .text('Usuario', x + 10, currentY + 33, { 
                    width: firmaWidth, 
@@ -2147,7 +2194,7 @@ async verPdfPorUsuario(req, res) {
                .lineWidth(1)
                .stroke();
 
-            doc.fontSize(7)
+            doc.fontSize(8)
                .font('Helvetica')
                .text('Departamento de Tecnología', x + 20 + firmaWidth, currentY + 23, { 
                    width: firmaWidth, 
@@ -2223,9 +2270,9 @@ async verPdfPorUsuario(req, res) {
         }
 
         // Dimensiones para las dos columnas
-        const pageWidth = 760;
+        const pageWidth = 760; // Letter landscape menos márgenes
         const pageHeight = 520;
-        const colWidth = (pageWidth - 20) / 2;
+        const colWidth = (pageWidth - 20) / 2; // 20px de separación entre columnas
         
         // Dibujar primera columna (original)
         dibujarColumna(20, 20, colWidth, pageHeight, false);
@@ -2235,13 +2282,16 @@ async verPdfPorUsuario(req, res) {
 
         doc.end();
 
-        console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+        console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+        console.log(`Número de registro utilizado: ${numeroRegistro}`);
 
     } catch (error) {
-        console.error('ERROR viendo reporte individual:', error);
-        res.status(500).json({
-            error: 'Error al cargar el reporte: ' + error.message
-        });
+        console.error('ERROR viendo PDF por usuario:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ 
+                error: 'Error al cargar el PDF: ' + error.message 
+            });
+        }
     }
 }
 }
