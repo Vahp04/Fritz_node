@@ -1469,7 +1469,7 @@ async verPdfAsignaciones(req, res) {
         if (data.equiposAsignados.length > 0) {
             // Encabezados de tabla
             const headers = ['Usuario', 'Cargo', 'Sede', 'Departamento', 'Equipo', 'Tipo', 'Serial', 'Fecha Asig.', 'Fecha Dev.', 'IP Equipo', 'Asignado Por', 'Estado'];
-            const columnWidths = [62, 57, 58, 70, 95, 55, 58, 55, 55, 60, 67, 60];
+            const columnWidths = [62, 55, 58, 70, 95, 55, 58, 55, 55, 60, 67, 60];
             
             let headerX = 20;
             
@@ -1596,7 +1596,7 @@ async verPdfAsignaciones(req, res) {
             doc.fillColor('#333')
                .fontSize(10)
                .font('Helvetica-Bold')
-               .text('Resumen de Asignaciones', 25, yPosition + 9);
+               .text('Resumen de Asignaciones', 25, yPosition + 15);
 
             const summaryData = [
                 { 
