@@ -651,12 +651,12 @@ async verPdfStock(req, res) {
         doc.fillColor('#DC2626')
            .fontSize(18)
            .font('Helvetica-Bold')
-           .text('Reporte de Stock de Equipos', 85, 30);
+           .text('Reporte de Stock de Equipos', 85, 30, {align: 'center' });
         
         doc.fillColor('#666')
            .fontSize(10)
            .font('Helvetica')
-           .text('Sistema de Gestión de Inventario', 85, 50);
+           .text('Sistema de Gestión de Inventario', 85, 50, {align: 'center'});
 
         doc.moveTo(25, 75)
            .lineTo(770, 75)
@@ -869,7 +869,7 @@ async verPdfStock(req, res) {
             yPosition += 20;
 
             // ===== RESUMEN FINANCIERO =====
-            doc.rect(25, yPosition, 745, 65)
+            doc.rect(30, yPosition, 745, 65)
                .fillColor('#e9ecef')
                .fill();
             
