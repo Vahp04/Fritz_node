@@ -927,7 +927,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 20;
 
       // ===== INFORMACIÓN DEL USUARIO =====
-      doc.rect(x + 10, currentY, width - 30, 75)
+      doc.rect(x + 10, currentY, width - 30, 65)
          .fillColor('#e9ecef')
          .fill();
       
@@ -956,13 +956,13 @@ async generarPDFPorUsuario(req, res) {
       currentY += 50;
 
       // ===== RESUMEN DE TELÉFONOS =====
-      doc.rect(x + 10, currentY, width - 35, 40)
+      doc.rect(x + 10, currentY, width - 35, 30)
          .fillColor('#e9ecef')
          .fill();
 
       doc.fillColor('#333')
          .fontSize(10)
-         .text('Resumen de Teléfono Asignado', x + 15, currentY + 8);
+         .text('Resumen de Teléfono Asignado', x + 15, currentY + 10);
 
       currentY += 15;
 
