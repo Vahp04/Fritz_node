@@ -1526,88 +1526,72 @@
         let creandoUsuario = false;
 
         async function crearUsuario() {
-    if (creandoUsuario) {
-        console.log('Ya se está creando un usuario, ignorando...');
-        return;
-    }
-    
-    console.log('=== INICIANDO CREACIÓN DE USUARIO ===');
-    creandoUsuario = true;
-    
-    const form = document.getElementById('createUsuarioForm');
-    const formData = new FormData(form);
-    
-    // Convertir FormData a objeto JSON
-    const datos = {};
-    for (let [key, value] of formData.entries()) {
-        datos[key] = value;
-    }
-    
-    console.log('Datos convertidos a JSON:', datos);
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const originalText = submitButton.innerHTML;
-    
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
-
-    try {
-        const inicio = Date.now();
-        const response = await fetch('/api/usuarios', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
-        });
-
-        const tiempo = Date.now() - inicio;
-        console.log(`Tiempo de respuesta: ${tiempo}ms`);
-        console.log('Estado de respuesta:', response.status);
-
-        // Verificar si la respuesta es JSON
-        const contentType = response.headers.get('content-type');
-        let data;
-        
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-        } else {
-            const text = await response.text();
-            console.error('Respuesta no JSON:', text);
-            throw new Error(`Error del servidor: ${text || 'Respuesta no válida'}`);
-        }
-
-        console.log('Respuesta del servidor:', data);
-
-        if (response.ok) {
-            console.log('Usuario creado exitosamente');
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: data.message
-            });
+            if (creandoUsuario) {
+                console.log('Ya se está creando un usuario, ignorando...');
+                return;
+            }
             
-            $('#createUsuarioModal').modal('hide');
-            form.reset();
-            await cargarUsuarios(currentPage);
-        } else {
-            console.error('Error del servidor:', data.error);
-            throw new Error(data.error || data.message || 'Error al crear usuario');
+            console.log('=== INICIANDO CREACIÓN DE USUARIO ===');
+            creandoUsuario = true;
+            
+            const form = document.getElementById('createUsuarioForm');
+            const formData = new FormData(form);
+            const datos = Object.fromEntries(formData);
+            
+            console.log('Datos del formulario:', datos);
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Guardando...';
+
+            try {
+                const inicio = Date.now();
+                const response = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                const tiempo = Date.now() - inicio;
+                console.log(`Tiempo de respuesta: ${tiempo}ms`);
+                console.log('Estado de respuesta:', response.status);
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                if (response.ok) {
+                    console.log('Usuario creado exitosamente');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: data.message
+                    });
+                    
+                    $('#createUsuarioModal').modal('hide');
+                    form.reset();
+                    await cargarUsuarios(currentPage);
+                } else {
+                    console.error('Error del servidor:', data.error);
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Error en crearUsuario:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+                creandoUsuario = false;
+                console.log('=== FIN DE CREAR USUARIO ===');
+            }
         }
-    } catch (error) {
-        console.error('Error en crearUsuario:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: error.message
-        });
-    } finally {
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalText;
-        creandoUsuario = false;
-        console.log('=== FIN DE CREAR USUARIO ===');
-    }
-}
 
         $('#createUsuarioModal').on('hidden.bs.modal', function () {
             console.log('Modal cerrado, reseteando estado...');
