@@ -1086,7 +1086,7 @@ async generarPDFPorUsuario(req, res) {
         currentY += 40;
       }
 
-      currentY += 40;
+      currentY += 50;
 
       // ===== FIRMAS =====
       const firmaWidth = (width - 35) / 2;
