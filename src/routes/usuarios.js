@@ -30,7 +30,7 @@ router.get('/sede/:sedeId', usuariosController.getBySede);
 router.get('/departamento/:departamentoId', usuariosController.getByDepartamento);
 router.get('/para-select', usuariosController.usuariosParaSelect);
 router.get('/', usuariosController.index);       
-router.post('/', usuariosController.store);      
+router.post('/usuarios', upload.none(), usuariosController.store);     
 router.get('/:id', usuariosController.show);     
 router.put('/:id', upload.single('comprobante'), usuariosController.update);   
 router.delete('/:id', usuariosController.destroy); 
