@@ -751,7 +751,7 @@ async verPdfStock(req, res) {
         if (data.stockEquipos.length > 0) {
             // Encabezados de tabla - CORREGIDOS CON DESCRIPCIÓN
             const headers = ['Tipo', 'Marca', 'Modelo', 'Descripción', 'Total', 'Disp.', 'Asig.', 'Mín.', 'Estado', 'Valor Unit.'];
-            const columnWidths = [60, 50, 60, 100, 30, 30, 30, 30, 40, 50];
+            const columnWidths = [60, 60, 60, 130, 30, 30, 30, 30, 50, 60];
             
             let headerX = 25;
             
@@ -838,7 +838,7 @@ async verPdfStock(req, res) {
                     equipo.tipo_equipo?.nombre || 'N/A',
                     equipo.marca,
                     equipo.modelo,
-                    truncateText(equipo.descripcion, 35), // Descripción truncada
+                    truncateText(equipo.descripcion, 35), 
                     equipo.cantidad_total?.toString() || '0',
                     equipo.cantidad_disponible?.toString() || '0',
                     equipo.cantidad_asignada?.toString() || '0',
@@ -876,7 +876,7 @@ async verPdfStock(req, res) {
             doc.fillColor('#333')
                .fontSize(10)
                .font('Helvetica-Bold')
-               .text('Resumen Financiero del Inventario', 30, yPosition + 8);
+               .text('Resumen Financiero del Inventario', 30, yPosition + 9);
 
             const tasaAsignacion = data.totalEquipos > 0 ? 
                 (data.totalAsignado / data.totalEquipos) : 0;
@@ -939,7 +939,7 @@ async verPdfStock(req, res) {
             
             if (disponible === 0) return 'Agotado';
             if (disponible <= minimo) return 'Bajo';
-            return 'OK';
+            return 'Disponible';
         }
 
         doc.end();
