@@ -1384,7 +1384,7 @@ async verPdfAsignaciones(req, res) {
 
         // ===== INFORMACIÓN GENERAL =====
         doc.rect(20, yPosition, 750, 30)
-           .fillColor('#f8f9fa')
+           .fillColor('#e9ecef')
            .fill();
         
         doc.fillColor('#333')
@@ -1392,12 +1392,12 @@ async verPdfAsignaciones(req, res) {
            .font('Helvetica-Bold')
            .text('Fecha de generación:', 25, yPosition + 8)
            .font('Helvetica')
-           .text(data.fechaGeneracion, 180, yPosition + 8);
+           .text(data.fechaGeneracion, 250, yPosition + 8);
         
         doc.font('Helvetica-Bold')
            .text('Total de asignaciones:', 25, yPosition + 20)
            .font('Helvetica')
-           .text(data.totalAsignaciones.toString(), 180, yPosition + 20);
+           .text(data.totalAsignaciones.toString(), 250, yPosition + 20);
 
         yPosition += 40;
 
@@ -1438,7 +1438,7 @@ async verPdfAsignaciones(req, res) {
         doc.fillColor('#333')
            .fontSize(11)
            .font('Helvetica-Bold')
-           .text('Distribución por Tipo de Equipo', 25, yPosition + 8);
+           .text('Distribución por Tipo de Equipo', 25, yPosition + 7);
 
         let tipoY = yPosition + 20;
         let tipoX = 25;
@@ -1469,7 +1469,7 @@ async verPdfAsignaciones(req, res) {
         if (data.equiposAsignados.length > 0) {
             // Encabezados de tabla
             const headers = ['Usuario', 'Cargo', 'Sede', 'Departamento', 'Equipo', 'Tipo', 'Serial', 'Fecha Asignación', 'Fecha Devolución', 'IP Equipo', 'Asignado Por', 'Estado'];
-            const columnWidths = [60, 50, 45, 50, 60, 40, 40, 40, 40, 40, 45, 30];
+            const columnWidths = [80, 70, 55, 70, 100, 65, 65, 60, 60, 60, 70, 60];
             
             let headerX = 20;
             
@@ -1484,7 +1484,7 @@ async verPdfAsignaciones(req, res) {
             // Escribir texto de encabezados
             headerX = 20;
             doc.fillColor('white')
-               .fontSize(7)
+               .fontSize(11)
                .font('Helvetica-Bold');
             
             headers.forEach((header, index) => {
@@ -1569,7 +1569,7 @@ async verPdfAsignaciones(req, res) {
                 ];
 
                 doc.fillColor('#333')
-                   .fontSize(6)
+                   .fontSize(10)
                    .font('Helvetica');
 
                 rowData.forEach((cell, index) => {
@@ -1589,7 +1589,7 @@ async verPdfAsignaciones(req, res) {
             yPosition += 15;
 
             // ===== RESUMEN FINAL =====
-            doc.rect(20, yPosition, 750, 45)
+            doc.rect(25, yPosition, 750, 45)
                .fillColor('#e9ecef')
                .fill();
             
