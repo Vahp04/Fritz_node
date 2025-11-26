@@ -2237,7 +2237,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 25;
 
             // ===== FIRMAS =====
-            const firmaWidth = (width - 30) / 2;
+            const firmaWidth = (width - 35) / 2;
             
             // Firma Usuario
             doc.moveTo(x + 10, currentY + 20)
