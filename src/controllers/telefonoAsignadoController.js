@@ -1086,7 +1086,7 @@ async generarPDFPorUsuario(req, res) {
         currentY += 40;
       }
 
-      currentY += 50;
+      currentY += 100;
 
       // ===== FIRMAS =====
       const firmaWidth = (width - 35) / 2;
@@ -1129,7 +1129,7 @@ async generarPDFPorUsuario(req, res) {
           align: 'center' 
       });
 
-      currentY += 100;
+      currentY += 90;
 
       // ===== FOOTER =====
       doc.moveTo(x + 10, currentY)
