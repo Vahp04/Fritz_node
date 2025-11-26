@@ -2069,7 +2069,7 @@ async verPdfPorUsuario(req, res) {
             if (data.equiposAsignados.length > 0) {
                 // Encabezados de tabla
                 const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asig.', 'Estado', 'Observaciones'];
-                const columnWidths = [15, width * 0.20, width * 0.10, width * 0.15, width * 0.10, width * 0.30];
+                const columnWidths = [15, width * 0.20, width * 0.15, width * 0.15, width * 0.15, width * 0.32];
                 
                 let headerX = x + 10;
                 
@@ -2218,7 +2218,7 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#333')
                .fontSize(10)
-               .text('Observaciones Generales:', x + 18, currentY + 8);
+               .text('Observaciones Generales:', x + 18, currentY + 2);
 
             currentY += 15;
 
