@@ -1537,13 +1537,10 @@
     const form = document.getElementById('createUsuarioForm');
     const formData = new FormData(form);
     
-    // Convertir FormData a objeto JSON
-    const datos = {};
+    console.log('Datos del formulario:');
     for (let [key, value] of formData.entries()) {
-        datos[key] = value;
+        console.log(`${key}: ${value}`);
     }
-    
-    console.log('Datos convertidos a JSON:', datos);
 
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
@@ -1555,10 +1552,7 @@
         const inicio = Date.now();
         const response = await fetch('/api/usuarios', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(datos)
+            body: formData // Envía FormData directamente, NO JSON
         });
 
         const tiempo = Date.now() - inicio;
