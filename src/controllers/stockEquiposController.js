@@ -869,7 +869,7 @@ async verPdfStock(req, res) {
             yPosition += 20;
 
             // ===== RESUMEN FINANCIERO =====
-            doc.rect(30, yPosition, 745, 65)
+            doc.rect(25, yPosition, 740, 65)
                .fillColor('#e9ecef')
                .fill();
             
