@@ -1365,12 +1365,12 @@ async verPdfAsignaciones(req, res) {
 
         // Título
         doc.fillColor('#DC2626')
-           .fontSize(20)
+           .fontSize(12)
            .font('Helvetica-Bold')
            .text('Reporte de Equipos Asignados', 90, 25, {align: 'center'});
         
         doc.fillColor('#666')
-           .fontSize(12)
+           .fontSize(10)
            .font('Helvetica')
            .text('Sistema de Gestión de Inventario', 90, 50, {align: 'center'});
 
@@ -1994,7 +1994,7 @@ async verPdfPorUsuario(req, res) {
 
             // Títulos - USANDO FUENTES BÁSICAS
             doc.fillColor('#f73737')
-               .fontSize(16)
+               .fontSize(12)
                .text('FRITZ C.A', x + 60, currentY, { 
                    width: width - 70, 
                    align: 'center' 
@@ -2012,7 +2012,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 12;
 
             doc.fillColor('#000')
-               .fontSize(12)
+               .fontSize(10)
                .text('Generado el: ' + data.fechaGeneracion, x + 60, currentY, { 
                    width: width - 70, 
                    align: 'center' 
@@ -2030,11 +2030,11 @@ async verPdfPorUsuario(req, res) {
             currentY += 20;
 
             // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 20, 60)
-               .fillColor('#f8f9fa')
+            doc.rect(x + 10, currentY, width - 50, 80)
+               .fillColor('#666')
                .fill();
             
-            doc.rect(x + 10, currentY, 4, 60)
+            doc.rect(x + 10, currentY, 4, 80)
                .fillColor('#DC2626')
                .fill();
 
@@ -2042,7 +2042,7 @@ async verPdfPorUsuario(req, res) {
                .fontSize(11)
                .text('Información del Usuario', x + 20, currentY + 10);
 
-            currentY += 20;
+            currentY += 25;
 
             const infoUsuario = [
                 `Nombre: ${usuario.nombre} ${usuario.apellido}`,
