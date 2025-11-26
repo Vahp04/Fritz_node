@@ -2069,7 +2069,7 @@ async verPdfPorUsuario(req, res) {
             if (data.equiposAsignados.length > 0) {
                 // Encabezados de tabla
                 const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asig.', 'Estado', 'Observaciones'];
-                const columnWidths = [15, width * 0.26, width * 0.13, width * 0.13, width * 0.15, width * 0.28];
+                const columnWidths = [15, width * 0.26, width * 0.16, width * 0.10, width * 0.15, width * 0.25];
                 
                 let headerX = x + 10;
                 
