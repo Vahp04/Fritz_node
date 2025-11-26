@@ -645,12 +645,12 @@ async verPdfStock(req, res) {
         doc.fillColor('#DC2626')
            .fontSize(20)
            .font('Helvetica-Bold')
-           .text('Reporte de Stock de Equipos', 100, 35);
+           .text('Reporte de Stock de Equipos', 100, 35, {align:'center'});
         
         doc.fillColor('#666')
            .fontSize(12)
            .font('Helvetica')
-           .text('Sistema de Gestión de Inventario', 100, 60);
+           .text('Sistema de Gestión de Inventario', 100, 60, {align:'center'});
 
         doc.moveTo(30, 80)
            .lineTo(770, 80)
@@ -747,6 +747,11 @@ async verPdfStock(req, res) {
             const headers = ['Tipo', 'Marca', 'Modelo', 'Total', 'Disp.', 'Asig.', 'Mín.', 'Estado', 'Valor Unit.'];
             const columnWidths = [80, 70, 80, 40, 40, 40, 40, 50, 70];
             
+            // Texto de encabezados en blanco
+      doc.fontSize(8)
+         .font('Helvetica-Bold')
+         .fillColor('#ffffff');
+
             let headerX = 30;
             doc.fillColor('white')
                .fontSize(8)
@@ -788,7 +793,7 @@ async verPdfStock(req, res) {
                        .fill();
                 }
 
-                let cellX = 30;
+                let cellX = 40;
                 const rowData = [
                     equipo.tipo_equipo?.nombre || 'N/A',
                     equipo.marca,
