@@ -2030,11 +2030,11 @@ async verPdfPorUsuario(req, res) {
             currentY += 20;
 
             // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 50, 80)
-               .fillColor('#666')
+            doc.rect(x + 10, currentY, width - 50, 85)
+               .fillColor('#e9ecef')
                .fill();
             
-            doc.rect(x + 10, currentY, 4, 80)
+            doc.rect(x + 10, currentY, 4, 85)
                .fillColor('#DC2626')
                .fill();
 
@@ -2068,8 +2068,8 @@ async verPdfPorUsuario(req, res) {
 
             if (data.equiposAsignados.length > 0) {
                 // Encabezados de tabla
-                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado', 'Observaciones'];
-                const columnWidths = [20, width * 0.25, width * 0.12, width * 0.12, width * 0.12, width * 0.19];
+                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asig.', 'Estado', 'Observaciones'];
+                const columnWidths = [20, width * 0.30, width * 0.20, width * 0.20, width * 0.20, width * 0.25];
                 
                 let headerX = x + 10;
                 
@@ -2208,17 +2208,17 @@ async verPdfPorUsuario(req, res) {
             currentY += 20;
 
             // ===== SECCIÓN OBSERVACIONES GENERALES =====
-            doc.rect(x + 10, currentY, width - 20, 40)
-               .fillColor('#f9f9f9')
+            doc.rect(x + 10, currentY, width - 20, 50)
+               .fillColor('#e9ecef')
                .fill();
             
-            doc.rect(x + 10, currentY, 3, 40)
+            doc.rect(x + 10, currentY, 3, 50)
                .fillColor('#f12222')
                .fill();
 
             doc.fillColor('#333')
                .fontSize(10)
-               .text('Observaciones Generales:', x + 18, currentY + 8);
+               .text('Observaciones Generales:', x + 18, currentY + 10);
 
             currentY += 15;
 
@@ -2232,7 +2232,7 @@ async verPdfPorUsuario(req, res) {
 
             currentY += 10;
 
-            doc.text('• Reportar cualquier daño o malfuncionamiento inmediatamente', x + 18, currentY, { width: width - 30 });
+            doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', x + 18, currentY, { width: width - 30 });
 
             currentY += 25;
 
