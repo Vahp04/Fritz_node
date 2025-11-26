@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
@@ -614,7 +615,7 @@ export const consumibleController = {
     }
   },
 
-  async generarPDFOrdenSalida(req, res) {
+async generarPDFOrdenSalida(req, res) {
     try {
       const { consumible_id, sede_origen_id } = req.params;
       const consumibleId = parseInt(consumible_id);
@@ -678,48 +679,311 @@ export const consumibleController = {
         totalUnidades: consumible.consumible_equipos.reduce((sum, ce) => sum + ce.cantidad, 0)
       };
 
-      
+      console.log('Generando PDF con PDFKit...');
 
-      console.log(' Renderizando template de orden de salida...');
-    
-      const html = await renderTemplate(req.app, 'pdfs/orden-salida-consumible', data);
-      
-      console.log('Template renderizado exitosamente');
-      console.log('Longitud del HTML:', html.length);
-
-      console.log(' Generando PDF...');
-      
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '10mm',
-          right: '10mm',
-          bottom: '10mm',
-          left: '10mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
+      // Crear documento PDF
+      const doc = new PDFDocument({ 
+        margin: 20,
+        size: 'LETTER',
+        layout: 'landscape'
+      });
 
       const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
       
       res.writeHead(200, {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
       });
 
-      console.log(`Enviando PDF para abrir en navegador`);
+      // Pipe el PDF a la respuesta
+      doc.pipe(res);
 
-      res.end(pdfBuffer);
+      // Función para dibujar una columna (copia)
+      const dibujarColumna = (x, y, width, height, esCopia = false) => {
+        // Borde de la columna
+        doc.rect(x, y, width, height)
+           .strokeColor('#000')
+           .lineWidth(1)
+           .stroke();
+
+        let currentY = y + 15;
+
+        // ===== HEADER =====
+        // Logo placeholder
+        doc.fillColor('#f73737')
+           .rect(x + (width/2) - 20, currentY, 40, 25)
+           .fill()
+           .fillColor('white')
+           .fontSize(8)
+           .text('FRITZ C.A', x + (width/2) - 15, currentY + 8, { width: 30, align: 'center' });
+
+        currentY += 35;
+
+        // Título
+        doc.fillColor('#f73737')
+           .fontSize(14)
+           .font('Helvetica-Bold')
+           .text(data.titulo.toUpperCase(), x + 10, currentY, { 
+               width: width - 20, 
+               align: 'center' 
+           });
+
+        currentY += 15;
+
+        // Fecha
+        doc.fillColor('#000')
+           .fontSize(10)
+           .font('Helvetica')
+           .text(data.fecha, x + 10, currentY, { 
+               width: width - 20, 
+               align: 'center' 
+           });
+
+        currentY += 20;
+
+        // Línea separadora del header
+        doc.moveTo(x + 10, currentY)
+           .lineTo(x + width - 10, currentY)
+           .strokeColor('#000')
+           .lineWidth(1)
+           .stroke();
+
+        currentY += 15;
+
+        // ===== CONTENIDO =====
+        // Descripción
+        doc.fillColor('#000')
+           .fontSize(9)
+           .font('Helvetica')
+           .text('Por medio de la presente se hace constar la salida de los siguientes equipos de', 
+                 x + 10, currentY, { width: width - 20 });
+
+        currentY += 12;
+
+        doc.font('Helvetica-Bold')
+           .fontSize(12)
+           .text(`${data.sedeOrigen.nombre} a ${data.sedeDestino.nombre}:`, 
+                 x + 10, currentY, { width: width - 20 });
+
+        currentY += 15;
+
+        doc.font('Helvetica-Bold')
+           .fontSize(9)
+           .text('Descripción:', x + 10, currentY);
+
+        currentY += 10;
+
+        doc.font('Helvetica')
+           .fontSize(9)
+           .text(data.consumible.nombre, x + 10, currentY, { 
+               width: width - 20 
+           });
+
+        currentY += 20;
+
+        // ===== TABLA DE EQUIPOS =====
+        // Encabezados de tabla
+        const tableHeaders = ['Equipo', 'Tipo', 'Cantidad'];
+        const columnWidths = [width * 0.6, width * 0.2, width * 0.2];
+        
+        let headerX = x + 10;
+        
+        // Fondo encabezados
+        tableHeaders.forEach((header, index) => {
+            doc.rect(headerX, currentY, columnWidths[index] - 5, 12)
+               .fillColor('#f0f0f0')
+               .fill();
+            headerX += columnWidths[index] - 5;
+        });
+
+        // Texto encabezados
+        headerX = x + 10;
+        doc.fillColor('#000')
+           .fontSize(8)
+           .font('Helvetica-Bold');
+        
+        tableHeaders.forEach((header, index) => {
+            doc.text(header, headerX + 2, currentY + 3, { 
+                width: columnWidths[index] - 7, 
+                align: 'left' 
+            });
+            headerX += columnWidths[index] - 5;
+        });
+
+        currentY += 12;
+
+        // Filas de equipos
+        data.equipos.forEach((equipo, index) => {
+            // Fondo alternado para filas
+            if (index % 2 === 0) {
+                doc.rect(x + 10, currentY, width - 20, 10)
+                   .fillColor('#fafafa')
+                   .fill();
+            }
+
+            let cellX = x + 10;
+            
+            const equipoDesc = `${equipo.stock_equipos.marca} ${equipo.stock_equipos.modelo}`;
+            const tipoEquipo = equipo.stock_equipos.tipo_equipo.nombre;
+            const cantidad = `${equipo.cantidad} unidades`;
+
+            doc.fillColor('#000')
+               .fontSize(7)
+               .font('Helvetica');
+
+            // Equipo
+            doc.text(equipoDesc, cellX + 2, currentY + 2, { 
+                width: columnWidths[0] - 7 
+            });
+            cellX += columnWidths[0] - 5;
+
+            // Tipo
+            doc.text(tipoEquipo, cellX + 2, currentY + 2, { 
+                width: columnWidths[1] - 7 
+            });
+            cellX += columnWidths[1] - 5;
+
+            // Cantidad
+            doc.text(cantidad, cellX + 2, currentY + 2, { 
+                width: columnWidths[2] - 7 
+            });
+
+            currentY += 10;
+        });
+
+        // Bordes de la tabla
+        doc.rect(x + 10, currentY - (data.equipos.length * 10), width - 20, (data.equipos.length * 10) + 12)
+           .strokeColor('#000')
+           .lineWidth(0.5)
+           .stroke();
+
+        currentY += 5;
+
+        // Total unidades
+        doc.font('Helvetica-Bold')
+           .fontSize(9)
+           .text(`Total: ${data.totalUnidades} unidades`, 
+                 x + 10, currentY, { 
+                     width: width - 20, 
+                     align: 'right' 
+                 });
+
+        currentY += 20;
+
+        // ===== SEPARADOR =====
+        doc.moveTo(x + 10, currentY)
+           .lineTo(x + width - 10, currentY)
+           .strokeColor('#000')
+           .lineWidth(0.5)
+           .strokeDash([2, 2])
+           .stroke();
+
+        currentY += 15;
+
+        // ===== OBSERVACIONES =====
+        doc.rect(x + 10, currentY, width - 20, 45)
+           .fillColor('#f9f9f9')
+           .fill();
+        
+        doc.rect(x + 10, currentY, 3, 45)
+           .fillColor('#f12222')
+           .fill();
+
+        doc.fillColor('#000')
+           .fontSize(9)
+           .font('Helvetica-Bold')
+           .text('Observación:', x + 18, currentY + 5);
+
+        currentY += 12;
+
+        doc.font('Helvetica')
+           .fontSize(7)
+           .text('Cualquier Novedad informar por la siguiente dirección de correo:', 
+                 x + 18, currentY, { width: width - 30 });
+
+        currentY += 8;
+
+        doc.font('Helvetica-Bold')
+           .fontSize(7)
+           .text('JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', 
+                 x + 18, currentY, { width: width - 30 });
+
+        currentY += 8;
+
+        doc.font('Helvetica')
+           .fontSize(7)
+           .text('Para cualquier otra información llamar al', 
+                 x + 18, currentY, { width: width - 30 });
+
+        currentY += 8;
+
+        doc.font('Helvetica-Bold')
+           .fontSize(7)
+           .text('0424-5811864', x + 18, currentY, { width: width - 30 });
+
+        currentY += 40;
+
+        // ===== FIRMAS =====
+        const firmaWidth = (width - 30) / 2;
+        
+        // Firma T/C
+        doc.moveTo(x + 10, currentY + 25)
+           .lineTo(x + 10 + firmaWidth, currentY + 25)
+           .strokeColor('#000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fillColor('#000')
+           .fontSize(8)
+           .font('Helvetica-Bold')
+           .text('Firma T/C', x + 10, currentY + 28, { 
+               width: firmaWidth, 
+               align: 'center' 
+           });
+
+        // Firma Impresor PCP
+        doc.moveTo(x + 20 + firmaWidth, currentY + 25)
+           .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 25)
+           .strokeColor('#000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.text('Impresor PCP (Salida)', x + 20 + firmaWidth, currentY + 28, { 
+            width: firmaWidth, 
+            align: 'center' 
+        });
+
+        // ===== NOTA DE COPIA =====
+        if (esCopia) {
+            doc.fillColor('#ff0000')
+               .fontSize(8)
+               .font('Helvetica-Bold')
+               .text('COPIA', x + 10, y + height - 15, { 
+                   width: width - 20, 
+                   align: 'center' 
+               });
+        }
+
+        return currentY;
+      };
+
+      // Dimensiones para las dos columnas
+      const pageWidth = 760; // Letter landscape menos márgenes
+      const pageHeight = 520;
+      const colWidth = (pageWidth - 20) / 2; // 20px de separación entre columnas
+      
+      // Dibujar primera columna (original)
+      dibujarColumna(20, 20, colWidth, pageHeight, false);
+      
+      // Dibujar segunda columna (copia)
+      dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
+
+      doc.end();
+
+      console.log('PDF generado exitosamente con PDFKit');
 
     } catch (error) {
       console.error('Error generando PDF de orden de salida:', error);

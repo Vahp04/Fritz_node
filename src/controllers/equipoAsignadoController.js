@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 
@@ -1196,166 +1197,479 @@ async estadisticas(req, res) {
     }
   },
 
-  async verPdfAsignaciones(req, res) {
-      console.log('=== VER PDF ASIGNACIONES INICIADO ===');
+async verPdfAsignaciones(req, res) {
+    console.log('=== VER PDF ASIGNACIONES INICIADO ===');
     try {
-          const equiposAsignados = await prisma.equipo_asignado.findMany({
-              select: {
-                  id: true,
-                  usuarios_id: true,
-                  stock_equipos_id: true,
-                  fecha_asignacion: true,
-                  fecha_devolucion: true,
-                  ip_equipo: true,
-                  cereal_equipo: true, 
-                  observaciones: true,
-                  estado: true,
-                  usuarios: {
-                      select: {
-                          id: true,
-                          nombre: true,
-                          apellido: true,
-                          cargo: true,
-                          correo: true,
-                          sede: {
-                              select: {
-                                  nombre: true
-                              }
-                          },
-                          departamento: {
-                              select: {
-                                  nombre: true
-                              }
-                          }
-                      }
-                  },
-                  usuario: {
-                      select: {
-                          id: true,
-                          name: true,
-                          email: true
-                      }
-                  },
-                  stock_equipos: {
-                      include: {
-                          tipo_equipo: {
-                              select: {
-                                  id: true,
-                                  nombre: true,
-                                  requiere_ip: true,
-                                  requiere_cereal: true
-                              }
-                          }
-                      }
-                  }
-              },
-              orderBy: [
-                  { estado: 'asc' },
-                  { fecha_asignacion: 'desc' }
-              ]
-          });
+        const equiposAsignados = await prisma.equipo_asignado.findMany({
+            select: {
+                id: true,
+                usuarios_id: true,
+                stock_equipos_id: true,
+                fecha_asignacion: true,
+                fecha_devolucion: true,
+                ip_equipo: true,
+                cereal_equipo: true, 
+                observaciones: true,
+                estado: true,
+                usuarios: {
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
+                        cargo: true,
+                        correo: true,
+                        sede: {
+                            select: {
+                                nombre: true
+                            }
+                        },
+                        departamento: {
+                            select: {
+                                nombre: true
+                            }
+                        }
+                    }
+                },
+                usuario: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                stock_equipos: {
+                    include: {
+                        tipo_equipo: {
+                            select: {
+                                id: true,
+                                nombre: true,
+                                requiere_ip: true,
+                                requiere_cereal: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: [
+                { estado: 'asc' },
+                { fecha_asignacion: 'desc' }
+            ]
+        });
 
-          const asignacionesProcesadas = equiposAsignados.map(asignacion => {
-              const usuario = asignacion.usuarios || {};
-              const stock = asignacion.stock_equipos || {};
-              const tipoEquipo = stock.tipo_equipo || {};
-              const asignador = asignacion.usuario || {};
-              
-              return {
-                  id: asignacion.id,
-                  usuarios_id: asignacion.usuarios_id,
-                  stock_equipos_id: asignacion.stock_equipos_id,
-                  fecha_asignacion: asignacion.fecha_asignacion,
-                  fecha_devolucion: asignacion.fecha_devolucion,
-                  ip_equipo: asignacion.ip_equipo,
-                  numero_serie: asignacion.cereal_equipo, 
-                  cereal_equipo: asignacion.cereal_equipo,
-                  observaciones: asignacion.observaciones,
-                  estado: asignacion.estado,
-                  
-                  usuarioAsignado: {
-                      id: usuario.id || 0,
-                      nombre: usuario.nombre || 'N/A',
-                      apellido: usuario.apellido || '',
-                      cargo: usuario.cargo || 'Sin cargo',
-                      correo: usuario.correo || 'Sin correo',
-                      sede: usuario.sede || { nombre: 'Sin sede' },
-                      departamento: usuario.departamento || { nombre: 'Sin departamento' }
-                  },
-                  stockEquipo: {
-                      id: stock.id || 0,
-                      marca: stock.marca || 'N/A',
-                      modelo: stock.modelo || '',
-                      tipoEquipo: {
-                          id: tipoEquipo.id || 0,
-                          nombre: tipoEquipo.nombre || 'Sin tipo',
-                          requiere_ip: tipoEquipo.requiere_ip || false,
-                          requiere_cereal: tipoEquipo.requiere_cereal || false,
-                      }
-                  },
-                  usuarioAsignador: {
-                      id: asignador.id || 0,
-                      name: asignador.name || 'Sistema',
-                      email: asignador.email || 'N/A'
-                  },
-                  
-                  fecha_asignacion_formateada: asignacion.fecha_asignacion ? 
-                      new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A',
-                  fecha_devolucion_formateada: asignacion.fecha_devolucion ? 
-                      new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto'
-              };
-          });
+        const asignacionesProcesadas = equiposAsignados.map(asignacion => {
+            const usuario = asignacion.usuarios || {};
+            const stock = asignacion.stock_equipos || {};
+            const tipoEquipo = stock.tipo_equipo || {};
+            const asignador = asignacion.usuario || {};
+            
+            return {
+                id: asignacion.id,
+                usuarios_id: asignacion.usuarios_id,
+                stock_equipos_id: asignacion.stock_equipos_id,
+                fecha_asignacion: asignacion.fecha_asignacion,
+                fecha_devolucion: asignacion.fecha_devolucion,
+                ip_equipo: asignacion.ip_equipo,
+                numero_serie: asignacion.cereal_equipo, 
+                cereal_equipo: asignacion.cereal_equipo,
+                observaciones: asignacion.observaciones,
+                estado: asignacion.estado,
+                
+                usuarioAsignado: {
+                    id: usuario.id || 0,
+                    nombre: usuario.nombre || 'N/A',
+                    apellido: usuario.apellido || '',
+                    cargo: usuario.cargo || 'Sin cargo',
+                    correo: usuario.correo || 'Sin correo',
+                    sede: usuario.sede || { nombre: 'Sin sede' },
+                    departamento: usuario.departamento || { nombre: 'Sin departamento' }
+                },
+                stockEquipo: {
+                    id: stock.id || 0,
+                    marca: stock.marca || 'N/A',
+                    modelo: stock.modelo || '',
+                    tipoEquipo: {
+                        id: tipoEquipo.id || 0,
+                        nombre: tipoEquipo.nombre || 'Sin tipo',
+                        requiere_ip: tipoEquipo.requiere_ip || false,
+                        requiere_cereal: tipoEquipo.requiere_cereal || false,
+                    }
+                },
+                usuarioAsignador: {
+                    id: asignador.id || 0,
+                    name: asignador.name || 'Sistema',
+                    email: asignador.email || 'N/A'
+                },
+                
+                fecha_asignacion_formateada: asignacion.fecha_asignacion ? 
+                    new Date(asignacion.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A',
+                fecha_devolucion_formateada: asignacion.fecha_devolucion ? 
+                    new Date(asignacion.fecha_devolucion).toLocaleDateString('es-ES') : 'No devuelto'
+            };
+        });
 
-          const totalAsignaciones = asignacionesProcesadas.length;
-          const asignacionesActivas = asignacionesProcesadas.filter(a => a.estado === 'activo').length;
-          const asignacionesDevueltas = asignacionesProcesadas.filter(a => a.estado === 'devuelto').length;
-          const asignacionesObsoletas = asignacionesProcesadas.filter(a => a.estado === 'obsoleto').length;
+        const totalAsignaciones = asignacionesProcesadas.length;
+        const asignacionesActivas = asignacionesProcesadas.filter(a => a.estado === 'activo').length;
+        const asignacionesDevueltas = asignacionesProcesadas.filter(a => a.estado === 'devuelto').length;
+        const asignacionesObsoletas = asignacionesProcesadas.filter(a => a.estado === 'obsoleto').length;
 
-          const asignacionesPorTipo = {};
-          asignacionesProcesadas.forEach(asignacion => {
-              const tipoNombre = asignacion.stockEquipo.tipoEquipo.nombre;
-              if (!asignacionesPorTipo[tipoNombre]) {
-                  asignacionesPorTipo[tipoNombre] = 0;
-              }
-              asignacionesPorTipo[tipoNombre]++;
-          });
+        const asignacionesPorTipo = {};
+        asignacionesProcesadas.forEach(asignacion => {
+            const tipoNombre = asignacion.stockEquipo.tipoEquipo.nombre;
+            if (!asignacionesPorTipo[tipoNombre]) {
+                asignacionesPorTipo[tipoNombre] = 0;
+            }
+            asignacionesPorTipo[tipoNombre]++;
+        });
 
-          const data = {
-              equiposAsignados: asignacionesProcesadas,
-              fechaGeneracion: new Date().toLocaleString('es-ES'),
-              totalAsignaciones: totalAsignaciones,
-              asignacionesActivas: asignacionesActivas,
-              asignacionesDevueltas: asignacionesDevueltas,
-              asignacionesObsoletas: asignacionesObsoletas,
-              asignacionesPorTipo: asignacionesPorTipo
-          };
+        const data = {
+            equiposAsignados: asignacionesProcesadas,
+            fechaGeneracion: new Date().toLocaleString('es-ES'),
+            totalAsignaciones: totalAsignaciones,
+            asignacionesActivas: asignacionesActivas,
+            asignacionesDevueltas: asignacionesDevueltas,
+            asignacionesObsoletas: asignacionesObsoletas,
+            asignacionesPorTipo: asignacionesPorTipo
+        };
 
-          const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones', data);
-          const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-              format: 'Letter',
-              landscape: true
-          });
+        console.log('Generando PDF con PDFKit...');
 
-          console.log('=== VER PDF ASIGNACIONES GENERADO EXITOSAMENTE ===');
+        // Crear documento PDF
+        const doc = new PDFDocument({ 
+            margin: 20,
+            size: 'LETTER',
+            layout: 'landscape'
+        });
 
-          if (res.headersSent) return;
+        if (res.headersSent) return;
 
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Disposition', 'inline; filename="reporte-asignaciones.pdf"');
-          res.setHeader('Content-Length', pdfBuffer.length);
-          res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="reporte-asignaciones.pdf"');
+        res.setHeader('Cache-Control', 'no-cache');
 
-          res.end(pdfBuffer);
+        // Pipe el PDF a la respuesta
+        doc.pipe(res);
 
-      } catch (error) {
-          console.error('ERROR viendo PDF de asignaciones:', error);
-          if (!res.headersSent) {
-              res.status(500).json({ 
-                  error: 'Error al cargar el PDF: ' + error.message 
-              });
-          }
-      }
-  },
+        // Función helper para formatear porcentaje
+        const formatPercent = (value, total) => {
+            return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+        };
+
+        // ===== HEADER =====
+        // Logo placeholder
+        doc.fillColor('#DC2626')
+           .rect(20, 20, 60, 40)
+           .fill()
+           .fillColor('white')
+           .fontSize(10)
+           .text('FRITZ C.A', 25, 35, { width: 50, align: 'center' });
+
+        // Título
+        doc.fillColor('#DC2626')
+           .fontSize(20)
+           .font('Helvetica-Bold')
+           .text('Reporte de Equipos Asignados', 90, 25);
+        
+        doc.fillColor('#666')
+           .fontSize(12)
+           .font('Helvetica')
+           .text('Sistema de Gestión de Inventario', 90, 50);
+
+        doc.moveTo(20, 70)
+           .lineTo(770, 70)
+           .strokeColor('#DC2626')
+           .lineWidth(2)
+           .stroke();
+
+        let yPosition = 85;
+
+        // ===== INFORMACIÓN GENERAL =====
+        doc.rect(20, yPosition, 750, 30)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.fillColor('#333')
+           .fontSize(10)
+           .font('Helvetica-Bold')
+           .text('Fecha de generación:', 25, yPosition + 8)
+           .font('Helvetica')
+           .text(data.fechaGeneracion, 180, yPosition + 8);
+        
+        doc.font('Helvetica-Bold')
+           .text('Total de asignaciones:', 25, yPosition + 20)
+           .font('Helvetica')
+           .text(data.totalAsignaciones.toString(), 180, yPosition + 20);
+
+        yPosition += 40;
+
+        // ===== ESTADÍSTICAS =====
+        const stats = [
+            { label: 'Activas', value: data.asignacionesActivas },
+            { label: 'Devueltas', value: data.asignacionesDevueltas },
+            { label: 'Obsoletas', value: data.asignacionesObsoletas },
+            { label: 'Total', value: data.totalAsignaciones }
+        ];
+
+        const statWidth = 180;
+        stats.forEach((stat, index) => {
+            const x = 20 + (index * statWidth);
+            
+            doc.rect(x, yPosition, statWidth - 10, 35)
+               .fillColor('#e9ecef')
+               .fill();
+            
+            doc.fillColor('#DC2626')
+               .fontSize(16)
+               .font('Helvetica-Bold')
+               .text(stat.value.toString(), x + 5, yPosition + 5, { width: statWidth - 20, align: 'center' });
+            
+            doc.fillColor('#666')
+               .fontSize(9)
+               .font('Helvetica')
+               .text(stat.label, x + 5, yPosition + 22, { width: statWidth - 20, align: 'center' });
+        });
+
+        yPosition += 50;
+
+        // ===== DISTRIBUCIÓN POR TIPO =====
+        doc.rect(20, yPosition, 750, 50)
+           .fillColor('#e9ecef')
+           .fill();
+        
+        doc.fillColor('#333')
+           .fontSize(11)
+           .font('Helvetica-Bold')
+           .text('Distribución por Tipo de Equipo', 25, yPosition + 8);
+
+        let tipoY = yPosition + 20;
+        let tipoX = 25;
+        Object.entries(data.asignacionesPorTipo).forEach(([tipo, cantidad]) => {
+            if (tipoX > 600) {
+                tipoX = 25;
+                tipoY += 15;
+            }
+            
+            doc.rect(tipoX, tipoY, 180, 12)
+               .fillColor('white')
+               .fill();
+            
+            doc.rect(tipoX, tipoY, 3, 12)
+               .fillColor('#DC2626')
+               .fill();
+            
+            doc.fillColor('#333')
+               .fontSize(8)
+               .text(tipo + ': ' + cantidad + ' asignaciones', tipoX + 8, tipoY + 2);
+            
+            tipoX += 185;
+        });
+
+        yPosition += 65;
+
+        // ===== TABLA DE ASIGNACIONES =====
+        if (data.equiposAsignados.length > 0) {
+            // Encabezados de tabla
+            const headers = ['Usuario', 'Cargo', 'Sede', 'Departamento', 'Equipo', 'Tipo', 'Serial', 'Fecha Asignación', 'Fecha Devolución', 'IP Equipo', 'Asignado Por', 'Estado'];
+            const columnWidths = [60, 50, 45, 50, 60, 40, 40, 40, 40, 40, 45, 30];
+            
+            let headerX = 20;
+            
+            // Dibujar fondo de encabezados
+            headers.forEach((header, index) => {
+                doc.rect(headerX, yPosition, columnWidths[index], 15)
+                   .fillColor('#DC2626')
+                   .fill();
+                headerX += columnWidths[index];
+            });
+
+            // Escribir texto de encabezados
+            headerX = 20;
+            doc.fillColor('white')
+               .fontSize(7)
+               .font('Helvetica-Bold');
+            
+            headers.forEach((header, index) => {
+                const alignment = index === headers.length - 1 ? 'center' : 'left';
+                
+                doc.text(header, headerX + 3, yPosition + 4, { 
+                    width: columnWidths[index] - 6, 
+                    align: alignment 
+                });
+                
+                headerX += columnWidths[index];
+            });
+
+            yPosition += 15;
+
+            // Filas de datos
+            data.equiposAsignados.forEach((asignacion, rowIndex) => {
+                // Verificar si necesitamos nueva página
+                if (yPosition > 500) {
+                    doc.addPage();
+                    yPosition = 50;
+                    
+                    // Redibujar encabezados de tabla en nueva página
+                    let newHeaderX = 20;
+                    headers.forEach((header, index) => {
+                        doc.rect(newHeaderX, yPosition, columnWidths[index], 15)
+                           .fillColor('#DC2626')
+                           .fill();
+                        newHeaderX += columnWidths[index];
+                    });
+
+                    newHeaderX = 20;
+                    doc.fillColor('white')
+                       .fontSize(7)
+                       .font('Helvetica-Bold');
+                    
+                    headers.forEach((header, index) => {
+                        const alignment = index === headers.length - 1 ? 'center' : 'left';
+                        
+                        doc.text(header, newHeaderX + 3, yPosition + 4, { 
+                            width: columnWidths[index] - 6, 
+                            align: alignment 
+                        });
+                        
+                        newHeaderX += columnWidths[index];
+                    });
+
+                    yPosition += 15;
+                }
+
+                // Color de fondo según estado
+                let backgroundColor = '#ffffff';
+                if (asignacion.estado === 'activo') {
+                    backgroundColor = '#d4edda';
+                } else if (asignacion.estado === 'devuelto') {
+                    backgroundColor = '#d1ecf1';
+                } else if (asignacion.estado === 'obsoleto') {
+                    backgroundColor = '#fff3cd';
+                }
+
+                // Fondo de fila
+                if (rowIndex % 2 === 0 || asignacion.estado !== 'activo') {
+                    doc.rect(20, yPosition, 750, 10)
+                       .fillColor(backgroundColor)
+                       .fill();
+                }
+
+                let cellX = 20;
+                const rowData = [
+                    `${asignacion.usuarioAsignado.nombre} ${asignacion.usuarioAsignado.apellido}`,
+                    asignacion.usuarioAsignado.cargo,
+                    asignacion.usuarioAsignado.sede.nombre,
+                    asignacion.usuarioAsignado.departamento.nombre,
+                    `${asignacion.stockEquipo.marca} ${asignacion.stockEquipo.modelo}`,
+                    asignacion.stockEquipo.tipoEquipo.nombre,
+                    asignacion.cereal_equipo || 'N/A',
+                    asignacion.fecha_asignacion_formateada,
+                    asignacion.fecha_devolucion ? asignacion.fecha_devolucion_formateada : '-',
+                    asignacion.ip_equipo || 'No requiere',
+                    asignacion.usuarioAsignador.name || 'Sistema',
+                    getEstadoTexto(asignacion.estado)
+                ];
+
+                doc.fillColor('#333')
+                   .fontSize(6)
+                   .font('Helvetica');
+
+                rowData.forEach((cell, index) => {
+                    const alignment = index === rowData.length - 1 ? 'center' : 'left';
+                    
+                    doc.text(cell, cellX + 3, yPosition + 2, { 
+                        width: columnWidths[index] - 6, 
+                        align: alignment 
+                    });
+                    
+                    cellX += columnWidths[index];
+                });
+
+                yPosition += 10;
+            });
+
+            yPosition += 15;
+
+            // ===== RESUMEN FINAL =====
+            doc.rect(20, yPosition, 750, 45)
+               .fillColor('#e9ecef')
+               .fill();
+            
+            doc.fillColor('#333')
+               .fontSize(10)
+               .font('Helvetica-Bold')
+               .text('Resumen de Asignaciones', 25, yPosition + 8);
+
+            const summaryData = [
+                { 
+                    label: 'Total de asignaciones activas:', 
+                    value: `${data.asignacionesActivas} (${formatPercent(data.asignacionesActivas, data.totalAsignaciones)})` 
+                },
+                { 
+                    label: 'Total de asignaciones devueltas:', 
+                    value: `${data.asignacionesDevueltas} (${formatPercent(data.asignacionesDevueltas, data.totalAsignaciones)})` 
+                },
+                { 
+                    label: 'Total de asignaciones obsoletas:', 
+                    value: `${data.asignacionesObsoletas} (${formatPercent(data.asignacionesObsoletas, data.totalAsignaciones)})` 
+                }
+            ];
+
+            let summaryY = yPosition + 20;
+            summaryData.forEach(item => {
+                doc.font('Helvetica-Bold')
+                   .text(item.label, 25, summaryY);
+                
+                doc.font('Helvetica')
+                   .text(item.value, 300, summaryY, { align: 'right' });
+                
+                summaryY += 12;
+            });
+        } else {
+            // No hay asignaciones
+            doc.fillColor('#666')
+               .fontSize(14)
+               .text('No hay equipos asignados', 20, yPosition, { align: 'center' });
+        }
+
+        // ===== FOOTER =====
+        const footerY = 560;
+        doc.moveTo(20, footerY)
+           .lineTo(770, footerY)
+           .strokeColor('#ddd')
+           .lineWidth(1)
+           .stroke();
+        
+        doc.fillColor('#666')
+           .fontSize(8)
+           .text('Sistema de Gestión - FRITZ C.A', 20, footerY + 8)
+           .text('Generado el ' + data.fechaGeneracion, 20, footerY + 8, { align: 'right' });
+
+        // Función helper para estado
+        function getEstadoTexto(estado) {
+            switch(estado) {
+                case 'activo':
+                    return 'Activo';
+                case 'devuelto':
+                    return 'Devuelto';
+                case 'obsoleto':
+                    return 'Obsoleto';
+                default:
+                    return estado.charAt(0).toUpperCase() + estado.slice(1);
+            }
+        }
+
+        doc.end();
+
+        console.log('=== VER PDF ASIGNACIONES GENERADO EXITOSAMENTE ===');
+
+    } catch (error) {
+        console.error('ERROR viendo PDF de asignaciones:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ 
+                error: 'Error al cargar el PDF: ' + error.message 
+            });
+        }
+    }
+},
 
   async generarPdfPorUsuario(req, res) {
       console.log('=== GENERAR PDF POR USUARIO INICIADO ===');
