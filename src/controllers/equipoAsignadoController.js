@@ -1613,7 +1613,7 @@ async verPdfAsignaciones(req, res) {
                 }
             ];
 
-            let summaryY = yPosition + 10;
+            let summaryY = yPosition + 5;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 25, summaryY);
