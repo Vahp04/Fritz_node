@@ -546,10 +546,6 @@ async apiIndex(req, res) {
     }
   },
 
-
-import PDFDocument from 'pdfkit';
-import fs from 'fs';
-
 async verPdfStock(req, res) {
     console.log('=== VER PDF STOCK INICIADO ===');
     
