@@ -866,7 +866,7 @@ async verPdfStock(req, res) {
                 yPosition += 12;
             });
 
-            yPosition += 15;
+            yPosition += 20;
 
             // ===== RESUMEN FINANCIERO =====
             doc.rect(25, yPosition, 745, 65)
@@ -891,7 +891,7 @@ async verPdfStock(req, res) {
                 { label: 'Valor promedio por equipo:', value: '$' + formatCurrency(valorPromedio) }
             ];
 
-            let summaryY = yPosition + 25;
+            let summaryY = yPosition + 20;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 30, summaryY);
