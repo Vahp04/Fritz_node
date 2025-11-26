@@ -1484,7 +1484,7 @@ async verPdfAsignaciones(req, res) {
             // Escribir texto de encabezados
             headerX = 20;
             doc.fillColor('white')
-               .fontSize(9)
+               .fontSize(8)
                .font('Helvetica-Bold');
             
             headers.forEach((header, index) => {
