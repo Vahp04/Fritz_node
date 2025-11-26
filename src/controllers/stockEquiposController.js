@@ -730,7 +730,7 @@ async verPdfStock(req, res) {
                 tipoY += 12;
             }
             
-            doc.rect(tipoX, tipoY, 170, 12)
+            doc.rect(tipoX, tipoY, 170, 10)
                .fillColor('white')
                .fill();
             
@@ -869,7 +869,7 @@ async verPdfStock(req, res) {
             yPosition += 15;
 
             // ===== RESUMEN FINANCIERO =====
-            doc.rect(25, yPosition, 745, 70)
+            doc.rect(25, yPosition, 745, 65)
                .fillColor('#e9ecef')
                .fill();
             
@@ -891,7 +891,7 @@ async verPdfStock(req, res) {
                 { label: 'Valor promedio por equipo:', value: '$' + formatCurrency(valorPromedio) }
             ];
 
-            let summaryY = yPosition + 20;
+            let summaryY = yPosition + 25;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 30, summaryY);
@@ -911,7 +911,7 @@ async verPdfStock(req, res) {
                        .fontSize(9);
                 }
                 
-                summaryY += 12;
+                summaryY += 10;
             });
         } else {
             doc.fillColor('#666')
