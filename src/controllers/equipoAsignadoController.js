@@ -1596,7 +1596,7 @@ async verPdfAsignaciones(req, res) {
             doc.fillColor('#333')
                .fontSize(10)
                .font('Helvetica-Bold')
-               .text('Resumen de Asignaciones', 25, yPosition + 15);
+               .text('Resumen de Asignaciones', 25, yPosition + 10);
 
             const summaryData = [
                 { 
@@ -1613,7 +1613,7 @@ async verPdfAsignaciones(req, res) {
                 }
             ];
 
-            let summaryY = yPosition + 30;
+            let summaryY = yPosition + 25;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 25, summaryY);
