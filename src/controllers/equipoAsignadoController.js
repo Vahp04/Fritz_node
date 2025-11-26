@@ -2299,15 +2299,7 @@ async verPdfPorUsuario(req, res) {
                 align: 'right' 
             });
 
-            // ===== NOTA DE COPIA =====
-            if (esCopia) {
-                doc.fillColor('#ff0000')
-                   .fontSize(9)
-                   .text('COPIA', x + 10, y + height - 15, { 
-                       width: width - 20, 
-                       align: 'center' 
-                   });
-            }
+            
 
             return currentY;
         };
