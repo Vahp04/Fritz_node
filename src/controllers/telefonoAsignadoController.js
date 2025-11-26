@@ -927,11 +927,11 @@ async generarPDFPorUsuario(req, res) {
       currentY += 20;
 
       // ===== INFORMACIÓN DEL USUARIO =====
-      doc.rect(x + 10, currentY, width - 25, 60)
+      doc.rect(x + 10, currentY, width - 30, 65)
          .fillColor('#e9ecef')
          .fill();
       
-      doc.rect(x + 10, currentY, 4, 60)
+      doc.rect(x + 10, currentY, 4, 65)
          .fillColor('#DC2626')
          .fill();
 
@@ -956,7 +956,7 @@ async generarPDFPorUsuario(req, res) {
       currentY += 50;
 
       // ===== RESUMEN DE TELÉFONOS =====
-      doc.rect(x + 10, currentY, width - 25, 30)
+      doc.rect(x + 10, currentY, width - 35, 30)
          .fillColor('#e9ecef')
          .fill();
 
@@ -1092,7 +1092,7 @@ async generarPDFPorUsuario(req, res) {
       const firmaWidth = (width - 35) / 2;
       
       // Firma Usuario
-      doc.moveTo(x + 10, currentY + 20)
+      doc.moveTo(x + 10, currentY + 30)
          .lineTo(x + 10 + firmaWidth, currentY + 20)
          .strokeColor('#000')
          .lineWidth(1)
@@ -1112,7 +1112,7 @@ async generarPDFPorUsuario(req, res) {
          });
 
       // Firma Departamento de Tecnología
-      doc.moveTo(x + 20 + firmaWidth, currentY + 20)
+      doc.moveTo(x + 20 + firmaWidth, currentY + 30)
          .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 20)
          .strokeColor('#000')
          .lineWidth(1)
