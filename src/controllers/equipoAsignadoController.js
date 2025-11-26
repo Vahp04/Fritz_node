@@ -1799,7 +1799,6 @@ async verPdfAsignaciones(req, res) {
       }
   },
 
-
 async verPdfPorUsuario(req, res) {
     console.log('=== VER PDF POR USUARIO INICIADO ===');
     try {
@@ -1858,6 +1857,7 @@ async verPdfPorUsuario(req, res) {
                 ip_equipo: true,
                 cereal_equipo: true, 
                 estado: true,
+                observaciones: true,
                 stock_equipos: {
                     include: {
                         tipo_equipo: { select: { nombre: true } }
@@ -1885,6 +1885,7 @@ async verPdfPorUsuario(req, res) {
                 ip_equipo: asignacion.ip_equipo,
                 cereal_equipo: asignacion.cereal_equipo, 
                 estado: asignacion.estado,
+                observaciones: asignacion.observaciones || '',
                 
                 stockEquipo: {
                     id: stock.id || 0,
@@ -1993,21 +1994,21 @@ async verPdfPorUsuario(req, res) {
                .lineWidth(1)
                .stroke();
 
-            currentY += 15;
+            currentY += 20;
 
             // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 15, 45)
+            doc.rect(x + 10, currentY, width - 20, 60) // Aumentada la altura para mejor espaciado
                .fillColor('#f8f9fa')
                .fill();
             
-            doc.rect(x + 10, currentY, 4, 45)
+            doc.rect(x + 10, currentY, 4, 60)
                .fillColor('#DC2626')
                .fill();
 
             doc.fillColor('#333')
                .fontSize(11)
                .font('Helvetica-Bold')
-               .text('Información del Usuario', x + 20, currentY + 8);
+               .text('Información del Usuario', x + 20, currentY + 10);
 
             currentY += 20;
 
@@ -2019,13 +2020,14 @@ async verPdfPorUsuario(req, res) {
                 `Correo: ${usuario.correo || 'No especificado'}`
             ];
 
+            // Mejor espaciado entre líneas
             infoUsuario.forEach((linea, index) => {
                 doc.font('Helvetica')
                    .fontSize(9)
-                   .text(linea, x + 20, currentY + (index * 8));
+                   .text(linea, x + 20, currentY + (index * 12)); // Cambiado de 8 a 12 para más espacio
             });
 
-            currentY += 55;
+            currentY += 70; // Aumentado para compensar el mayor espaciado
 
             // ===== DETALLE DE EQUIPOS ASIGNADOS =====
             doc.fillColor('#333')
@@ -2036,9 +2038,9 @@ async verPdfPorUsuario(req, res) {
             currentY += 15;
 
             if (data.equiposAsignados.length > 0) {
-                // Encabezados de tabla
-                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado'];
-                const columnWidths = [25, width * 0.4, width * 0.15, width * 0.15, width * 0.15];
+                // Encabezados de tabla - AGREGADA COLUMNA OBSERVACIONES
+                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado', 'Observaciones'];
+                const columnWidths = [20, width * 0.25, width * 0.12, width * 0.12, width * 0.12, width * 0.19];
                 
                 let headerX = x + 10;
                 
@@ -2053,13 +2055,13 @@ async verPdfPorUsuario(req, res) {
                 // Texto encabezados
                 headerX = x + 10;
                 doc.fillColor('white')
-                   .fontSize(8)
+                   .fontSize(7)
                    .font('Helvetica-Bold');
                 
                 headers.forEach((header, index) => {
                     const alignment = index === 4 ? 'center' : 'left';
-                    doc.text(header, headerX + 3, currentY + 3, { 
-                        width: columnWidths[index] - 6, 
+                    doc.text(header, headerX + 2, currentY + 3, { 
+                        width: columnWidths[index] - 4, 
                         align: alignment 
                     });
                     headerX += columnWidths[index];
@@ -2071,7 +2073,7 @@ async verPdfPorUsuario(req, res) {
                 data.equiposAsignados.forEach((equipo, index) => {
                     // Fondo alternado para filas
                     if (index % 2 === 0) {
-                        doc.rect(x + 10, currentY, width - 20, 25)
+                        doc.rect(x + 10, currentY, width - 20, 30) // Aumentada altura para observaciones
                            .fillColor('#f8f9fa')
                            .fill();
                     }
@@ -2084,61 +2086,81 @@ async verPdfPorUsuario(req, res) {
                     const estadoColor = getEstadoColor(equipo.estado);
 
                     doc.fillColor('#333')
-                       .fontSize(7)
+                       .fontSize(6.5)
                        .font('Helvetica');
 
                     // ID
-                    doc.text(equipo.id.toString(), cellX + 3, currentY + 5, { 
-                        width: columnWidths[0] - 6 
+                    doc.text(equipo.id.toString(), cellX + 2, currentY + 5, { 
+                        width: columnWidths[0] - 4 
                     });
                     cellX += columnWidths[0];
 
                     // Equipo
                     const equipoTexto = `${equipo.stockEquipo.marca} ${equipo.stockEquipo.modelo}`;
-                    doc.text(equipoTexto, cellX + 3, currentY + 3, { 
-                        width: columnWidths[1] - 6 
+                    doc.text(equipoTexto, cellX + 2, currentY + 3, { 
+                        width: columnWidths[1] - 4 
                     });
                     
                     if (equipo.stockEquipo.descripcion) {
                         doc.fontSize(6)
-                           .text(equipo.stockEquipo.descripcion, cellX + 3, currentY + 10, { 
-                               width: columnWidths[1] - 6 
+                           .text(equipo.stockEquipo.descripcion, cellX + 2, currentY + 10, { 
+                               width: columnWidths[1] - 4 
                            });
                     }
                     cellX += columnWidths[1];
 
                     // Tipo
-                    doc.fontSize(7)
-                       .text(equipo.stockEquipo.tipoEquipo.nombre, cellX + 3, currentY + 8, { 
-                           width: columnWidths[2] - 6 
+                    doc.fontSize(6.5)
+                       .text(equipo.stockEquipo.tipoEquipo.nombre, cellX + 2, currentY + 10, { 
+                           width: columnWidths[2] - 4 
                        });
                     cellX += columnWidths[2];
 
                     // Fecha Asignación
-                    doc.text(fechaAsignacion, cellX + 3, currentY + 8, { 
-                        width: columnWidths[3] - 6 
+                    doc.text(fechaAsignacion, cellX + 2, currentY + 10, { 
+                        width: columnWidths[3] - 4 
                     });
                     cellX += columnWidths[3];
 
                     // Estado (con badge)
-                    const estadoWidth = columnWidths[4] - 10;
-                    doc.rect(cellX + 5, currentY + 5, estadoWidth, 8)
+                    const estadoWidth = columnWidths[4] - 8;
+                    doc.rect(cellX + 4, currentY + 5, estadoWidth, 8)
                        .fillColor(estadoColor.background)
                        .fill();
                     
                     doc.fillColor(estadoColor.text)
                        .fontSize(6)
                        .font('Helvetica-Bold')
-                       .text(estadoTexto, cellX + 5, currentY + 7, { 
+                       .text(estadoTexto, cellX + 4, currentY + 7, { 
                            width: estadoWidth, 
                            align: 'center' 
                        });
+                    cellX += columnWidths[4];
 
-                    currentY += 25;
+                    // Observaciones
+                    if (equipo.observaciones) {
+                        doc.fillColor('#333')
+                           .fontSize(6)
+                           .font('Helvetica')
+                           .text(equipo.observaciones, cellX + 2, currentY + 5, { 
+                               width: columnWidths[5] - 4,
+                               align: 'left'
+                           });
+                    } else {
+                        doc.fillColor('#666')
+                           .fontSize(6)
+                           .font('Helvetica-Italic')
+                           .text('Sin observaciones', cellX + 2, currentY + 10, { 
+                               width: columnWidths[5] - 4,
+                               align: 'left'
+                           });
+                    }
+
+                    currentY += 30; // Aumentada altura de fila para observaciones
                 });
 
                 // Bordes de la tabla
-                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 25), width - 20, (data.equiposAsignados.length * 25) + 12)
+                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 30), width - 20, (data.equiposAsignados.length * 30) + 12)
                    .strokeColor('#000')
                    .lineWidth(0.5)
                    .stroke();
@@ -2161,6 +2183,37 @@ async verPdfPorUsuario(req, res) {
             }
 
             currentY += 20;
+
+            // ===== SECCIÓN OBSERVACIONES GENERALES =====
+            doc.rect(x + 10, currentY, width - 20, 40)
+               .fillColor('#f9f9f9')
+               .fill();
+            
+            doc.rect(x + 10, currentY, 3, 40)
+               .fillColor('#f12222')
+               .fill();
+
+            doc.fillColor('#333')
+               .fontSize(10)
+               .font('Helvetica-Bold')
+               .text('Observaciones Generales:', x + 18, currentY + 8);
+
+            currentY += 15;
+
+            doc.fillColor('#000')
+               .fontSize(8)
+               .font('Helvetica')
+               .text('• Cualquier novedad informar al Departamento de Tecnología', x + 18, currentY, { width: width - 30 });
+
+            currentY += 10;
+
+            doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', x + 18, currentY, { width: width - 30 });
+
+            currentY += 10;
+
+            doc.text('• Reportar cualquier daño o malfuncionamiento inmediatamente', x + 18, currentY, { width: width - 30 });
+
+            currentY += 25;
 
             // ===== FIRMAS =====
             const firmaWidth = (width - 30) / 2;
@@ -2206,7 +2259,7 @@ async verPdfPorUsuario(req, res) {
                 align: 'center' 
             });
 
-            currentY += 50;
+            currentY += 60;
 
             // ===== FOOTER =====
             doc.moveTo(x + 10, currentY)
@@ -2229,7 +2282,15 @@ async verPdfPorUsuario(req, res) {
             });
 
             // ===== NOTA DE COPIA =====
-            
+            if (esCopia) {
+                doc.fillColor('#ff0000')
+                   .fontSize(9)
+                   .font('Helvetica-Bold')
+                   .text('COPIA', x + 10, y + height - 15, { 
+                       width: width - 20, 
+                       align: 'center' 
+                   });
+            }
 
             return currentY;
         };
@@ -2262,9 +2323,9 @@ async verPdfPorUsuario(req, res) {
         }
 
         // Dimensiones para las dos columnas
-        const pageWidth = 760; // Letter landscape menos márgenes
+        const pageWidth = 760;
         const pageHeight = 520;
-        const colWidth = (pageWidth - 20) / 2; // 20px de separación entre columnas
+        const colWidth = (pageWidth - 20) / 2;
         
         // Dibujar primera columna (original)
         dibujarColumna(20, 20, colWidth, pageHeight, false);
