@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
 import FileUploadService from '../services/fileUploadService.js';
 
@@ -837,7 +838,6 @@ async generarPDFPorUsuario(req, res) {
 
     const data = {
       titulo: `Reporte de Teléfonos Asignados - ${usuario.nombre} ${usuario.apellido}`,
-      subtitulo: `Usuario: ${usuario.nombre} ${usuario.apellido}`,
       fecha: new Date().toLocaleDateString('es-ES', {
         weekday: 'long',
         year: 'numeric',
@@ -847,51 +847,359 @@ async generarPDFPorUsuario(req, res) {
       total: totalTelefonos,
       telefonos: telefonosProcesados,
       usuario: usuario,
-      sede: usuario.sede,
       numeroDocumento: numeroDocumento
     };
 
-    console.log('Renderizando template para teléfonos...');
+    console.log('Generando PDF con PDFDocument...');
     
-    const html = await renderTemplate(req.app, 'pdfs/reporte-telefonos-usuario', data);
+    // Crear documento PDF
+    const doc = new PDFDocument({ 
+      margin: 20,
+      size: 'LETTER',
+      layout: 'landscape'
+    });
 
-    console.log('Generando PDF para teléfonos...');
-    
-    const pdfOptions = {
-      format: 'Letter',
-      landscape: false,
-      printBackground: true,
-      margin: {
-        top: '15mm',
-        right: '10mm',
-        bottom: '15mm',
-        left: '10mm'
-      }
-    };
-
-    const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-    
-    console.log('PDF de teléfonos generado exitosamente');
-    console.log('Número de documento:', numeroDocumento);
-
-    const filename = `reporte-telefonos-${usuario.nombre.replace(/\s+/g, '-')}-${usuario.apellido.replace(/\s+/g, '-')}-${numeroDocumento}.pdf`;
-    
+    // Configurar headers
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Content-Disposition', `inline; filename="reporte-telefonos-${usuario.nombre}-${usuario.apellido}.pdf"`);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // Pipe el PDF a la respuesta
+    doc.pipe(res);
+
+    // Función para dibujar una columna
+    const dibujarColumna = (x, y, width, height, esCopia = false) => {
+      // Borde de la columna
+      doc.rect(x, y, width, height)
+         .strokeColor('#000')
+         .lineWidth(1)
+         .stroke();
+
+      let currentY = y + 15;
+
+      // ===== HEADER =====
+      // Logo placeholder
+      doc.fillColor('#f73737')
+         .rect(x + 10, currentY, 40, 30)
+         .fill()
+         .fillColor('white')
+         .fontSize(8)
+         .text('FRITZ C.A', x + 15, currentY + 10, { width: 30, align: 'center' });
+
+      // Títulos
+      doc.fillColor('#f73737')
+         .fontSize(16)
+         .text('FRITZ C.A', x + 60, currentY, { 
+             width: width - 70, 
+             align: 'center' 
+         });
+
+      currentY += 12;
+
+      doc.fillColor('#666')
+         .fontSize(14)
+         .text('Reporte de Teléfonos Asignados', x + 60, currentY, { 
+             width: width - 70, 
+             align: 'center' 
+         });
+
+      currentY += 12;
+
+      doc.fillColor('#000')
+         .fontSize(12)
+         .text('Generado el: ' + data.fecha, x + 60, currentY, { 
+             width: width - 70, 
+             align: 'center' 
+         });
+
+      currentY += 25;
+
+      // Línea separadora del header
+      doc.moveTo(x + 10, currentY)
+         .lineTo(x + width - 10, currentY)
+         .strokeColor('#000')
+         .lineWidth(1)
+         .stroke();
+
+      currentY += 20;
+
+      // ===== INFORMACIÓN DEL USUARIO =====
+      doc.rect(x + 10, currentY, width - 20, 50)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(x + 10, currentY, 4, 50)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333')
+         .fontSize(11)
+         .text('Información del Usuario', x + 20, currentY + 10);
+
+      currentY += 20;
+
+      const infoUsuario = [
+        `Nombre: ${usuario.nombre} ${usuario.apellido}`,
+        `Cargo: ${usuario.cargo || 'No especificado'}`,
+        `Departamento: ${usuario.departamento?.nombre || 'No asignado'}`,
+        `Sede: ${usuario.sede?.nombre || 'No asignada'}`
+      ];
+
+      infoUsuario.forEach((linea, index) => {
+        doc.fontSize(9)
+           .text(linea, x + 20, currentY + (index * 10));
+      });
+
+      currentY += 50;
+
+      // ===== RESUMEN DE TELÉFONOS =====
+      doc.rect(x + 10, currentY, width - 20, 30)
+         .fillColor('#e9ecef')
+         .fill();
+
+      doc.fillColor('#333')
+         .fontSize(10)
+         .text('Resumen de Teléfono Asignado', x + 15, currentY + 8);
+
+      currentY += 15;
+
+      const ultimaAsignacion = data.telefonos && data.telefonos.length > 0 ? 
+        new Date(data.telefonos[0].fecha_asignacion).toLocaleDateString('es-ES') : 'No disponible';
+
+      doc.fontSize(9)
+         .text(`Última asignación: ${ultimaAsignacion}`, x + 15, currentY);
+
+      currentY += 25;
+
+      // ===== DETALLE DE TELÉFONOS ASIGNADOS =====
+      doc.fillColor('#333')
+         .fontSize(11)
+         .text('Detalle de Teléfono Asignado', x + 10, currentY);
+
+      currentY += 15;
+
+      if (data.telefonos && data.telefonos.length > 0) {
+        // Encabezados de tabla
+        const headers = ['Número', 'Marca/Modelo', 'IP', 'MAC', 'IMEI', 'Línea'];
+        const columnWidths = [width * 0.12, width * 0.22, width * 0.15, width * 0.15, width * 0.18, width * 0.18];
+        
+        let headerX = x + 10;
+        
+        // Fondo encabezados
+        headers.forEach((header, index) => {
+          doc.rect(headerX, currentY, columnWidths[index], 12)
+             .fillColor('#343a40')
+             .fill();
+          headerX += columnWidths[index];
+        });
+
+        // Texto encabezados
+        headerX = x + 10;
+        doc.fillColor('white')
+           .fontSize(7);
+        
+        headers.forEach((header, index) => {
+          doc.text(header, headerX + 2, currentY + 3, { 
+              width: columnWidths[index] - 4, 
+              align: 'left' 
+          });
+          headerX += columnWidths[index];
+        });
+
+        currentY += 12;
+
+        // Filas de teléfonos
+        data.telefonos.forEach((telefono, index) => {
+          // Fondo alternado para filas
+          if (index % 2 === 0) {
+            doc.rect(x + 10, currentY, width - 20, 20)
+               .fillColor('#f8f9fa')
+               .fill();
+          }
+
+          let cellX = x + 10;
+
+          doc.fillColor('#333')
+             .fontSize(7);
+
+          // Número
+          doc.text(telefono.num_telefono || 'N/A', cellX + 2, currentY + 5, { 
+              width: columnWidths[0] - 4 
+          });
+          cellX += columnWidths[0];
+
+          // Marca/Modelo
+          const equipoTexto = `${telefono.stockEquipo.marca || 'N/A'} ${telefono.stockEquipo.modelo || ''}`;
+          doc.text(equipoTexto, cellX + 2, currentY + 5, { 
+              width: columnWidths[1] - 4 
+          });
+          cellX += columnWidths[1];
+
+          // IP
+          doc.text(telefono.ip_telefono || 'N/A', cellX + 2, currentY + 5, { 
+              width: columnWidths[2] - 4 
+          });
+          cellX += columnWidths[2];
+
+          // MAC
+          doc.text(telefono.mac_telefono || 'N/A', cellX + 2, currentY + 5, { 
+              width: columnWidths[3] - 4 
+          });
+          cellX += columnWidths[3];
+
+          // IMEI
+          doc.text(telefono.mail_telefono || 'N/A', cellX + 2, currentY + 5, { 
+              width: columnWidths[4] - 4 
+          });
+          cellX += columnWidths[4];
+
+          // Línea
+          doc.text(telefono.linea_telefono || 'N/A', cellX + 2, currentY + 5, { 
+              width: columnWidths[5] - 4 
+          });
+
+          currentY += 20;
+        });
+
+        // Bordes de la tabla
+        doc.rect(x + 10, currentY - (data.telefonos.length * 20), width - 20, (data.telefonos.length * 20) + 12)
+           .strokeColor('#000')
+           .lineWidth(0.5)
+           .stroke();
+
+      } else {
+        // No hay teléfonos asignados
+        doc.rect(x + 10, currentY, width - 20, 30)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.fillColor('#666')
+           .fontSize(10)
+           .text('El usuario no tiene teléfonos asignados', x + 10, currentY + 10, { 
+               width: width - 20, 
+               align: 'center' 
+           });
+        
+        currentY += 40;
+      }
+
+      currentY += 20;
+
+      // ===== FIRMAS =====
+      const firmaWidth = (width - 30) / 2;
+      
+      // Firma Usuario
+      doc.moveTo(x + 10, currentY + 20)
+         .lineTo(x + 10 + firmaWidth, currentY + 20)
+         .strokeColor('#000')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fillColor('#000')
+         .fontSize(9)
+         .text(`${usuario.nombre} ${usuario.apellido}`, x + 10, currentY + 23, { 
+             width: firmaWidth, 
+             align: 'center' 
+         });
+
+      doc.fontSize(8)
+         .text('Usuario', x + 10, currentY + 33, { 
+             width: firmaWidth, 
+             align: 'center' 
+         });
+
+      // Firma Departamento de Tecnología
+      doc.moveTo(x + 20 + firmaWidth, currentY + 20)
+         .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 20)
+         .strokeColor('#000')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fontSize(8)
+         .text('Departamento de Tecnología', x + 20 + firmaWidth, currentY + 23, { 
+             width: firmaWidth, 
+             align: 'center' 
+         });
+
+      doc.text('FRITZ C.A', x + 20 + firmaWidth, currentY + 33, { 
+          width: firmaWidth, 
+          align: 'center' 
+      });
+
+      currentY += 60;
+
+      // ===== FOOTER =====
+      doc.moveTo(x + 10, currentY)
+         .lineTo(x + width - 10, currentY)
+         .strokeColor('#ddd')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fillColor('#666')
+         .fontSize(8)
+         .text('FRITZ C.A - Sistema de Gestión de Teléfonos', x + 10, currentY + 8, { 
+             width: width - 20, 
+             align: 'center' 
+         });
+
+      // Número de documento
+      doc.text('Doc: TEL-' + data.numeroDocumento, x + 10, currentY + 8, { 
+          width: width - 20, 
+          align: 'right' 
+      });
+
+      // ===== NOTA DE COPIA =====
+      if (esCopia) {
+        doc.fillColor('#ff0000')
+           .fontSize(9)
+           .text('COPIA', x + 10, y + height - 15, { 
+               width: width - 20, 
+               align: 'center' 
+           });
+      }
+
+      return currentY;
+    };
+
+    // Dimensiones para las dos columnas
+    const pageWidth = 760;
+    const pageHeight = 520;
+    const colWidth = (pageWidth - 20) / 2;
     
-    res.end(pdfBuffer);
+    // Dibujar primera columna (original)
+    dibujarColumna(20, 20, colWidth, pageHeight, false);
+    
+    // Dibujar segunda columna (copia)
+    dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
+
+    // Manejar eventos del documento
+    doc.on('error', (error) => {
+      console.error('Error en la generación del PDF:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: 'Error al generar el PDF: ' + error.message 
+        });
+      }
+    });
+
+    doc.on('end', () => {
+      console.log('=== PDF DE TELÉFONOS GENERADO EXITOSAMENTE ===');
+      console.log(`Número de documento: TEL-${numeroDocumento}`);
+    });
+
+    doc.end();
 
   } catch (error) {
     console.error('Error generando PDF por usuario:', error);
-
-    res.status(500).json({ 
-      error: 'Error generando PDF', 
-      detalles: error.message 
-    });
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Error generando PDF', 
+        detalles: error.message 
+      });
+    }
   }
 },
 async generarPDFGeneral(req, res) {
