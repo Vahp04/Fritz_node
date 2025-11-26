@@ -1367,12 +1367,12 @@ async verPdfAsignaciones(req, res) {
         doc.fillColor('#DC2626')
            .fontSize(20)
            .font('Helvetica-Bold')
-           .text('Reporte de Equipos Asignados', 90, 25);
+           .text('Reporte de Equipos Asignados', 90, 25, {align: 'center'});
         
         doc.fillColor('#666')
            .fontSize(12)
            .font('Helvetica')
-           .text('Sistema de Gestión de Inventario', 90, 50);
+           .text('Sistema de Gestión de Inventario', 90, 50, {align: 'center'});
 
         doc.moveTo(20, 70)
            .lineTo(770, 70)
@@ -1468,8 +1468,8 @@ async verPdfAsignaciones(req, res) {
         // ===== TABLA DE ASIGNACIONES =====
         if (data.equiposAsignados.length > 0) {
             // Encabezados de tabla
-            const headers = ['Usuario', 'Cargo', 'Sede', 'Departamento', 'Equipo', 'Tipo', 'Serial', 'Fecha Asignación', 'Fecha Devolución', 'IP Equipo', 'Asignado Por', 'Estado'];
-            const columnWidths = [80, 70, 55, 70, 100, 65, 65, 60, 60, 60, 70, 60];
+            const headers = ['Usuario', 'Cargo', 'Sede', 'Departamento', 'Equipo', 'Tipo', 'Serial', 'Fecha Asig.', 'Fecha Dev.', 'IP Equipo', 'Asignado Por', 'Estado'];
+            const columnWidths = [75, 60, 58, 70, 100, 60, 60, 58, 60, 60, 70, 60];
             
             let headerX = 20;
             
@@ -1589,7 +1589,7 @@ async verPdfAsignaciones(req, res) {
             yPosition += 15;
 
             // ===== RESUMEN FINAL =====
-            doc.rect(25, yPosition, 750, 45)
+            doc.rect(30, yPosition, 750, 45)
                .fillColor('#e9ecef')
                .fill();
             
