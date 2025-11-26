@@ -937,7 +937,7 @@ async generarPDFPorUsuario(req, res) {
 
       doc.fillColor('#333')
          .fontSize(11)
-         .text('Información del Usuario', x + 20, currentY + 10);
+         .text('Información del Usuario', x + 20, currentY + 3);
 
       currentY += 20;
 
@@ -956,13 +956,13 @@ async generarPDFPorUsuario(req, res) {
       currentY += 50;
 
       // ===== RESUMEN DE TELÉFONOS =====
-      doc.rect(x + 10, currentY, width - 35, 30)
+      doc.rect(x + 10, currentY, width - 25, 30)
          .fillColor('#e9ecef')
          .fill();
 
       doc.fillColor('#333')
          .fontSize(10)
-         .text('Resumen de Teléfono Asignado', x + 15, currentY + 10);
+         .text('Resumen de Teléfono Asignado', x + 15, currentY + 3);
 
       currentY += 15;
 
@@ -984,7 +984,7 @@ async generarPDFPorUsuario(req, res) {
       if (data.telefonos && data.telefonos.length > 0) {
         // Encabezados de tabla
         const headers = ['Número', 'Marca/Modelo', 'IP', 'MAC', 'IMEI', 'Línea'];
-        const columnWidths = [width * 0.15, width * 0.22, width * 0.17, width * 0.15, width * 0.15, width * 0.13];
+        const columnWidths = [width * 0.15, width * 0.18, width * 0.17, width * 0.15, width * 0.15, width * 0.13];
         
         let headerX = x + 10;
         
