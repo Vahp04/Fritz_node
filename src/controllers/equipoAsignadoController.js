@@ -1589,7 +1589,7 @@ async verPdfAsignaciones(req, res) {
             yPosition += 15;
 
             // ===== RESUMEN FINAL =====
-            doc.rect(20, yPosition, 750, 55)
+            doc.rect(20, yPosition, 750, 60)
                .fillColor('#e9ecef')
                .fill();
             
