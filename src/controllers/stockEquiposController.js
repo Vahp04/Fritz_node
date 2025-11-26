@@ -746,16 +746,12 @@ async verPdfStock(req, res) {
             // Encabezados de tabla
             const headers = ['Tipo', 'Marca', 'Modelo', 'Total', 'Disp.', 'Asig.', 'Mín.', 'Estado', 'Valor Unit.'];
             const columnWidths = [80, 70, 80, 40, 40, 40, 40, 50, 70];
-            
-            // Texto de encabezados en blanco
-      doc.fontSize(8)
-         .font('Helvetica-Bold')
-         .fillColor('#ffffff');
+  
 
-            let headerX = 30;
-            doc.fillColor('white')
-               .fontSize(8)
-               .font('Helvetica-Bold');
+            let headerX = 100;
+            doc.fontSize(8)
+            .font('Helvetica-Bold')
+            .fillColor('#ffffff');
             
             headers.forEach((header, index) => {
                 doc.rect(headerX, yPosition, columnWidths[index], 20)
@@ -793,7 +789,7 @@ async verPdfStock(req, res) {
                        .fill();
                 }
 
-                let cellX = 40;
+                let cellX = 100;
                 const rowData = [
                     equipo.tipo_equipo?.nombre || 'N/A',
                     equipo.marca,
