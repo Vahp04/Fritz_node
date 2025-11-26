@@ -891,7 +891,7 @@ async verPdfStock(req, res) {
                 { label: 'Valor promedio por equipo:', value: '$' + formatCurrency(valorPromedio) }
             ];
 
-            let summaryY = yPosition + 22;
+            let summaryY = yPosition + 25;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 30, summaryY);
