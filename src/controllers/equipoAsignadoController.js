@@ -1799,148 +1799,449 @@ async verPdfAsignaciones(req, res) {
       }
   },
 
-  async verPdfPorUsuario(req, res) {
-    console.log('=== VER PDF POR USUARIO INICIADO ===');
-      try {
-          const { usuarioId } = req.params;
+  async verReporteIndividual(req, res) {
+    console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
 
-          let contador = await prisma.$transaction(async (tx) => {
-              let counter = await tx.contadorRegistros.findUnique({
-                  where: { tipo: 'reporte_equipos' }
-              });
+    try {
+        const { id } = req.params;
+        console.log(`Viendo reporte para usuario ID: ${id}`);
 
-              if (!counter) {
-                  counter = await tx.contadorRegistros.create({
-                      data: {
-                          tipo: 'reporte_equipos',
-                          ultimoNumero: 1
-                      }
-                  });
-              } else {
-                  counter = await tx.contadorRegistros.update({
-                      where: { tipo: 'reporte_equipos' },
-                      data: {
-                          ultimoNumero: { increment: 1 }
-                      }
-                  });
-              }
-
-              return counter;
-          });
-
-          const numeroRegistro = `T${contador.ultimoNumero.toString().padStart(4, '0')}`;
-          console.log(`Número de registro generado: ${numeroRegistro}`);
-
-          const usuario = await prisma.usuarios.findUnique({
-              where: { id: parseInt(usuarioId) },
-              include: {
-                  sede: { select: { nombre: true } },
-                  departamento: { select: { nombre: true } }
-              }
-          });
-
-          if (!usuario) {
-              return res.status(404).json({ error: 'Usuario no encontrado' });
-          }
-
-          const equiposAsignados = await prisma.equipo_asignado.findMany({
-              where: { usuarios_id: parseInt(usuarioId) },
-              select: {
-                  id: true,
-                  fecha_asignacion: true,
-                  fecha_devolucion: true,
-                  ip_equipo: true,
-                  cereal_equipo: true, 
-                  estado: true,
-                  stock_equipos: {
-                      include: {
-                          tipo_equipo: { select: { nombre: true } }
-                      }
-                  },
-                  usuario: {
-                      select: { name: true }
-                  }
-              },
-              orderBy: [
-                  { estado: 'asc' },
-                  { fecha_asignacion: 'desc' }
-              ]
-          });
-
-          const equiposProcesados = equiposAsignados.map(asignacion => {
-              const stock = asignacion.stock_equipos || {};
-              const tipoEquipo = stock.tipo_equipo || {};
-              const asignador = asignacion.usuario || {};
-              
-              return {
-                  id: asignacion.id,
-                  fecha_asignacion: asignacion.fecha_asignacion,
-                  fecha_devolucion: asignacion.fecha_devolucion,
-                  ip_equipo: asignacion.ip_equipo,
-                  cereal_equipo: asignacion.cereal_equipo, 
-                  estado: asignacion.estado,
-                  
-                  stockEquipo: {
-                      id: stock.id || 0,
-                      marca: stock.marca || 'N/A',
-                      modelo: stock.modelo || '',
-                      descripcion: stock.descripcion || '',
-                      tipoEquipo: {
-                          nombre: tipoEquipo.nombre || 'Sin tipo'
-                      }
-                  },
-                  usuarioAsignador: {
-                      name: asignador.name || 'Sistema'
-                  }
-              };
-          });
-
-          const totalEquipos = equiposProcesados.length;
-          const equiposActivos = equiposProcesados.filter(a => a.estado === 'activo').length;
-          const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
-          const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
-
-          const data = {
-              usuario: usuario,
-              equiposAsignados: equiposProcesados,
-              fechaGeneracion: new Date().toLocaleString('es-ES'),
-              totalEquipos: totalEquipos,
-              equiposActivos: equiposActivos,
-              equiposDevueltos: equiposDevueltos,
-              equiposObsoletos: equiposObsoletos,
-              formatoDuplicado: true,
-              numeroRegistro: numeroRegistro
-          };
-
-          const htmlContent = await renderTemplate(req.app, 'pdfs/asignaciones-usuario', data);
-          const pdfBuffer = await PuppeteerPDF.generatePDF(htmlContent, {
-            format: 'Letter',
-            landscape: false
+        const usuario = await prisma.usuarios.findUnique({
+            where: { id: parseInt(id) },
+            include: {
+                sede: {
+                    select: { nombre: true }
+                },
+                departamento: {
+                    select: { nombre: true }
+                }
+            }
         });
 
-        console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
-        console.log(`Número de registro utilizado: ${numeroRegistro}`);
+        if (!usuario) {
+            return res.status(404).json({
+                error: 'Usuario no encontrado'
+            });
+        }
 
-        if (res.headersSent) return;
+        // Obtener equipos asignados del usuario
+        const equiposAsignados = await prisma.equipo_asignado.findMany({
+            where: { usuarios_id: parseInt(id) },
+            include: {
+                stock_equipos: {
+                    include: {
+                        tipo_equipo: {
+                            select: {
+                                nombre: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                fecha_asignacion: 'desc'
+            }
+        });
 
-        const nombreArchivo = `equipos-${usuario.nombre.replace(/\s+/g, '-')}-${numeroRegistro}.pdf`;
-          
+        const equipos_totales_count = equiposAsignados.length;
+        const equipos_activos_count = equiposAsignados.filter(e => e.estado === 'activo').length;
+        const equipos_devueltos_count = equiposAsignados.filter(e => e.estado === 'devuelto').length;
+
+        // Procesar equipos para el PDF
+        const equiposProcesados = equiposAsignados.map(asignacion => ({
+            id: asignacion.id,
+            equipo: asignacion.stock_equipos ? 
+                `${asignacion.stock_equipos.marca || 'N/A'} ${asignacion.stock_equipos.modelo || ''}` : 
+                'Equipo no encontrado',
+            tipo: asignacion.stock_equipos?.tipo_equipo?.nombre || 'Sin tipo',
+            fecha_asignacion: asignacion.fecha_asignacion,
+            estado: asignacion.estado,
+            descripcion: asignacion.stock_equipos?.descripcion || ''
+        }));
+
+        const data = {
+            usuario,
+            equiposAsignados: equiposProcesados,
+            titulo: 'Reporte Individual de Usuario',
+            fechaGeneracion: new Date().toLocaleString('es-ES'),
+            numeroRegistro: `${usuario.id}-${Date.now().toString().slice(-6)}`,
+            estadisticas: {
+                totales: equipos_totales_count,
+                activos: equipos_activos_count,
+                devueltos: equipos_devueltos_count
+            }
+        };
+
+        console.log('Generando PDF con PDFKit...');
+
+        // Crear documento PDF
+        const doc = new PDFDocument({ 
+            margin: 20,
+            size: 'LETTER',
+            layout: 'landscape'
+        });
+
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="${nombreArchivo}"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
+        res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
 
-        res.end(pdfBuffer);
+        // Pipe el PDF a la respuesta
+        doc.pipe(res);
 
-      } catch (error) {
-       console.error('ERROR viendo PDF por usuario:', error);
-        if (!res.headersSent) {
-            res.status(500).json({ 
-              error: 'Error al cargar el PDF: ' + error.message 
+        // Función para dibujar una columna (copia)
+        const dibujarColumna = (x, y, width, height, esCopia = false) => {
+            // Borde de la columna
+            doc.rect(x, y, width, height)
+               .strokeColor('#000')
+               .lineWidth(1)
+               .stroke();
+
+            let currentY = y + 15;
+
+            // ===== HEADER =====
+            // Logo placeholder
+            doc.fillColor('#f73737')
+               .rect(x + 10, currentY, 40, 30)
+               .fill()
+               .fillColor('white')
+               .fontSize(8)
+               .text('FRITZ C.A', x + 15, currentY + 10, { width: 30, align: 'center' });
+
+            // Título
+            doc.fillColor('#f73737')
+               .fontSize(14)
+               .font('Helvetica-Bold')
+               .text('FRITZ C.A', x + 60, currentY, { 
+                   width: width - 70, 
+                   align: 'center' 
+               });
+
+            currentY += 12;
+
+            doc.fillColor('#666')
+               .fontSize(12)
+               .font('Helvetica')
+               .text('Reporte de Equipos Asignados', x + 60, currentY, { 
+                   width: width - 70, 
+                   align: 'center' 
+               });
+
+            currentY += 12;
+
+            doc.fillColor('#000')
+               .fontSize(10)
+               .text('Generado el: ' + data.fechaGeneracion, x + 60, currentY, { 
+                   width: width - 70, 
+                   align: 'center' 
+               });
+
+            currentY += 25;
+
+            // Línea separadora del header
+            doc.moveTo(x + 10, currentY)
+               .lineTo(x + width - 10, currentY)
+               .strokeColor('#000')
+               .lineWidth(1)
+               .stroke();
+
+            currentY += 15;
+
+            // ===== INFORMACIÓN DEL USUARIO =====
+            doc.rect(x + 10, currentY, width - 20, 45)
+               .fillColor('#f8f9fa')
+               .fill();
+            
+            doc.rect(x + 10, currentY, 4, 45)
+               .fillColor('#DC2626')
+               .fill();
+
+            doc.fillColor('#333')
+               .fontSize(10)
+               .font('Helvetica-Bold')
+               .text('Información del Usuario', x + 20, currentY + 8);
+
+            currentY += 15;
+
+            const infoUsuario = [
+                `Nombre: ${usuario.nombre} ${usuario.apellido}`,
+                `Cargo: ${usuario.cargo || 'No especificado'}`,
+                `Departamento: ${usuario.departamento?.nombre || 'No asignado'}`,
+                `Sede: ${usuario.sede?.nombre || 'No asignada'}`,
+                `Correo: ${usuario.correo || 'No especificado'}`
+            ];
+
+            infoUsuario.forEach((linea, index) => {
+                doc.font('Helvetica')
+                   .fontSize(9)
+                   .text(linea, x + 20, currentY + (index * 8));
             });
+
+            currentY += 55;
+
+            // ===== DETALLE DE EQUIPOS ASIGNADOS =====
+            doc.fillColor('#333')
+               .fontSize(11)
+               .font('Helvetica-Bold')
+               .text('Detalle de Equipos Asignados', x + 10, currentY);
+
+            currentY += 15;
+
+            if (data.equiposAsignados.length > 0) {
+                // Encabezados de tabla
+                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado'];
+                const columnWidths = [30, width * 0.35, width * 0.2, width * 0.2, width * 0.15];
+                
+                let headerX = x + 10;
+                
+                // Fondo encabezados
+                headers.forEach((header, index) => {
+                    doc.rect(headerX, currentY, columnWidths[index], 12)
+                       .fillColor('#343a40')
+                       .fill();
+                    headerX += columnWidths[index];
+                });
+
+                // Texto encabezados
+                headerX = x + 10;
+                doc.fillColor('white')
+                   .fontSize(8)
+                   .font('Helvetica-Bold');
+                
+                headers.forEach((header, index) => {
+                    const alignment = index === 4 ? 'center' : 'left';
+                    doc.text(header, headerX + 3, currentY + 3, { 
+                        width: columnWidths[index] - 6, 
+                        align: alignment 
+                    });
+                    headerX += columnWidths[index];
+                });
+
+                currentY += 12;
+
+                // Filas de equipos
+                data.equiposAsignados.forEach((equipo, index) => {
+                    // Fondo alternado para filas
+                    if (index % 2 === 0) {
+                        doc.rect(x + 10, currentY, width - 20, 20)
+                           .fillColor('#f8f9fa')
+                           .fill();
+                    }
+
+                    let cellX = x + 10;
+                    
+                    const fechaAsignacion = equipo.fecha_asignacion ? 
+                        new Date(equipo.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A';
+                    const estadoTexto = getEstadoTexto(equipo.estado);
+                    const estadoColor = getEstadoColor(equipo.estado);
+
+                    doc.fillColor('#333')
+                       .fontSize(7)
+                       .font('Helvetica');
+
+                    // ID
+                    doc.text(equipo.id.toString(), cellX + 3, currentY + 3, { 
+                        width: columnWidths[0] - 6 
+                    });
+                    cellX += columnWidths[0];
+
+                    // Equipo
+                    doc.text(equipo.equipo, cellX + 3, currentY + 3, { 
+                        width: columnWidths[1] - 6 
+                    });
+                    
+                    if (equipo.descripcion) {
+                        doc.fontSize(6)
+                           .text(equipo.descripcion, cellX + 3, currentY + 10, { 
+                               width: columnWidths[1] - 6 
+                           });
+                    }
+                    cellX += columnWidths[1];
+
+                    // Tipo
+                    doc.fontSize(7)
+                       .text(equipo.tipo, cellX + 3, currentY + 6, { 
+                           width: columnWidths[2] - 6 
+                       });
+                    cellX += columnWidths[2];
+
+                    // Fecha Asignación
+                    doc.text(fechaAsignacion, cellX + 3, currentY + 6, { 
+                        width: columnWidths[3] - 6 
+                    });
+                    cellX += columnWidths[3];
+
+                    // Estado (con badge)
+                    const estadoWidth = columnWidths[4] - 10;
+                    doc.rect(cellX + 5, currentY + 2, estadoWidth, 8)
+                       .fillColor(estadoColor.background)
+                       .fill();
+                    
+                    doc.fillColor(estadoColor.text)
+                       .fontSize(6)
+                       .font('Helvetica-Bold')
+                       .text(estadoTexto, cellX + 5, currentY + 4, { 
+                           width: estadoWidth, 
+                           align: 'center' 
+                       });
+
+                    currentY += 20;
+                });
+
+                // Bordes de la tabla
+                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 20), width - 20, (data.equiposAsignados.length * 20) + 12)
+                   .strokeColor('#000')
+                   .lineWidth(0.5)
+                   .stroke();
+
+            } else {
+                // No hay equipos asignados
+                doc.rect(x + 10, currentY, width - 20, 30)
+                   .fillColor('#f8f9fa')
+                   .fill();
+                
+                doc.fillColor('#666')
+                   .fontSize(10)
+                   .font('Helvetica')
+                   .text('El usuario no tiene equipos asignados', x + 10, currentY + 10, { 
+                       width: width - 20, 
+                       align: 'center' 
+                   });
+                
+                currentY += 40;
+            }
+
+            currentY += 20;
+
+            // ===== FIRMAS =====
+            const firmaWidth = (width - 30) / 2;
+            
+            // Firma Usuario
+            doc.moveTo(x + 10, currentY + 20)
+               .lineTo(x + 10 + firmaWidth, currentY + 20)
+               .strokeColor('#000')
+               .lineWidth(1)
+               .stroke();
+
+            doc.fillColor('#000')
+               .fontSize(8)
+               .font('Helvetica-Bold')
+               .text(`${usuario.nombre} ${usuario.apellido}`, x + 10, currentY + 23, { 
+                   width: firmaWidth, 
+                   align: 'center' 
+               });
+
+            doc.fontSize(7)
+               .font('Helvetica')
+               .text('Usuario', x + 10, currentY + 33, { 
+                   width: firmaWidth, 
+                   align: 'center' 
+               });
+
+            // Firma Departamento de Tecnología
+            doc.moveTo(x + 20 + firmaWidth, currentY + 20)
+               .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 20)
+               .strokeColor('#000')
+               .lineWidth(1)
+               .stroke();
+
+            doc.fontSize(7)
+               .font('Helvetica')
+               .text('Departamento de Tecnología', x + 20 + firmaWidth, currentY + 23, { 
+                   width: firmaWidth, 
+                   align: 'center' 
+               });
+
+            doc.text('FRITZ C.A', x + 20 + firmaWidth, currentY + 33, { 
+                width: firmaWidth, 
+                align: 'center' 
+            });
+
+            currentY += 50;
+
+            // ===== FOOTER =====
+            doc.moveTo(x + 10, currentY)
+               .lineTo(x + width - 10, currentY)
+               .strokeColor('#ddd')
+               .lineWidth(1)
+               .stroke();
+
+            doc.fillColor('#666')
+               .fontSize(8)
+               .text('FRITZ C.A - Sistema de Gestión de Equipos', x + 10, currentY + 8, { 
+                   width: width - 20, 
+                   align: 'center' 
+               });
+
+            // Número de registro
+            doc.text('Registro: ' + data.numeroRegistro, x + 10, currentY + 8, { 
+                width: width - 20, 
+                align: 'right' 
+            });
+
+            // ===== NOTA DE COPIA =====
+            if (esCopia) {
+                doc.fillColor('#ff0000')
+                   .fontSize(9)
+                   .font('Helvetica-Bold')
+                   .text('COPIA', x + 10, y + height - 15, { 
+                       width: width - 20, 
+                       align: 'center' 
+                   });
+            }
+
+            return currentY;
+        };
+
+        // Funciones helper para estados
+        function getEstadoTexto(estado) {
+            switch(estado) {
+                case 'activo':
+                    return 'Activo';
+                case 'devuelto':
+                    return 'Devuelto';
+                case 'obsoleto':
+                    return 'Obsoleto';
+                default:
+                    return estado.charAt(0).toUpperCase() + estado.slice(1);
+            }
         }
+
+        function getEstadoColor(estado) {
+            switch(estado) {
+                case 'activo':
+                    return { background: '#d4edda', text: '#155724' };
+                case 'devuelto':
+                    return { background: '#cce7ff', text: '#004085' };
+                case 'obsoleto':
+                    return { background: '#fff3cd', text: '#856404' };
+                default:
+                    return { background: '#e9ecef', text: '#495057' };
+            }
+        }
+
+        // Dimensiones para las dos columnas
+        const pageWidth = 760;
+        const pageHeight = 520;
+        const colWidth = (pageWidth - 20) / 2;
+        
+        // Dibujar primera columna (original)
+        dibujarColumna(20, 20, colWidth, pageHeight, false);
+        
+        // Dibujar segunda columna (copia)
+        dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
+
+        doc.end();
+
+        console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+
+    } catch (error) {
+        console.error('ERROR viendo reporte individual:', error);
+        res.status(500).json({
+            error: 'Error al cargar el reporte: ' + error.message
+        });
     }
-  }
+}
 }
