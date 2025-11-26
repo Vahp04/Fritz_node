@@ -876,7 +876,7 @@ async verPdfStock(req, res) {
             doc.fillColor('#333')
                .fontSize(10)
                .font('Helvetica-Bold')
-               .text('Resumen Financiero del Inventario', 30, yPosition + 5);
+               .text('Resumen Financiero del Inventario', 30, yPosition + 8);
 
             const tasaAsignacion = data.totalEquipos > 0 ? 
                 (data.totalAsignado / data.totalEquipos) : 0;
@@ -891,7 +891,7 @@ async verPdfStock(req, res) {
                 { label: 'Valor promedio por equipo:', value: '$' + formatCurrency(valorPromedio) }
             ];
 
-            let summaryY = yPosition + 25;
+            let summaryY = yPosition + 20;
             summaryData.forEach(item => {
                 doc.font('Helvetica-Bold')
                    .text(item.label, 30, summaryY);
