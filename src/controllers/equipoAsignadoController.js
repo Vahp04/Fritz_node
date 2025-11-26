@@ -1801,6 +1801,13 @@ async verPdfAsignaciones(req, res) {
 
 async verPdfPorUsuario(req, res) {
     console.log('=== VER PDF POR USUARIO INICIADO ===');
+    
+    // Validar que los headers no se hayan enviado ya
+    if (res.headersSent) {
+        console.log('Headers ya enviados, abortando...');
+        return;
+    }
+
     try {
         const { usuarioId } = req.params;
 
@@ -1928,6 +1935,7 @@ async verPdfPorUsuario(req, res) {
             layout: 'landscape'
         });
 
+        // Configurar headers ANTES de pipe
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -1937,6 +1945,33 @@ async verPdfPorUsuario(req, res) {
 
         // Pipe el PDF a la respuesta
         doc.pipe(res);
+
+        // Funciones helper para estados
+        function getEstadoTexto(estado) {
+            switch(estado) {
+                case 'activo':
+                    return 'Activo';
+                case 'devuelto':
+                    return 'Devuelto';
+                case 'obsoleto':
+                    return 'Obsoleto';
+                default:
+                    return estado.charAt(0).toUpperCase() + estado.slice(1);
+            }
+        }
+
+        function getEstadoColor(estado) {
+            switch(estado) {
+                case 'activo':
+                    return { background: '#d4edda', text: '#155724' };
+                case 'devuelto':
+                    return { background: '#cce7ff', text: '#004085' };
+                case 'obsoleto':
+                    return { background: '#fff3cd', text: '#856404' };
+                default:
+                    return { background: '#e9ecef', text: '#495057' };
+            }
+        }
 
         // Función para dibujar una columna (copia)
         const dibujarColumna = (x, y, width, height, esCopia = false) => {
@@ -1957,10 +1992,9 @@ async verPdfPorUsuario(req, res) {
                .fontSize(8)
                .text('FRITZ C.A', x + 15, currentY + 10, { width: 30, align: 'center' });
 
-            // Títulos
+            // Títulos - USANDO FUENTES BÁSICAS
             doc.fillColor('#f73737')
                .fontSize(16)
-               .font('Helvetica-Bold')
                .text('FRITZ C.A', x + 60, currentY, { 
                    width: width - 70, 
                    align: 'center' 
@@ -1970,7 +2004,6 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#666')
                .fontSize(14)
-               .font('Helvetica')
                .text('Reporte de Equipos Asignados', x + 60, currentY, { 
                    width: width - 70, 
                    align: 'center' 
@@ -1997,7 +2030,7 @@ async verPdfPorUsuario(req, res) {
             currentY += 20;
 
             // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 20, 60) // Aumentada la altura para mejor espaciado
+            doc.rect(x + 10, currentY, width - 20, 60)
                .fillColor('#f8f9fa')
                .fill();
             
@@ -2007,7 +2040,6 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#333')
                .fontSize(11)
-               .font('Helvetica-Bold')
                .text('Información del Usuario', x + 20, currentY + 10);
 
             currentY += 20;
@@ -2020,25 +2052,22 @@ async verPdfPorUsuario(req, res) {
                 `Correo: ${usuario.correo || 'No especificado'}`
             ];
 
-            // Mejor espaciado entre líneas
             infoUsuario.forEach((linea, index) => {
-                doc.font('Helvetica')
-                   .fontSize(9)
-                   .text(linea, x + 20, currentY + (index * 12)); // Cambiado de 8 a 12 para más espacio
+                doc.fontSize(9)
+                   .text(linea, x + 20, currentY + (index * 12));
             });
 
-            currentY += 70; // Aumentado para compensar el mayor espaciado
+            currentY += 70;
 
             // ===== DETALLE DE EQUIPOS ASIGNADOS =====
             doc.fillColor('#333')
                .fontSize(11)
-               .font('Helvetica-Bold')
                .text('Detalle de Equipos Asignados', x + 10, currentY);
 
             currentY += 15;
 
             if (data.equiposAsignados.length > 0) {
-                // Encabezados de tabla - AGREGADA COLUMNA OBSERVACIONES
+                // Encabezados de tabla
                 const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asignación', 'Estado', 'Observaciones'];
                 const columnWidths = [20, width * 0.25, width * 0.12, width * 0.12, width * 0.12, width * 0.19];
                 
@@ -2055,8 +2084,7 @@ async verPdfPorUsuario(req, res) {
                 // Texto encabezados
                 headerX = x + 10;
                 doc.fillColor('white')
-                   .fontSize(7)
-                   .font('Helvetica-Bold');
+                   .fontSize(7);
                 
                 headers.forEach((header, index) => {
                     const alignment = index === 4 ? 'center' : 'left';
@@ -2073,7 +2101,7 @@ async verPdfPorUsuario(req, res) {
                 data.equiposAsignados.forEach((equipo, index) => {
                     // Fondo alternado para filas
                     if (index % 2 === 0) {
-                        doc.rect(x + 10, currentY, width - 20, 30) // Aumentada altura para observaciones
+                        doc.rect(x + 10, currentY, width - 20, 30)
                            .fillColor('#f8f9fa')
                            .fill();
                     }
@@ -2086,8 +2114,7 @@ async verPdfPorUsuario(req, res) {
                     const estadoColor = getEstadoColor(equipo.estado);
 
                     doc.fillColor('#333')
-                       .fontSize(6.5)
-                       .font('Helvetica');
+                       .fontSize(6.5);
 
                     // ID
                     doc.text(equipo.id.toString(), cellX + 2, currentY + 5, { 
@@ -2130,7 +2157,6 @@ async verPdfPorUsuario(req, res) {
                     
                     doc.fillColor(estadoColor.text)
                        .fontSize(6)
-                       .font('Helvetica-Bold')
                        .text(estadoTexto, cellX + 4, currentY + 7, { 
                            width: estadoWidth, 
                            align: 'center' 
@@ -2141,7 +2167,6 @@ async verPdfPorUsuario(req, res) {
                     if (equipo.observaciones) {
                         doc.fillColor('#333')
                            .fontSize(6)
-                           .font('Helvetica')
                            .text(equipo.observaciones, cellX + 2, currentY + 5, { 
                                width: columnWidths[5] - 4,
                                align: 'left'
@@ -2149,14 +2174,13 @@ async verPdfPorUsuario(req, res) {
                     } else {
                         doc.fillColor('#666')
                            .fontSize(6)
-                           .font('Helvetica-Italic')
                            .text('Sin observaciones', cellX + 2, currentY + 10, { 
                                width: columnWidths[5] - 4,
                                align: 'left'
                            });
                     }
 
-                    currentY += 30; // Aumentada altura de fila para observaciones
+                    currentY += 30;
                 });
 
                 // Bordes de la tabla
@@ -2173,7 +2197,6 @@ async verPdfPorUsuario(req, res) {
                 
                 doc.fillColor('#666')
                    .fontSize(10)
-                   .font('Helvetica')
                    .text('El usuario no tiene equipos asignados', x + 10, currentY + 10, { 
                        width: width - 20, 
                        align: 'center' 
@@ -2195,14 +2218,12 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#333')
                .fontSize(10)
-               .font('Helvetica-Bold')
                .text('Observaciones Generales:', x + 18, currentY + 8);
 
             currentY += 15;
 
             doc.fillColor('#000')
                .fontSize(8)
-               .font('Helvetica')
                .text('• Cualquier novedad informar al Departamento de Tecnología', x + 18, currentY, { width: width - 30 });
 
             currentY += 10;
@@ -2227,14 +2248,12 @@ async verPdfPorUsuario(req, res) {
 
             doc.fillColor('#000')
                .fontSize(9)
-               .font('Helvetica-Bold')
                .text(`${usuario.nombre} ${usuario.apellido}`, x + 10, currentY + 23, { 
                    width: firmaWidth, 
                    align: 'center' 
                });
 
             doc.fontSize(8)
-               .font('Helvetica')
                .text('Usuario', x + 10, currentY + 33, { 
                    width: firmaWidth, 
                    align: 'center' 
@@ -2248,7 +2267,6 @@ async verPdfPorUsuario(req, res) {
                .stroke();
 
             doc.fontSize(8)
-               .font('Helvetica')
                .text('Departamento de Tecnología', x + 20 + firmaWidth, currentY + 23, { 
                    width: firmaWidth, 
                    align: 'center' 
@@ -2285,7 +2303,6 @@ async verPdfPorUsuario(req, res) {
             if (esCopia) {
                 doc.fillColor('#ff0000')
                    .fontSize(9)
-                   .font('Helvetica-Bold')
                    .text('COPIA', x + 10, y + height - 15, { 
                        width: width - 20, 
                        align: 'center' 
@@ -2294,33 +2311,6 @@ async verPdfPorUsuario(req, res) {
 
             return currentY;
         };
-
-        // Funciones helper para estados
-        function getEstadoTexto(estado) {
-            switch(estado) {
-                case 'activo':
-                    return 'Activo';
-                case 'devuelto':
-                    return 'Devuelto';
-                case 'obsoleto':
-                    return 'Obsoleto';
-                default:
-                    return estado.charAt(0).toUpperCase() + estado.slice(1);
-            }
-        }
-
-        function getEstadoColor(estado) {
-            switch(estado) {
-                case 'activo':
-                    return { background: '#d4edda', text: '#155724' };
-                case 'devuelto':
-                    return { background: '#cce7ff', text: '#004085' };
-                case 'obsoleto':
-                    return { background: '#fff3cd', text: '#856404' };
-                default:
-                    return { background: '#e9ecef', text: '#495057' };
-            }
-        }
 
         // Dimensiones para las dos columnas
         const pageWidth = 760;
@@ -2333,10 +2323,22 @@ async verPdfPorUsuario(req, res) {
         // Dibujar segunda columna (copia)
         dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
 
-        doc.end();
+        // Manejar eventos del documento
+        doc.on('error', (error) => {
+            console.error('Error en la generación del PDF:', error);
+            if (!res.headersSent) {
+                res.status(500).json({ 
+                    error: 'Error al generar el PDF: ' + error.message 
+                });
+            }
+        });
 
-        console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
-        console.log(`Número de registro utilizado: ${numeroRegistro}`);
+        doc.on('end', () => {
+            console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+            console.log(`Número de registro utilizado: ${numeroRegistro}`);
+        });
+
+        doc.end();
 
     } catch (error) {
         console.error('ERROR viendo PDF por usuario:', error);
