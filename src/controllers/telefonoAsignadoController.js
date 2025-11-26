@@ -984,7 +984,7 @@ async generarPDFPorUsuario(req, res) {
       if (data.telefonos && data.telefonos.length > 0) {
         // Encabezados de tabla
         const headers = ['Número', 'Marca/Modelo', 'IP', 'MAC', 'IMEI', 'Línea'];
-        const columnWidths = [width * 0.15, width * 0.18, width * 0.17, width * 0.18, width * 0.15, width * 0.10];
+        const columnWidths = [width * 0.15, width * 0.18, width * 0.19, width * 0.18, width * 0.15, width * 0.10];
         
         let headerX = x + 10;
         
@@ -1129,7 +1129,7 @@ async generarPDFPorUsuario(req, res) {
           align: 'center' 
       });
 
-      currentY += 60;
+      currentY += 100;
 
       // ===== FOOTER =====
       doc.moveTo(x + 10, currentY)
