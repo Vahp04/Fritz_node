@@ -730,7 +730,7 @@ async verPdfStock(req, res) {
                 tipoY += 12;
             }
             
-            doc.rect(tipoX, tipoY, 170, 10)
+            doc.rect(tipoX, tipoY, 170, 12)
                .fillColor('white')
                .fill();
             
@@ -869,7 +869,7 @@ async verPdfStock(req, res) {
             yPosition += 15;
 
             // ===== RESUMEN FINANCIERO =====
-            doc.rect(25, yPosition, 745, 65)
+            doc.rect(25, yPosition, 745, 70)
                .fillColor('#e9ecef')
                .fill();
             
@@ -911,7 +911,7 @@ async verPdfStock(req, res) {
                        .fontSize(9);
                 }
                 
-                summaryY += 10;
+                summaryY += 12;
             });
         } else {
             doc.fillColor('#666')
