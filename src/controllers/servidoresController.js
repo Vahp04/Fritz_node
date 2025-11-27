@@ -899,12 +899,12 @@ async generarPDFGeneral(req, res) {
       // Configuración de columnas
       const columnWidths = {
         equipo: 90,
-        ip: 55,
-        serial: 65,
+        ip: 60,
+        serial: 75,
         sede: 55,
-        detalles: 130,
-        ubicacion: 80,
-        estado: 40
+        detalles: 150,
+        ubicacion: 100,
+        estado: 35
       };
 
       const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
