@@ -915,10 +915,10 @@ async generarPDFGeneral(req, res) {
       const columnWidths = {
         equipo: 90,
         ip: 70,
-        serial: 75,
+        serial: 80,
         sede: 60,
-        descripcion: 120, // Cambiado de usuario a descripcion
-        ubicacion: 80,
+        descripcion: 130, 
+        ubicacion: 90,
         estado: 40
       };
 
@@ -929,7 +929,7 @@ async generarPDFGeneral(req, res) {
         { text: 'IP', width: columnWidths.ip },
         { text: 'SERIAL', width: columnWidths.serial },
         { text: 'SEDE', width: columnWidths.sede },
-        { text: 'DESCRIPCIÓN', width: columnWidths.descripcion }, // Cambiado de USUARIO a DESCRIPCIÓN
+        { text: 'DESCRIPCIÓN', width: columnWidths.descripcion }, 
         { text: 'UBICACIÓN', width: columnWidths.ubicacion },
         { text: 'ESTADO', width: columnWidths.estado }
       ];
@@ -956,7 +956,6 @@ async generarPDFGeneral(req, res) {
 
       currentY += 15;
 
-      // Función para calcular líneas de texto
       const calcularLineasTexto = (texto, anchoMaximo, fontSize = 7) => {
         if (!texto) return 1;
         
@@ -964,7 +963,6 @@ async generarPDFGeneral(req, res) {
         let lineas = 1;
         let lineaActual = '';
         
-        // Configurar fuente temporalmente para calcular
         const tempSize = doc.fontSize();
         doc.fontSize(fontSize);
         
@@ -980,43 +978,38 @@ async generarPDFGeneral(req, res) {
           }
         }
         
-        // Restaurar tamaño de fuente
         doc.fontSize(tempSize);
         return lineas;
       };
 
-      // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA MEJORADA
       let currentSede = null;
 
       mikrotiks.forEach((mikrotik, index) => {
-        // PRE-CALCULAR ALTURA PARA CADA CELDA
         const anchoEquipo = columnWidths.equipo - 6;
-        const anchoDescripcion = columnWidths.descripcion - 6; // Cambiado de usuario a descripcion
+        const anchoDescripcion = columnWidths.descripcion - 6; 
         const anchoUbicacion = columnWidths.ubicacion - 6;
         
-        // Textos
         const equipoText = mikrotik.stock_equipos ? 
           `${mikrotik.stock_equipos.marca || ''} ${mikrotik.stock_equipos.modelo || ''}`.trim() + 
           (mikrotik.stock_equipos.tipo_equipo ? `\n${mikrotik.stock_equipos.tipo_equipo.nombre}` : '') 
           : 'No asignado';
         
-        const descripcionText = mikrotik.descripcion || 'Sin descripción'; // Cambiado de usuario_mikrotik a descripcion
+        const descripcionText = mikrotik.descripcion || 'Sin descripción'; 
         const ubicacionText = mikrotik.ubicacion || '-';
         
-        // Calcular líneas para cada columna
+        
         const lineasEquipo = equipoText.split('\n').length;
-        const lineasDescripcion = calcularLineasTexto(descripcionText, anchoDescripcion); // Cambiado de usuario a descripcion
+        const lineasDescripcion = calcularLineasTexto(descripcionText, anchoDescripcion); 
         const lineasUbicacion = calcularLineasTexto(ubicacionText, anchoUbicacion);
         
-        // Encontrar el máximo de líneas
-        const maxLines = Math.max(lineasEquipo, lineasDescripcion, lineasUbicacion, 1); // Cambiado de usuario a descripcion
+       
+        const maxLines = Math.max(lineasEquipo, lineasDescripcion, lineasUbicacion, 1); 
         
-        // Altura dinámica basada en el contenido
+       
         const lineaBaseHeight = 10;
         const alturaPorLineaExtra = 8;
         const rowHeight = lineaBaseHeight + ((maxLines - 1) * alturaPorLineaExtra);
 
-        // Verificar si necesitamos nueva página
         if (currentY + rowHeight > doc.page.height - doc.page.margins.bottom - 20) {
           doc.addPage();
           currentY = doc.page.margins.top;
