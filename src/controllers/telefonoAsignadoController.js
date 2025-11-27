@@ -1697,7 +1697,7 @@ async generarPDFGeneral(req, res) {
 
       // Encabezados de la tabla
       const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
-      const colWidths = [45, 60, 50, 50, 50, 60, 55, 75, 30];
+      const colWidths = [50, 60, 45, 47, 50, 60, 55, 75, 40];
       
       // Fondo del encabezado
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -1764,13 +1764,13 @@ async generarPDFGeneral(req, res) {
           telefono.num_telefono || 'N/A',
           telefono.usuario && telefono.usuario.nombre ? 
             `${telefono.usuario.nombre.substring(0, 15)} ${telefono.usuario.apellido?.substring(0, 1) || ''}.` : '-',
-          (telefono.usuario?.cargo || '-').substring(0, 12),
-          (telefono.usuario?.sede?.nombre || '-').substring(0, 12),
+          (telefono.usuario?.cargo || '-').substring(0, 10),
+          (telefono.usuario?.sede?.nombre || '-').substring(0, 10),
           (telefono.usuario?.departamento?.nombre || '-').substring(0, 12),
           telefono.stockEquipo ? 
             `${telefono.stockEquipo.marca?.substring(0, 10) || ''} ${telefono.stockEquipo.modelo?.substring(0, 8) || ''}`.trim() : 'N/A',
-          (telefono.ip_telefono || 'N/A').substring(0, 12),
-          (telefono.mac_telefono || 'N/A').substring(0, 15),
+          (telefono.ip_telefono || 'N/A').substring(0, 15),
+          (telefono.mac_telefono || 'N/A').substring(0, 18),
           estado
         ];
 
