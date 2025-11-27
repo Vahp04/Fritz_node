@@ -240,318 +240,641 @@ class PDFKitGenerator {
     doc.text(`Generado el: ${data.fechaGeneracion || new Date().toLocaleString('es-ES')}`, margin, yPosition, { align: 'center' });
   }
 
-  // **NUEVO MÉTODO PARA REPORTE INDIVIDUAL**
-  static generateIndividualReport(doc, data) {
+// **MÉTODO PARA REPORTE INDIVIDUAL** - Diseño de dos columnas idénticas
+static generateIndividualReport(doc, data) {
     const { usuario, titulo, fecha, estadisticas } = data;
-    const margin = 30;
+    const margin = 20;
     let yPosition = margin;
     const pageWidth = doc.page.width - (margin * 2);
+    const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
 
-    // Encabezado
-    this.drawTextLogo(doc, margin, yPosition);
-    
-    doc.fontSize(20)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text('FRITZ C.A', margin, yPosition, { align: 'center' });
-    
-    yPosition += 25;
+    // **PRIMERA COLUMNA** (izquierda)
+    let colX = margin;
+    let colY = yPosition;
 
-    doc.fontSize(16)
-       .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text(titulo || 'Reporte Individual de Usuario', margin, yPosition, { align: 'center' });
-    
-    yPosition += 20;
-
-    doc.fontSize(10)
-       .font('Helvetica')
-       .fillColor('#666666')
-       .text(`Generado el: ${fecha || new Date().toLocaleString('es-ES')}`, margin, yPosition, { align: 'center' });
-    
-    yPosition += 30;
-
-    // Línea separadora
-    doc.moveTo(margin, yPosition)
-       .lineTo(margin + pageWidth, yPosition)
-       .lineWidth(2)
-       .strokeColor('#DC2626')
-       .stroke();
-    
-    yPosition += 20;
-
-    // Información del usuario
-    doc.fontSize(14)
-       .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('INFORMACIÓN PERSONAL', margin, yPosition);
-    
-    yPosition += 25;
-
-    // Fondo para información
-    const infoHeight = 100;
-    doc.rect(margin, yPosition, pageWidth, infoHeight)
+    // Encabezado columna 1
+    doc.rect(colX, colY, columnWidth, 25)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(margin, yPosition, pageWidth, infoHeight)
-       .strokeColor('#DC2626')
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
 
-    // Datos del usuario en dos columnas
-    const col1X = margin + 15;
-    const col2X = margin + (pageWidth / 2) + 10;
-    let infoY = yPosition + 15;
-
-    // Columna 1
-    doc.fontSize(10)
+    doc.fontSize(16)
        .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('ID de Usuario:', col1X, infoY);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.id.toString(), col1X + 80, infoY);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Nombre Completo:', col1X, infoY + 15);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(`${usuario.nombre} ${usuario.apellido}`, col1X + 80, infoY + 15);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Cargo:', col1X, infoY + 30);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.cargo || 'No especificado', col1X + 80, infoY + 30);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Correo:', col1X, infoY + 45);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.correo || 'No especificado', col1X + 80, infoY + 45);
-
-    // Columna 2
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('RDP Fiscal:', col2X, infoY);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.rdpfis || 'No asignado', col2X + 60, infoY);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('RDP Financiero:', col2X, infoY + 15);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.rdpfin || 'No asignado', col2X + 60, infoY + 15);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Sede:', col2X, infoY + 30);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.sede?.nombre || 'No asignada', col2X + 60, infoY + 30);
-
-    doc.font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Departamento:', col2X, infoY + 45);
-    doc.font('Helvetica')
-       .fillColor('#666666')
-       .text(usuario.departamento?.nombre || 'No asignado', col2X + 60, infoY + 45);
-
-    yPosition += infoHeight + 20;
-
-    // Descripción si existe
-    if (usuario.descripcion) {
-      doc.fontSize(12)
-         .font('Helvetica-Bold')
-         .fillColor('#333333')
-         .text('MÓDULOS Y DESCRIPCIÓN:', margin, yPosition);
-      
-      yPosition += 20;
-
-      doc.rect(margin, yPosition, pageWidth, 40)
-         .fillColor('#ffffff')
-         .strokeColor('#dee2e6')
-         .lineWidth(1)
-         .fillAndStroke();
-      
-      doc.fontSize(9)
-         .font('Helvetica')
-         .fillColor('#666666')
-         .text(usuario.descripcion, margin + 10, yPosition + 10, {
-           width: pageWidth - 20,
-           align: 'left'
-         });
-      
-      yPosition += 50;
-    }
-
-    // Estadísticas de equipos
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', colX, colY + 5, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+    
     doc.fontSize(14)
        .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('RESUMEN DE EQUIPOS ASIGNADOS', margin, yPosition);
+       .fillColor('#666666')
+       .text(titulo || 'Reporte Individual de Usuario', colX, colY + 20, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+
+    colY += 30;
+
+    doc.fontSize(10)
+       .font('Helvetica')
+       .fillColor('#000000')
+       .text(`Generado el: ${fecha || new Date().toLocaleString('es-ES')}`, colX, colY, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+
+    colY += 20;
+
+    // Línea separadora
+    doc.moveTo(colX, colY)
+       .lineTo(colX + columnWidth, colY)
+       .lineWidth(1)
+       .strokeColor('#000000')
+       .stroke();
     
-    yPosition += 25;
+    colY += 15;
 
-    const statsWidth = pageWidth;
-    const statItemWidth = statsWidth / 3;
-    const statsY = yPosition;
+    // Información del usuario - Columna 1
+    doc.rect(colX, colY, columnWidth, 25)
+       .fillColor('#f8f9fa')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
 
-    // Total Equipos
-    doc.rect(margin, statsY, statItemWidth - 5, 50)
+    doc.fontSize(12)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Información Personal del Usuario', colX + 10, colY + 8);
+
+    colY += 30;
+
+    // Contenedor principal de información
+    const infoHeight = 120;
+    doc.rect(colX, colY, columnWidth, infoHeight)
+       .fillColor('#f8f9fa')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, infoHeight)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    let infoY = colY + 10;
+    const infoItemHeight = 14;
+
+    // Datos del usuario - Columna 1
+    const userInfo = [
+        { label: 'ID de Usuario:', value: usuario.id.toString() },
+        { label: 'Nombre Completo:', value: `${usuario.nombre} ${usuario.apellido}` },
+        { label: 'Cargo:', value: usuario.cargo || 'No especificado' },
+        { label: 'Correo Electrónico:', value: usuario.correo || 'No especificado' },
+        { label: 'RDP Fiscal:', value: usuario.rdpfis || 'No asignado' },
+        { label: 'RDP Financiero:', value: usuario.rdpfin || 'No asignado' },
+        { label: 'Sede:', value: usuario.sede?.nombre || 'No asignada' },
+        { label: 'Departamento:', value: usuario.departamento?.nombre || 'No asignado' }
+    ];
+
+    userInfo.forEach((info, index) => {
+        const currentY = infoY + (index * infoItemHeight);
+        
+        doc.fontSize(8)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text(info.label, colX + 10, currentY);
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text(info.value, colX + 70, currentY, {
+             width: columnWidth - 80,
+             align: 'left'
+           });
+
+        // Línea punteada entre items
+        if (index < userInfo.length - 1) {
+            doc.moveTo(colX + 10, currentY + 10)
+               .lineTo(colX + columnWidth - 10, currentY + 10)
+               .lineWidth(0.5)
+               .strokeColor('#cccccc')
+               .dash(2, { space: 2 })
+               .stroke()
+               .undash();
+        }
+    });
+
+    colY += infoHeight + 15;
+
+    // Descripción si existe - Columna 1
+    if (usuario.descripcion) {
+        const descHeight = 40;
+        doc.rect(colX, colY, columnWidth, descHeight)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, colX + columnWidth, colY + descHeight)
+           .strokeColor('#dee2e6')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Módulos y Descripción:', colX + 10, colY + 5);
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text(usuario.descripcion, colX + 10, colY + 15, {
+             width: columnWidth - 20,
+             align: 'left'
+           });
+
+        colY += descHeight + 15;
+    }
+
+    // Resumen de equipos - Columna 1
+    doc.rect(colX, colY, columnWidth, 25)
        .fillColor('#e9ecef')
        .fill();
     
-    doc.rect(margin, statsY, statItemWidth - 5, 50)
-       .strokeColor('#dee2e6')
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
+
+    doc.fontSize(11)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+
+    colY += 30;
+
+    // Estadísticas de equipos - Columna 1
+    const statsHeight = 50;
+    const statWidth = (columnWidth - 20) / 3;
     
-    doc.fontSize(18)
+    // Total Equipos
+    doc.rect(colX + 5, colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(16)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
-       .text(estadisticas.totales.toString(), margin, statsY + 10, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .text(estadisticas.totales.toString(), colX + 5, colY + 10, {
+         width: statWidth,
+         align: 'center'
        });
     
     doc.fontSize(9)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('Total Equipos', margin, statsY + 30, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .text('Total Equipos', colX + 5, colY + 30, {
+         width: statWidth,
+         align: 'center'
        });
 
     // Equipos Activos
-    doc.rect(margin + statItemWidth, statsY, statItemWidth - 5, 50)
-       .fillColor('#d4edda')
-       .fill();
-    
-    doc.rect(margin + statItemWidth, statsY, statItemWidth - 5, 50)
-       .strokeColor('#c3e6cb')
+    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
        .lineWidth(1)
-       .stroke();
+       .fillAndStroke();
     
-    doc.fontSize(18)
+    doc.fontSize(16)
        .font('Helvetica-Bold')
-       .fillColor('#155724')
-       .text(estadisticas.activos.toString(), margin + statItemWidth, statsY + 10, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .fillColor('#DC2626')
+       .text(estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
+         width: statWidth,
+         align: 'center'
        });
     
     doc.fontSize(9)
        .font('Helvetica')
-       .fillColor('#155724')
-       .text('Equipos Activos', margin + statItemWidth, statsY + 30, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .fillColor('#666666')
+       .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
+         width: statWidth,
+         align: 'center'
        });
 
     // Equipos Devueltos
-    doc.rect(margin + (statItemWidth * 2), statsY, statItemWidth - 5, 50)
-       .fillColor('#fff3cd')
-       .fill();
-    
-    doc.rect(margin + (statItemWidth * 2), statsY, statItemWidth - 5, 50)
-       .strokeColor('#ffeaa7')
+    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
        .lineWidth(1)
-       .stroke();
+       .fillAndStroke();
     
-    doc.fontSize(18)
+    doc.fontSize(16)
        .font('Helvetica-Bold')
-       .fillColor('#856404')
-       .text(estadisticas.devueltos.toString(), margin + (statItemWidth * 2), statsY + 10, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .fillColor('#DC2626')
+       .text(estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
+         width: statWidth,
+         align: 'center'
        });
     
     doc.fontSize(9)
        .font('Helvetica')
-       .fillColor('#856404')
-       .text('Equipos Devueltos', margin + (statItemWidth * 2), statsY + 30, { 
-         width: statItemWidth - 5, 
-         align: 'center' 
+       .fillColor('#666666')
+       .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
+         width: statWidth,
+         align: 'center'
        });
 
-    yPosition += 80;
+    colY += statsHeight + 20;
 
-    // Firmas
-    doc.fontSize(10)
-       .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('FIRMAS', margin, yPosition);
-    
-    yPosition += 20;
-
-    const firmaWidth = pageWidth / 2;
-    const firma1X = margin;
-    const firma2X = margin + firmaWidth;
+    // Firmas - Columna 1
+    const firmaHeight = 60;
+    const firmaWidth = (columnWidth - 20) / 2;
 
     // Firma Usuario
-    doc.rect(firma1X, yPosition, firmaWidth - 10, 60)
+    doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
        .strokeColor('#cccccc')
        .lineWidth(1)
+       .stroke();
+    
+    // Línea de firma
+    doc.moveTo(colX + 15, colY + 40)
+       .lineTo(colX + firmaWidth - 5, colY + 40)
+       .lineWidth(1)
+       .strokeColor('#333333')
        .stroke();
     
     doc.fontSize(9)
        .font('Helvetica-Bold')
        .fillColor('#333333')
-       .text(usuario.nombre + ' ' + usuario.apellido, firma1X, yPosition + 40, {
-         width: firmaWidth - 10,
+       .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
+         width: firmaWidth,
          align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('Usuario', firma1X, yPosition + 52, {
-         width: firmaWidth - 10,
+       .text('Usuario', colX + 5, colY + 55, {
+         width: firmaWidth,
          align: 'center'
        });
 
-    // Firma Departamento de Tecnología
-    doc.rect(firma2X, yPosition, firmaWidth - 10, 60)
+    // Firma Tecnología
+    doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
        .strokeColor('#cccccc')
        .lineWidth(1)
+       .stroke();
+    
+    // Línea de firma
+    doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+       .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+       .lineWidth(1)
+       .strokeColor('#333333')
        .stroke();
     
     doc.fontSize(9)
        .font('Helvetica-Bold')
        .fillColor('#333333')
-       .text('Departamento de Tecnología', firma2X, yPosition + 30, {
-         width: firmaWidth - 10,
+       .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
+         width: firmaWidth,
          align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('FRITZ C.A', firma2X, yPosition + 45, {
-         width: firmaWidth - 10,
+       .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
+         width: firmaWidth,
          align: 'center'
        });
 
-    // Pie de página
-    const footerY = doc.page.height - 40;
-    doc.moveTo(margin, footerY)
-       .lineTo(margin + pageWidth, footerY)
+    colY += firmaHeight + 15;
+
+    // Footer - Columna 1
+    doc.moveTo(colX, colY)
+       .lineTo(colX + columnWidth, colY)
        .lineWidth(1)
-       .strokeColor('#cccccc')
+       .strokeColor('#dddddd')
        .stroke();
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('FRITZ C.A - Sistema de Gestión de Usuarios', margin, footerY + 10, { align: 'center' });
-  }
+       .text('FRITZ C.A - Sistema de Gestión de Usuarios', colX, colY + 10, {
+         width: columnWidth,
+         align: 'center'
+       });
+
+    // **SEGUNDA COLUMNA** (derecha) - CONTENIDO IDÉNTICO
+    colX = margin + columnWidth + 15;
+    colY = yPosition;
+
+    // Encabezado columna 2 (idéntico a columna 1)
+    doc.rect(colX, colY, columnWidth, 25)
+       .fillColor('#f8f9fa')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', colX, colY + 5, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+    
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .fillColor('#666666')
+       .text(titulo || 'Reporte Individual de Usuario', colX, colY + 20, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+
+    colY += 30;
+
+    doc.fontSize(10)
+       .font('Helvetica')
+       .fillColor('#000000')
+       .text(`Generado el: ${fecha || new Date().toLocaleString('es-ES')}`, colX, colY, { 
+         width: columnWidth, 
+         align: 'center' 
+       });
+
+    colY += 20;
+
+    // Línea separadora
+    doc.moveTo(colX, colY)
+       .lineTo(colX + columnWidth, colY)
+       .lineWidth(1)
+       .strokeColor('#000000')
+       .stroke();
+    
+    colY += 15;
+
+    // Información del usuario - Columna 2 (idéntica a columna 1)
+    doc.rect(colX, colY, columnWidth, 25)
+       .fillColor('#f8f9fa')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    doc.fontSize(12)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Información Personal del Usuario', colX + 10, colY + 8);
+
+    colY += 30;
+
+    // Contenedor principal de información - Columna 2
+    doc.rect(colX, colY, columnWidth, infoHeight)
+       .fillColor('#f8f9fa')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, infoHeight)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    infoY = colY + 10;
+
+    // Datos del usuario - Columna 2 (mismos datos)
+    userInfo.forEach((info, index) => {
+        const currentY = infoY + (index * infoItemHeight);
+        
+        doc.fontSize(8)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text(info.label, colX + 10, currentY);
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text(info.value, colX + 70, currentY, {
+             width: columnWidth - 80,
+             align: 'left'
+           });
+
+        // Línea punteada entre items
+        if (index < userInfo.length - 1) {
+            doc.moveTo(colX + 10, currentY + 10)
+               .lineTo(colX + columnWidth - 10, currentY + 10)
+               .lineWidth(0.5)
+               .strokeColor('#cccccc')
+               .dash(2, { space: 2 })
+               .stroke()
+               .undash();
+        }
+    });
+
+    colY += infoHeight + 15;
+
+    // Descripción si existe - Columna 2
+    if (usuario.descripcion) {
+        const descHeight = 40;
+        doc.rect(colX, colY, columnWidth, descHeight)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, colX + columnWidth, colY + descHeight)
+           .strokeColor('#dee2e6')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Módulos y Descripción:', colX + 10, colY + 5);
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text(usuario.descripcion, colX + 10, colY + 15, {
+             width: columnWidth - 20,
+             align: 'left'
+           });
+
+        colY += descHeight + 15;
+    }
+
+    // Resumen de equipos - Columna 2
+    doc.rect(colX, colY, columnWidth, 25)
+       .fillColor('#e9ecef')
+       .fill();
+    
+    doc.rect(colX, colY, columnWidth, 25)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    doc.fontSize(11)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+
+    colY += 30;
+
+    // Estadísticas de equipos - Columna 2 (idénticas)
+    // Total Equipos
+    doc.rect(colX + 5, colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.totales.toString(), colX + 5, colY + 10, {
+         width: statWidth,
+         align: 'center'
+       });
+    
+    doc.fontSize(9)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Total Equipos', colX + 5, colY + 30, {
+         width: statWidth,
+         align: 'center'
+       });
+
+    // Equipos Activos
+    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
+         width: statWidth,
+         align: 'center'
+       });
+    
+    doc.fontSize(9)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
+         width: statWidth,
+         align: 'center'
+       });
+
+    // Equipos Devueltos
+    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(16)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
+         width: statWidth,
+         align: 'center'
+       });
+    
+    doc.fontSize(9)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
+         width: statWidth,
+         align: 'center'
+       });
+
+    colY += statsHeight + 20;
+
+    // Firmas - Columna 2 (idénticas)
+    // Firma Usuario
+    doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+       .strokeColor('#cccccc')
+       .lineWidth(1)
+       .stroke();
+    
+    // Línea de firma
+    doc.moveTo(colX + 15, colY + 40)
+       .lineTo(colX + firmaWidth - 5, colY + 40)
+       .lineWidth(1)
+       .strokeColor('#333333')
+       .stroke();
+    
+    doc.fontSize(9)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
+         width: firmaWidth,
+         align: 'center'
+       });
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Usuario', colX + 5, colY + 55, {
+         width: firmaWidth,
+         align: 'center'
+       });
+
+    // Firma Tecnología
+    doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+       .strokeColor('#cccccc')
+       .lineWidth(1)
+       .stroke();
+    
+    // Línea de firma
+    doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+       .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+       .lineWidth(1)
+       .strokeColor('#333333')
+       .stroke();
+    
+    doc.fontSize(9)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
+         width: firmaWidth,
+         align: 'center'
+       });
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
+         width: firmaWidth,
+         align: 'center'
+       });
+
+    colY += firmaHeight + 15;
+
+    // Footer - Columna 2
+    doc.moveTo(colX, colY)
+       .lineTo(colX + columnWidth, colY)
+       .lineWidth(1)
+       .strokeColor('#dddddd')
+       .stroke();
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('FRITZ C.A - Sistema de Gestión de Usuarios', colX, colY + 10, {
+         width: columnWidth,
+         align: 'center'
+       });
+}
 
   // Métodos auxiliares (mantener los que ya tienes)
   static getEstadoText(activos, total) {
