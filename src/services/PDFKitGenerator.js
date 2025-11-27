@@ -288,7 +288,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 20;
+    colY += 30;
 
     // Línea separadora
     doc.moveTo(colX, colY)
@@ -348,12 +348,12 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text(info.label, colX + 20, currentY);
+           .text(info.label, colX + 10, currentY);
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(info.value, colX + 70, currentY, {
+           .text(info.value, colX + 80, currentY, {
              width: columnWidth - 80,
              align: 'left'
            });
