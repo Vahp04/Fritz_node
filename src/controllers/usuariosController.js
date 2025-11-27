@@ -1169,84 +1169,563 @@ export const usuariosController = {
     }
   },
 
-  async verReporteIndividual(req, res) {
+
+async verReporteIndividual(req, res) {
     console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
 
     try {
-      const { id } = req.params;
-      console.log(`Viendo reporte para usuario ID: ${id}`);
+        const { id } = req.params;
+        console.log(`Viendo reporte para usuario ID: ${id}`);
 
-      const usuario = await prisma.usuarios.findUnique({
-        where: { id: parseInt(id) },
-        include: {
-          sede: {
-            select: { nombre: true }
-          },
-          departamento: {
-            select: { nombre: true }
-          }
-        }
-      });
-
-      if (!usuario) {
-        return res.status(404).json({
-          error: 'Usuario no encontrado'
+        const usuario = await prisma.usuarios.findUnique({
+            where: { id: parseInt(id) },
+            include: {
+                sede: {
+                    select: { nombre: true }
+                },
+                departamento: {
+                    select: { nombre: true }
+                }
+            }
         });
-      }
 
-      const equipos_totales_count = await prisma.equipo_asignado.count({
-        where: { usuarios_id: parseInt(id) }
-      });
-
-      const equipos_activos_count = await prisma.equipo_asignado.count({
-        where: {
-          usuarios_id: parseInt(id),
-          estado: 'activo'
+        if (!usuario) {
+            return res.status(404).json({
+                error: 'Usuario no encontrado'
+            });
         }
-      });
 
-      const equipos_devueltos_count = await prisma.equipo_asignado.count({
-        where: {
-          usuarios_id: parseInt(id),
-          estado: 'devuelto'
+        const equipos_totales_count = await prisma.equipo_asignado.count({
+            where: { usuarios_id: parseInt(id) }
+        });
+
+        const equipos_activos_count = await prisma.equipo_asignado.count({
+            where: {
+                usuarios_id: parseInt(id),
+                estado: 'activo'
+            }
+        });
+
+        const equipos_devueltos_count = await prisma.equipo_asignado.count({
+            where: {
+                usuarios_id: parseInt(id),
+                estado: 'devuelto'
+            }
+        });
+
+        // Obtener contador de documentos
+        let contador = await prisma.contador_documentos.findUnique({
+            where: { tipo: 'REPORTE_USUARIO' }
+        });
+
+        let numeroDocumento;
+        
+        if (!contador) {
+            contador = await prisma.contador_documentos.create({
+                data: {
+                    tipo: 'REPORTE_USUARIO',
+                    valor: 1
+                }
+            });
+            numeroDocumento = '0001';
+        } else {
+            contador = await prisma.contador_documentos.update({
+                where: { tipo: 'REPORTE_USUARIO' },
+                data: { 
+                    valor: contador.valor + 1,
+                    fecha_actualizacion: new Date()
+                }
+            });
+            numeroDocumento = contador.valor.toString().padStart(4, '0');
         }
-      });
 
-      const data = {
-        usuario,
-        titulo: 'Reporte Individual de Usuario',
-        fecha: new Date().toLocaleString('es-ES'),
-        numeroDocumento: `${usuario.id}-${Date.now().toString().slice(-6)}`,
-        estadisticas: {
-          totales: equipos_totales_count,
-          activos: equipos_activos_count,
-          devueltos: equipos_devueltos_count
+        const data = {
+            usuario,
+            titulo: 'Reporte Individual de Usuario',
+            fecha: new Date().toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }),
+            numeroDocumento: numeroDocumento,
+            estadisticas: {
+                totales: equipos_totales_count,
+                activos: equipos_activos_count,
+                devueltos: equipos_devueltos_count
+            }
+        };
+
+        // Generar HTML para el PDF
+        const htmlContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Usuario - ${usuario.nombre}</title>
+    <style>
+        @page {
+            size: Letter landscape;
+            margin: 8mm;
         }
-      };
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 10px;
+            line-height: 1.3;
+            margin: 0;
+            padding: 8px;
+            color: #000;
+        }
+        
+        .container {
+            display: flex;
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .columna {
+            flex: 1;
+            border: 1px solid #000;
+            padding: 12px;
+            position: relative;
+            min-height: 180mm;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            text-transform: uppercase;
+            color: #f73737;
+        }
+        
+        .header h2 {
+            font-size: 14px;
+            margin: 3px 0;
+            color: #666;
+        }
+        
+        .header .fecha {
+            font-size: 12px;
+            font-weight: normal;
+            margin: 0;
+        }
+        
+        .logo-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 40px;
+            object-fit: contain;
+        }
+        
+        .info-usuario {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #DC2626;
+            font-size: 10px;
+        }
+        
+        .info-usuario h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 12px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .info-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .info-item span {
+            color: #666;
+        }
+        
+        .resumen-equipos {
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 10px;
+        }
+        
+        .resumen-equipos h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 11px;
+        }
+        
+        .estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .estadistica-item {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .estadistica-valor {
+            font-size: 16px;
+            font-weight: bold;
+            color: #DC2626;
+        }
+        
+        .estadistica-label {
+            font-size: 9px;
+            color: #666;
+        }
+        
+        .firmas-container {
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .tabla-firmas {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .tabla-firmas td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0 10px;
+            border: none;
+            background: none;
+        }
+        
+        .firma {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .espacio-firma {
+            height: 40px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 6px;
+            width: 100%;
+        }
+        
+        .nombre-firma {
+            font-weight: bold;
+            margin-bottom: 3px;
+            font-size: 9px;
+        }
+        
+        .cargo-firma {
+            font-size: 8px;
+            color: #666;
+            line-height: 1.2;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 8px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+            position: relative;
+        }
+        
+        .numero-documento {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 8px;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .descripcion-container {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .descripcion-container strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Primera columna -->
+        <div class="columna">
+            <div class="header">
+                <div class="logo-container">
+                    <!-- Logo placeholder -->
+                </div>
+                <h1>FRITZ C.A</h1>
+                <h2>${data.titulo}</h2>
+                <p class="fecha">Generado el: ${data.fecha}</p>
+            </div>
 
-      const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
-      const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
-        format: 'Letter',
-        landscape: true
-      });
+            <div class="info-usuario">
+                <h3>Información Personal del Usuario</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>ID de Usuario:</strong>
+                        <span>${usuario.id}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Nombre Completo:</strong>
+                        <span>${usuario.nombre} ${usuario.apellido}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Cargo:</strong>
+                        <span>${usuario.cargo || 'No especificado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Correo Electrónico:</strong>
+                        <span>${usuario.correo || 'No especificado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>RDP Fiscal:</strong>
+                        <span>${usuario.rdpfis || 'No asignado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>RDP Financiero:</strong>
+                        <span>${usuario.rdpfin || 'No asignado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Sede:</strong>
+                        <span>${usuario.sede ? usuario.sede.nombre : 'No asignada'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Departamento:</strong>
+                        <span>${usuario.departamento ? usuario.departamento.nombre : 'No asignado'}</span>
+                    </div>
+                </div>
+                
+                ${usuario.descripcion ? `
+                <div class="descripcion-container">
+                    <strong>Módulos y Descripción:</strong>
+                    <span>${usuario.descripcion}</span>
+                </div>
+                ` : ''}
+            </div>
 
-      console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+            <div class="resumen-equipos">
+                <h4>Resumen de Equipos Asignados</h4>
+                <div class="estadisticas-grid">
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.totales}</div>
+                        <div class="estadistica-label">Total Equipos</div>
+                    </div>
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.activos}</div>
+                        <div class="estadistica-label">Equipos Activos</div>
+                    </div>
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.devueltos}</div>
+                        <div class="estadistica-label">Equipos Devueltos</div>
+                    </div>
+                </div>
+            </div>
 
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
+            <div class="firmas-container">
+                <br>
+                <table class="tabla-firmas">
+                    <tr>
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="nombre-firma">${usuario.nombre} ${usuario.apellido}</div>
+                                <div class="cargo-firma">Usuario</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="cargo-firma">Departamento de Tecnología</div>
+                                <div class="cargo-firma">FRITZ C.A</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-      res.end(pdfBuffer);
+            <div class="footer">
+                <p>FRITZ C.A - Sistema de Gestión de Usuarios</p>
+                <div class="numero-documento">Doc: USR-${data.numeroDocumento}</div>
+            </div>
+        </div>
+
+        <!-- Segunda columna (copia) -->
+        <div class="columna">
+            <div class="header">
+                <div class="logo-container">
+                    <!-- Logo placeholder -->
+                </div>
+                <h1>FRITZ C.A</h1>
+                <h2>${data.titulo}</h2>
+                <p class="fecha">Generado el: ${data.fecha}</p>
+            </div>
+
+            <div class="info-usuario">
+                <h3>Información Personal del Usuario</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>ID de Usuario:</strong>
+                        <span>${usuario.id}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Nombre Completo:</strong>
+                        <span>${usuario.nombre} ${usuario.apellido}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Cargo:</strong>
+                        <span>${usuario.cargo || 'No especificado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Correo Electrónico:</strong>
+                        <span>${usuario.correo || 'No especificado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>RDP Fiscal:</strong>
+                        <span>${usuario.rdpfis || 'No asignado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>RDP Financiero:</strong>
+                        <span>${usuario.rdpfin || 'No asignado'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Sede:</strong>
+                        <span>${usuario.sede ? usuario.sede.nombre : 'No asignada'}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Departamento:</strong>
+                        <span>${usuario.departamento ? usuario.departamento.nombre : 'No asignado'}</span>
+                    </div>
+                </div>
+                
+                ${usuario.descripcion ? `
+                <div class="descripcion-container">
+                    <strong>Módulos y Descripción:</strong>
+                    <span>${usuario.descripcion}</span>
+                </div>
+                ` : ''}
+            </div>
+
+            <div class="resumen-equipos">
+                <h4>Resumen de Equipos Asignados</h4>
+                <div class="estadisticas-grid">
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.totales}</div>
+                        <div class="estadistica-label">Total Equipos</div>
+                    </div>
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.activos}</div>
+                        <div class="estadistica-label">Equipos Activos</div>
+                    </div>
+                    <div class="estadistica-item">
+                        <div class="estadistica-valor">${data.estadisticas.devueltos}</div>
+                        <div class="estadistica-label">Equipos Devueltos</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="firmas-container">
+                <br>
+                <table class="tabla-firmas">
+                    <tr>
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="nombre-firma">${usuario.nombre} ${usuario.apellido}</div>
+                                <div class="cargo-firma">Usuario</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="firma">
+                                <div class="espacio-firma"></div>
+                                <div class="cargo-firma">Departamento de Tecnología</div>
+                                <div class="cargo-firma">FRITZ C.A</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="footer">
+                <p>FRITZ C.A - Sistema de Gestión de Usuarios</p>
+                <div class="numero-documento">Doc: USR-${data.numeroDocumento}</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
+        console.log('Generando PDF con PDFKitGenerator...');
+        
+        // Generar PDF usando PDFKitGenerator
+        const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
+            format: 'Letter',
+            landscape: true
+        });
+
+        console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+        console.log(`Número de documento: USR-${numeroDocumento}`);
+
+        // Configurar headers de respuesta
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+
+        res.end(pdfBuffer);
 
     } catch (error) {
-      console.error('ERROR viendo reporte individual:', error);
-      res.status(500).json({
-        error: 'Error al cargar el reporte: ' + error.message
-      });
+        console.error('ERROR viendo reporte individual:', error);
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: 'Error al cargar el reporte: ' + error.message
+            });
+        }
     }
-  }
+}
 };
