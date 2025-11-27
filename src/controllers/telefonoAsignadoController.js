@@ -1121,7 +1121,7 @@ async generarPDFPorUsuario(req, res) {
            .lineWidth(0.5)
            .stroke();
 
-        colY += 10;
+        colY += 20;
     }
 
     // Firmas - Columna 1
@@ -1407,7 +1407,7 @@ async generarPDFPorUsuario(req, res) {
            .lineWidth(0.5)
            .stroke();
 
-        colY += 10;
+        colY += 20;
     }
 
     // Firmas - Columna 2
@@ -1574,22 +1574,24 @@ async generarPDFGeneral(req, res) {
     });
 
     const totalTelefonos = telefonosProcesados.length;
-    const data = {
-      titulo: `Reporte de Teléfonos Asignados `,
-      subtitulo: 'Todos los teléfonos asignados en el sistema',
-      fecha: fecha,
-      total: totalTelefonos,
-      telefonos: telefonosProcesados,
-      usuario: usuario,
-      numeroDocumento: numeroDocumento
-    };
-  
+
+    let titulo = 'Reporte General de Teléfonos Asignados';
+    let subtitulo = 'Todos los teléfonos asignados en el sistema';
+    
+    if (sede_id) {
+      const sede = await prisma.sedes.findUnique({
+        where: { id: parseInt(sede_id) }
+      });
+      titulo = `Reporte de Teléfonos - Sede: ${sede?.nombre || 'Desconocida'}`;
+      subtitulo = `Teléfonos asignados en ${sede?.nombre || 'la sede seleccionada'}`;
+    }
+
     console.log('Generando PDF con PDFKit...');
     
     // Crear documento PDF
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'portrait', // Cambiado a portrait como la referencia
+      layout: 'portrait',
       margins: {
         top: 50,
         bottom: 50,
@@ -1614,6 +1616,14 @@ async generarPDFGeneral(req, res) {
     const margin = 50;
     const pageWidth = 500;
     let yPosition = margin;
+
+    // DECLARAR fecha AL INICIO para que esté disponible en todo el scope
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
 
     // Función auxiliar para dibujar texto con estilo
     const drawText = (text, x, y, options = {}) => {
@@ -1640,21 +1650,7 @@ async generarPDFGeneral(req, res) {
       }
     };
 
-    drawText(data.titulo, colX + (columnWidth / 2), colY + 20, {
-      fontSize: 14,
-      color: '#666666',
-      align: 'center',
-      bold: true
-    });
-
-    drawText(data.subtitulo, colX + (columnWidth / 2), colY + 20, {
-      fontSize: 14,
-      color: '#666666',
-      align: 'center',
-      bold: true
-    });
-
-    // Función para dibujar logo de texto (como en la referencia)
+    // Función para dibujar logo de texto
     const drawTextLogo = () => {
       doc.fontSize(18)
          .font('Helvetica-Bold')
@@ -1662,7 +1658,7 @@ async generarPDFGeneral(req, res) {
          .text('FRITZ C.A', margin + (pageWidth / 2), yPosition, { align: 'center' });
     };
 
-    // HEADER - Similar a la referencia
+    // HEADER
     drawTextLogo();
     
     yPosition += 25;
@@ -1685,19 +1681,12 @@ async generarPDFGeneral(req, res) {
     
     yPosition += 20;
 
-    // INFORMACIÓN GENERAL - Similar a la referencia
+    // INFORMACIÓN GENERAL
     doc.rect(margin, yPosition, pageWidth, 60)
        .fillColor('#f5f5f5')
        .fill();
     
-    // Fecha de generación
-    const fecha = new Date().toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
+    // Fecha de generación - ahora usa la variable fecha ya declarada
     drawText('Fecha de generación:', margin + 10, yPosition + 10, {
       fontSize: 10,
       color: '#333333',
@@ -1736,7 +1725,7 @@ async generarPDFGeneral(req, res) {
     
     yPosition += 70;
 
-    // TABLA DE TELÉFONOS - Similar a la referencia
+    // TABLA DE TELÉFONOS
     if (telefonosProcesados.length > 0) {
       // Título de la tabla
       drawText('LISTA DE TELÉFONOS ASIGNADOS', margin + (pageWidth / 2), yPosition, {
@@ -1750,7 +1739,7 @@ async generarPDFGeneral(req, res) {
 
       // Encabezados de la tabla
       const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
-      const colWidths = [50, 60, 50, 40, 50, 60, 55, 75, 30];
+      const colWidths = [45, 60, 50, 50, 50, 60, 50, 70, 40];
       
       // Fondo del encabezado
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -1871,7 +1860,7 @@ async generarPDFGeneral(req, res) {
       yPosition += 40;
     }
 
-    // PIE DE PÁGINA - Similar a la referencia
+    // PIE DE PÁGINA - Ahora fecha está disponible
     const footerY = 700;
     doc.moveTo(margin, footerY)
        .lineTo(margin + pageWidth, footerY)
