@@ -829,10 +829,10 @@ async generarPDFGeneral(req, res) {
     const sedesUnicas = [...new Set(mikrotiks.map(m => m.sede_id).filter(Boolean))];
 
     // Fondo del metadata
-    doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 30)
        .fill('#f8f9fa');
     
-    doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 30)
        .stroke('#DC2626');
     
     yPosition += 8;
@@ -915,10 +915,10 @@ async generarPDFGeneral(req, res) {
       const columnWidths = {
         equipo: 90,
         ip: 70,
-        serial: 80,
+        serial: 85,
         sede: 60,
-        descripcion: 130, 
-        ubicacion: 90,
+        descripcion: 140, 
+        ubicacion: 95,
         estado: 40
       };
 
