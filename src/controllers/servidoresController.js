@@ -902,8 +902,8 @@ async generarPDFGeneral(req, res) {
         ip: 60,
         serial: 75,
         sede: 55,
-        detalles: 180,
-        ubicacion: 140,
+        detalles: 190,
+        ubicacion: 160,
         estado: 40
       };
 
