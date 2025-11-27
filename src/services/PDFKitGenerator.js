@@ -278,7 +278,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 30;
+    colY += 40;
 
     doc.fontSize(10)
        .font('Helvetica')
@@ -393,7 +393,7 @@ static generateIndividualReport(doc, data) {
            .font('Helvetica')
            .fillColor('#666666')
            .text(usuario.descripcion, colX + 10, colY + 15, {
-             width: columnWidth - 20,
+             width: columnWidth - 15,
              align: 'left'
            });
 
