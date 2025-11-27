@@ -1765,7 +1765,7 @@ async generarPDFGeneral(req, res) {
           telefono.usuario && telefono.usuario.nombre ? 
             `${telefono.usuario.nombre.substring(0, 15)} ${telefono.usuario.apellido?.substring(0, 1) || ''}.` : '-',
           (telefono.usuario?.cargo || '-').substring(0, 10),
-          (telefono.usuario?.sede?.nombre || '-').substring(0, 10),
+          (telefono.usuario?.sede?.nombre || '-').substring(0, 12),
           (telefono.usuario?.departamento?.nombre || '-').substring(0, 12),
           telefono.stockEquipo ? 
             `${telefono.stockEquipo.marca?.substring(0, 10) || ''} ${telefono.stockEquipo.modelo?.substring(0, 8) || ''}`.trim() : 'N/A',
