@@ -1104,6 +1104,52 @@ async generarPDFGeneral(req, res) {
       detalles: error.message
     }));
   }
-}
+},
+
+  async equiposServidores(req, res) {
+    try {
+      console.log('Buscando equipos servidores desde servidoresController...');
+      
+      const equipos = await prisma.stock_equipos.findMany({
+        where: {
+          OR: [
+            {
+              tipo_equipo: {
+                nombre: {
+                  contains: 'servidor',
+                  mode: 'insensitive'
+                }
+              }
+            },
+            {
+              tipo_equipo: {
+                nombre: {
+                  contains: 'server',
+                  mode: 'insensitive'
+                }
+              }
+            }
+          ],
+          cantidad_disponible: {
+            gt: 0
+          }
+        },
+        include: {
+          tipo_equipo: true
+        },
+        orderBy: {
+          marca: 'asc'
+        }
+      });
+      
+      console.log(`${equipos.length} servidores encontrados`);
+      res.json(equipos);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+
 
 };
