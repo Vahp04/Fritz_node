@@ -797,7 +797,6 @@ async generarPDFOrdenSalida(req, res) {
           { label: 'Sede Origen:', value: data.sedeOrigen.nombre },
           { label: 'Sede Destino:', value: data.sedeDestino?.nombre || 'No especificada' },
           { label: 'Departamento:', value: data.consumible.departamento?.nombre || 'No asignado' },
-          { label: 'Total Equipos:', value: data.equipos.length.toString() },
           { label: 'Total Unidades:', value: data.totalUnidades.toString() }
       ];
 
@@ -1248,7 +1247,7 @@ async generarPDFOrdenSalida(req, res) {
               let cellX = colX;
 
               doc.fillColor('#333')
-                 .fontSize(6);
+                 .fontSize(8);
 
               // Equipo
               const equipoTexto = `${equipo.stock_equipos.marca || 'N/A'} ${equipo.stock_equipos.modelo || ''}`;
@@ -1299,17 +1298,17 @@ async generarPDFOrdenSalida(req, res) {
       doc.fontSize(8)
          .font('Helvetica')
          .fillColor('#666666')
-         .text('• Cualquier novedad informar al Departamento de Tecnología', colX + 10, colY, { width: columnWidth - 15 });
+         .text('Observación: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 10;
 
-      doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', colX + 10, colY, { width: columnWidth - 15 });
+      doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 10;
 
-      doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', colX + 10, colY, { width: columnWidth - 15 });
+      doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 20;
+      colY += 30;
 
       // Firmas - Columna 2
       // Firma T/C
