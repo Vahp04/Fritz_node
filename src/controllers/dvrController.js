@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import { renderTemplate } from '../helpers/renderHelper.js';
+import PDFDocument from 'pdfkit';
 
 const prisma = new PrismaClient();
 
@@ -960,111 +961,512 @@ export const dvrController = {
   },
 
   async generarPDFGeneral(req, res) {
-    try {
-      console.log('Generando PDF general de DVRs...');
+  try {
+    console.log('Generando PDF general de DVRs...');
 
-      const dvrs = await prisma.dvr.findMany({
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true
+    const dvrs = await prisma.dvr.findMany({
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
         },
-        orderBy: [
-          { sede_id: 'asc' },
-          { id: 'asc' }
-        ]
-      });
+        sede: true
+      },
+      orderBy: [
+        { sede_id: 'asc' },
+        { id: 'asc' }
+      ]
+    });
 
-      console.log(`${dvrs.length} DVRs encontrados`);
+    console.log(`${dvrs.length} DVRs encontrados`);
 
-      const dvrsConDatosCompletos = dvrs.map(dvr => ({
-        id: dvr.id,
-        descripcion: dvr.descripcion || '',
-        ubicacion: dvr.ubicacion || 'Sin ubicación',
-        sede_id: dvr.sede_id,
-        cantidad_cam: dvr.cantidad_cam || 0,
-        ip_dvr: dvr.ip_dvr || '',
-        cereal_dvr: dvr.cereal_dvr || '',
-        mac_dvr: dvr.mac_dvr || '',
-        switch: dvr.switch || '',
-        estado: dvr.estado || 'inactivo',
-        created_at: dvr.created_at,
-        stock_equipos: dvr.stock_equipos ? {
-          marca: dvr.stock_equipos.marca || '',
-          modelo: dvr.stock_equipos.modelo || '',
-          tipo_equipo: dvr.stock_equipos.tipo_equipo ? {
-            nombre: dvr.stock_equipos.tipo_equipo.nombre || ''
-          } : null
-        } : null,
-        sede: dvr.sede ? {
-          nombre: dvr.sede.nombre || 'Sin sede'
-        } : null
-      }));
+    // Crear documento PDF
+    const doc = new PDFDocument({
+      size: 'LETTER',
+      layout: 'portrait',
+      margins: {
+        top: 20,
+        bottom: 20,
+        left: 15,
+        right: 15
+      }
+    });
 
-      const data = {
-        titulo: 'Reporte General de DVRs',
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: dvrsConDatosCompletos.length,
-        dvrs: dvrsConDatosCompletos,
-        estadisticas: {
-          activos: dvrsConDatosCompletos.filter(d => d.estado === 'activo').length,
-          inactivos: dvrsConDatosCompletos.filter(d => d.estado === 'inactivo').length,
-          mantenimiento: dvrsConDatosCompletos.filter(d => d.estado === 'mantenimiento').length,
-          desuso: dvrsConDatosCompletos.filter(d => d.estado === 'desuso').length
-        }
+    // Configurar headers de respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="reporte-general-dvrs.pdf"');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Pipe del PDF a la respuesta
+    doc.pipe(res);
+
+    // Variables de configuración
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    let yPosition = doc.page.margins.top;
+
+    // ===== HEADER =====
+    doc.fontSize(12)
+       .fillColor('#DC2626')
+       .font('Helvetica-Bold')
+       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
+         align: 'center',
+         width: pageWidth
+       });
+    
+    yPosition += 18;
+    
+    doc.fontSize(16)
+       .fillColor('black')
+       .text('Reporte General de DVRs', doc.page.margins.left, yPosition, { 
+         align: 'center',
+         width: pageWidth
+       });
+    
+    yPosition += 20;
+    
+    doc.fontSize(10)
+       .fillColor('#666666')
+       .font('Helvetica')
+       .text('Sistema de Gestión de CCTV', doc.page.margins.left, yPosition, {
+         align: 'center',
+         width: pageWidth
+       });
+    
+    yPosition += 25;
+
+    // ===== METADATA =====
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const hora = new Date().toLocaleTimeString('es-ES');
+    const sedesUnicas = [...new Set(dvrs.map(d => d.sede_id).filter(Boolean))];
+
+    // Fondo del metadata
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
+       .fill('#f8f9fa');
+    
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
+       .stroke('#DC2626');
+    
+    yPosition += 8;
+
+    const colWidth = pageWidth / 3;
+    
+    doc.fontSize(8)
+       .fillColor('#333333')
+       .font('Helvetica-Bold')
+       .text('FECHA DE GENERACIÓN', doc.page.margins.left, yPosition);
+    
+    doc.text('TOTAL DE SEDES', doc.page.margins.left + colWidth, yPosition);
+    
+    doc.text('HORA', doc.page.margins.left + colWidth * 2, yPosition);
+    
+    yPosition += 8;
+    
+    doc.font('Helvetica')
+       .fillColor('#1a1a1a')
+       .fontSize(9)
+       .text(fecha, doc.page.margins.left, yPosition);
+    
+    doc.text(`${sedesUnicas.length} sedes`, doc.page.margins.left + colWidth, yPosition);
+    
+    doc.text(hora, doc.page.margins.left + colWidth * 2, yPosition);
+    
+    yPosition += 35;
+
+    // ===== ESTADÍSTICAS =====
+    const estadisticas = {
+      activos: dvrs.filter(d => d.estado === 'activo').length,
+      inactivos: dvrs.filter(d => d.estado === 'inactivo').length,
+      mantenimiento: dvrs.filter(d => d.estado === 'mantenimiento').length,
+      desuso: dvrs.filter(d => d.estado === 'desuso').length
+    };
+
+    const statWidth = (pageWidth - 20) / 5;
+    const statHeight = 25;
+    const statY = yPosition;
+
+    const stats = [
+      { label: 'TOTAL', value: dvrs.length, color: '#DC2626' },
+      { label: 'ACTIVOS', value: estadisticas.activos, color: '#DC2626' },
+      { label: 'INACTIVOS', value: estadisticas.inactivos, color: '#DC2626' },
+      { label: 'MANTENIMIENTO', value: estadisticas.mantenimiento, color: '#DC2626' },
+      { label: 'DESUSO', value: estadisticas.desuso, color: '#DC2626' }
+    ];
+
+    stats.forEach((stat, index) => {
+      const x = doc.page.margins.left + (statWidth * index);
+      
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .fill('#e9ecef');
+      
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .stroke('#cccccc');
+      
+      doc.fontSize(12)
+         .fillColor(stat.color)
+         .font('Helvetica-Bold')
+         .text(stat.value.toString(), x, statY + 5, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+      
+      doc.fontSize(7)
+         .fillColor('#333333')
+         .font('Helvetica')
+         .text(stat.label, x, statY + 17, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+    });
+
+    yPosition += 40;
+
+    // ===== TABLA CON ALTURA DINÁMICA MEJORADA =====
+    if (dvrs.length > 0) {
+      // Configuración de columnas para DVRs
+      const columnWidths = {
+        equipo: 90,
+        ip: 70,
+        serial: 80,
+        mac: 90,
+        sede: 70,
+        camaras: 40,
+        switch: 80,
+        ubicacion: 80,
+        estado: 40
       };
 
-      const html = await renderTemplate(req.app, 'pdfs/reporte-general-dvrs', data);
+      const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
       
-      console.log('Generando PDF...');
+      const headers = [
+        { text: 'EQUIPO', width: columnWidths.equipo },
+        { text: 'IP', width: columnWidths.ip },
+        { text: 'SERIAL', width: columnWidths.serial },
+        { text: 'MAC', width: columnWidths.mac },
+        { text: 'SEDE', width: columnWidths.sede },
+        { text: 'CÁMARAS', width: columnWidths.camaras },
+        { text: 'SWITCH', width: columnWidths.switch },
+        { text: 'UBICACIÓN', width: columnWidths.ubicacion },
+        { text: 'ESTADO', width: columnWidths.estado }
+      ];
 
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
+      let currentY = yPosition;
+
+      // DIBUJAR ENCABEZADOS
+      let currentX = doc.page.margins.left;
+      
+      headers.forEach(header => {
+        doc.rect(currentX, currentY, header.width, 15)
+           .fill('#DC2626');
+        
+        doc.fontSize(7)
+           .fillColor('white')
+           .font('Helvetica-Bold')
+           .text(header.text, currentX + 3, currentY + 4, {
+             width: header.width - 6,
+             align: 'left'
+           });
+        
+        currentX += header.width;
+      });
+
+      currentY += 15;
+
+      // Función para calcular líneas de texto
+      const calcularLineasTexto = (texto, anchoMaximo, fontSize = 7) => {
+        if (!texto) return 1;
+        
+        const palabras = texto.split(' ');
+        let lineas = 1;
+        let lineaActual = '';
+        
+        // Configurar fuente temporalmente para calcular
+        const tempSize = doc.fontSize();
+        doc.fontSize(fontSize);
+        
+        for (const palabra of palabras) {
+          const lineaPrueba = lineaActual ? `${lineaActual} ${palabra}` : palabra;
+          const anchoLinea = doc.widthOfString(lineaPrueba);
+          
+          if (anchoLinea <= anchoMaximo) {
+            lineaActual = lineaPrueba;
+          } else {
+            lineas++;
+            lineaActual = palabra;
+          }
         }
+        
+        // Restaurar tamaño de fuente
+        doc.fontSize(tempSize);
+        return lineas;
       };
 
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      console.log('PDF generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
+      // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA MEJORADA
+      let currentSede = null;
 
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline; filename="reporte-general-dvrs.pdf"',
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+      dvrs.forEach((dvr, index) => {
+        // PRE-CALCULAR ALTURA PARA CADA CELDA
+        const anchoEquipo = columnWidths.equipo - 6;
+        const anchoSwitch = columnWidths.switch - 6;
+        const anchoUbicacion = columnWidths.ubicacion - 6;
+        
+        // Textos
+        const equipoText = dvr.stock_equipos ? 
+          `${dvr.stock_equipos.marca || ''} ${dvr.stock_equipos.modelo || ''}`.trim() + 
+          (dvr.stock_equipos.tipo_equipo ? `\n${dvr.stock_equipos.tipo_equipo.nombre}` : '') 
+          : 'No asignado';
+        
+        const switchText = dvr.switch || '-';
+        const ubicacionText = dvr.ubicacion || 'Sin ubicación';
+        
+        // Calcular líneas para cada columna
+        const lineasEquipo = equipoText.split('\n').length;
+        const lineasSwitch = calcularLineasTexto(switchText, anchoSwitch);
+        const lineasUbicacion = calcularLineasTexto(ubicacionText, anchoUbicacion);
+        
+        // Encontrar el máximo de líneas
+        const maxLines = Math.max(lineasEquipo, lineasSwitch, lineasUbicacion, 1);
+        
+        // Altura dinámica basada en el contenido
+        const lineaBaseHeight = 10;
+        const alturaPorLineaExtra = 8;
+        const rowHeight = lineaBaseHeight + ((maxLines - 1) * alturaPorLineaExtra);
+
+        // Verificar si necesitamos nueva página
+        if (currentY + rowHeight > doc.page.height - doc.page.margins.bottom - 20) {
+          doc.addPage();
+          currentY = doc.page.margins.top;
+          
+          // Redibujar encabezados en nueva página
+          let headerX = doc.page.margins.left;
+          headers.forEach(header => {
+            doc.rect(headerX, currentY, header.width, 15)
+               .fill('#DC2626');
+            
+            doc.fontSize(7)
+               .fillColor('white')
+               .font('Helvetica-Bold')
+               .text(header.text, headerX + 3, currentY + 4, {
+                 width: header.width - 6,
+                 align: 'left'
+               });
+            
+            headerX += header.width;
+          });
+          currentY += 15;
+        }
+
+        // Cambio de sede
+        if (currentSede !== dvr.sede_id && dvr.sede) {
+          currentSede = dvr.sede_id;
+          doc.fontSize(7)
+             .fillColor('#333333')
+             .font('Helvetica-Bold')
+             .text(`SEDE: ${dvr.sede.nombre}`, doc.page.margins.left, currentY + 2);
+          
+          currentY += 10;
+        }
+
+        // Fondo alternado para filas
+        if (index % 2 === 0) {
+          doc.rect(doc.page.margins.left, currentY, totalTableWidth, rowHeight)
+             .fill('#f8f9fa');
+        }
+
+        // CONTENIDO DE LAS CELDAS - SIN CORTE DE TEXTO
+        let cellX = doc.page.margins.left;
+
+        // Configurar fuente base
+        doc.fontSize(6)
+           .fillColor('black')
+           .font('Helvetica');
+
+        // Altura disponible para texto
+        const alturaTexto = rowHeight - 4;
+
+        // Equipo/Modelo (multilínea)
+        let equipoFinalText = 'No asignado';
+        if (dvr.stock_equipos) {
+          const marca = dvr.stock_equipos.marca || '';
+          const modelo = dvr.stock_equipos.modelo || '';
+          const tipo = dvr.stock_equipos.tipo_equipo ? dvr.stock_equipos.tipo_equipo.nombre : '';
+          equipoFinalText = `${marca} ${modelo}`.trim();
+          if (tipo) {
+            equipoFinalText += `\n${tipo}`;
+          }
+        }
+        doc.text(equipoFinalText, cellX + 3, currentY + 2, {
+          width: anchoEquipo,
+          height: alturaTexto,
+          lineGap: 1,
+          align: 'left'
+        });
+        cellX += columnWidths.equipo;
+
+        // IP (una línea)
+        const ipText = dvr.ip_dvr || '-';
+        doc.text(ipText, cellX + 3, currentY + 2, {
+          width: columnWidths.ip - 6,
+          height: alturaTexto,
+          align: 'left'
+        });
+        cellX += columnWidths.ip;
+
+        // Serial (una línea)
+        const serialText = dvr.cereal_dvr || '-';
+        doc.text(serialText, cellX + 3, currentY + 2, {
+          width: columnWidths.serial - 6,
+          height: alturaTexto,
+          align: 'left'
+        });
+        cellX += columnWidths.serial;
+
+        // MAC (una línea)
+        const macText = dvr.mac_dvr || '-';
+        doc.text(macText, cellX + 3, currentY + 2, {
+          width: columnWidths.mac - 6,
+          height: alturaTexto,
+          align: 'left'
+        });
+        cellX += columnWidths.mac;
+
+        // Sede (una línea)
+        const sedeText = dvr.sede ? dvr.sede.nombre : 'Sin sede';
+        doc.text(sedeText, cellX + 3, currentY + 2, {
+          width: columnWidths.sede - 6,
+          height: alturaTexto,
+          align: 'left'
+        });
+        cellX += columnWidths.sede;
+
+        // Cámaras (una línea)
+        const camarasText = dvr.cantidad_cam ? dvr.cantidad_cam.toString() : '0';
+        doc.text(camarasText, cellX + 3, currentY + 2, {
+          width: columnWidths.camaras - 6,
+          height: alturaTexto,
+          align: 'center'
+        });
+        cellX += columnWidths.camaras;
+
+        // Switch (puede ser multilínea)
+        const switchFinalText = dvr.switch || '-';
+        doc.text(switchFinalText, cellX + 3, currentY + 2, {
+          width: anchoSwitch,
+          height: alturaTexto,
+          lineGap: 1,
+          align: 'left'
+        });
+        cellX += columnWidths.switch;
+
+        // Ubicación (puede ser multilínea)
+        const ubicacionFinalText = dvr.ubicacion || 'Sin ubicación';
+        doc.text(ubicacionFinalText, cellX + 3, currentY + 2, {
+          width: anchoUbicacion,
+          height: alturaTexto,
+          lineGap: 1,
+          align: 'left'
+        });
+        cellX += columnWidths.ubicacion;
+
+        // Estado (una línea)
+        const estadoText = dvr.estado ? 
+          dvr.estado.charAt(0).toUpperCase() + dvr.estado.slice(1) : '-';
+        
+        let estadoColor = 'black';
+        switch(dvr.estado) {
+          case 'activo': estadoColor = '#065f46'; break;
+          case 'inactivo': estadoColor = '#374151'; break;
+          case 'mantenimiento': estadoColor = '#92400e'; break;
+          case 'desuso': estadoColor = '#be185d'; break;
+        }
+        
+        doc.fillColor(estadoColor)
+           .text(estadoText, cellX + 3, currentY + 2, {
+             width: columnWidths.estado - 6,
+             height: alturaTexto,
+             align: 'center'
+           })
+           .fillColor('black');
+
+        // DIBUJAR BORDES DE LA TABLA
+        doc.rect(doc.page.margins.left, currentY, totalTableWidth, rowHeight)
+           .stroke('#dee2e6');
+
+        // Bordes verticales entre columnas
+        let borderX = doc.page.margins.left;
+        headers.forEach(header => {
+          doc.moveTo(borderX, currentY)
+             .lineTo(borderX, currentY + rowHeight)
+             .stroke('#dee2e6');
+          borderX += header.width;
+        });
+        
+        // Última línea vertical
+        doc.moveTo(borderX, currentY)
+           .lineTo(borderX, currentY + rowHeight)
+           .stroke('#dee2e6');
+
+        currentY += rowHeight;
       });
-      
-      console.log(`PDF general generado exitosamente - ${dvrsConDatosCompletos.length} DVRs`);
 
-      res.end(pdfBuffer);
-
-    } catch (error) {
-      console.error('Error generando PDF general:', error);
+    } else {
+      // Mensaje cuando no hay datos
+      doc.fontSize(12)
+         .fillColor('#666666')
+         .text('No se encontraron DVRs', doc.page.margins.left, yPosition, {
+           width: pageWidth,
+           align: 'center'
+         });
       
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message
-      }));
+      yPosition += 20;
+      
+      doc.fontSize(10)
+         .text('No hay DVRs registrados en el sistema para generar el reporte.', 
+               doc.page.margins.left, yPosition, {
+           width: pageWidth,
+           align: 'center'
+         });
     }
-  },
+
+    // ===== FOOTER =====
+    const footerY = doc.page.height - doc.page.margins.bottom - 15;
+    
+    doc.moveTo(doc.page.margins.left, footerY - 8)
+       .lineTo(doc.page.margins.left + pageWidth, footerY - 8)
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .stroke();
+    
+    doc.fontSize(8)
+       .fillColor('#666666')
+       .text('FRITZ C.A - Sistema de Gestión de CCTV | Reporte generado automáticamente', 
+             doc.page.margins.left, footerY, {
+               width: pageWidth,
+               align: 'center'
+             });
+
+    // Finalizar PDF
+    doc.end();
+
+    console.log(`PDF general generado exitosamente - ${dvrs.length} DVRs`);
+
+  } catch (error) {
+    console.error('Error generando PDF general:', error);
+    
+    res.status(500).json({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    });
+  }
+},
 
   async generarPDFPorSede(req, res) {
     try {
