@@ -844,7 +844,7 @@ async generarPDFPorUsuario(req, res) {
     });
 
     const data = {
-      titulo: `Reporte de Teléfonos Asignados - ${usuario.nombre} ${usuario.apellido}`,
+      titulo: `Reporte de Teléfonos Asignados `,
       fecha: fecha,
       total: totalTelefonos,
       telefonos: telefonosProcesados,
@@ -1022,89 +1022,6 @@ async generarPDFPorUsuario(req, res) {
 
     colY += infoHeight + 15;
 
-    // Resumen de teléfonos - Columna 1
-    doc.rect(colX, colY, columnWidth, 25)
-       .fillColor('#e9ecef')
-       .fill();
-    
-    doc.rect(colX, colY, columnWidth, 25)
-       .strokeColor('#000000')
-       .lineWidth(1)
-       .stroke();
-
-    drawText('Resumen de Teléfonos Asignados', colX + 10, colY + 8, {
-      fontSize: 11,
-      color: '#333333',
-      bold: true
-    });
-
-    colY += 30;
-
-    // Estadísticas de teléfonos - Columna 1
-    const statsHeight = 50;
-    const statWidth = (columnWidth - 20) / 3;
-    
-    // Total Teléfonos
-    doc.rect(colX + 5, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.total.toString(), colX + 5 + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Total Teléfonos', colX + 5 + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    // Teléfonos Activos
-    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.total.toString(), colX + 10 + statWidth + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Teléfonos Activos', colX + 10 + statWidth + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    // Asignaciones
-    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.telefonos.length.toString(), colX + 15 + (statWidth * 2) + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Asignaciones', colX + 15 + (statWidth * 2) + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    colY += statsHeight + 20;
 
     // Detalle de teléfonos asignados - Columna 1
     if (data.telefonos && data.telefonos.length > 0) {
@@ -1279,7 +1196,7 @@ async generarPDFPorUsuario(req, res) {
     });
 
     // Número de documento
-    drawText('Doc: TEL-' + data.numeroDocumento, colX + columnWidth - 10, colY + 10, {
+    drawText('Doc:' + data.numeroDocumento, colX + columnWidth - 10, colY + 10, {
       fontSize: 8,
       color: '#666666',
       align: 'right'
@@ -1391,87 +1308,7 @@ async generarPDFPorUsuario(req, res) {
 
     colY += infoHeight + 15;
 
-    // Resumen de teléfonos - Columna 2
-    doc.rect(colX, colY, columnWidth, 25)
-       .fillColor('#e9ecef')
-       .fill();
-    
-    doc.rect(colX, colY, columnWidth, 25)
-       .strokeColor('#000000')
-       .lineWidth(1)
-       .stroke();
-
-    drawText('Resumen de Teléfonos Asignados', colX + 10, colY + 8, {
-      fontSize: 11,
-      color: '#333333',
-      bold: true
-    });
-
-    colY += 30;
-
-    // Estadísticas de teléfonos - Columna 2 (idénticas)
-    // Total Teléfonos
-    doc.rect(colX + 5, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.total.toString(), colX + 5 + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Total Teléfonos', colX + 5 + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    // Teléfonos Activos
-    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.total.toString(), colX + 10 + statWidth + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Teléfonos Activos', colX + 10 + statWidth + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    // Asignaciones
-    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    drawText(data.telefonos.length.toString(), colX + 15 + (statWidth * 2) + (statWidth / 2), colY + 10, {
-      fontSize: 16,
-      color: '#DC2626',
-      align: 'center',
-      bold: true
-    });
-    
-    drawText('Asignaciones', colX + 15 + (statWidth * 2) + (statWidth / 2), colY + 30, {
-      fontSize: 9,
-      color: '#666666',
-      align: 'center'
-    });
-
-    colY += statsHeight + 20;
-
+   
     // Detalle de teléfonos asignados - Columna 2
     if (data.telefonos && data.telefonos.length > 0) {
         drawText('Detalle de Teléfonos Asignados', colX, colY, {
@@ -1749,24 +1586,17 @@ async generarPDFGeneral(req, res) {
       subtitulo = `Teléfonos asignados en ${sede?.nombre || 'la sede seleccionada'}`;
     }
 
-    // Calcular distribución por sede
-    const sedesMap = {};
-    telefonosProcesados.forEach(telefono => {
-      const sedeNombre = telefono.usuario && telefono.usuario.sede ? telefono.usuario.sede.nombre : 'Sin asignar';
-      sedesMap[sedeNombre] = (sedesMap[sedeNombre] || 0) + 1;
-    });
-
     console.log('Generando PDF con PDFKit...');
     
     // Crear documento PDF
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'landscape',
+      layout: 'portrait', // Cambiado a portrait como la referencia
       margins: {
         top: 50,
         bottom: 50,
-        left: 36,
-        right: 36
+        left: 50,
+        right: 50
       }
     });
 
@@ -1782,344 +1612,270 @@ async generarPDFGeneral(req, res) {
     // Pipe del PDF a la respuesta
     doc.pipe(res);
 
-    // Estilos y colores
-    const colors = {
-      red: '#DC2626',
-      gray: '#666',
-      lightGray: '#f8f9fa',
-      darkGray: '#333',
-      white: '#ffffff',
-      borderGray: '#ddd'
-    };
+    // Dimensiones
+    const margin = 50;
+    const pageWidth = 500;
+    let yPosition = margin;
 
-    // Función para dibujar rectángulo redondeado
-    const drawRoundedRect = (x, y, width, height, radius, fillColor) => {
-      doc.roundedRect(x, y, width, height, radius)
-         .fillColor(fillColor)
-         .fill();
-    };
-
-    // Función para agregar texto con estilo
-    const addText = (text, x, y, options = {}) => {
+    // Función auxiliar para dibujar texto con estilo
+    const drawText = (text, x, y, options = {}) => {
       const {
         fontSize = 10,
         font = 'Helvetica',
-        color = 'black',
+        color = '#000000',
         align = 'left',
         bold = false
       } = options;
 
-      doc.font(font)
+      doc.font(bold ? font + '-Bold' : font)
          .fontSize(fontSize)
          .fillColor(color);
 
-      if (bold) {
-        doc.font(font + '-Bold');
-      }
-
-      const textWidth = doc.widthOfString(text);
-      let finalX = x;
-
       if (align === 'center') {
-        finalX = x - textWidth / 2;
+        const textWidth = doc.widthOfString(text);
+        doc.text(text, x - textWidth / 2, y);
       } else if (align === 'right') {
-        finalX = x - textWidth;
+        const textWidth = doc.widthOfString(text);
+        doc.text(text, x - textWidth, y);
+      } else {
+        doc.text(text, x, y);
       }
-
-      doc.text(text, finalX, y);
-
-      // Restaurar fuente normal
-      if (bold) {
-        doc.font(font);
-      }
-
-      return textWidth;
     };
 
-    // HEADER
-    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    // Función para dibujar logo de texto (como en la referencia)
+    const drawTextLogo = () => {
+      doc.fontSize(18)
+         .font('Helvetica-Bold')
+         .fillColor('#DC2626')
+         .text('FRITZ C.A', margin + (pageWidth / 2), yPosition, { align: 'center' });
+    };
+
+    // HEADER - Similar a la referencia
+    drawTextLogo();
     
-    // Logo (puedes agregar una imagen si tienes)
-    // doc.image('logo.png', doc.page.margins.left, 50, { width: 50 });
-    
-    // Título principal
-    addText('FRITZ C.A', doc.page.margins.left, 50, {
-      fontSize: 24,
-      color: colors.red,
-      bold: true
-    });
+    yPosition += 25;
 
     // Subtítulo
-    addText(titulo, doc.page.margins.left, 80, {
-      fontSize: 14,
-      color: colors.gray
+    drawText('Reporte de Teléfonos', margin + (pageWidth / 2), yPosition, {
+      fontSize: 12,
+      color: '#666666',
+      align: 'center'
     });
+    
+    yPosition += 30;
 
-    // Línea decorativa
-    doc.moveTo(doc.page.margins.left, 100)
-       .lineTo(doc.page.margins.left + pageWidth, 100)
-       .strokeColor(colors.red)
+    // Línea separadora
+    doc.moveTo(margin, yPosition)
+       .lineTo(margin + pageWidth, yPosition)
        .lineWidth(2)
+       .strokeColor('#DC2626')
        .stroke();
+    
+    yPosition += 20;
 
-    let yPosition = 120;
-
-    // SECCIÓN DE INFORMACIÓN
-    drawRoundedRect(doc.page.margins.left, yPosition, pageWidth, 40, 5, colors.lightGray);
+    // INFORMACIÓN GENERAL - Similar a la referencia
+    doc.rect(margin, yPosition, pageWidth, 60)
+       .fillColor('#f5f5f5')
+       .fill();
     
     // Fecha de generación
-    addText('Fecha de generación:', doc.page.margins.left + 10, yPosition + 12, {
-      fontSize: 10,
-      color: colors.darkGray,
-      bold: true
-    });
-    
     const fecha = new Date().toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-    
-    addText(fecha, doc.page.margins.left + 120, yPosition + 12, {
-      fontSize: 10,
-      color: colors.darkGray
-    });
 
-    // Total de teléfonos
-    addText('Total de teléfonos:', doc.page.margins.left + 10, yPosition + 28, {
+    drawText('Fecha de generación:', margin + 10, yPosition + 10, {
       fontSize: 10,
-      color: colors.darkGray,
+      color: '#333333',
       bold: true
     });
     
-    addText(totalTelefonos.toString(), doc.page.margins.left + 120, yPosition + 28, {
+    drawText(fecha, margin + 200, yPosition + 10, {
       fontSize: 10,
-      color: colors.darkGray
+      color: '#333333'
     });
+    
+    // Total de teléfonos
+    drawText('Total de teléfonos:', margin + 10, yPosition + 25, {
+      fontSize: 10,
+      color: '#333333',
+      bold: true
+    });
+    
+    drawText(totalTelefonos.toString(), margin + 200, yPosition + 25, {
+      fontSize: 10,
+      color: '#333333'
+    });
+    
+    // Teléfonos asignados
+    const telefonosAsignadosCount = telefonosProcesados.filter(t => t.usuario && t.usuario.nombre).length;
+    drawText('Teléfonos asignados:', margin + 10, yPosition + 40, {
+      fontSize: 10,
+      color: '#333333',
+      bold: true
+    });
+    
+    drawText(telefonosAsignadosCount.toString(), margin + 200, yPosition + 40, {
+      fontSize: 10,
+      color: '#333333'
+    });
+    
+    yPosition += 70;
 
-    yPosition += 60;
-
-    // DISTRIBUCIÓN POR SEDE
-    if (Object.keys(sedesMap).length > 0) {
-      addText('Distribución por Sede', doc.page.margins.left, yPosition, {
+    // TABLA DE TELÉFONOS - Similar a la referencia
+    if (telefonosProcesados.length > 0) {
+      // Título de la tabla
+      drawText('LISTA DE TELÉFONOS ASIGNADOS', margin + (pageWidth / 2), yPosition, {
         fontSize: 12,
-        color: colors.darkGray,
+        color: '#000000',
+        align: 'center',
         bold: true
       });
-
+      
       yPosition += 20;
 
-      const cardWidth = (pageWidth - 20) / 3;
-      let cardX = doc.page.margins.left;
-      let cardRow = 0;
-
-      Object.entries(sedesMap).forEach(([sede, cantidad], index) => {
-        if (index > 0 && index % 3 === 0) {
-          cardRow++;
-          cardX = doc.page.margins.left;
-        }
-
-        const cardY = yPosition + (cardRow * 35);
-
-        // Fondo de la tarjeta
-        drawRoundedRect(cardX, cardY, cardWidth - 10, 30, 4, colors.white);
-        
-        // Borde izquierdo rojo
-        doc.rect(cardX, cardY, 4, 30)
-           .fillColor(colors.red)
-           .fill();
-
-        // Texto de la sede
-        addText(sede, cardX + 10, cardY + 8, {
-          fontSize: 9,
-          color: colors.darkGray,
-          bold: true
-        });
-
-        // Cantidad
-        addText(`${cantidad} teléfonos`, cardX + 10, cardY + 20, {
-          fontSize: 8,
-          color: colors.gray
-        });
-
-        cardX += cardWidth;
-      });
-
-      yPosition += (Math.ceil(Object.keys(sedesMap).length / 3) * 35) + 20;
-    }
-
-    // TABLA DE TELEFONOS
-    if (telefonosProcesados.length > 0) {
-      const tableTop = yPosition;
-      const rowHeight = 20;
-      const headerHeight = 25;
-      const fontSize = 7;
-      
-      // Definir anchos de columnas (en puntos)
-      const columnWidths = {
-        numero: 50,
-        usuario: 60,
-        cargo: 50,
-        sede: 50,
-        departamento: 50,
-        marca: 50,
-        ip: 50,
-        mac: 70,
-        email: 70,
-        fecha: 45,
-        estado: 35
-      };
-
       // Encabezados de la tabla
-      const headers = [
-        { text: 'Número', width: columnWidths.numero },
-        { text: 'Usuario', width: columnWidths.usuario },
-        { text: 'Cargo', width: columnWidths.cargo },
-        { text: 'Sede', width: columnWidths.sede },
-        { text: 'Departamento', width: columnWidths.departamento },
-        { text: 'Marca/Modelo', width: columnWidths.marca },
-        { text: 'IP', width: columnWidths.ip },
-        { text: 'MAC', width: columnWidths.mac },
-        { text: 'Email Teléfono', width: columnWidths.email },
-        { text: 'Fecha Asignación', width: columnWidths.fecha },
-        { text: 'Estado', width: columnWidths.estado }
-      ];
-
-      // Dibujar fondo del encabezado
-      drawRoundedRect(doc.page.margins.left, tableTop, pageWidth, headerHeight, 0, colors.red);
-
-      // Dibujar texto de encabezados
-      let headerX = doc.page.margins.left + 5;
-      headers.forEach(header => {
-        addText(header.text, headerX, tableTop + 8, {
-          fontSize: fontSize,
-          color: colors.white,
+      const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
+      const colWidths = [45, 60, 50, 50, 50, 60, 50, 70, 40];
+      
+      // Fondo del encabezado
+      doc.rect(margin, yPosition, pageWidth, 15)
+         .fillColor('#DC2626')
+         .fill();
+      
+      // Texto del encabezado
+      let x = margin;
+      headers.forEach((header, i) => {
+        drawText(header, x + 2, yPosition + 4, {
+          fontSize: 8,
+          color: '#ffffff',
           bold: true
         });
-        headerX += header.width;
+        x += colWidths[i];
       });
+      
+      yPosition += 20;
 
       // Filas de datos
-      let currentY = tableTop + headerHeight;
-
       telefonosProcesados.forEach((telefono, index) => {
-        // Color de fondo alternado
-        const bgColor = index % 2 === 0 ? colors.white : colors.lightGray;
-        drawRoundedRect(doc.page.margins.left, currentY, pageWidth, rowHeight, 0, bgColor);
+        // Verificar si necesita nueva página
+        if (yPosition > 700) {
+          doc.addPage();
+          yPosition = margin;
+          
+          // Redibujar encabezados en nueva página
+          doc.rect(margin, yPosition, pageWidth, 15)
+             .fillColor('#DC2626')
+             .fill();
+          
+          let headerX = margin;
+          headers.forEach((header, i) => {
+            drawText(header, headerX + 2, yPosition + 4, {
+              fontSize: 8,
+              color: '#ffffff',
+              bold: true
+            });
+            headerX += colWidths[i];
+          });
+          
+          yPosition += 20;
+        }
 
-        let cellX = doc.page.margins.left + 5;
+        // Fondo alternado para filas
+        if (index % 2 === 0) {
+          doc.rect(margin, yPosition, pageWidth, 12)
+             .fillColor('#f9f9f9')
+             .fill();
+        }
 
-        // Determinar estado
+        // Determinar estado y color
         const estado = telefono.usuario && telefono.usuario.nombre ? 'Asignado' : 'Sin asignar';
-        const estadoColor = estado === 'Asignado' ? '#155724' : '#383d41';
-        const estadoBgColor = estado === 'Asignado' ? '#d4edda' : '#e2e3e5';
+        const estadoColor = estado === 'Asignado' ? '#155724' : '#666666';
 
-        // Datos de cada celda
+        // Datos de la fila
         const rowData = [
           telefono.num_telefono || 'N/A',
           telefono.usuario && telefono.usuario.nombre ? 
-            `${telefono.usuario.nombre} ${telefono.usuario.apellido}` : '-',
-          telefono.usuario && telefono.usuario.cargo ? telefono.usuario.cargo : '-',
-          telefono.usuario && telefono.usuario.sede ? telefono.usuario.sede.nombre : '-',
-          telefono.usuario && telefono.usuario.departamento ? telefono.usuario.departamento.nombre : '-',
-          telefono.stockEquipo ? `${telefono.stockEquipo.marca} ${telefono.stockEquipo.modelo}` : 'N/A',
-          telefono.ip_telefono || 'N/A',
-          telefono.mac_telefono || 'N/A',
-          telefono.mail_telefono || 'N/A',
-          telefono.fecha_asignacion ? 
-            new Date(telefono.fecha_asignacion).toLocaleDateString('es-ES') : '-',
+            `${telefono.usuario.nombre.substring(0, 15)} ${telefono.usuario.apellido?.substring(0, 1) || ''}.` : '-',
+          (telefono.usuario?.cargo || '-').substring(0, 12),
+          (telefono.usuario?.sede?.nombre || '-').substring(0, 12),
+          (telefono.usuario?.departamento?.nombre || '-').substring(0, 12),
+          telefono.stockEquipo ? 
+            `${telefono.stockEquipo.marca?.substring(0, 10) || ''} ${telefono.stockEquipo.modelo?.substring(0, 8) || ''}`.trim() : 'N/A',
+          (telefono.ip_telefono || 'N/A').substring(0, 12),
+          (telefono.mac_telefono || 'N/A').substring(0, 15),
           estado
         ];
 
-        // Dibujar celdas
-        headers.forEach((header, colIndex) => {
-          if (colIndex === headers.length - 1) {
-            // Celda de estado con badge
-            const badgeWidth = doc.widthOfString(rowData[colIndex]) + 8;
-            drawRoundedRect(cellX - 2, currentY + 3, badgeWidth, 12, 6, estadoBgColor);
-            addText(rowData[colIndex], cellX + 2, currentY + 6, {
-              fontSize: fontSize - 1,
-              color: estadoColor,
-              bold: true
-            });
+        let x = margin;
+        rowData.forEach((text, i) => {
+          // Aplicar color especial para estado
+          if (i === 8) {
+            doc.fillColor(estadoColor);
           } else {
-            addText(rowData[colIndex], cellX, currentY + 6, {
-              fontSize: fontSize,
-              color: colors.darkGray
-            });
+            doc.fillColor('#000000');
           }
-          cellX += header.width;
+          
+          doc.fontSize(7)
+             .font('Helvetica')
+             .text(text, x + 2, yPosition + 2, {
+               width: colWidths[i] - 4,
+               align: 'left'
+             });
+          
+          x += colWidths[i];
         });
 
-        // Bordes de las celdas
-        doc.rect(doc.page.margins.left, currentY, pageWidth, rowHeight)
-           .strokeColor(colors.borderGray)
-           .lineWidth(0.5)
+        yPosition += 15;
+
+        // Línea separadora entre filas
+        doc.moveTo(margin, yPosition)
+           .lineTo(margin + pageWidth, yPosition)
+           .lineWidth(0.8)
+           .strokeColor('#cccccc')
            .stroke();
-
-        currentY += rowHeight;
-
-        // Verificar si necesita nueva página
-        if (currentY > doc.page.height - doc.page.margins.bottom - 50) {
-          doc.addPage();
-          currentY = doc.page.margins.top;
-          
-          // Redibujar encabezados en nueva página
-          drawRoundedRect(doc.page.margins.left, currentY, pageWidth, headerHeight, 0, colors.red);
-          headerX = doc.page.margins.left + 5;
-          headers.forEach(header => {
-            addText(header.text, headerX, currentY + 8, {
-              fontSize: fontSize,
-              color: colors.white,
-              bold: true
-            });
-            headerX += header.width;
-          });
-          currentY += headerHeight;
-        }
+        
+        yPosition += 3;
       });
-
-      yPosition = currentY + 20;
     } else {
       // Mensaje cuando no hay teléfonos
-      addText('No hay teléfonos registrados', doc.page.margins.left + pageWidth / 2, yPosition, {
-        fontSize: 16,
-        color: colors.gray,
+      yPosition += 20;
+      drawText('No hay teléfonos registrados', margin + (pageWidth / 2), yPosition, {
+        fontSize: 14,
+        color: '#666666',
+        align: 'center',
+        bold: true
+      });
+      
+      yPosition += 20;
+      drawText('No se encontraron teléfonos con los filtros aplicados', margin + (pageWidth / 2), yPosition, {
+        fontSize: 10,
+        color: '#666666',
         align: 'center'
       });
-
-      addText('No se encontraron teléfonos con los filtros aplicados', 
-        doc.page.margins.left + pageWidth / 2, yPosition + 20, {
-        fontSize: 12,
-        color: colors.gray,
-        align: 'center'
-      });
-
-      yPosition += 60;
+      
+      yPosition += 40;
     }
 
-    // FOOTER
-    const footerY = doc.page.height - doc.page.margins.bottom + 10;
-    
-    // Línea separadora
-    doc.moveTo(doc.page.margins.left, footerY - 20)
-       .lineTo(doc.page.margins.left + pageWidth, footerY - 20)
-       .strokeColor(colors.borderGray)
-       .lineWidth(0.5)
+    // PIE DE PÁGINA - Similar a la referencia
+    const footerY = 700;
+    doc.moveTo(margin, footerY)
+       .lineTo(margin + pageWidth, footerY)
+       .lineWidth(1)
+       .strokeColor('#cccccc')
        .stroke();
-
-    addText('Sistema de Gestión - FRITZ C.A', 
-      doc.page.margins.left + pageWidth / 2, footerY - 15, {
-      fontSize: 9,
-      color: colors.gray,
+    
+    drawText('Sistema de Gestión de Teléfonos - FRITZ C.A', margin + (pageWidth / 2), footerY + 10, {
+      fontSize: 8,
+      color: '#666666',
       align: 'center'
     });
-
-    addText(`Generado el ${fecha}`, 
-      doc.page.margins.left + pageWidth / 2, footerY - 5, {
-      fontSize: 9,
-      color: colors.gray,
+    
+    drawText(`Generado el: ${fecha}`, margin + (pageWidth / 2), footerY + 20, {
+      fontSize: 8,
+      color: '#666666',
       align: 'center'
     });
 
