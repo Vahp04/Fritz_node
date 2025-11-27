@@ -2721,7 +2721,7 @@ async verPdfPorUsuario(req, res) {
                    align: 'center' 
                });
             
-            colY += 50;
+            colY += 55;
         }
 
         // Firmas - Columna 2
@@ -2801,7 +2801,7 @@ async verPdfPorUsuario(req, res) {
            });
 
         // Número de documento
-        doc.text('Registro: ' + data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
+        doc.text(data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
           width: columnWidth,
           align: 'right'
         });
