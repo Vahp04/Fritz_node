@@ -1395,9 +1395,10 @@ async index(req, res) {
           : 'No asignado';
         
         const departamentoText = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
-        const tonerText = impresora.toner_actual ? 
-          `${impresora.toner.marca || ''} ${impresora.toner.modelo || ''}`.trim() 
-          : 'Sin toner';
+        
+        // CORREGIDO: Mostrar el toner seleccionado (campo 'toner' de la impresora)
+        const tonerText = impresora.toner || 'Sin toner'; // Usar el campo 'toner' directamente
+        
         const ubicacionText = impresora.ubicacion || '-';
         
         // Calcular líneas para cada columna
@@ -1533,10 +1534,8 @@ async index(req, res) {
         });
         cellX += columnWidths.departamento;
 
-        // Toner (puede ser multilínea)
-        const tonerFinalText = impresora.toner ? 
-          `${impresora.toner.marca || ''} ${impresora.toner.modelo || ''}`.trim() 
-          : 'Sin toner';
+        // Toner (CORREGIDO: usar el campo 'toner' de la impresora)
+        const tonerFinalText = impresora.toner || 'Sin toner';
         doc.text(tonerFinalText, cellX + 3, currentY + 2, {
           width: anchoToner,
           height: alturaTexto,
