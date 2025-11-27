@@ -1300,14 +1300,14 @@ async index(req, res) {
     if (impresoras.length > 0) {
       // Configuración de columnas para impresoras
       const columnWidths = {
-        nombre: 80,
+        nombre: 90,
         equipo: 90,
         ip: 70,
-        serial: 85,
+        serial: 100,
         sede: 60,
         departamento: 80,
         toner: 80,
-        ubicacion: 80,
+        ubicacion: 90,
         estado: 40
       };
 
@@ -1396,8 +1396,7 @@ async index(req, res) {
         
         const departamentoText = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
         
-        // CORREGIDO: Mostrar el toner seleccionado (campo 'toner' de la impresora)
-        const tonerText = impresora.toner || 'Sin toner'; // Usar el campo 'toner' directamente
+        const tonerText = impresora.toner || 'Sin toner'; 
         
         const ubicacionText = impresora.ubicacion || '-';
         
