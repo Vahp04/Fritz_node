@@ -253,7 +253,7 @@ static generateIndividualReport(doc, data) {
     let colY = yPosition;
 
     // Encabezado columna 1
-    doc.rect(colX, colY, columnWidth, 25)
+    doc.rect(colX, colY, columnWidth, 30)
        .fillColor('#f8f9fa')
        .fill();
     
@@ -348,7 +348,7 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text(info.label, colX + 10, currentY);
+           .text(info.label, colX + 20, currentY);
         
         doc.fontSize(8)
            .font('Helvetica')
