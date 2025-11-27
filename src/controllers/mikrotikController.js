@@ -917,7 +917,7 @@ async generarPDFGeneral(req, res) {
         ip: 70,
         serial: 75,
         sede: 60,
-        usuario: 70,
+        descripcion: 120, // Cambiado de usuario a descripcion
         ubicacion: 80,
         estado: 40
       };
@@ -929,7 +929,7 @@ async generarPDFGeneral(req, res) {
         { text: 'IP', width: columnWidths.ip },
         { text: 'SERIAL', width: columnWidths.serial },
         { text: 'SEDE', width: columnWidths.sede },
-        { text: 'DESCRIPCION', width: columnWidths.descripcion },
+        { text: 'DESCRIPCIÓN', width: columnWidths.descripcion }, // Cambiado de USUARIO a DESCRIPCIÓN
         { text: 'UBICACIÓN', width: columnWidths.ubicacion },
         { text: 'ESTADO', width: columnWidths.estado }
       ];
@@ -991,7 +991,7 @@ async generarPDFGeneral(req, res) {
       mikrotiks.forEach((mikrotik, index) => {
         // PRE-CALCULAR ALTURA PARA CADA CELDA
         const anchoEquipo = columnWidths.equipo - 6;
-        const anchoUsuario = columnWidths.usuario - 6;
+        const anchoDescripcion = columnWidths.descripcion - 6; // Cambiado de usuario a descripcion
         const anchoUbicacion = columnWidths.ubicacion - 6;
         
         // Textos
@@ -1000,16 +1000,16 @@ async generarPDFGeneral(req, res) {
           (mikrotik.stock_equipos.tipo_equipo ? `\n${mikrotik.stock_equipos.tipo_equipo.nombre}` : '') 
           : 'No asignado';
         
-        const usuarioText = mikrotik.usuario_mikrotik || '-';
+        const descripcionText = mikrotik.descripcion || 'Sin descripción'; // Cambiado de usuario_mikrotik a descripcion
         const ubicacionText = mikrotik.ubicacion || '-';
         
         // Calcular líneas para cada columna
         const lineasEquipo = equipoText.split('\n').length;
-        const lineasUsuario = calcularLineasTexto(usuarioText, anchoUsuario);
+        const lineasDescripcion = calcularLineasTexto(descripcionText, anchoDescripcion); // Cambiado de usuario a descripcion
         const lineasUbicacion = calcularLineasTexto(ubicacionText, anchoUbicacion);
         
         // Encontrar el máximo de líneas
-        const maxLines = Math.max(lineasEquipo, lineasUsuario, lineasUbicacion, 1);
+        const maxLines = Math.max(lineasEquipo, lineasDescripcion, lineasUbicacion, 1); // Cambiado de usuario a descripcion
         
         // Altura dinámica basada en el contenido
         const lineaBaseHeight = 10;
@@ -1114,15 +1114,15 @@ async generarPDFGeneral(req, res) {
         });
         cellX += columnWidths.sede;
 
-        // Usuario (puede ser multilínea)
-        const usuarioFinalText = mikrotik.usuario_mikrotik || '-';
-        doc.text(usuarioFinalText, cellX + 3, currentY + 2, {
-          width: anchoUsuario,
+        // DESCRIPCIÓN (puede ser multilínea) - CAMBIADO DE USUARIO A DESCRIPCIÓN
+        const descripcionFinalText = mikrotik.descripcion || 'Sin descripción'; // Cambiado de usuario_mikrotik a descripcion
+        doc.text(descripcionFinalText, cellX + 3, currentY + 2, {
+          width: anchoDescripcion,
           height: alturaTexto,
           lineGap: 2,
           align: 'left'
         });
-        cellX += columnWidths.usuario;
+        cellX += columnWidths.descripcion;
 
         // Ubicación (puede ser multilínea)
         const ubicacionFinalText = mikrotik.ubicacion || '-';
