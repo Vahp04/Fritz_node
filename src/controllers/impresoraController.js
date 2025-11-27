@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js'; 
+import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
