@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/usuarios', usuariosController.generarPdf);
 router.get('/usuarios/ver', usuariosController.verPdf);
+router.get('/:id/reporte/ver', usuariosController.verReporteIndividual);  
 
 router.get('/stock', stockEquiposController.generarPdfStock);
 router.get('/stock/ver', stockEquiposController.verPdfStock);
