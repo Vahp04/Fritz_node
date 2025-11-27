@@ -1646,124 +1646,487 @@ async index(req, res) {
 },
 
   async generarPDFPorSede(req, res) {
-    try {
-      const { sede_id } = req.params;
-      const sedeId = parseInt(sede_id);
+  try {
+    const { sede_id } = req.params;
+    const sedeId = parseInt(sede_id);
 
-      console.log(`Generando PDF de impresoras para sede ID: ${sedeId}`);
+    console.log(`Generando PDF de impresoras para sede ID: ${sedeId}`);
 
-      if (isNaN(sedeId) || sedeId <= 0) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
-      }
+    if (isNaN(sedeId) || sedeId <= 0) {
+      return res.status(400).json({ error: 'ID de sede no válido' });
+    }
 
-      const sede = await prisma.sedes.findUnique({
-        where: { id: sedeId }
-      });
+    const sede = await prisma.sedes.findUnique({
+      where: { id: sedeId }
+    });
 
-      if (!sede) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
-      }
+    if (!sede) {
+      return res.status(404).json({ error: 'Sede no encontrada' });
+    }
 
-      const impresoras = await prisma.impresora.findMany({
-        where: { sede_id: sedeId },
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true,
-          departamento: true,
-          toner_actual: {
-            include: {
-              tipo_equipo: true
-            }
+    const impresoras = await prisma.impresora.findMany({
+      where: { sede_id: sedeId },
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
           }
         },
-        orderBy: [
-          { departamento_id: 'asc' },
-          { nombre: 'asc' }
-        ]
-      });
+        sede: true,
+        departamento: true,
+        toner_actual: {
+          include: {
+            tipo_equipo: true
+          }
+        }
+      },
+      orderBy: [
+        { departamento_id: 'asc' },
+        { nombre: 'asc' }
+      ]
+    });
 
-      if (impresoras.length === 0) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ 
-          error: 'No se encontraron impresoras para esta sede' 
-        }));
+    if (impresoras.length === 0) {
+      return res.status(404).json({ 
+        error: 'No se encontraron impresoras para esta sede' 
+      });
+    }
+
+    console.log(`${impresoras.length} impresoras encontradas en ${sede.nombre}`);
+
+    // Crear documento PDF en LANDSCAPE
+    const doc = new PDFDocument({
+      size: 'LETTER',
+      layout: 'landscape',
+      margins: {
+        top: 15,
+        bottom: 15,
+        left: 10,
+        right: 10
+      }
+    });
+
+    // Configurar headers de respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="reporte-impresoras-${sede.nombre.replace(/\s+/g, '-')}.pdf"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Pipe del PDF a la respuesta
+    doc.pipe(res);
+
+    // Variables de configuración
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    let yPosition = doc.page.margins.top;
+
+    // ===== HEADER =====
+    // Logo placeholder
+    doc.rect(doc.page.margins.left, yPosition, 35, 25)
+       .fill('#DC2626');
+    
+    doc.fontSize(8)
+       .fillColor('white')
+       .font('Helvetica-Bold')
+       .text('LOGO', doc.page.margins.left + 8, yPosition + 8);
+    
+    // Título principal
+    doc.fontSize(18)
+       .fillColor('#DC2626')
+       .font('Helvetica-Bold')
+       .text(`Reporte de Impresoras - ${sede.nombre}`, doc.page.margins.left + 45, yPosition);
+    
+    // Subtítulo
+    doc.fontSize(10)
+       .fillColor('#666666')
+       .font('Helvetica')
+       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20);
+    
+    // Línea decorativa
+    doc.moveTo(doc.page.margins.left, yPosition + 35)
+       .lineTo(doc.page.margins.left + pageWidth, yPosition + 35)
+       .strokeColor('#DC2626')
+       .lineWidth(2)
+       .stroke();
+    
+    yPosition += 45;
+
+    // ===== INFO DE SEDE =====
+    // Fondo rojo degradado
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 30)
+       .fill('#DC2626');
+    
+    // Nombre de la sede
+    doc.fontSize(14)
+       .fillColor('white')
+       .font('Helvetica-Bold')
+       .text(sede.nombre, doc.page.margins.left + 10, yPosition + 8, {
+         width: pageWidth - 20,
+         align: 'center'
+       });
+    
+    // Detalles de la sede
+    doc.fontSize(9)
+       .fillColor('white')
+       .font('Helvetica')
+       .text(`ID: ${sede.id} • Total Impresoras: ${impresoras.length}`, 
+             doc.page.margins.left + 10, yPosition + 22, {
+         width: pageWidth - 20,
+         align: 'center'
+       });
+    
+    yPosition += 40;
+
+    // ===== METADATA =====
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const hora = new Date().toLocaleTimeString('es-ES');
+
+    // Fondo del metadata
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 20)
+       .fill('#f8f9fa');
+    
+    // Borde izquierdo rojo
+    doc.rect(doc.page.margins.left, yPosition, 4, 20)
+       .fill('#DC2626');
+    
+    const metaColWidth = pageWidth / 3;
+    
+    doc.fontSize(7)
+       .fillColor('#333333')
+       .font('Helvetica-Bold')
+       .text('FECHA DE GENERACIÓN', doc.page.margins.left + 10, yPosition + 5);
+    
+    doc.text('HORA', doc.page.margins.left + metaColWidth + 10, yPosition + 5);
+    
+    doc.text('TOTAL EQUIPOS', doc.page.margins.left + (metaColWidth * 2) + 10, yPosition + 5);
+    
+    yPosition += 8;
+    
+    doc.font('Helvetica')
+       .fillColor('#1a1a1a')
+       .fontSize(8)
+       .text(fecha, doc.page.margins.left + 10, yPosition + 5);
+    
+    doc.text(hora, doc.page.margins.left + metaColWidth + 10, yPosition + 5);
+    
+    doc.text(`${impresoras.length} impresoras`, doc.page.margins.left + (metaColWidth * 2) + 10, yPosition + 5);
+    
+    yPosition += 20;
+
+    // ===== ESTADÍSTICAS =====
+    const estadisticas = {
+      activas: impresoras.filter(i => i.estado_impresora === 'activa').length,
+      inactivas: impresoras.filter(i => i.estado_impresora === 'inactiva').length,
+      mantenimiento: impresoras.filter(i => i.estado_impresora === 'mantenimiento').length,
+      obsoletas: impresoras.filter(i => i.estado_impresora === 'obsoleta').length
+    };
+
+    const statWidth = (pageWidth - 20) / 5;
+    const statHeight = 25;
+    const statY = yPosition;
+
+    const stats = [
+      { label: 'TOTAL IMPRESORAS', value: impresoras.length, color: '#DC2626' },
+      { label: 'ACTIVAS', value: estadisticas.activas, color: '#DC2626' },
+      { label: 'INACTIVAS', value: estadisticas.inactivas, color: '#DC2626' },
+      { label: 'MANTENIMIENTO', value: estadisticas.mantenimiento, color: '#DC2626' },
+      { label: 'OBSOLETAS', value: estadisticas.obsoletas, color: '#DC2626' }
+    ];
+
+    stats.forEach((stat, index) => {
+      const x = doc.page.margins.left + (statWidth * index);
+      
+      // Fondo de la tarjeta
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .fill('#e9ecef');
+      
+      // Borde
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .stroke('#cccccc');
+      
+      // Número
+      doc.fontSize(12)
+         .fillColor(stat.color)
+         .font('Helvetica-Bold')
+         .text(stat.value.toString(), x, statY + 5, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+      
+      // Etiqueta
+      doc.fontSize(6)
+         .fillColor('#333333')
+         .font('Helvetica')
+         .text(stat.label, x, statY + 17, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+    });
+
+    yPosition += 35;
+
+    // ===== TABLA - CONFIGURACIÓN PARA IMPRESORAS =====
+    const columnWidths = {
+      id: 25,
+      nombre: 80,
+      equipo: 100,
+      departamento: 80,
+      ip: 80,
+      serial: 90,
+      ubicacion: 80,
+      toner: 80,
+      estado: 50
+    };
+
+    const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+    
+    const headers = [
+      { text: 'ID', width: columnWidths.id },
+      { text: 'NOMBRE', width: columnWidths.nombre },
+      { text: 'EQUIPO/MODELO', width: columnWidths.equipo },
+      { text: 'DEPARTAMENTO', width: columnWidths.departamento },
+      { text: 'IP', width: columnWidths.ip },
+      { text: 'SERIAL', width: columnWidths.serial },
+      { text: 'UBICACIÓN', width: columnWidths.ubicacion },
+      { text: 'TONER ACTUAL', width: columnWidths.toner },
+      { text: 'ESTADO', width: columnWidths.estado }
+    ];
+
+    let currentY = yPosition;
+
+    // DIBUJAR ENCABEZADOS CON DEGRADADO ROJO
+    let currentX = doc.page.margins.left;
+    
+    headers.forEach(header => {
+      // Fondo degradado (simulado)
+      doc.rect(currentX, currentY, header.width, 15)
+         .fill('#DC2626');
+      
+      doc.fontSize(7)
+         .fillColor('white')
+         .font('Helvetica-Bold')
+         .text(header.text, currentX + 3, currentY + 4, {
+           width: header.width - 6,
+           align: 'left'
+         });
+      
+      currentX += header.width;
+    });
+
+    currentY += 15;
+
+    // CONTENIDO DE LA TABLA
+    impresoras.forEach((impresora, index) => {
+      // Verificar si necesitamos nueva página
+      if (currentY > doc.page.height - doc.page.margins.bottom - 20) {
+        doc.addPage();
+        currentY = doc.page.margins.top;
+        
+        // Redibujar encabezados en nueva página
+        let headerX = doc.page.margins.left;
+        headers.forEach(header => {
+          doc.rect(headerX, currentY, header.width, 15)
+             .fill('#DC2626');
+          
+          doc.fontSize(7)
+             .fillColor('white')
+             .font('Helvetica-Bold')
+             .text(header.text, headerX + 3, currentY + 4, {
+               width: header.width - 6,
+               align: 'left'
+             });
+          
+          headerX += header.width;
+        });
+        currentY += 15;
       }
 
-      console.log(`${impresoras.length} impresoras encontradas en ${sede.nombre}`);
+      // Fondo alternado para filas
+      if (index % 2 === 0) {
+        doc.rect(doc.page.margins.left, currentY, totalTableWidth, 15)
+           .fill('#f8f9fa');
+      }
 
-      const data = {
-        titulo: `Reporte de Impresoras - ${sede.nombre}`,
-        subtitulo: `Sede: ${sede.nombre}`,
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: impresoras.length,
-        impresoras: impresoras,
-        sede: sede,
-        estadisticas: {
-          activas: impresoras.filter(i => i.estado_impresora === 'activa').length,
-          inactivas: impresoras.filter(i => i.estado_impresora === 'inactiva').length,
-          mantenimiento: impresoras.filter(i => i.estado_impresora === 'mantenimiento').length,
-          obsoletas: impresoras.filter(i => i.estado_impresora === 'obsoleta').length
-        }
-      };
+      // CONTENIDO DE LAS CELDAS
+      let cellX = doc.page.margins.left;
 
-      const html = await renderTemplate(req.app, 'pdfs/reporte-impresoras-sede', data);
-      
-      console.log('Longitud del HTML:', html.length);
+      // Configurar fuente base
+      doc.fontSize(7)
+         .fillColor('black')
+         .font('Helvetica');
 
-      console.log('Generando PDF para sede...');
+      // ID
+      doc.font('Helvetica-Bold')
+         .text(impresora.id.toString(), cellX + 3, currentY + 2, {
+           width: columnWidths.id - 6
+         })
+         .font('Helvetica');
+      cellX += columnWidths.id;
 
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF generado exitosamente');
-
-      const filename = `reporte-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
-      
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+      // Nombre
+      const nombreText = impresora.nombre || 'Sin nombre';
+      doc.text(nombreText, cellX + 3, currentY + 2, {
+        width: columnWidths.nombre - 6
       });
+      cellX += columnWidths.nombre;
 
-      console.log(`Enviando PDF para abrir en navegador`);
+      // Equipo/Modelo
+      let equipoText = 'No asignado';
+      if (impresora.stock_equipos) {
+        const marca = impresora.stock_equipos.marca || '';
+        const modelo = impresora.stock_equipos.modelo || '';
+        const tipo = impresora.stock_equipos.tipo_equipo ? impresora.stock_equipos.tipo_equipo.nombre : '';
+        equipoText = `${marca}\n${modelo}\n${tipo}`;
+      }
+      doc.text(equipoText, cellX + 3, currentY + 2, {
+        width: columnWidths.equipo - 6,
+        lineGap: 1
+      });
+      cellX += columnWidths.equipo;
 
-      res.end(pdfBuffer);
+      // Departamento
+      const deptoText = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
+      doc.text(deptoText, cellX + 3, currentY + 2, {
+        width: columnWidths.departamento - 6
+      });
+      cellX += columnWidths.departamento;
 
-    } catch (error) {
-      console.error('Error generando PDF por sede:', error);
+      // IP
+      const ipText = impresora.ip || '-';
+      doc.text(ipText, cellX + 3, currentY + 2, {
+        width: columnWidths.ip - 6
+      });
+      cellX += columnWidths.ip;
 
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message 
-      }));
-    }
+      // Serial
+      const serialText = impresora.serial || '-';
+      doc.text(serialText, cellX + 3, currentY + 2, {
+        width: columnWidths.serial - 6
+      });
+      cellX += columnWidths.serial;
+
+      // Ubicación
+      const ubicacionText = impresora.ubicacion || 'Sin ubicación';
+      doc.text(ubicacionText, cellX + 3, currentY + 2, {
+        width: columnWidths.ubicacion - 6
+      });
+      cellX += columnWidths.ubicacion;
+
+      // Toner Actual
+      let tonerText = 'Sin toner';
+      if (impresora.toner_actual) {
+        const marcaToner = impresora.toner_actual.marca || '';
+        const modeloToner = impresora.toner_actual.modelo || '';
+        const tipoToner = impresora.toner_actual.tipo_equipo ? impresora.toner_actual.tipo_equipo.nombre : '';
+        tonerText = `${marcaToner}\n${modeloToner}\n${tipoToner}`;
+      }
+      doc.text(tonerText, cellX + 3, currentY + 2, {
+        width: columnWidths.toner - 6,
+        lineGap: 1
+      });
+      cellX += columnWidths.toner;
+
+      // Estado con colores
+      const estadoText = impresora.estado_impresora ? 
+        impresora.estado_impresora.charAt(0).toUpperCase() + impresora.estado_impresora.slice(1) : '-';
+      
+      let estadoColor = 'black';
+      let estadoBg = '#f3f4f6';
+      let estadoBorder = '#d1d5db';
+      
+      switch(impresora.estado_impresora) {
+        case 'activa': 
+          estadoColor = '#065f46'; 
+          estadoBg = '#d1fae5';
+          estadoBorder = '#a7f3d0';
+          break;
+        case 'inactiva': 
+          estadoColor = '#374151'; 
+          estadoBg = '#f3f4f6';
+          estadoBorder = '#d1d5db';
+          break;
+        case 'mantenimiento': 
+          estadoColor = '#92400e'; 
+          estadoBg = '#fef3c7';
+          estadoBorder = '#fcd34d';
+          break;
+        case 'obsoleta': 
+          estadoColor = '#be185d'; 
+          estadoBg = '#fce7f3';
+          estadoBorder = '#f9a8d4';
+          break;
+      }
+      
+      // Dibujar badge de estado
+      const badgeWidth = columnWidths.estado - 6;
+      const badgeHeight = 8;
+      
+      doc.rect(cellX + 3, currentY + 3, badgeWidth, badgeHeight)
+         .fill(estadoBg)
+         .stroke(estadoBorder);
+      
+      doc.fontSize(6)
+         .fillColor(estadoColor)
+         .font('Helvetica-Bold')
+         .text(estadoText.toUpperCase(), cellX + 3, currentY + 4, {
+           width: badgeWidth,
+           align: 'center'
+         })
+         .fillColor('black')
+         .fontSize(7);
+
+      // DIBUJAR BORDES DE LA TABLA
+      doc.rect(doc.page.margins.left, currentY, totalTableWidth, 15)
+         .stroke('#dee2e6');
+
+      currentY += 15;
+    });
+
+    // ===== FOOTER =====
+    const footerY = doc.page.height - doc.page.margins.bottom - 15;
+    
+    // Línea separadora
+    doc.moveTo(doc.page.margins.left, footerY - 8)
+       .lineTo(doc.page.margins.left + pageWidth, footerY - 8)
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .stroke();
+    
+    // Texto del footer
+    doc.fontSize(7)
+       .fillColor('#666666')
+       .text(`Sistema de Gestión de Impresoras | Reporte específico por sede`, 
+             doc.page.margins.left, footerY - 5, {
+               width: pageWidth,
+               align: 'center'
+             });
+    
+    doc.text(`Generado el ${fecha} a las ${hora}`, 
+             doc.page.margins.left, footerY + 2, {
+               width: pageWidth,
+               align: 'center'
+             });
+
+    // Finalizar PDF
+    doc.end();
+
+    console.log(`PDF por sede generado exitosamente - ${impresoras.length} impresoras en ${sede.nombre}`);
+
+  } catch (error) {
+    console.error('Error generando PDF por sede:', error);
+    
+    res.status(500).json({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    });
   }
+}
 }
 
 
