@@ -785,7 +785,7 @@ async generarPDFGeneral(req, res) {
     
     // Título principal
     doc.fontSize(16)
-       .fillColor('#0c0c0cff')
+       .fillColor('#0000')
        .text('Reporte General de Servidores', doc.page.margins.left, yPosition, { 
          align: 'center',
          width: pageWidth
@@ -928,7 +928,7 @@ async generarPDFGeneral(req, res) {
       // Dibujar encabezados - IMPORTANTE: usar fillAndStroke para que se vean
       doc.fontSize(7)
          .font('Helvetica-Bold')
-         .fillColor('#e9ecef');
+         .fillColor('#0000');
 
       let currentX = doc.page.margins.left;
       
@@ -950,7 +950,7 @@ async generarPDFGeneral(req, res) {
       // Contenido de la tabla
       doc.fontSize(6)
          .font('Helvetica')
-         .fillColor('black');
+         .fillColor('#0000');
 
       let currentSede = null;
       let rowHeight = 10;
