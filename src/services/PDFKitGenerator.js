@@ -611,7 +611,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 20;
+    colY += 25;
 
     // Línea separadora
     doc.moveTo(colX, colY)
