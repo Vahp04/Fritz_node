@@ -746,10 +746,10 @@ async generarPDFGeneral(req, res) {
 
     console.log(`${servidores.length} servidores encontrados`);
 
-    // Crear documento PDF
+    // Crear documento PDF en formato VERTICAL
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'landscape',
+      layout: 'portrait', // Cambiado a portrait
       margins: {
         top: 20,
         bottom: 20,
@@ -770,18 +770,21 @@ async generarPDFGeneral(req, res) {
 
     // Variables de configuración
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    let yPosition = doc.y;
+    let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
-    // Logo (placeholder - reemplazar con tu logo)
-    doc.fontSize(10)
+    doc.fontSize(12)
        .fillColor('#DC2626')
-       .text('FRITZ C.A', doc.page.margins.left, yPosition, { align: 'center' });
+       .font('Helvetica-Bold')
+       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
+         align: 'center',
+         width: pageWidth
+       });
     
-    yPosition += 15;
+    yPosition += 18;
     
     // Título principal
-    doc.fontSize(18)
+    doc.fontSize(16)
        .fillColor('#DC2626')
        .text('Reporte General de Servidores', doc.page.margins.left, yPosition, { 
          align: 'center',
@@ -793,6 +796,7 @@ async generarPDFGeneral(req, res) {
     // Subtítulo
     doc.fontSize(10)
        .fillColor('#666')
+       .font('Helvetica')
        .text('Sistema de Gestión de Servidores', doc.page.margins.left, yPosition, {
          align: 'center',
          width: pageWidth
@@ -841,7 +845,7 @@ async generarPDFGeneral(req, res) {
     
     doc.text(hora, doc.page.margins.left + colWidth * 2, yPosition);
     
-    yPosition += 30;
+    yPosition += 35;
 
     // ===== ESTADÍSTICAS =====
     const estadisticas = {
@@ -851,7 +855,7 @@ async generarPDFGeneral(req, res) {
       desuso: servidores.filter(s => s.estado === 'desuso').length
     };
 
-    const statWidth = (pageWidth - 10) / 5;
+    const statWidth = (pageWidth - 20) / 5; // Ajustado para portrait
     const statHeight = 25;
     const statY = yPosition;
 
@@ -867,9 +871,11 @@ async generarPDFGeneral(req, res) {
     stats.forEach((stat, index) => {
       const x = doc.page.margins.left + (statWidth * index);
       
+      // Dibujar fondo de la tarjeta
       doc.roundedRect(x, statY, statWidth - 2, statHeight, 3)
          .fill('#e9ecef');
       
+      // Número
       doc.fontSize(12)
          .fillColor(stat.color)
          .font('Helvetica-Bold')
@@ -878,6 +884,7 @@ async generarPDFGeneral(req, res) {
            align: 'center'
          });
       
+      // Etiqueta
       doc.fontSize(7)
          .fillColor('#333')
          .font('Helvetica')
@@ -891,17 +898,20 @@ async generarPDFGeneral(req, res) {
 
     // ===== TABLA =====
     if (servidores.length > 0) {
-      // Configuración de columnas
+      // Configuración de columnas para portrait (más angostas)
       const columnWidths = {
-        equipo: 100,
-        ip: 70,
-        serial: 80,
-        sede: 80,
-        detalles: 90,
-        ubicacion: 70,
-        estado: 50
+        equipo: 80,
+        ip: 60,
+        serial: 70,
+        sede: 60,
+        detalles: 80,
+        ubicacion: 60,
+        estado: 40
       };
 
+      // Verificar que la suma de anchos no exceda el ancho de página
+      const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+      
       // Encabezados de tabla
       const headers = [
         { text: 'EQUIPO/MODELO', width: columnWidths.equipo },
@@ -915,18 +925,19 @@ async generarPDFGeneral(req, res) {
 
       let currentY = yPosition;
 
-      // Dibujar encabezados
-      doc.fontSize(8)
+      // Dibujar encabezados - IMPORTANTE: usar fillAndStroke para que se vean
+      doc.fontSize(7)
          .font('Helvetica-Bold')
          .fillColor('white');
 
       let currentX = doc.page.margins.left;
       
       headers.forEach(header => {
-        doc.rect(currentX, currentY, header.width, 15)
-           .fill('#DC2626');
+        // Dibujar celda de encabezado
+        doc.rect(currentX, currentY, header.width, 12)
+           .fillAndStroke('#DC2626', '#B91C1C');
         
-        doc.text(header.text, currentX + 2, currentY + 4, {
+        doc.text(header.text, currentX + 2, currentY + 3, {
           width: header.width - 4,
           align: 'left'
         });
@@ -934,38 +945,45 @@ async generarPDFGeneral(req, res) {
         currentX += header.width;
       });
 
-      currentY += 15;
+      currentY += 12;
 
       // Contenido de la tabla
-      doc.fontSize(7)
+      doc.fontSize(6)
          .font('Helvetica')
          .fillColor('black');
 
       let currentSede = null;
+      let rowHeight = 10;
 
       servidores.forEach((servidor, index) => {
         // Verificar si necesitamos nueva página
-        if (currentY > doc.page.height - doc.page.margins.bottom - 50) {
+        if (currentY > doc.page.height - doc.page.margins.bottom - 30) {
           doc.addPage();
           currentY = doc.page.margins.top;
           
           // Redibujar encabezados en nueva página
           let headerX = doc.page.margins.left;
+          doc.fontSize(7)
+             .font('Helvetica-Bold')
+             .fillColor('white');
+             
           headers.forEach(header => {
-            doc.rect(headerX, currentY, header.width, 15)
-               .fill('#DC2626');
+            doc.rect(headerX, currentY, header.width, 12)
+               .fillAndStroke('#DC2626', '#B91C1C');
             
-            doc.fontSize(8)
-               .font('Helvetica-Bold')
-               .fillColor('white')
-               .text(header.text, headerX + 2, currentY + 4, {
-                 width: header.width - 4,
-                 align: 'left'
-               });
+            doc.text(header.text, headerX + 2, currentY + 3, {
+              width: header.width - 4,
+              align: 'left'
+            });
             
             headerX += header.width;
           });
-          currentY += 15;
+          currentY += 12;
+          
+          // Restaurar fuente para contenido
+          doc.fontSize(6)
+             .font('Helvetica')
+             .fillColor('black');
         }
 
         // Cambio de sede
@@ -973,17 +991,17 @@ async generarPDFGeneral(req, res) {
         currentSede = servidor.sede_id;
 
         if (sedeChanged && servidor.sede) {
-          doc.fontSize(8)
+          doc.fontSize(7)
              .font('Helvetica-Bold')
              .fillColor('#333')
              .text(`SEDE: ${servidor.sede.nombre}`, doc.page.margins.left, currentY + 2);
           
-          currentY += 12;
+          currentY += 10;
         }
 
         // Fondo alternado para filas
         if (index % 2 === 0) {
-          doc.rect(doc.page.margins.left, currentY, pageWidth, 12)
+          doc.rect(doc.page.margins.left, currentY, totalTableWidth, rowHeight)
              .fill('#f8f9fa');
         }
 
@@ -993,10 +1011,14 @@ async generarPDFGeneral(req, res) {
         // Equipo/Modelo
         let equipoText = 'No asignado';
         if (servidor.stock_equipos) {
-          equipoText = `${servidor.stock_equipos.marca} ${servidor.stock_equipos.modelo}\n${servidor.stock_equipos.tipo_equipo.nombre}`;
+          equipoText = `${servidor.stock_equipos.marca || ''} ${servidor.stock_equipos.modelo || ''}`.trim();
+          if (servidor.stock_equipos.tipo_equipo) {
+            equipoText += `\n${servidor.stock_equipos.tipo_equipo.nombre}`;
+          }
         }
         doc.text(equipoText, cellX + 2, currentY + 2, {
-          width: columnWidths.equipo - 4
+          width: columnWidths.equipo - 4,
+          lineGap: 1
         });
         cellX += columnWidths.equipo;
 
@@ -1022,7 +1044,9 @@ async generarPDFGeneral(req, res) {
         cellX += columnWidths.sede;
 
         // Detalles
-        const detallesText = servidor.descripcion || 'Sin detalles';
+        const detallesText = servidor.descripcion ? 
+          (servidor.descripcion.length > 30 ? servidor.descripcion.substring(0, 30) + '...' : servidor.descripcion) 
+          : 'Sin detalles';
         doc.text(detallesText, cellX + 2, currentY + 2, {
           width: columnWidths.detalles - 4
         });
@@ -1036,7 +1060,8 @@ async generarPDFGeneral(req, res) {
         cellX += columnWidths.ubicacion;
 
         // Estado
-        const estadoText = servidor.estado ? servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1) : '-';
+        const estadoText = servidor.estado ? 
+          servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1) : '-';
         
         // Color según estado
         let estadoColor = '#333';
@@ -1053,7 +1078,7 @@ async generarPDFGeneral(req, res) {
            })
            .fillColor('black'); // Reset color
 
-        currentY += 12;
+        currentY += rowHeight;
       });
     } else {
       // Mensaje cuando no hay datos
@@ -1098,11 +1123,10 @@ async generarPDFGeneral(req, res) {
   } catch (error) {
     console.error('Error generando PDF general:', error);
     
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ 
+    res.status(500).json({ 
       error: 'Error generando PDF', 
       detalles: error.message
-    }));
+    });
   }
 },
 
