@@ -778,7 +778,7 @@ async generarPDFOrdenSalida(req, res) {
       colY += 30;
 
       // Contenedor principal de información
-      const infoHeight = 100;
+      const infoHeight = 80;
       doc.rect(colX, colY, columnWidth, infoHeight)
          .fillColor('#f8f9fa')
          .fill();
@@ -831,7 +831,7 @@ async generarPDFOrdenSalida(req, res) {
       colY += infoHeight + 15;
 
       // Descripción del traslado - Columna 1
-      doc.rect(colX, colY, columnWidth, 20)
+      doc.rect(colX, colY, columnWidth, 25)
          .fillColor('#e9ecef')
          .fill();
       
@@ -1166,7 +1166,7 @@ async generarPDFOrdenSalida(req, res) {
       colY += infoHeight + 15;
 
       // Descripción del traslado - Columna 2
-      doc.rect(colX, colY, columnWidth, 20)
+      doc.rect(colX, colY, columnWidth, 25)
          .fillColor('#e9ecef')
          .fill();
       
