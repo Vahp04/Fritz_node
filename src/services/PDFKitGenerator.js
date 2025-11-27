@@ -253,11 +253,11 @@ static generateIndividualReport(doc, data) {
     let colY = yPosition;
 
     // Encabezado columna 1
-    doc.rect(colX, colY, columnWidth, 40)
+    doc.rect(colX, colY, columnWidth, 45)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, 40)
+    doc.rect(colX, colY, columnWidth, 45)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
@@ -288,7 +288,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 20;
+    colY += 25;
 
     // Línea separadora
     doc.moveTo(colX, colY)
@@ -297,7 +297,7 @@ static generateIndividualReport(doc, data) {
        .strokeColor('#000000')
        .stroke();
     
-    colY += 15;
+    colY += 20;
 
     // Información del usuario - Columna 1
     doc.rect(colX, colY, columnWidth, 25)
@@ -374,7 +374,7 @@ static generateIndividualReport(doc, data) {
 
     // Descripción si existe - Columna 1
     if (usuario.descripcion) {
-        const descHeight = 40;
+        const descHeight = 30;
         doc.rect(colX, colY, columnWidth, descHeight)
            .fillColor('#f8f9fa')
            .fill();
