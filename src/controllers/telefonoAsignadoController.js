@@ -1039,8 +1039,8 @@ async generarPDFPorUsuario(req, res) {
             columnWidth * 0.20,
             columnWidth * 0.25,
             columnWidth * 0.20,
-            columnWidth * 0.20,
-            columnWidth * 0.15
+            columnWidth * 0.23,
+            columnWidth * 0.12
         ];
         
         let headerX = colX;
@@ -1325,8 +1325,8 @@ async generarPDFPorUsuario(req, res) {
             columnWidth * 0.20,
             columnWidth * 0.25,
             columnWidth * 0.20,
-            columnWidth * 0.20,
-            columnWidth * 0.15
+            columnWidth * 0.23,
+            columnWidth * 0.12
         ];
         
         let headerX = colX;
@@ -1574,18 +1574,16 @@ async generarPDFGeneral(req, res) {
     });
 
     const totalTelefonos = telefonosProcesados.length;
-
-    let titulo = 'Reporte General de Teléfonos Asignados';
-    let subtitulo = 'Todos los teléfonos asignados en el sistema';
-    
-    if (sede_id) {
-      const sede = await prisma.sedes.findUnique({
-        where: { id: parseInt(sede_id) }
-      });
-      titulo = `Reporte de Teléfonos - Sede: ${sede?.nombre || 'Desconocida'}`;
-      subtitulo = `Teléfonos asignados en ${sede?.nombre || 'la sede seleccionada'}`;
-    }
-
+    const data = {
+      titulo: `Reporte de Teléfonos Asignados `,
+      subtitulo: 'Todos los teléfonos asignados en el sistema',
+      fecha: fecha,
+      total: totalTelefonos,
+      telefonos: telefonosProcesados,
+      usuario: usuario,
+      numeroDocumento: numeroDocumento
+    };
+  
     console.log('Generando PDF con PDFKit...');
     
     // Crear documento PDF
@@ -1641,6 +1639,20 @@ async generarPDFGeneral(req, res) {
         doc.text(text, x, y);
       }
     };
+
+    drawText(data.titulo, colX + (columnWidth / 2), colY + 20, {
+      fontSize: 14,
+      color: '#666666',
+      align: 'center',
+      bold: true
+    });
+
+    drawText(data.subtitulo, colX + (columnWidth / 2), colY + 20, {
+      fontSize: 14,
+      color: '#666666',
+      align: 'center',
+      bold: true
+    });
 
     // Función para dibujar logo de texto (como en la referencia)
     const drawTextLogo = () => {
@@ -1738,7 +1750,7 @@ async generarPDFGeneral(req, res) {
 
       // Encabezados de la tabla
       const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
-      const colWidths = [45, 60, 50, 50, 50, 60, 50, 70, 40];
+      const colWidths = [50, 60, 50, 40, 50, 60, 55, 75, 30];
       
       // Fondo del encabezado
       doc.rect(margin, yPosition, pageWidth, 15)
