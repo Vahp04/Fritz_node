@@ -1942,21 +1942,21 @@ async index(req, res) {
         departamento: doc.heightOfString(impresora.departamento ? impresora.departamento.nombre : 'Sin departamento', {
           width: columnWidths.departamento - 6
         }) + padding,
-        ip: doc.heightOfString(impresora.ip || '-', {
+        // CORRECCIÓN: Usar ip_impresora en lugar de ip
+        ip: doc.heightOfString(impresora.ip_impresora || '-', {
           width: columnWidths.ip - 6
         }) + padding,
-        serial: doc.heightOfString(impresora.serial || '-', {
+        // CORRECCIÓN: Usar cereal_impresora en lugar de serial
+        serial: doc.heightOfString(impresora.cereal_impresora || '-', {
           width: columnWidths.serial - 6
         }) + padding,
         ubicacion: doc.heightOfString(impresora.ubicacion || 'Sin ubicación', {
           width: columnWidths.ubicacion - 6
         }) + padding,
-        toner: doc.heightOfString(
-          impresora.toner_actual ? 
-            `${impresora.toner_actual.marca || ''}\n${impresora.toner_actual.modelo || ''}\n${impresora.toner_actual.tipo_equipo ? impresora.toner_actual.tipo_equipo.nombre : ''}` 
-            : 'Sin toner', 
-          { width: columnWidths.toner - 6, lineGap: 1 }
-        ) + padding,
+        // CORRECCIÓN: Usar el campo toner de la impresora directamente
+        toner: doc.heightOfString(impresora.toner || 'Sin toner', {
+          width: columnWidths.toner - 6
+        }) + padding,
         estado: lineHeight + padding
       };
 
@@ -2045,8 +2045,8 @@ async index(req, res) {
       });
       cellX += columnWidths.departamento;
 
-      // IP
-      const ipText = impresora.ip || '-';
+      // IP - CORREGIDO: usar ip_impresora
+      const ipText = impresora.ip_impresora || '-';
       doc.text(ipText, cellX + 3, currentY + 2, {
         width: columnWidths.ip - 6,
         height: alturaFila - 2,
@@ -2054,8 +2054,8 @@ async index(req, res) {
       });
       cellX += columnWidths.ip;
 
-      // Serial
-      const serialText = impresora.serial || '-';
+      // Serial - CORREGIDO: usar cereal_impresora
+      const serialText = impresora.cereal_impresora || '-';
       doc.text(serialText, cellX + 3, currentY + 2, {
         width: columnWidths.serial - 6,
         height: alturaFila - 2,
@@ -2072,19 +2072,12 @@ async index(req, res) {
       });
       cellX += columnWidths.ubicacion;
 
-      // Toner Actual
-      let tonerText = 'Sin toner';
-      if (impresora.toner_actual) {
-        const marcaToner = impresora.toner_actual.marca || '';
-        const modeloToner = impresora.toner_actual.modelo || '';
-        const tipoToner = impresora.toner_actual.tipo_equipo ? impresora.toner_actual.tipo_equipo.nombre : '';
-        tonerText = `${marcaToner}\n${modeloToner}\n${tipoToner}`;
-      }
+      // Toner Actual - CORREGIDO: usar el campo toner directamente
+      const tonerText = impresora.toner || 'Sin toner';
       doc.text(tonerText, cellX + 3, currentY + 2, {
         width: columnWidths.toner - 6,
         height: alturaFila - 2,
-        align: 'left',
-        lineGap: 1
+        align: 'left'
       });
       cellX += columnWidths.toner;
 
