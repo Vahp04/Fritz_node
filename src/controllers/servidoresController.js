@@ -894,7 +894,7 @@ async generarPDFGeneral(req, res) {
 
     yPosition += 40;
 
-    // ===== TABLA CON ALTURA DINÁMICA =====
+    // ===== TABLA CON ALTURA DINÁMICA MEJORADA =====
     if (servidores.length > 0) {
       // Configuración de columnas
       const columnWidths = {
@@ -904,7 +904,7 @@ async generarPDFGeneral(req, res) {
         sede: 55,
         detalles: 150,
         ubicacion: 100,
-        estado: 35
+        estado: 40
       };
 
       const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
@@ -941,37 +941,67 @@ async generarPDFGeneral(req, res) {
 
       currentY += 15;
 
-      // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA
+      // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA MEJORADA
       let currentSede = null;
 
-      servidores.forEach((servidor, index) => {
-        // CALCULAR ALTURA DINÁMICA PARA CADA FILA
-        let maxLines = 1;
+      // Función para calcular líneas de texto
+      const calcularLineasTexto = (texto, anchoMaximo, fontSize = 7) => {
+        if (!texto) return 1;
         
-        // Calcular líneas para cada columna que pueda tener texto multilínea
+        const palabras = texto.split(' ');
+        let lineas = 1;
+        let lineaActual = '';
+        
+        // Configurar fuente temporalmente para calcular
+        const tempSize = doc.fontSize();
+        doc.fontSize(fontSize);
+        
+        for (const palabra of palabras) {
+          const lineaPrueba = lineaActual ? `${lineaActual} ${palabra}` : palabra;
+          const anchoLinea = doc.widthOfString(lineaPrueba);
+          
+          if (anchoLinea <= anchoMaximo) {
+            lineaActual = lineaPrueba;
+          } else {
+            lineas++;
+            lineaActual = palabra;
+          }
+        }
+        
+        // Restaurar tamaño de fuente
+        doc.fontSize(tempSize);
+        return lineas;
+      };
+
+      servidores.forEach((servidor, index) => {
+        // PRE-CALCULAR ALTURA PARA CADA CELDA
+        const anchoEquipo = columnWidths.equipo - 6;
+        const anchoDetalles = columnWidths.detalles - 6;
+        const anchoUbicacion = columnWidths.ubicacion - 6;
+        
+        // Textos
         const equipoText = servidor.stock_equipos ? 
           `${servidor.stock_equipos.marca || ''} ${servidor.stock_equipos.modelo || ''}`.trim() + 
           (servidor.stock_equipos.tipo_equipo ? `\n${servidor.stock_equipos.tipo_equipo.nombre}` : '') 
           : 'No asignado';
         
         const detallesText = servidor.descripcion || 'Sin detalles';
+        const ubicacionText = servidor.ubicacion || '-';
         
-        // Calcular líneas para equipo (puede tener 2 líneas)
-        const equipoLines = equipoText.split('\n').length;
-        maxLines = Math.max(maxLines, equipoLines);
+        // Calcular líneas para cada columna
+        const lineasEquipo = equipoText.split('\n').length;
+        const lineasDetalles = calcularLineasTexto(detallesText, anchoDetalles);
+        const lineasUbicacion = calcularLineasTexto(ubicacionText, anchoUbicacion);
         
-        // Calcular líneas para detalles (hacer wrap automático)
-        const detallesLines = Math.ceil(doc.widthOfString(detallesText, { 
-          width: columnWidths.detalles - 6 
-        }) / (columnWidths.detalles - 6));
-        maxLines = Math.max(maxLines, detallesLines);
+        // Encontrar el máximo de líneas
+        const maxLines = Math.max(lineasEquipo, lineasDetalles, lineasUbicacion, 1);
         
-        // Altura base + altura adicional por líneas extra
-        const baseRowHeight = 10;
-        const extraLineHeight = 8;
-        const rowHeight = baseRowHeight + ((maxLines - 1) * extraLineHeight);
+        // Altura dinámica basada en el contenido
+        const lineaBaseHeight = 10;
+        const alturaPorLineaExtra = 8;
+        const rowHeight = lineaBaseHeight + ((maxLines - 1) * alturaPorLineaExtra);
 
-        // Verificar si necesitamos nueva página (considerando la altura dinámica)
+        // Verificar si necesitamos nueva página
         if (currentY + rowHeight > doc.page.height - doc.page.margins.bottom - 20) {
           doc.addPage();
           currentY = doc.page.margins.top;
@@ -1006,20 +1036,21 @@ async generarPDFGeneral(req, res) {
           currentY += 10;
         }
 
-        // Fondo alternado para filas - DIBUJAR ANTES del texto
+        // Fondo alternado para filas
         if (index % 2 === 0) {
           doc.rect(doc.page.margins.left, currentY, totalTableWidth, rowHeight)
              .fill('#f8f9fa');
         }
 
-        // CONTENIDO DE LAS CELDAS CON ALTURA DINÁMICA
+        // CONTENIDO DE LAS CELDAS - SIN CORTE DE TEXTO
         let cellX = doc.page.margins.left;
 
+        // Configurar fuente base
         doc.fontSize(7)
            .fillColor('black')
            .font('Helvetica');
 
-        // Equipo/Modelo (puede ser multilínea)
+        // Equipo/Modelo (multilínea)
         let equipoFinalText = 'No asignado';
         if (servidor.stock_equipos) {
           const marca = servidor.stock_equipos.marca || '';
@@ -1030,10 +1061,13 @@ async generarPDFGeneral(req, res) {
             equipoFinalText += `\n${tipo}`;
           }
         }
+        
+        // Escribir texto con altura suficiente
+        const alturaTexto = rowHeight - 4;
         doc.text(equipoFinalText, cellX + 3, currentY + 2, {
-          width: columnWidths.equipo - 6,
-          lineGap: 1,
-          height: rowHeight - 4,
+          width: anchoEquipo,
+          height: alturaTexto,
+          lineGap: 2,
           align: 'left'
         });
         cellX += columnWidths.equipo;
@@ -1042,7 +1076,7 @@ async generarPDFGeneral(req, res) {
         const ipText = servidor.ip_servidores || '-';
         doc.text(ipText, cellX + 3, currentY + 2, {
           width: columnWidths.ip - 6,
-          height: rowHeight - 4,
+          height: alturaTexto,
           align: 'left'
         });
         cellX += columnWidths.ip;
@@ -1051,7 +1085,7 @@ async generarPDFGeneral(req, res) {
         const serialText = servidor.cereal_servidores || '-';
         doc.text(serialText, cellX + 3, currentY + 2, {
           width: columnWidths.serial - 6,
-          height: rowHeight - 4,
+          height: alturaTexto,
           align: 'left'
         });
         cellX += columnWidths.serial;
@@ -1060,27 +1094,27 @@ async generarPDFGeneral(req, res) {
         const sedeText = servidor.sede ? servidor.sede.nombre : 'Sin sede';
         doc.text(sedeText, cellX + 3, currentY + 2, {
           width: columnWidths.sede - 6,
-          height: rowHeight - 4,
+          height: alturaTexto,
           align: 'left'
         });
         cellX += columnWidths.sede;
 
-        // Detalles (puede ser multilínea con wrap automático)
-        let detallesFinalText = servidor.descripcion || 'Sin detalles';
-        // No truncamos el texto, dejamos que haga wrap automáticamente
+        // Detalles (texto completo con wrap automático)
+        const detallesFinalText = servidor.descripcion || 'Sin detalles';
         doc.text(detallesFinalText, cellX + 3, currentY + 2, {
-          width: columnWidths.detalles - 6,
-          height: rowHeight - 4,
-          lineGap: 1,
+          width: anchoDetalles,
+          height: alturaTexto,
+          lineGap: 2,
           align: 'left'
         });
         cellX += columnWidths.detalles;
 
-        // Ubicación (una línea)
-        const ubicacionText = servidor.ubicacion || '-';
-        doc.text(ubicacionText, cellX + 3, currentY + 2, {
-          width: columnWidths.ubicacion - 6,
-          height: rowHeight - 4,
+        // Ubicación (puede ser multilínea)
+        const ubicacionFinalText = servidor.ubicacion || '-';
+        doc.text(ubicacionFinalText, cellX + 3, currentY + 2, {
+          width: anchoUbicacion,
+          height: alturaTexto,
+          lineGap: 2,
           align: 'left'
         });
         cellX += columnWidths.ubicacion;
@@ -1100,16 +1134,16 @@ async generarPDFGeneral(req, res) {
         doc.fillColor(estadoColor)
            .text(estadoText, cellX + 3, currentY + 2, {
              width: columnWidths.estado - 6,
-             height: rowHeight - 4,
+             height: alturaTexto,
              align: 'center'
            })
-           .fillColor('black'); // Reset color
+           .fillColor('black');
 
-        // DIBUJAR BORDES DE LA FILA CON LA ALTURA CORRECTA
+        // DIBUJAR BORDES DE LA TABLA
         doc.rect(doc.page.margins.left, currentY, totalTableWidth, rowHeight)
            .stroke('#dee2e6');
 
-        // DIBUJAR BORDES VERTICALES ENTRE COLUMNAS
+        // Bordes verticales entre columnas
         let borderX = doc.page.margins.left;
         headers.forEach(header => {
           doc.moveTo(borderX, currentY)
@@ -1117,6 +1151,7 @@ async generarPDFGeneral(req, res) {
              .stroke('#dee2e6');
           borderX += header.width;
         });
+        
         // Última línea vertical
         doc.moveTo(borderX, currentY)
            .lineTo(borderX, currentY + rowHeight)
