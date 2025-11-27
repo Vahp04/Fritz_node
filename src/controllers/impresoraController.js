@@ -1301,13 +1301,13 @@ async index(req, res) {
       // Configuración de columnas para impresoras
       const columnWidths = {
         nombre: 90,
-        equipo: 90,
+        equipo: 100,
         ip: 70,
-        serial: 100,
+        serial: 115,
         sede: 60,
         departamento: 80,
-        toner: 80,
-        ubicacion: 90,
+        toner: 90,
+        ubicacion: 100,
         estado: 40
       };
 
