@@ -929,7 +929,7 @@ async generarPDFGeneral(req, res) {
         { text: 'IP', width: columnWidths.ip },
         { text: 'SERIAL', width: columnWidths.serial },
         { text: 'SEDE', width: columnWidths.sede },
-        { text: 'USUARIO', width: columnWidths.usuario },
+        { text: 'DESCRIPCION', width: columnWidths.descripcion },
         { text: 'UBICACIÓN', width: columnWidths.ubicacion },
         { text: 'ESTADO', width: columnWidths.estado }
       ];
