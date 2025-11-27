@@ -1169,125 +1169,86 @@ export const usuariosController = {
     }
   },
 
-
-async verReporteIndividual(req, res) {
-    console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
+  async verReporteIndividual(req, res) {
+     console.log('=== GENERAR REPORTE INDIVIDUAL USUARIO ===');
 
     try {
-        const { id } = req.params;
-        console.log(`Viendo reporte para usuario ID: ${id}`);
+      const { id } = req.params;
+      console.log(`Generando reporte para usuario ID: ${id}`);
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                sede: {
-                    select: { nombre: true }
-                },
-                departamento: {
-                    select: { nombre: true }
-                }
-            }
-        });
-
-        if (!usuario) {
-            return res.status(404).json({
-                error: 'Usuario no encontrado'
-            });
+      const usuario = await prisma.usuarios.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          sede: {
+            select: { nombre: true }
+          },
+          departamento: {
+            select: { nombre: true }
+          }
         }
+      });
 
-        const equipos_totales_count = await prisma.equipo_asignado.count({
-            where: { usuarios_id: parseInt(id) }
+      if (!usuario) {
+        return res.status(404).json({
+          error: 'Usuario no encontrado'
         });
+      }
 
-        const equipos_activos_count = await prisma.equipo_asignado.count({
-            where: {
-                usuarios_id: parseInt(id),
-                estado: 'activo'
-            }
-        });
+      const equipos_totales_count = await prisma.equipo_asignado.count({
+        where: { usuarios_id: parseInt(id) }
+      });
 
-        const equipos_devueltos_count = await prisma.equipo_asignado.count({
-            where: {
-                usuarios_id: parseInt(id),
-                estado: 'devuelto'
-            }
-        });
-
-        // Obtener contador de documentos
-        let contador = await prisma.contador_documentos.findUnique({
-            where: { tipo: 'REPORTE_USUARIO' }
-        });
-
-        let numeroDocumento;
-        
-        if (!contador) {
-            contador = await prisma.contador_documentos.create({
-                data: {
-                    tipo: 'REPORTE_USUARIO',
-                    valor: 1
-                }
-            });
-            numeroDocumento = '0001';
-        } else {
-            contador = await prisma.contador_documentos.update({
-                where: { tipo: 'REPORTE_USUARIO' },
-                data: { 
-                    valor: contador.valor + 1,
-                    fecha_actualizacion: new Date()
-                }
-            });
-            numeroDocumento = contador.valor.toString().padStart(4, '0');
+      const equipos_activos_count = await prisma.equipo_asignado.count({
+        where: {
+          usuarios_id: parseInt(id),
+          estado: 'activo'
         }
+      });
 
-        const data = {
-            usuario,
-            titulo: 'Reporte Individual de Usuario',
-            fecha: new Date().toLocaleDateString('es-ES', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }),
-            numeroDocumento: numeroDocumento,
-            estadisticas: {
-                totales: equipos_totales_count,
-                activos: equipos_activos_count,
-                devueltos: equipos_devueltos_count
-            }
-        };
+      const equipos_devueltos_count = await prisma.equipo_asignado.count({
+        where: {
+          usuarios_id: parseInt(id),
+          estado: 'devuelto'
+        }
+      });
 
-        console.log('Generando PDF con PDFKitGenerator...');
-        
-        // Generar PDF usando PDFKitGenerator - pasar los datos directamente
-        const pdfBuffer = await PDFKitGenerator.generatePDF(null, {
-            title: 'Reporte Individual de Usuario',
-            data: data,
-            format: 'Letter',
-            landscape: true,
-            template: 'reporte-usuarios-individual' // Si usas plantillas
-        });
+      const data = {
+        usuario,
+        titulo: 'Reporte Individual de Usuario',
+        fecha: new Date().toLocaleString('es-ES'),
+        numeroDocumento: `${usuario.id}-${Date.now().toString().slice(-6)}`,
+        estadisticas: {
+          totales: equipos_totales_count,
+          activos: equipos_activos_count,
+          devueltos: equipos_devueltos_count
+        }
+      };
 
-        console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
-        console.log(`Número de documento: USR-${numeroDocumento}`);
+      console.log(`Datos preparados para reporte del usuario: ${usuario.nombre} ${usuario.apellido}`);
 
-        // Configurar headers de respuesta
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
+      const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
 
-        res.end(pdfBuffer);
+      const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
+        format: 'Letter',
+        landscape: true
+      });
+
+      console.log('=== REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
+      res.end(pdfBuffer);
 
     } catch (error) {
-        console.error('ERROR viendo reporte individual:', error);
-        if (!res.headersSent) {
-            res.status(500).json({
-                error: 'Error al cargar el reporte: ' + error.message
-            });
-        }
+      console.error('ERROR generando reporte individual:', error);
+      res.status(500).json({
+        error: 'Error al generar el reporte: ' + error.message
+      });
     }
-}
+  }
 };
