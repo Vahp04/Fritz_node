@@ -831,7 +831,7 @@ async generarPDFOrdenSalida(req, res) {
       colY += infoHeight + 15;
 
       // Descripción del traslado - Columna 1
-      doc.rect(colX, colY, columnWidth, 25)
+      doc.rect(colX, colY, columnWidth, 20)
          .fillColor('#e9ecef')
          .fill();
       
@@ -912,7 +912,7 @@ async generarPDFOrdenSalida(req, res) {
               let cellX = colX;
 
               doc.fillColor('#333')
-                 .fontSize(6);
+                 .fontSize(8);
 
               // Equipo
               const equipoTexto = `${equipo.stock_equipos.marca || 'N/A'} ${equipo.stock_equipos.modelo || ''}`;
@@ -1166,7 +1166,7 @@ async generarPDFOrdenSalida(req, res) {
       colY += infoHeight + 15;
 
       // Descripción del traslado - Columna 2
-      doc.rect(colX, colY, columnWidth, 25)
+      doc.rect(colX, colY, columnWidth, 20)
          .fillColor('#e9ecef')
          .fill();
       
