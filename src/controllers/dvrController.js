@@ -1741,10 +1741,48 @@ export const dvrController = {
 
     currentY += 15;
 
-    // CONTENIDO DE LA TABLA
+    // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA
     dvrs.forEach((dvr, index) => {
+      // Calcular altura necesaria para esta fila
+      const lineHeight = 10;
+      const padding = 4;
+      
+      // Calcular alturas para cada columna con texto multilínea
+      const alturas = {
+        id: lineHeight + padding,
+        descripcion: doc.heightOfString(dvr.descripcion || '', {
+          width: columnWidths.descripcion - 6
+        }) + padding,
+        equipo: doc.heightOfString(
+          dvr.stock_equipos ? 
+            `${dvr.stock_equipos.marca || ''}\n${dvr.stock_equipos.modelo || ''}\n${dvr.stock_equipos.tipo_equipo ? dvr.stock_equipos.tipo_equipo.nombre : ''}` 
+            : 'No asignado', 
+          { width: columnWidths.equipo - 6, lineGap: 1 }
+        ) + padding,
+        ip: doc.heightOfString(dvr.ip_dvr || '-', {
+          width: columnWidths.ip - 6
+        }) + padding,
+        serial: doc.heightOfString(dvr.cereal_dvr || '-', {
+          width: columnWidths.serial - 6
+        }) + padding,
+        mac: doc.heightOfString(dvr.mac_dvr || '-', {
+          width: columnWidths.mac - 6
+        }) + padding,
+        switch: doc.heightOfString(dvr.switch || '-', {
+          width: columnWidths.switch - 6
+        }) + padding,
+        camaras: lineHeight + padding,
+        ubicacion: doc.heightOfString(dvr.ubicacion || 'Sin ubicación', {
+          width: columnWidths.ubicacion - 6
+        }) + padding,
+        estado: lineHeight + padding
+      };
+
+      // La altura de la fila será la máxima altura de todas las columnas
+      const alturaFila = Math.max(...Object.values(alturas));
+
       // Verificar si necesitamos nueva página
-      if (currentY > doc.page.height - doc.page.margins.bottom - 20) {
+      if (currentY + alturaFila > doc.page.height - doc.page.margins.bottom - 20) {
         doc.addPage();
         currentY = doc.page.margins.top;
         
@@ -1769,7 +1807,7 @@ export const dvrController = {
 
       // Fondo alternado para filas
       if (index % 2 === 0) {
-        doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
+        doc.rect(doc.page.margins.left, currentY, totalTableWidth, alturaFila)
            .fill('#f8f9fa');
       }
 
@@ -1784,7 +1822,9 @@ export const dvrController = {
       // ID
       doc.font('Helvetica-Bold')
          .text(dvr.id.toString(), cellX + 3, currentY + 2, {
-           width: columnWidths.id - 6
+           width: columnWidths.id - 6,
+           height: alturaFila - 2,
+           align: 'center'
          })
          .font('Helvetica');
       cellX += columnWidths.id;
@@ -1793,7 +1833,9 @@ export const dvrController = {
       const descripcionText = dvr.descripcion || '';
       doc.font('Helvetica-Bold')
          .text(descripcionText, cellX + 3, currentY + 2, {
-           width: columnWidths.descripcion - 6
+           width: columnWidths.descripcion - 6,
+           height: alturaFila - 2,
+           align: 'left'
          })
          .font('Helvetica');
       cellX += columnWidths.descripcion;
@@ -1808,6 +1850,8 @@ export const dvrController = {
       }
       doc.text(equipoText, cellX + 3, currentY + 2, {
         width: columnWidths.equipo - 6,
+        height: alturaFila - 2,
+        align: 'left',
         lineGap: 1
       });
       cellX += columnWidths.equipo;
@@ -1815,28 +1859,36 @@ export const dvrController = {
       // IP
       const ipText = dvr.ip_dvr || '-';
       doc.text(ipText, cellX + 3, currentY + 2, {
-        width: columnWidths.ip - 6
+        width: columnWidths.ip - 6,
+        height: alturaFila - 2,
+        align: 'left'
       });
       cellX += columnWidths.ip;
 
       // Serial
       const serialText = dvr.cereal_dvr || '-';
       doc.text(serialText, cellX + 3, currentY + 2, {
-        width: columnWidths.serial - 6
+        width: columnWidths.serial - 6,
+        height: alturaFila - 2,
+        align: 'left'
       });
       cellX += columnWidths.serial;
 
       // MAC
       const macText = dvr.mac_dvr || '-';
       doc.text(macText, cellX + 3, currentY + 2, {
-        width: columnWidths.mac - 6
+        width: columnWidths.mac - 6,
+        height: alturaFila - 2,
+        align: 'left'
       });
       cellX += columnWidths.mac;
 
       // Switch
       const switchText = dvr.switch || '-';
       doc.text(switchText, cellX + 3, currentY + 2, {
-        width: columnWidths.switch - 6
+        width: columnWidths.switch - 6,
+        height: alturaFila - 2,
+        align: 'left'
       });
       cellX += columnWidths.switch;
 
@@ -1845,6 +1897,7 @@ export const dvrController = {
       doc.font('Helvetica-Bold')
          .text(camarasText, cellX + 3, currentY + 2, {
            width: columnWidths.camaras - 6,
+           height: alturaFila - 2,
            align: 'center'
          })
          .font('Helvetica');
@@ -1853,7 +1906,9 @@ export const dvrController = {
       // Ubicación
       const ubicacionText = dvr.ubicacion || 'Sin ubicación';
       doc.text(ubicacionText, cellX + 3, currentY + 2, {
-        width: columnWidths.ubicacion - 6
+        width: columnWidths.ubicacion - 6,
+        height: alturaFila - 2,
+        align: 'left'
       });
       cellX += columnWidths.ubicacion;
 
@@ -1888,18 +1943,19 @@ export const dvrController = {
           break;
       }
       
-      // Dibujar badge de estado
-      const badgeWidth = columnWidths.estado - 6;
+      // Dibujar badge de estado centrado verticalmente
+      const badgeWidth = columnWidths.estado - 10;
       const badgeHeight = 8;
+      const badgeY = currentY + (alturaFila / 2) - (badgeHeight / 2);
       
-      doc.rect(cellX + 3, currentY + 1, badgeWidth, badgeHeight)
+      doc.rect(cellX + 5, badgeY, badgeWidth, badgeHeight)
          .fill(estadoBg)
          .stroke(estadoBorder);
       
       doc.fontSize(6)
          .fillColor(estadoColor)
          .font('Helvetica-Bold')
-         .text(estadoText.toUpperCase(), cellX + 3, currentY + 2, {
+         .text(estadoText.toUpperCase(), cellX + 5, badgeY + 1, {
            width: badgeWidth,
            align: 'center'
          })
@@ -1907,10 +1963,24 @@ export const dvrController = {
          .fontSize(7);
 
       // DIBUJAR BORDES DE LA TABLA
-      doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
+      // Bordes verticales entre celdas
+      let borderX = doc.page.margins.left;
+      headers.forEach((header, i) => {
+        if (i > 0) {
+          doc.moveTo(borderX, currentY)
+             .lineTo(borderX, currentY + alturaFila)
+             .strokeColor('#dee2e6')
+             .lineWidth(0.5)
+             .stroke();
+        }
+        borderX += header.width;
+      });
+
+      // Borde exterior de la fila
+      doc.rect(doc.page.margins.left, currentY, totalTableWidth, alturaFila)
          .stroke('#dee2e6');
 
-      currentY += 12;
+      currentY += alturaFila;
     });
 
     // ===== FOOTER =====

@@ -1875,11 +1875,11 @@ async index(req, res) {
     const columnWidths = {
       id: 25,
       nombre: 80,
-      equipo: 100,
+      equipo: 110,
       departamento: 80,
       ip: 80,
-      serial: 90,
-      ubicacion: 80,
+      serial: 100,
+      ubicacion: 100,
       toner: 80,
       estado: 50
     };
