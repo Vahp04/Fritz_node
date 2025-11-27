@@ -493,7 +493,7 @@ static generateIndividualReport(doc, data) {
     colY += statsHeight + 20;
 
     // Firmas - Columna 1
-    const firmaHeight = 60;
+    const firmaHeight = 65;
     const firmaWidth = (columnWidth - 20) / 2;
 
     // Firma Usuario
@@ -576,11 +576,11 @@ static generateIndividualReport(doc, data) {
     colY = yPosition;
 
     // Encabezado columna 2 (idéntico a columna 1)
-    doc.rect(colX, colY, columnWidth, 25)
+    doc.rect(colX, colY, columnWidth, 50)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, 25)
+    doc.rect(colX, colY, columnWidth, 50)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
@@ -601,7 +601,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 30;
+    colY += 40;
 
     doc.fontSize(10)
        .font('Helvetica')
@@ -620,7 +620,7 @@ static generateIndividualReport(doc, data) {
        .strokeColor('#000000')
        .stroke();
     
-    colY += 15;
+    colY += 20;
 
     // Información del usuario - Columna 2 (idéntica a columna 1)
     doc.rect(colX, colY, columnWidth, 25)
@@ -663,7 +663,7 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(info.value, colX + 70, currentY, {
+           .text(info.value, colX + 90, currentY, {
              width: columnWidth - 80,
              align: 'left'
            });
@@ -684,12 +684,12 @@ static generateIndividualReport(doc, data) {
 
     // Descripción si existe - Columna 2
     if (usuario.descripcion) {
-        const descHeight = 40;
-        doc.rect(colX, colY, columnWidth, descHeight)
+        const descHeight = 20;
+        doc.rect(colX, colY, columnWidth, 25, descHeight)
            .fillColor('#f8f9fa')
            .fill();
         
-        doc.rect(colX, colY, colX + columnWidth, colY + descHeight)
+        doc.rect(colX, colY, columnWidth, 25, descHeight)
            .strokeColor('#dee2e6')
            .lineWidth(1)
            .stroke();
