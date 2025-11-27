@@ -2721,12 +2721,12 @@ async verPdfPorUsuario(req, res) {
                    align: 'center' 
                });
             
-            colY += 55;
+            colY += 50;
         }
 
         // Firmas - Columna 2
         // Firma Usuario
-        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+        doc.rect(colX + 5, colY + 5, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
