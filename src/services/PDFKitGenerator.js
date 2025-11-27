@@ -253,11 +253,11 @@ static generateIndividualReport(doc, data) {
     let colY = yPosition;
 
     // Encabezado columna 1
-    doc.rect(colX, colY, columnWidth, 30)
+    doc.rect(colX, colY, columnWidth, 40)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, 25)
+    doc.rect(colX, colY, columnWidth, 40)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
@@ -288,7 +288,7 @@ static generateIndividualReport(doc, data) {
          align: 'center' 
        });
 
-    colY += 30;
+    colY += 20;
 
     // Línea separadora
     doc.moveTo(colX, colY)
@@ -353,7 +353,7 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(info.value, colX + 80, currentY, {
+           .text(info.value, colX + 90, currentY, {
              width: columnWidth - 80,
              align: 'left'
            });
