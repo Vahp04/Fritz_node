@@ -725,7 +725,6 @@ export const servidoresController = {
     }
   },
 
-// Versión de prueba mínima
 async generarPDFGeneral(req, res) {
   try {
     console.log('Generando PDF general de servidores...');
@@ -747,7 +746,7 @@ async generarPDFGeneral(req, res) {
 
     console.log(`${servidores.length} servidores encontrados`);
 
-    // Crear documento PDF en formato VERTICAL
+    // Crear documento PDF
     const doc = new PDFDocument({
       size: 'LETTER',
       layout: 'portrait',
@@ -774,7 +773,6 @@ async generarPDFGeneral(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
-    // Primero dibujar el texto
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
@@ -785,9 +783,8 @@ async generarPDFGeneral(req, res) {
     
     yPosition += 18;
     
-    // Título principal
     doc.fontSize(16)
-       .fillColor('black') // CORREGIDO: era '#0000'
+       .fillColor('black')
        .text('Reporte General de Servidores', doc.page.margins.left, yPosition, { 
          align: 'center',
          width: pageWidth
@@ -795,9 +792,8 @@ async generarPDFGeneral(req, res) {
     
     yPosition += 20;
     
-    // Subtítulo
     doc.fontSize(10)
-       .fillColor('#666666') // CORREGIDO: especificar color completo
+       .fillColor('#666666')
        .font('Helvetica')
        .text('Sistema de Gestión de Servidores', doc.page.margins.left, yPosition, {
          align: 'center',
@@ -817,17 +813,15 @@ async generarPDFGeneral(req, res) {
     const hora = new Date().toLocaleTimeString('es-ES');
     const sedesUnicas = [...new Set(servidores.map(s => s.sede_id).filter(Boolean))];
 
-    // Fondo del metadata - DIBUJAR POR SEPARADO
+    // Fondo del metadata
     doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
        .fill('#f8f9fa');
     
-    // Borde
     doc.rect(doc.page.margins.left, yPosition, pageWidth, 25)
        .stroke('#DC2626');
     
     yPosition += 8;
 
-    // Metadata en 3 columnas
     const colWidth = pageWidth / 3;
     
     doc.fontSize(8)
@@ -875,15 +869,12 @@ async generarPDFGeneral(req, res) {
     stats.forEach((stat, index) => {
       const x = doc.page.margins.left + (statWidth * index);
       
-      // Fondo de la tarjeta
       doc.rect(x, statY, statWidth - 2, statHeight)
          .fill('#e9ecef');
       
-      // Borde
       doc.rect(x, statY, statWidth - 2, statHeight)
          .stroke('#cccccc');
       
-      // Número
       doc.fontSize(12)
          .fillColor(stat.color)
          .font('Helvetica-Bold')
@@ -892,7 +883,6 @@ async generarPDFGeneral(req, res) {
            align: 'center'
          });
       
-      // Etiqueta
       doc.fontSize(7)
          .fillColor('#333333')
          .font('Helvetica')
@@ -931,15 +921,13 @@ async generarPDFGeneral(req, res) {
 
       let currentY = yPosition;
 
-      // DIBUJAR ENCABEZADOS DE TABLA - FORMA CORRECTA
+      // DIBUJAR ENCABEZADOS
       let currentX = doc.page.margins.left;
       
       headers.forEach(header => {
-        // Fondo del encabezado
         doc.rect(currentX, currentY, header.width, 15)
            .fill('#DC2626');
         
-        // Texto del encabezado (BLANCO sobre fondo rojo)
         doc.fontSize(7)
            .fillColor('white')
            .font('Helvetica-Bold')
@@ -953,11 +941,7 @@ async generarPDFGeneral(req, res) {
 
       currentY += 15;
 
-      // CONTENIDO DE LA TABLA
-      doc.fontSize(6)
-         .fillColor('black')
-         .font('Helvetica');
-
+      // CONTENIDO DE LA TABLA - CORREGIDO
       let currentSede = null;
 
       servidores.forEach((servidor, index) => {
@@ -996,14 +980,19 @@ async generarPDFGeneral(req, res) {
           currentY += 10;
         }
 
-        // Fondo alternado para filas
+        // Fondo alternado para filas - DIBUJAR ANTES del texto
         if (index % 2 === 0) {
           doc.rect(doc.page.margins.left, currentY, totalTableWidth, 10)
              .fill('#f8f9fa');
         }
 
-        // CONTENIDO DE LAS CELDAS
+        // CONTENIDO DE LAS CELDAS - CORREGIDO
         let cellX = doc.page.margins.left;
+
+        // IMPORTANTE: Configurar la fuente ANTES de escribir el texto
+        doc.fontSize(6)
+           .fillColor('black')
+           .font('Helvetica');
 
         // Equipo/Modelo
         let equipoText = 'No asignado';
@@ -1064,7 +1053,6 @@ async generarPDFGeneral(req, res) {
         const estadoText = servidor.estado ? 
           servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1) : '-';
         
-        // Color según estado
         let estadoColor = 'black';
         switch(servidor.estado) {
           case 'activo': estadoColor = '#065f46'; break;
@@ -1073,13 +1061,19 @@ async generarPDFGeneral(req, res) {
           case 'desuso': estadoColor = '#be185d'; break;
         }
         
+        // IMPORTANTE: Configurar color ANTES de escribir
         doc.fillColor(estadoColor)
            .text(estadoText, cellX + 3, currentY + 2, {
-             width: columnWidths.estado - 6
+             width: columnWidths.estado - 6,
+             align: 'center'
            })
            .fillColor('black'); // Reset color
 
         currentY += 10;
+
+        // DIBUJAR BORDES DE LAS FILAS (opcional, para mejor visualización)
+        doc.rect(doc.page.margins.left, currentY - 10, totalTableWidth, 10)
+           .stroke('#dee2e6');
       });
 
     } else {
@@ -1104,14 +1098,12 @@ async generarPDFGeneral(req, res) {
     // ===== FOOTER =====
     const footerY = doc.page.height - doc.page.margins.bottom - 15;
     
-    // Línea separadora
     doc.moveTo(doc.page.margins.left, footerY - 8)
        .lineTo(doc.page.margins.left + pageWidth, footerY - 8)
        .strokeColor('#dddddd')
        .lineWidth(1)
        .stroke();
     
-    // Texto del footer
     doc.fontSize(8)
        .fillColor('#666666')
        .text('FRITZ C.A - Sistema de Gestión de Servidores | Reporte generado automáticamente', 
