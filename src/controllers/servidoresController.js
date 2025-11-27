@@ -903,7 +903,7 @@ async generarPDFGeneral(req, res) {
         serial: 75,
         sede: 55,
         detalles: 150,
-        ubicacion: 100,
+        ubicacion: 120,
         estado: 40
       };
 
