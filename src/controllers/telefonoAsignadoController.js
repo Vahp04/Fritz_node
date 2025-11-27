@@ -1574,18 +1574,24 @@ async generarPDFGeneral(req, res) {
     });
 
     const totalTelefonos = telefonosProcesados.length;
-    const data = {
-      titulo: `Reporte de Teléfonos Asignados `,
-      subtitulo: 'Todos los teléfonos asignados en el sistema',
-      
-    };
-  
+
+    let titulo = 'Reporte General de Teléfonos Asignados';
+    let subtitulo = 'Todos los teléfonos asignados en el sistema';
+    
+    if (sede_id) {
+      const sede = await prisma.sedes.findUnique({
+        where: { id: parseInt(sede_id) }
+      });
+      titulo = `Reporte de Teléfonos - Sede: ${sede?.nombre || 'Desconocida'}`;
+      subtitulo = `Teléfonos asignados en ${sede?.nombre || 'la sede seleccionada'}`;
+    }
+
     console.log('Generando PDF con PDFKit...');
     
     // Crear documento PDF
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'portrait', // Cambiado a portrait como la referencia
+      layout: 'portrait',
       margins: {
         top: 50,
         bottom: 50,
@@ -1611,64 +1617,34 @@ async generarPDFGeneral(req, res) {
     const pageWidth = 500;
     let yPosition = margin;
 
-    // Función auxiliar para dibujar texto con estilo
-    const drawText = (text, x, y, options = {}) => {
-      const {
-        fontSize = 10,
-        font = 'Helvetica',
-        color = '#000000',
-        align = 'left',
-        bold = false
-      } = options;
-
-      doc.font(bold ? font + '-Bold' : font)
-         .fontSize(fontSize)
-         .fillColor(color);
-
-      if (align === 'center') {
-        const textWidth = doc.widthOfString(text);
-        doc.text(text, x - textWidth / 2, y);
-      } else if (align === 'right') {
-        const textWidth = doc.widthOfString(text);
-        doc.text(text, x - textWidth, y);
-      } else {
-        doc.text(text, x, y);
-      }
-    };
-
-    drawText(data.titulo, colX + (columnWidth / 2), colY + 20, {
-      fontSize: 14,
-      color: '#666666',
-      align: 'center',
-      bold: true
+    // DECLARAR fecha AL INICIO para que esté disponible en todo el scope
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
 
-    drawText(data.subtitulo, colX + (columnWidth / 2), colY + 20, {
-      fontSize: 14,
-      color: '#666666',
-      align: 'center',
-      bold: true
-    });
-
-    // Función para dibujar logo de texto (como en la referencia)
-    const drawTextLogo = () => {
-      doc.fontSize(18)
-         .font('Helvetica-Bold')
-         .fillColor('#DC2626')
-         .text('FRITZ C.A', margin + (pageWidth / 2), yPosition, { align: 'center' });
-    };
-
-    // HEADER - Similar a la referencia
-    drawTextLogo();
+    // HEADER - Usando métodos directos de PDFDocument
+    // Título principal
+    doc.fontSize(18)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', margin, yPosition, { 
+         width: pageWidth, 
+         align: 'center' 
+       });
     
     yPosition += 25;
 
     // Subtítulo
-    drawText('Reporte de Teléfonos', margin + (pageWidth / 2), yPosition, {
-      fontSize: 12,
-      color: '#666666',
-      align: 'center'
-    });
+    doc.fontSize(12)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text(titulo, margin, yPosition, { 
+         width: pageWidth, 
+         align: 'center' 
+       });
     
     yPosition += 30;
 
@@ -1681,72 +1657,53 @@ async generarPDFGeneral(req, res) {
     
     yPosition += 20;
 
-    // INFORMACIÓN GENERAL - Similar a la referencia
+    // INFORMACIÓN GENERAL
     doc.rect(margin, yPosition, pageWidth, 60)
        .fillColor('#f5f5f5')
        .fill();
     
     // Fecha de generación
-    const fecha = new Date().toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    drawText('Fecha de generación:', margin + 10, yPosition + 10, {
-      fontSize: 10,
-      color: '#333333',
-      bold: true
-    });
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Fecha de generación:', margin + 10, yPosition + 10);
     
-    drawText(fecha, margin + 200, yPosition + 10, {
-      fontSize: 10,
-      color: '#333333'
-    });
+    doc.font('Helvetica')
+       .text(fecha, margin + 200, yPosition + 10);
     
     // Total de teléfonos
-    drawText('Total de teléfonos:', margin + 10, yPosition + 25, {
-      fontSize: 10,
-      color: '#333333',
-      bold: true
-    });
+    doc.font('Helvetica-Bold')
+       .text('Total de teléfonos:', margin + 10, yPosition + 25);
     
-    drawText(totalTelefonos.toString(), margin + 200, yPosition + 25, {
-      fontSize: 10,
-      color: '#333333'
-    });
+    doc.font('Helvetica')
+       .text(totalTelefonos.toString(), margin + 200, yPosition + 25);
     
     // Teléfonos asignados
     const telefonosAsignadosCount = telefonosProcesados.filter(t => t.usuario && t.usuario.nombre).length;
-    drawText('Teléfonos asignados:', margin + 10, yPosition + 40, {
-      fontSize: 10,
-      color: '#333333',
-      bold: true
-    });
+    doc.font('Helvetica-Bold')
+       .text('Teléfonos asignados:', margin + 10, yPosition + 40);
     
-    drawText(telefonosAsignadosCount.toString(), margin + 200, yPosition + 40, {
-      fontSize: 10,
-      color: '#333333'
-    });
+    doc.font('Helvetica')
+       .text(telefonosAsignadosCount.toString(), margin + 200, yPosition + 40);
     
     yPosition += 70;
 
-    // TABLA DE TELÉFONOS - Similar a la referencia
+    // TABLA DE TELÉFONOS
     if (telefonosProcesados.length > 0) {
       // Título de la tabla
-      drawText('LISTA DE TELÉFONOS ASIGNADOS', margin + (pageWidth / 2), yPosition, {
-        fontSize: 12,
-        color: '#000000',
-        align: 'center',
-        bold: true
-      });
+      doc.fontSize(12)
+         .font('Helvetica-Bold')
+         .fillColor('#000000')
+         .text('LISTA DE TELÉFONOS ASIGNADOS', margin, yPosition, { 
+           width: pageWidth, 
+           align: 'center' 
+         });
       
       yPosition += 20;
 
       // Encabezados de la tabla
       const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
-      const colWidths = [50, 60, 50, 40, 50, 60, 55, 75, 30];
+      const colWidths = [45, 60, 50, 50, 50, 60, 50, 70, 40];
       
       // Fondo del encabezado
       doc.rect(margin, yPosition, pageWidth, 15)
@@ -1755,11 +1712,14 @@ async generarPDFGeneral(req, res) {
       
       // Texto del encabezado
       let x = margin;
+      doc.fontSize(8)
+         .font('Helvetica-Bold')
+         .fillColor('#ffffff');
+      
       headers.forEach((header, i) => {
-        drawText(header, x + 2, yPosition + 4, {
-          fontSize: 8,
-          color: '#ffffff',
-          bold: true
+        doc.text(header, x + 2, yPosition + 4, {
+          width: colWidths[i] - 4,
+          align: 'left'
         });
         x += colWidths[i];
       });
@@ -1779,11 +1739,14 @@ async generarPDFGeneral(req, res) {
              .fill();
           
           let headerX = margin;
+          doc.fontSize(8)
+             .font('Helvetica-Bold')
+             .fillColor('#ffffff');
+          
           headers.forEach((header, i) => {
-            drawText(header, headerX + 2, yPosition + 4, {
-              fontSize: 8,
-              color: '#ffffff',
-              bold: true
+            doc.text(header, headerX + 2, yPosition + 4, {
+              width: colWidths[i] - 4,
+              align: 'left'
             });
             headerX += colWidths[i];
           });
@@ -1818,6 +1781,9 @@ async generarPDFGeneral(req, res) {
         ];
 
         let x = margin;
+        doc.fontSize(7)
+           .font('Helvetica');
+        
         rowData.forEach((text, i) => {
           // Aplicar color especial para estado
           if (i === 8) {
@@ -1826,12 +1792,10 @@ async generarPDFGeneral(req, res) {
             doc.fillColor('#000000');
           }
           
-          doc.fontSize(7)
-             .font('Helvetica')
-             .text(text, x + 2, yPosition + 2, {
-               width: colWidths[i] - 4,
-               align: 'left'
-             });
+          doc.text(text, x + 2, yPosition + 2, {
+            width: colWidths[i] - 4,
+            align: 'left'
+          });
           
           x += colWidths[i];
         });
@@ -1850,24 +1814,26 @@ async generarPDFGeneral(req, res) {
     } else {
       // Mensaje cuando no hay teléfonos
       yPosition += 20;
-      drawText('No hay teléfonos registrados', margin + (pageWidth / 2), yPosition, {
-        fontSize: 14,
-        color: '#666666',
-        align: 'center',
-        bold: true
-      });
+      doc.fontSize(14)
+         .font('Helvetica-Bold')
+         .fillColor('#666666')
+         .text('No hay teléfonos registrados', margin, yPosition, { 
+           width: pageWidth, 
+           align: 'center' 
+         });
       
       yPosition += 20;
-      drawText('No se encontraron teléfonos con los filtros aplicados', margin + (pageWidth / 2), yPosition, {
-        fontSize: 10,
-        color: '#666666',
-        align: 'center'
-      });
+      doc.fontSize(10)
+         .font('Helvetica')
+         .text('No se encontraron teléfonos con los filtros aplicados', margin, yPosition, { 
+           width: pageWidth, 
+           align: 'center' 
+         });
       
       yPosition += 40;
     }
 
-    // PIE DE PÁGINA - Similar a la referencia
+    // PIE DE PÁGINA
     const footerY = 700;
     doc.moveTo(margin, footerY)
        .lineTo(margin + pageWidth, footerY)
@@ -1875,16 +1841,17 @@ async generarPDFGeneral(req, res) {
        .strokeColor('#cccccc')
        .stroke();
     
-    drawText('Sistema de Gestión de Teléfonos - FRITZ C.A', margin + (pageWidth / 2), footerY + 10, {
-      fontSize: 8,
-      color: '#666666',
-      align: 'center'
-    });
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Sistema de Gestión de Teléfonos - FRITZ C.A', margin, footerY + 10, { 
+         width: pageWidth, 
+         align: 'center' 
+       });
     
-    drawText(`Generado el: ${fecha}`, margin + (pageWidth / 2), footerY + 20, {
-      fontSize: 8,
-      color: '#666666',
-      align: 'center'
+    doc.text(`Generado el: ${fecha}`, margin, footerY + 20, { 
+      width: pageWidth, 
+      align: 'center' 
     });
 
     // Finalizar documento
