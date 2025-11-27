@@ -687,7 +687,7 @@ async generarPDFOrdenSalida(req, res) {
       const doc = new PDFDocument({ 
         margin: 20,
         size: 'LETTER',
-        layout: 'portrait' // Cambiado a portrait
+        layout: 'landscape' 
       });
 
       const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
@@ -964,15 +964,15 @@ async generarPDFOrdenSalida(req, res) {
       doc.fontSize(8)
          .font('Helvetica')
          .fillColor('#666666')
-         .text('• Cualquier novedad informar al Departamento de Tecnología', colX + 10, colY, { width: columnWidth - 15 });
+         .text('Observación: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 10;
 
-      doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', colX + 10, colY, { width: columnWidth - 15 });
+      doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 10;
 
-      doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', colX + 10, colY, { width: columnWidth - 15 });
+      doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 20;
 
