@@ -1674,6 +1674,60 @@
             }
         }
 
+        async function actualizarImpresora() {
+    const form = document.getElementById('editImpresoraForm');
+    const formData = new FormData(form);
+    
+    const datos = {
+        id: formData.get('id'),
+        nombre: formData.get('nombre'),
+        descripcion: formData.get('descripcion'),
+        ip_impresora: formData.get('ip_impresora'),
+        cereal_impresora: formData.get('cereal_impresora'),
+        sede_id: formData.get('sede_id'),
+        departamento_id: formData.get('departamento_id'),
+        ubicacion: formData.get('ubicacion'),
+        estado_impresora: formData.get('estado_impresora'),
+        toner: formData.get('toner')
+    };
+
+    console.log('Datos a enviar para actualizar:', datos);
+
+    try {
+        const response = await fetch(`/api/impresoras/${datos.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datos)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Error del servidor');
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Éxito',
+            text: data.message
+        });
+        
+        $('#editImpresoraModal').modal('hide');
+        await cargarImpresoras(currentPage);
+        
+    } catch (error) {
+        console.error('Error al actualizar:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'Error al actualizar la impresora'
+        });
+    }
+}
+
         function actualizarResumen(estadisticas) {
     if (!estadisticas) {
         const total = impresoras.length;
