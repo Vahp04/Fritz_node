@@ -898,12 +898,12 @@ async generarPDFGeneral(req, res) {
     if (servidores.length > 0) {
       // Configuración de columnas
       const columnWidths = {
-        equipo: 90,
+        equipo: 100,
         ip: 60,
         serial: 75,
         sede: 55,
-        detalles: 150,
-        ubicacion: 120,
+        detalles: 180,
+        ubicacion: 140,
         estado: 40
       };
 
