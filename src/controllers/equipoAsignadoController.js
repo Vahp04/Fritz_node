@@ -1914,423 +1914,874 @@ async verPdfPorUsuario(req, res) {
         const equiposDevueltos = equiposProcesados.filter(a => a.estado === 'devuelto').length;
         const equiposObsoletos = equiposProcesados.filter(a => a.estado === 'obsoleto').length;
 
+        const fecha = new Date().toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
         const data = {
+            titulo: `Reporte de Equipos Asignados - ${usuario.nombre} ${usuario.apellido}`,
+            fecha: fecha,
+            total: totalEquipos,
+            equipos: equiposProcesados,
             usuario: usuario,
-            equiposAsignados: equiposProcesados,
-            fechaGeneracion: new Date().toLocaleString('es-ES'),
-            totalEquipos: totalEquipos,
-            equiposActivos: equiposActivos,
-            equiposDevueltos: equiposDevueltos,
-            equiposObsoletos: equiposObsoletos,
-            formatoDuplicado: true,
-            numeroRegistro: numeroRegistro
+            numeroRegistro: numeroRegistro,
+            estadisticas: {
+                totales: totalEquipos,
+                activos: equiposActivos,
+                devueltos: equiposDevueltos,
+                obsoletos: equiposObsoletos
+            }
         };
 
-        console.log('Generando PDF con PDFKit...');
-
+        console.log('Generando PDF con PDFDocument...');
+        
         // Crear documento PDF
         const doc = new PDFDocument({ 
             margin: 20,
             size: 'LETTER',
-            layout: 'landscape'
+            layout: 'portrait'
         });
 
-        // Configurar headers ANTES de pipe
+        // Configurar headers
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="reporte-equipos-${usuario.nombre}-${usuario.apellido}.pdf"`);
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
 
         // Pipe el PDF a la respuesta
         doc.pipe(res);
 
-        // Funciones helper para estados
-        function getEstadoTexto(estado) {
-            switch(estado) {
-                case 'activo':
-                    return 'Activo';
-                case 'devuelto':
-                    return 'Devuelto';
-                case 'obsoleto':
-                    return 'Obsoleto';
-                default:
-                    return estado.charAt(0).toUpperCase() + estado.slice(1);
-            }
-        }
+        // Dimensiones
+        const margin = 20;
+        let yPosition = margin;
+        const pageWidth = doc.page.width - (margin * 2);
+        const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
 
-        function getEstadoColor(estado) {
-            switch(estado) {
-                case 'activo':
-                    return { background: '#d4edda', text: '#155724' };
-                case 'devuelto':
-                    return { background: '#cce7ff', text: '#004085' };
-                case 'obsoleto':
-                    return { background: '#fff3cd', text: '#856404' };
-                default:
-                    return { background: '#e9ecef', text: '#495057' };
-            }
-        }
+        // **PRIMERA COLUMNA** (izquierda)
+        let colX = margin;
+        let colY = yPosition;
 
-        // Función para dibujar una columna (copia)
-        const dibujarColumna = (x, y, width, height, esCopia = false) => {
-            // Borde de la columna
-            doc.rect(x, y, width, height)
-               .strokeColor('#000')
-               .lineWidth(1)
-               .stroke();
+        // Encabezado columna 1
+        doc.rect(colX, colY, columnWidth, 50)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 50)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
 
-            let currentY = y + 15;
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text('FRITZ C.A', colX, colY + 5, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
+        
+        doc.fontSize(14)
+           .font('Helvetica-Bold')
+           .fillColor('#666666')
+           .text(data.titulo, colX, colY + 20, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
 
-            // ===== HEADER =====
-            // Logo placeholder
-            doc.fillColor('#f73737')
-               .rect(x + 10, currentY, 40, 30)
-               .fill()
-               .fillColor('white')
-               .fontSize(8)
-               .text('FRITZ C.A', x + 15, currentY + 10, { width: 30, align: 'center' });
+        colY += 40;
 
-            // Títulos - USANDO FUENTES BÁSICAS
-            doc.fillColor('#f73737')
-               .fontSize(12)
-               .text('FRITZ C.A', x + 60, currentY, { 
-                   width: width - 70, 
-                   align: 'center' 
-               });
+        doc.fontSize(10)
+           .font('Helvetica')
+           .fillColor('#000000')
+           .text(`Generado el: ${data.fecha}`, colX, colY, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
 
-            currentY += 12;
+        colY += 25;
 
-            doc.fillColor('#666')
-               .fontSize(12)
-               .text('Reporte de Equipos Asignados', x + 60, currentY, { 
-                   width: width - 70, 
-                   align: 'center' 
-               });
+        // Línea separadora
+        doc.moveTo(colX, colY)
+           .lineTo(colX + columnWidth, colY)
+           .lineWidth(1)
+           .strokeColor('#000000')
+           .stroke();
+        
+        colY += 20;
 
-            currentY += 12;
+        // Información del usuario - Columna 1
+        doc.rect(colX, colY, columnWidth, 25)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 25)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
 
-            doc.fillColor('#000')
-               .fontSize(10)
-               .text('Generado el: ' + data.fechaGeneracion, x + 60, currentY, { 
-                   width: width - 70, 
-                   align: 'center' 
-               });
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Información del Usuario', colX + 10, colY + 8);
 
-            currentY += 25;
+        colY += 30;
 
-            // Línea separadora del header
-            doc.moveTo(x + 10, currentY)
-               .lineTo(x + width - 10, currentY)
-               .strokeColor('#000')
-               .lineWidth(1)
-               .stroke();
+        // Contenedor principal de información
+        const infoHeight = 120;
+        doc.rect(colX, colY, columnWidth, infoHeight)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, infoHeight)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
 
-            currentY += 20;
+        let infoY = colY + 10;
+        const infoItemHeight = 14;
 
-            // ===== INFORMACIÓN DEL USUARIO =====
-            doc.rect(x + 10, currentY, width - 50, 85)
-               .fillColor('#e9ecef')
-               .fill();
+        // Datos del usuario - Columna 1
+        const userInfo = [
+            { label: 'ID de Usuario:', value: usuario.id.toString() },
+            { label: 'Nombre Completo:', value: `${usuario.nombre} ${usuario.apellido}` },
+            { label: 'Cargo:', value: usuario.cargo || 'No especificado' },
+            { label: 'Correo Electrónico:', value: usuario.correo || 'No especificado' },
+            { label: 'Sede:', value: usuario.sede?.nombre || 'No asignada' },
+            { label: 'Departamento:', value: usuario.departamento?.nombre || 'No asignado' },
+            { label: 'Total Equipos:', value: data.total.toString() },
+            { label: 'Última Asignación:', value: data.equipos && data.equipos.length > 0 ? 
+                new Date(data.equipos[0].fecha_asignacion).toLocaleDateString('es-ES') : 'No disponible' }
+        ];
+
+        userInfo.forEach((info, index) => {
+            const currentY = infoY + (index * infoItemHeight);
             
-            doc.rect(x + 10, currentY, 4, 85)
-               .fillColor('#DC2626')
-               .fill();
+            doc.fontSize(8)
+               .font('Helvetica-Bold')
+               .fillColor('#333333')
+               .text(info.label, colX + 10, currentY);
+            
+            doc.fontSize(8)
+               .font('Helvetica')
+               .fillColor('#666666')
+               .text(info.value, colX + 90, currentY, {
+                 width: columnWidth - 80,
+                 align: 'left'
+               });
 
-            doc.fillColor('#333')
-               .fontSize(11)
-               .text('Información del Usuario', x + 20, currentY + 10);
-
-            currentY += 25;
-
-            const infoUsuario = [
-                `Nombre: ${usuario.nombre} ${usuario.apellido}`,
-                `Cargo: ${usuario.cargo || 'No especificado'}`,
-                `Departamento: ${usuario.departamento?.nombre || 'No asignado'}`,
-                `Sede: ${usuario.sede?.nombre || 'No asignada'}`,
-                `Correo: ${usuario.correo || 'No especificado'}`
-            ];
-
-            infoUsuario.forEach((linea, index) => {
-                doc.fontSize(9)
-                   .text(linea, x + 20, currentY + (index * 12));
-            });
-
-            currentY += 70;
-
-            // ===== DETALLE DE EQUIPOS ASIGNADOS =====
-            doc.fillColor('#333')
-               .fontSize(11)
-               .text('Detalle de Equipos Asignados', x + 10, currentY);
-
-            currentY += 15;
-
-            if (data.equiposAsignados.length > 0) {
-                // Encabezados de tabla
-                const headers = ['ID', 'Equipo', 'Tipo', 'Fecha Asig.', 'Estado', 'Observaciones'];
-                const columnWidths = [12, width * 0.25, width * 0.16, width * 0.12, width * 0.11, width * 0.28];
-                
-                let headerX = x + 10;
-                
-                // Fondo encabezados
-                headers.forEach((header, index) => {
-                    doc.rect(headerX, currentY, columnWidths[index], 12)
-                       .fillColor('#343a40')
-                       .fill();
-                    headerX += columnWidths[index];
-                });
-
-                // Texto encabezados
-                headerX = x + 10;
-                doc.fillColor('white')
-                   .fontSize(7);
-                
-                headers.forEach((header, index) => {
-                    const alignment = index === 4 ? 'center' : 'left';
-                    doc.text(header, headerX + 2, currentY + 3, { 
-                        width: columnWidths[index] - 4, 
-                        align: alignment 
-                    });
-                    headerX += columnWidths[index];
-                });
-
-                currentY += 12;
-
-                // Filas de equipos
-                data.equiposAsignados.forEach((equipo, index) => {
-                    // Fondo alternado para filas
-                    if (index % 2 === 0) {
-                        doc.rect(x + 10, currentY, width - 20, 30)
-                           .fillColor('#f8f9fa')
-                           .fill();
-                    }
-
-                    let cellX = x + 10;
-                    
-                    const fechaAsignacion = equipo.fecha_asignacion ? 
-                        new Date(equipo.fecha_asignacion).toLocaleDateString('es-ES') : 'N/A';
-                    const estadoTexto = getEstadoTexto(equipo.estado);
-                    const estadoColor = getEstadoColor(equipo.estado);
-
-                    doc.fillColor('#333')
-                       .fontSize(6.5);
-
-                    // ID
-                    doc.text(equipo.id.toString(), cellX + 2, currentY + 5, { 
-                        width: columnWidths[0] - 4 
-                    });
-                    cellX += columnWidths[0];
-
-                    // Equipo
-                    const equipoTexto = `${equipo.stockEquipo.marca} ${equipo.stockEquipo.modelo}`;
-                    doc.text(equipoTexto, cellX + 2, currentY + 3, { 
-                        width: columnWidths[1] - 4 
-                    });
-                    
-                    if (equipo.stockEquipo.descripcion) {
-                        doc.fontSize(6)
-                           .text(equipo.stockEquipo.descripcion, cellX + 2, currentY + 10, { 
-                               width: columnWidths[1] - 4 
-                           });
-                    }
-                    cellX += columnWidths[1];
-
-                    // Tipo
-                    doc.fontSize(6.5)
-                       .text(equipo.stockEquipo.tipoEquipo.nombre, cellX + 2, currentY + 10, { 
-                           width: columnWidths[2] - 4 
-                       });
-                    cellX += columnWidths[2];
-
-                    // Fecha Asignación
-                    doc.text(fechaAsignacion, cellX + 2, currentY + 10, { 
-                        width: columnWidths[3] - 4 
-                    });
-                    cellX += columnWidths[3];
-
-                    // Estado (con badge)
-                    const estadoWidth = columnWidths[4] - 8;
-                    doc.rect(cellX + 4, currentY + 5, estadoWidth, 8)
-                       .fillColor(estadoColor.background)
-                       .fill();
-                    
-                    doc.fillColor(estadoColor.text)
-                       .fontSize(6)
-                       .text(estadoTexto, cellX + 4, currentY + 7, { 
-                           width: estadoWidth, 
-                           align: 'center' 
-                       });
-                    cellX += columnWidths[4];
-
-                    // Observaciones
-                    if (equipo.observaciones) {
-                        doc.fillColor('#333')
-                           .fontSize(6)
-                           .text(equipo.observaciones, cellX + 2, currentY + 5, { 
-                               width: columnWidths[5] - 4,
-                               align: 'left'
-                           });
-                    } else {
-                        doc.fillColor('#666')
-                           .fontSize(6)
-                           .text('Sin observaciones', cellX + 2, currentY + 10, { 
-                               width: columnWidths[5] - 4,
-                               align: 'left'
-                           });
-                    }
-
-                    currentY += 30;
-                });
-
-                // Bordes de la tabla
-                doc.rect(x + 10, currentY - (data.equiposAsignados.length * 30), width - 20, (data.equiposAsignados.length * 30) + 12)
-                   .strokeColor('#000')
+            // Línea punteada entre items
+            if (index < userInfo.length - 1) {
+                doc.moveTo(colX + 10, currentY + 10)
+                   .lineTo(colX + columnWidth - 10, currentY + 10)
                    .lineWidth(0.5)
-                   .stroke();
+                   .strokeColor('#cccccc')
+                   .dash(2, { space: 2 })
+                   .stroke()
+                   .undash();
+            }
+        });
 
-            } else {
-                // No hay equipos asignados
-                doc.rect(x + 10, currentY, width - 20, 30)
-                   .fillColor('#f8f9fa')
+        colY += infoHeight + 15;
+
+        // Resumen de equipos - Columna 1
+        doc.rect(colX, colY, columnWidth, 25)
+           .fillColor('#e9ecef')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 25)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(11)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+
+        colY += 30;
+
+        // Estadísticas de equipos - Columna 1
+        const statsHeight = 50;
+        const statWidth = (columnWidth - 20) / 3;
+        
+        // Total Equipos
+        doc.rect(colX + 5, colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.totales.toString(), colX + 5, colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Total Equipos', colX + 5, colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        // Equipos Activos
+        doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        // Equipos Devueltos
+        doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.devuelto.toString(), colX + 15 + (statWidth * 2), colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        colY += statsHeight + 20;
+
+        // Detalle de equipos asignados - Columna 1
+        if (data.equipos && data.equipos.length > 0) {
+            doc.fontSize(11)
+               .font('Helvetica-Bold')
+               .fillColor('#333333')
+               .text('Detalle de Equipos Asignados', colX, colY);
+
+            colY += 15;
+
+            // Encabezados de tabla
+            const headers = ['Tipo', 'Marca/Modelo', 'IP', 'Serial', 'Estado', 'Fecha Asig.'];
+            const columnWidths = [
+                columnWidth * 0.18,
+                columnWidth * 0.25,
+                columnWidth * 0.15,
+                columnWidth * 0.15,
+                columnWidth * 0.15,
+                columnWidth * 0.12
+            ];
+            
+            let headerX = colX;
+            
+            // Fondo encabezados
+            headers.forEach((header, index) => {
+                doc.rect(headerX, colY, columnWidths[index], 12)
+                   .fillColor('#343a40')
                    .fill();
-                
-                doc.fillColor('#666')
-                   .fontSize(10)
-                   .text('El usuario no tiene equipos asignados', x + 10, currentY + 10, { 
-                       width: width - 20, 
-                       align: 'center' 
-                   });
-                
-                currentY += 40;
-            }
-
-            currentY += 20;
-
-            // ===== SECCIÓN OBSERVACIONES GENERALES =====
-            doc.rect(x + 10, currentY, width - 20, 50)
-               .fillColor('#e9ecef')
-               .fill();
-            
-            doc.rect(x + 10, currentY, 3, 50)
-               .fillColor('#f12222')
-               .fill();
-
-            doc.fillColor('#333')
-               .fontSize(10)
-               .text('Observaciones Generales:', x + 18, currentY + 2);
-
-            currentY += 15;
-
-            doc.fillColor('#000')
-               .fontSize(8)
-               .text('• Cualquier novedad informar al Departamento de Tecnología', x + 18, currentY, { width: width - 30 });
-
-            currentY += 10;
-
-            doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', x + 18, currentY, { width: width - 30 });
-
-            currentY += 10;
-
-            doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', x + 18, currentY, { width: width - 30 });
-
-            currentY += 25;
-
-            // ===== FIRMAS =====
-            const firmaWidth = (width - 35) / 2;
-            
-            // Firma Usuario
-            doc.moveTo(x + 10, currentY + 20)
-               .lineTo(x + 10 + firmaWidth, currentY + 20)
-               .strokeColor('#000')
-               .lineWidth(1)
-               .stroke();
-
-            doc.fillColor('#000')
-               .fontSize(9)
-               .text(`${usuario.nombre} ${usuario.apellido}`, x + 10, currentY + 23, { 
-                   width: firmaWidth, 
-                   align: 'center' 
-               });
-
-            doc.fontSize(8)
-               .text('Usuario', x + 10, currentY + 33, { 
-                   width: firmaWidth, 
-                   align: 'center' 
-               });
-
-            // Firma Departamento de Tecnología
-            doc.moveTo(x + 20 + firmaWidth, currentY + 20)
-               .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 20)
-               .strokeColor('#000')
-               .lineWidth(1)
-               .stroke();
-
-            doc.fontSize(8)
-               .text('Departamento de Tecnología', x + 20 + firmaWidth, currentY + 23, { 
-                   width: firmaWidth, 
-                   align: 'center' 
-               });
-
-            doc.text('FRITZ C.A', x + 20 + firmaWidth, currentY + 33, { 
-                width: firmaWidth, 
-                align: 'center' 
+                headerX += columnWidths[index];
             });
 
-            currentY += 60;
-
-            // ===== FOOTER =====
-            doc.moveTo(x + 10, currentY)
-               .lineTo(x + width - 10, currentY)
-               .strokeColor('#ddd')
-               .lineWidth(1)
-               .stroke();
-
-            doc.fillColor('#666')
-               .fontSize(8)
-               .text('FRITZ C.A - Sistema de Gestión de Equipos', x + 10, currentY + 8, { 
-                   width: width - 20, 
-                   align: 'center' 
-               });
-
-            // Número de registro
-            doc.text('Registro: ' + data.numeroRegistro, x + 10, currentY + 8, { 
-                width: width - 20, 
-                align: 'right' 
-            });
-
+            // Texto encabezados
+            headerX = colX;
+            doc.fillColor('white')
+               .fontSize(7);
             
-
-            return currentY;
-        };
-
-        // Dimensiones para las dos columnas
-        const pageWidth = 760;
-        const pageHeight = 520;
-        const colWidth = (pageWidth - 20) / 2;
-        
-        // Dibujar primera columna (original)
-        dibujarColumna(20, 20, colWidth, pageHeight, false);
-        
-        // Dibujar segunda columna (copia)
-        dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
-
-        // Manejar eventos del documento
-        doc.on('error', (error) => {
-            console.error('Error en la generación del PDF:', error);
-            if (!res.headersSent) {
-                res.status(500).json({ 
-                    error: 'Error al generar el PDF: ' + error.message 
+            headers.forEach((header, index) => {
+                doc.text(header, headerX + 2, colY + 3, { 
+                    width: columnWidths[index] - 4, 
+                    align: 'left' 
                 });
+                headerX += columnWidths[index];
+            });
+
+            colY += 12;
+
+            // Filas de equipos
+            data.equipos.forEach((equipo, index) => {
+                // Fondo alternado para filas
+                if (index % 2 === 0) {
+                    doc.rect(colX, colY, columnWidth, 15)
+                       .fillColor('#f8f9fa')
+                       .fill();
+                }
+
+                let cellX = colX;
+
+                doc.fillColor('#333')
+                   .fontSize(6);
+
+                // Determinar estado y color
+                const estado = equipo.estado || 'Sin estado';
+                const estadoColor = estado === 'activo' ? '#155724' : 
+                                  estado === 'devuelto' ? '#856404' : '#666666';
+
+                // Tipo
+                doc.text(equipo.stockEquipo.tipoEquipo.nombre || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[0] - 4 
+                });
+                cellX += columnWidths[0];
+
+                // Marca/Modelo
+                const equipoTexto = `${equipo.stockEquipo.marca || 'N/A'} ${equipo.stockEquipo.modelo || ''}`;
+                doc.text(equipoTexto, cellX + 2, colY + 4, { 
+                    width: columnWidths[1] - 4 
+                });
+                cellX += columnWidths[1];
+
+                // IP
+                doc.text(equipo.ip_equipo || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[2] - 4 
+                });
+                cellX += columnWidths[2];
+
+                // Serial
+                doc.text(equipo.cereal_equipo || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[3] - 4 
+                });
+                cellX += columnWidths[3];
+
+                // Estado
+                doc.fillColor(estadoColor)
+                   .text(estado.charAt(0).toUpperCase() + estado.slice(1), cellX + 2, colY + 4, { 
+                       width: columnWidths[4] - 4 
+                   });
+                cellX += columnWidths[4];
+
+                // Fecha Asignación
+                doc.fillColor('#333')
+                   .text(equipo.fecha_asignacion ? 
+                       new Date(equipo.fecha_asignacion).toLocaleDateString('es-ES') : '-', 
+                       cellX + 2, colY + 4, { 
+                           width: columnWidths[5] - 4 
+                       });
+
+                colY += 15;
+            });
+
+            // Bordes de la tabla
+            doc.rect(colX, colY - (data.equipos.length * 15), columnWidth, (data.equipos.length * 15) + 12)
+               .strokeColor('#000')
+               .lineWidth(0.5)
+               .stroke();
+
+            colY += 10;
+        }
+
+        // Firmas - Columna 1
+        const firmaHeight = 65;
+        const firmaWidth = (columnWidth - 20) / 2;
+
+        // Firma Usuario
+        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+           .strokeColor('#cccccc')
+           .lineWidth(1)
+           .stroke();
+        
+        // Línea de firma
+        doc.moveTo(colX + 15, colY + 40)
+           .lineTo(colX + firmaWidth - 5, colY + 40)
+           .lineWidth(1)
+           .strokeColor('#333333')
+           .stroke();
+        
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
+             width: firmaWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Usuario', colX + 5, colY + 55, {
+             width: firmaWidth,
+             align: 'center'
+           });
+
+        // Firma Tecnología
+        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+           .strokeColor('#cccccc')
+           .lineWidth(1)
+           .stroke();
+        
+        // Línea de firma
+        doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+           .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+           .lineWidth(1)
+           .strokeColor('#333333')
+           .stroke();
+        
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
+             width: firmaWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
+             width: firmaWidth,
+             align: 'center'
+           });
+
+        colY += firmaHeight + 15;
+
+        // Footer - Columna 1
+        doc.moveTo(colX, colY)
+           .lineTo(colX + columnWidth, colY)
+           .lineWidth(1)
+           .strokeColor('#dddddd')
+           .stroke();
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
+             width: columnWidth,
+             align: 'center'
+           });
+
+        // Número de documento
+        doc.text('Registro: ' + data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
+          width: columnWidth,
+          align: 'right'
+        });
+
+        // **SEGUNDA COLUMNA** (derecha) - CONTENIDO IDÉNTICO
+        colX = margin + columnWidth + 15;
+        colY = yPosition;
+
+        // Encabezado columna 2
+        doc.rect(colX, colY, columnWidth, 50)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 50)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text('FRITZ C.A', colX, colY + 5, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
+        
+        doc.fontSize(14)
+           .font('Helvetica-Bold')
+           .fillColor('#666666')
+           .text(data.titulo, colX, colY + 20, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
+
+        colY += 40;
+
+        doc.fontSize(10)
+           .font('Helvetica')
+           .fillColor('#000000')
+           .text(`Generado el: ${data.fecha}`, colX, colY, { 
+             width: columnWidth, 
+             align: 'center' 
+           });
+
+        colY += 25;
+
+        // Línea separadora
+        doc.moveTo(colX, colY)
+           .lineTo(colX + columnWidth, colY)
+           .lineWidth(1)
+           .strokeColor('#000000')
+           .stroke();
+        
+        colY += 20;
+
+        // Información del usuario - Columna 2
+        doc.rect(colX, colY, columnWidth, 25)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 25)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Información del Usuario', colX + 10, colY + 8);
+
+        colY += 30;
+
+        // Contenedor principal de información - Columna 2
+        doc.rect(colX, colY, columnWidth, infoHeight)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, infoHeight)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        infoY = colY + 10;
+
+        // Datos del usuario - Columna 2 (mismos datos)
+        userInfo.forEach((info, index) => {
+            const currentY = infoY + (index * infoItemHeight);
+            
+            doc.fontSize(8)
+               .font('Helvetica-Bold')
+               .fillColor('#333333')
+               .text(info.label, colX + 10, currentY);
+            
+            doc.fontSize(8)
+               .font('Helvetica')
+               .fillColor('#666666')
+               .text(info.value, colX + 90, currentY, {
+                 width: columnWidth - 80,
+                 align: 'left'
+               });
+
+            // Línea punteada entre items
+            if (index < userInfo.length - 1) {
+                doc.moveTo(colX + 10, currentY + 10)
+                   .lineTo(colX + columnWidth - 10, currentY + 10)
+                   .lineWidth(0.5)
+                   .strokeColor('#cccccc')
+                   .dash(2, { space: 2 })
+                   .stroke()
+                   .undash();
             }
         });
 
-        doc.on('end', () => {
-            console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
-            console.log(`Número de registro utilizado: ${numeroRegistro}`);
+        colY += infoHeight + 15;
+
+        // Resumen de equipos - Columna 2
+        doc.rect(colX, colY, columnWidth, 25)
+           .fillColor('#e9ecef')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, 25)
+           .strokeColor('#000000')
+           .lineWidth(1)
+           .stroke();
+
+        doc.fontSize(11)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+
+        colY += 30;
+
+        // Estadísticas de equipos - Columna 2 (idénticas)
+        // Total Equipos
+        doc.rect(colX + 5, colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.totales.toString(), colX + 5, colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Total Equipos', colX + 5, colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        // Equipos Activos
+        doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        // Equipos Devueltos
+        doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+           .fillColor('#ffffff')
+           .strokeColor('#dddddd')
+           .lineWidth(1)
+           .fillAndStroke();
+        
+        doc.fontSize(16)
+           .font('Helvetica-Bold')
+           .fillColor('#DC2626')
+           .text(data.estadisticas.devuelto.toString(), colX + 15 + (statWidth * 2), colY + 10, {
+             width: statWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(9)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
+             width: statWidth,
+             align: 'center'
+           });
+
+        colY += statsHeight + 20;
+
+        // Detalle de equipos asignados - Columna 2
+        if (data.equipos && data.equipos.length > 0) {
+            doc.fontSize(11)
+               .font('Helvetica-Bold')
+               .fillColor('#333333')
+               .text('Detalle de Equipos Asignados', colX, colY);
+
+            colY += 15;
+
+            // Encabezados de tabla
+            const headers = ['Tipo', 'Marca/Modelo', 'IP', 'Serial', 'Estado', 'Fecha Asig.'];
+            const columnWidths = [
+                columnWidth * 0.18,
+                columnWidth * 0.25,
+                columnWidth * 0.15,
+                columnWidth * 0.15,
+                columnWidth * 0.15,
+                columnWidth * 0.12
+            ];
+            
+            let headerX = colX;
+            
+            // Fondo encabezados
+            headers.forEach((header, index) => {
+                doc.rect(headerX, colY, columnWidths[index], 12)
+                   .fillColor('#343a40')
+                   .fill();
+                headerX += columnWidths[index];
+            });
+
+            // Texto encabezados
+            headerX = colX;
+            doc.fillColor('white')
+               .fontSize(7);
+            
+            headers.forEach((header, index) => {
+                doc.text(header, headerX + 2, colY + 3, { 
+                    width: columnWidths[index] - 4, 
+                    align: 'left' 
+                });
+                headerX += columnWidths[index];
+            });
+
+            colY += 12;
+
+            // Filas de equipos
+            data.equipos.forEach((equipo, index) => {
+                // Fondo alternado para filas
+                if (index % 2 === 0) {
+                    doc.rect(colX, colY, columnWidth, 15)
+                       .fillColor('#f8f9fa')
+                       .fill();
+                }
+
+                let cellX = colX;
+
+                doc.fillColor('#333')
+                   .fontSize(6);
+
+                // Determinar estado y color
+                const estado = equipo.estado || 'Sin estado';
+                const estadoColor = estado === 'activo' ? '#155724' : 
+                                  estado === 'devuelto' ? '#856404' : '#666666';
+
+                // Tipo
+                doc.text(equipo.stockEquipo.tipoEquipo.nombre || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[0] - 4 
+                });
+                cellX += columnWidths[0];
+
+                // Marca/Modelo
+                const equipoTexto = `${equipo.stockEquipo.marca || 'N/A'} ${equipo.stockEquipo.modelo || ''}`;
+                doc.text(equipoTexto, cellX + 2, colY + 4, { 
+                    width: columnWidths[1] - 4 
+                });
+                cellX += columnWidths[1];
+
+                // IP
+                doc.text(equipo.ip_equipo || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[2] - 4 
+                });
+                cellX += columnWidths[2];
+
+                // Serial
+                doc.text(equipo.cereal_equipo || 'N/A', cellX + 2, colY + 4, { 
+                    width: columnWidths[3] - 4 
+                });
+                cellX += columnWidths[3];
+
+                // Estado
+                doc.fillColor(estadoColor)
+                   .text(estado.charAt(0).toUpperCase() + estado.slice(1), cellX + 2, colY + 4, { 
+                       width: columnWidths[4] - 4 
+                   });
+                cellX += columnWidths[4];
+
+                // Fecha Asignación
+                doc.fillColor('#333')
+                   .text(equipo.fecha_asignacion ? 
+                       new Date(equipo.fecha_asignacion).toLocaleDateString('es-ES') : '-', 
+                       cellX + 2, colY + 4, { 
+                           width: columnWidths[5] - 4 
+                       });
+
+                colY += 15;
+            });
+
+            // Bordes de la tabla
+            doc.rect(colX, colY - (data.equipos.length * 15), columnWidth, (data.equipos.length * 15) + 12)
+               .strokeColor('#000')
+               .lineWidth(0.5)
+               .stroke();
+
+            colY += 10;
+        }
+
+        // Firmas - Columna 2
+        // Firma Usuario
+        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+           .strokeColor('#cccccc')
+           .lineWidth(1)
+           .stroke();
+        
+        // Línea de firma
+        doc.moveTo(colX + 15, colY + 40)
+           .lineTo(colX + firmaWidth - 5, colY + 40)
+           .lineWidth(1)
+           .strokeColor('#333333')
+           .stroke();
+        
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
+             width: firmaWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('Usuario', colX + 5, colY + 55, {
+             width: firmaWidth,
+             align: 'center'
+           });
+
+        // Firma Tecnología
+        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+           .strokeColor('#cccccc')
+           .lineWidth(1)
+           .stroke();
+        
+        // Línea de firma
+        doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+           .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+           .lineWidth(1)
+           .strokeColor('#333333')
+           .stroke();
+        
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
+             width: firmaWidth,
+             align: 'center'
+           });
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
+             width: firmaWidth,
+             align: 'center'
+           });
+
+        colY += firmaHeight + 15;
+
+        // Footer - Columna 2
+        doc.moveTo(colX, colY)
+           .lineTo(colX + columnWidth, colY)
+           .lineWidth(1)
+           .strokeColor('#dddddd')
+           .stroke();
+        
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
+             width: columnWidth,
+             align: 'center'
+           });
+
+        // Número de documento
+        doc.text('Registro: ' + data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
+          width: columnWidth,
+          align: 'right'
         });
 
+        // Finalizar documento
         doc.end();
+
+        console.log('=== VER PDF POR USUARIO GENERADO EXITOSAMENTE ===');
+        console.log(`Número de registro utilizado: ${numeroRegistro}`);
 
     } catch (error) {
         console.error('ERROR viendo PDF por usuario:', error);
