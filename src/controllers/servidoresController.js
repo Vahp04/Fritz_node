@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js';
+import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
 
 const prisma = new PrismaClient();
@@ -724,133 +725,385 @@ export const servidoresController = {
     }
   },
 
-  async generarPDFGeneral(req, res) {
-    try {
-      console.log('Generando PDF general de servidores...');
+async generarPDFGeneral(req, res) {
+  try {
+    console.log('Generando PDF general de servidores...');
 
-      const servidores = await prisma.servidores.findMany({
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true
-        },
-        orderBy: [
-          { sede_id: 'asc' },
-          { id: 'asc' }
-        ]
-      });
-
-      console.log(`${servidores.length} servidores encontrados`);
-
-      const data = {
-        titulo: 'Reporte General de Servidores',
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: servidores.length,
-        servidores: servidores,
-        estadisticas: {
-          activos: servidores.filter(s => s.estado === 'activo').length,
-          inactivos: servidores.filter(s => s.estado === 'inactivo').length,
-          mantenimiento: servidores.filter(s => s.estado === 'mantenimiento').length,
-          desuso: servidores.filter(s => s.estado === 'desuso').length
-        }
-      };
-
-      const html = await renderTemplate(req.app, 'pdfs/reporte-general-servidores', data);
-      
-      console.log('Generando PDF...');
-
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      console.log('PDF generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
-
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'inline; filename="reporte-general-servidores.pdf"',
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-      
-      console.log(`PDF general generado exitosamente - ${servidores.length} servidores`);
-
-      res.end(pdfBuffer);
-
-    } catch (error) {
-      console.error('Error generando PDF general:', error);
-      
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message
-      }));
-    }
-  },
-
-  async equiposServidores(req, res) {
-    try {
-      console.log('Buscando equipos servidores desde servidoresController...');
-      
-      const equipos = await prisma.stock_equipos.findMany({
-        where: {
-          OR: [
-            {
-              tipo_equipo: {
-                nombre: {
-                  contains: 'servidor',
-                  mode: 'insensitive'
-                }
-              }
-            },
-            {
-              tipo_equipo: {
-                nombre: {
-                  contains: 'server',
-                  mode: 'insensitive'
-                }
-              }
-            }
-          ],
-          cantidad_disponible: {
-            gt: 0
+    const servidores = await prisma.servidores.findMany({
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
           }
         },
-        include: {
-          tipo_equipo: true
-        },
-        orderBy: {
-          marca: 'asc'
-        }
-      });
-      
-      console.log(`${equipos.length} servidores encontrados`);
-      res.json(equipos);
-      
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  },
+        sede: true
+      },
+      orderBy: [
+        { sede_id: 'asc' },
+        { id: 'asc' }
+      ]
+    });
 
+    console.log(`${servidores.length} servidores encontrados`);
+
+    // Crear documento PDF
+    const doc = new PDFDocument({
+      size: 'LETTER',
+      layout: 'landscape',
+      margins: {
+        top: 20,
+        bottom: 20,
+        left: 15,
+        right: 15
+      }
+    });
+
+    // Configurar headers de respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="reporte-general-servidores.pdf"');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Pipe del PDF a la respuesta
+    doc.pipe(res);
+
+    // Variables de configuración
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    let yPosition = doc.y;
+
+    // ===== HEADER =====
+    // Logo (placeholder - reemplazar con tu logo)
+    doc.fontSize(10)
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', doc.page.margins.left, yPosition, { align: 'center' });
+    
+    yPosition += 15;
+    
+    // Título principal
+    doc.fontSize(18)
+       .fillColor('#DC2626')
+       .text('Reporte General de Servidores', doc.page.margins.left, yPosition, { 
+         align: 'center',
+         width: pageWidth
+       });
+    
+    yPosition += 20;
+    
+    // Subtítulo
+    doc.fontSize(10)
+       .fillColor('#666')
+       .text('Sistema de Gestión de Servidores', doc.page.margins.left, yPosition, {
+         align: 'center',
+         width: pageWidth
+       });
+    
+    yPosition += 25;
+
+    // ===== METADATA =====
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const hora = new Date().toLocaleTimeString('es-ES');
+    const sedesUnicas = [...new Set(servidores.map(s => s.sede_id).filter(Boolean))];
+
+    // Fondo del metadata
+    doc.roundedRect(doc.page.margins.left, yPosition, pageWidth, 25, 3)
+       .fill('#f8f9fa')
+       .stroke('#DC2626');
+    
+    yPosition += 8;
+
+    // Metadata en 3 columnas
+    const colWidth = pageWidth / 3;
+    
+    doc.fontSize(8)
+       .fillColor('#333')
+       .font('Helvetica-Bold')
+       .text('FECHA DE GENERACIÓN', doc.page.margins.left, yPosition);
+    
+    doc.text('TOTAL DE SEDES', doc.page.margins.left + colWidth, yPosition);
+    
+    doc.text('HORA', doc.page.margins.left + colWidth * 2, yPosition);
+    
+    yPosition += 8;
+    
+    doc.font('Helvetica')
+       .fillColor('#1a1a1a')
+       .fontSize(9)
+       .text(fecha, doc.page.margins.left, yPosition);
+    
+    doc.text(`${sedesUnicas.length} sedes`, doc.page.margins.left + colWidth, yPosition);
+    
+    doc.text(hora, doc.page.margins.left + colWidth * 2, yPosition);
+    
+    yPosition += 30;
+
+    // ===== ESTADÍSTICAS =====
+    const estadisticas = {
+      activos: servidores.filter(s => s.estado === 'activo').length,
+      inactivos: servidores.filter(s => s.estado === 'inactivo').length,
+      mantenimiento: servidores.filter(s => s.estado === 'mantenimiento').length,
+      desuso: servidores.filter(s => s.estado === 'desuso').length
+    };
+
+    const statWidth = (pageWidth - 10) / 5;
+    const statHeight = 25;
+    const statY = yPosition;
+
+    // Estadísticas
+    const stats = [
+      { label: 'TOTAL', value: servidores.length, color: '#DC2626' },
+      { label: 'ACTIVOS', value: estadisticas.activos, color: '#DC2626' },
+      { label: 'INACTIVOS', value: estadisticas.inactivos, color: '#DC2626' },
+      { label: 'MANTENIMIENTO', value: estadisticas.mantenimiento, color: '#DC2626' },
+      { label: 'OBSOLETOS', value: estadisticas.desuso, color: '#DC2626' }
+    ];
+
+    stats.forEach((stat, index) => {
+      const x = doc.page.margins.left + (statWidth * index);
+      
+      doc.roundedRect(x, statY, statWidth - 2, statHeight, 3)
+         .fill('#e9ecef');
+      
+      doc.fontSize(12)
+         .fillColor(stat.color)
+         .font('Helvetica-Bold')
+         .text(stat.value.toString(), x, statY + 5, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+      
+      doc.fontSize(7)
+         .fillColor('#333')
+         .font('Helvetica')
+         .text(stat.label, x, statY + 15, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+    });
+
+    yPosition += 40;
+
+    // ===== TABLA =====
+    if (servidores.length > 0) {
+      // Configuración de columnas
+      const columnWidths = {
+        equipo: 100,
+        ip: 70,
+        serial: 80,
+        sede: 80,
+        detalles: 90,
+        ubicacion: 70,
+        estado: 50
+      };
+
+      // Encabezados de tabla
+      const headers = [
+        { text: 'EQUIPO/MODELO', width: columnWidths.equipo },
+        { text: 'DIRECCIÓN IP', width: columnWidths.ip },
+        { text: 'NÚMERO DE SERIE', width: columnWidths.serial },
+        { text: 'SEDE', width: columnWidths.sede },
+        { text: 'DETALLES', width: columnWidths.detalles },
+        { text: 'UBICACIÓN', width: columnWidths.ubicacion },
+        { text: 'ESTADO', width: columnWidths.estado }
+      ];
+
+      let currentY = yPosition;
+
+      // Dibujar encabezados
+      doc.fontSize(8)
+         .font('Helvetica-Bold')
+         .fillColor('white');
+
+      let currentX = doc.page.margins.left;
+      
+      headers.forEach(header => {
+        doc.rect(currentX, currentY, header.width, 15)
+           .fill('#DC2626');
+        
+        doc.text(header.text, currentX + 2, currentY + 4, {
+          width: header.width - 4,
+          align: 'left'
+        });
+        
+        currentX += header.width;
+      });
+
+      currentY += 15;
+
+      // Contenido de la tabla
+      doc.fontSize(7)
+         .font('Helvetica')
+         .fillColor('black');
+
+      let currentSede = null;
+
+      servidores.forEach((servidor, index) => {
+        // Verificar si necesitamos nueva página
+        if (currentY > doc.page.height - doc.page.margins.bottom - 50) {
+          doc.addPage();
+          currentY = doc.page.margins.top;
+          
+          // Redibujar encabezados en nueva página
+          let headerX = doc.page.margins.left;
+          headers.forEach(header => {
+            doc.rect(headerX, currentY, header.width, 15)
+               .fill('#DC2626');
+            
+            doc.fontSize(8)
+               .font('Helvetica-Bold')
+               .fillColor('white')
+               .text(header.text, headerX + 2, currentY + 4, {
+                 width: header.width - 4,
+                 align: 'left'
+               });
+            
+            headerX += header.width;
+          });
+          currentY += 15;
+        }
+
+        // Cambio de sede
+        const sedeChanged = currentSede !== servidor.sede_id;
+        currentSede = servidor.sede_id;
+
+        if (sedeChanged && servidor.sede) {
+          doc.fontSize(8)
+             .font('Helvetica-Bold')
+             .fillColor('#333')
+             .text(`SEDE: ${servidor.sede.nombre}`, doc.page.margins.left, currentY + 2);
+          
+          currentY += 12;
+        }
+
+        // Fondo alternado para filas
+        if (index % 2 === 0) {
+          doc.rect(doc.page.margins.left, currentY, pageWidth, 12)
+             .fill('#f8f9fa');
+        }
+
+        // Contenido de las celdas
+        let cellX = doc.page.margins.left;
+
+        // Equipo/Modelo
+        let equipoText = 'No asignado';
+        if (servidor.stock_equipos) {
+          equipoText = `${servidor.stock_equipos.marca} ${servidor.stock_equipos.modelo}\n${servidor.stock_equipos.tipo_equipo.nombre}`;
+        }
+        doc.text(equipoText, cellX + 2, currentY + 2, {
+          width: columnWidths.equipo - 4
+        });
+        cellX += columnWidths.equipo;
+
+        // IP
+        const ipText = servidor.ip_servidores || '-';
+        doc.text(ipText, cellX + 2, currentY + 2, {
+          width: columnWidths.ip - 4
+        });
+        cellX += columnWidths.ip;
+
+        // Serial
+        const serialText = servidor.cereal_servidores || '-';
+        doc.text(serialText, cellX + 2, currentY + 2, {
+          width: columnWidths.serial - 4
+        });
+        cellX += columnWidths.serial;
+
+        // Sede
+        const sedeText = servidor.sede ? servidor.sede.nombre : 'Sin sede';
+        doc.text(sedeText, cellX + 2, currentY + 2, {
+          width: columnWidths.sede - 4
+        });
+        cellX += columnWidths.sede;
+
+        // Detalles
+        const detallesText = servidor.descripcion || 'Sin detalles';
+        doc.text(detallesText, cellX + 2, currentY + 2, {
+          width: columnWidths.detalles - 4
+        });
+        cellX += columnWidths.detalles;
+
+        // Ubicación
+        const ubicacionText = servidor.ubicacion || '-';
+        doc.text(ubicacionText, cellX + 2, currentY + 2, {
+          width: columnWidths.ubicacion - 4
+        });
+        cellX += columnWidths.ubicacion;
+
+        // Estado
+        const estadoText = servidor.estado ? servidor.estado.charAt(0).toUpperCase() + servidor.estado.slice(1) : '-';
+        
+        // Color según estado
+        let estadoColor = '#333';
+        switch(servidor.estado) {
+          case 'activo': estadoColor = '#065f46'; break;
+          case 'inactivo': estadoColor = '#374151'; break;
+          case 'mantenimiento': estadoColor = '#92400e'; break;
+          case 'desuso': estadoColor = '#be185d'; break;
+        }
+        
+        doc.fillColor(estadoColor)
+           .text(estadoText, cellX + 2, currentY + 2, {
+             width: columnWidths.estado - 4
+           })
+           .fillColor('black'); // Reset color
+
+        currentY += 12;
+      });
+    } else {
+      // Mensaje cuando no hay datos
+      doc.fontSize(12)
+         .fillColor('#666')
+         .text('No se encontraron servidores', doc.page.margins.left, yPosition, {
+           width: pageWidth,
+           align: 'center'
+         });
+      
+      yPosition += 20;
+      
+      doc.fontSize(10)
+         .text('No hay servidores registrados en el sistema para generar el reporte.', 
+               doc.page.margins.left, yPosition, {
+           width: pageWidth,
+           align: 'center'
+         });
+    }
+
+    // ===== FOOTER =====
+    const footerY = doc.page.height - doc.page.margins.bottom - 15;
+    
+    doc.moveTo(doc.page.margins.left, footerY - 10)
+       .lineTo(doc.page.margins.left + pageWidth, footerY - 10)
+       .strokeColor('#ddd')
+       .stroke();
+    
+    doc.fontSize(8)
+       .fillColor('#666')
+       .text('FRITZ C.A - Sistema de Gestión de Servidores | Reporte generado automáticamente', 
+             doc.page.margins.left, footerY, {
+               width: pageWidth,
+               align: 'center'
+             });
+
+    // Finalizar PDF
+    doc.end();
+
+    console.log(`PDF general generado exitosamente - ${servidores.length} servidores`);
+
+  } catch (error) {
+    console.error('Error generando PDF general:', error);
+    
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    }));
+  }
+}
 
 };

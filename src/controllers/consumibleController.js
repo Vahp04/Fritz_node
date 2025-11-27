@@ -664,14 +664,16 @@ async generarPDFOrdenSalida(req, res) {
         return res.end(JSON.stringify({ error: 'Sede origen no encontrada' }));
       }
 
+      const fecha = new Date().toLocaleDateString('es-ES', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+
       const data = {
-        titulo: 'Orden de Salida',
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        }),
+        titulo: 'Orden de Salida de Equipos',
+        fecha: fecha,
         consumible: consumible,
         sedeOrigen: sedeOrigen,
         sedeDestino: consumible.sede, 
@@ -685,7 +687,7 @@ async generarPDFOrdenSalida(req, res) {
       const doc = new PDFDocument({ 
         margin: 20,
         size: 'LETTER',
-        layout: 'landscape'
+        layout: 'portrait' // Cambiado a portrait
       });
 
       const filename = `orden-salida-${consumible.nombre.replace(/\s+/g, '-')}.pdf`;
@@ -701,285 +703,689 @@ async generarPDFOrdenSalida(req, res) {
       // Pipe el PDF a la respuesta
       doc.pipe(res);
 
-      // Función para dibujar una columna (copia)
-      const dibujarColumna = (x, y, width, height, esCopia = false) => {
-        // Borde de la columna
-        doc.rect(x, y, width, height)
-           .strokeColor('#000')
-           .lineWidth(1)
-           .stroke();
+      // Dimensiones
+      const margin = 20;
+      let yPosition = margin;
+      const pageWidth = doc.page.width - (margin * 2);
+      const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
 
-        let currentY = y + 15;
+      // **PRIMERA COLUMNA** (izquierda)
+      let colX = margin;
+      let colY = yPosition;
 
-        // ===== HEADER =====
-        // Logo placeholder
-        doc.fillColor('#f73737')
-           .rect(x + (width/2) - 20, currentY, 40, 25)
-           .fill()
-           .fillColor('white')
-           .fontSize(8)
-           .text('FRITZ C.A', x + (width/2) - 15, currentY + 8, { width: 30, align: 'center' });
+      // Encabezado columna 1
+      doc.rect(colX, colY, columnWidth, 50)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 50)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
 
-        currentY += 35;
+      doc.fontSize(16)
+         .font('Helvetica-Bold')
+         .fillColor('#DC2626')
+         .text('FRITZ C.A', colX, colY + 5, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
+      
+      doc.fontSize(14)
+         .font('Helvetica-Bold')
+         .fillColor('#666666')
+         .text(data.titulo, colX, colY + 20, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
 
-        // Título
-        doc.fillColor('#f73737')
-           .fontSize(14)
-           .font('Helvetica-Bold')
-           .text(data.titulo.toUpperCase(), x + 10, currentY, { 
-               width: width - 20, 
-               align: 'center' 
-           });
+      colY += 40;
 
-        currentY += 15;
+      doc.fontSize(10)
+         .font('Helvetica')
+         .fillColor('#000000')
+         .text(`Generado el: ${data.fecha}`, colX, colY, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
 
-        // Fecha
-        doc.fillColor('#000')
-           .fontSize(10)
-           .font('Helvetica')
-           .text(data.fecha, x + 10, currentY, { 
-               width: width - 20, 
-               align: 'center' 
-           });
+      colY += 25;
 
-        currentY += 20;
+      // Línea separadora
+      doc.moveTo(colX, colY)
+         .lineTo(colX + columnWidth, colY)
+         .lineWidth(1)
+         .strokeColor('#000000')
+         .stroke();
+      
+      colY += 20;
 
-        // Línea separadora del header
-        doc.moveTo(x + 10, currentY)
-           .lineTo(x + width - 10, currentY)
-           .strokeColor('#000')
-           .lineWidth(1)
-           .stroke();
+      // Información de la orden - Columna 1
+      doc.rect(colX, colY, columnWidth, 25)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 25)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
 
-        currentY += 15;
+      doc.fontSize(12)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Información de la Orden', colX + 10, colY + 8);
 
-        // ===== CONTENIDO =====
-        // Descripción
-        doc.fillColor('#000')
-           .fontSize(9)
-           .font('Helvetica')
-           .text('Por medio de la presente se hace constar la salida de los siguientes equipos de', 
-                 x + 10, currentY, { width: width - 20 });
+      colY += 30;
 
-        currentY += 12;
+      // Contenedor principal de información
+      const infoHeight = 100;
+      doc.rect(colX, colY, columnWidth, infoHeight)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, infoHeight)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
 
-        doc.font('Helvetica-Bold')
-           .fontSize(12)
-           .text(`${data.sedeOrigen.nombre} a ${data.sedeDestino.nombre}:`, 
-                 x + 10, currentY, { width: width - 20 });
+      let infoY = colY + 10;
+      const infoItemHeight = 14;
 
-        currentY += 15;
+      // Datos de la orden - Columna 1
+      const orderInfo = [
+          { label: 'Consumible:', value: data.consumible.nombre },
+          { label: 'Sede Origen:', value: data.sedeOrigen.nombre },
+          { label: 'Sede Destino:', value: data.sedeDestino?.nombre || 'No especificada' },
+          { label: 'Departamento:', value: data.consumible.departamento?.nombre || 'No asignado' },
+          { label: 'Total Equipos:', value: data.equipos.length.toString() },
+          { label: 'Total Unidades:', value: data.totalUnidades.toString() }
+      ];
 
-        doc.font('Helvetica-Bold')
-           .fontSize(9)
-           .text('Descripción:', x + 10, currentY);
+      orderInfo.forEach((info, index) => {
+          const currentY = infoY + (index * infoItemHeight);
+          
+          doc.fontSize(8)
+             .font('Helvetica-Bold')
+             .fillColor('#333333')
+             .text(info.label, colX + 10, currentY);
+          
+          doc.fontSize(8)
+             .font('Helvetica')
+             .fillColor('#666666')
+             .text(info.value, colX + 90, currentY, {
+               width: columnWidth - 80,
+               align: 'left'
+             });
 
-        currentY += 10;
+          // Línea punteada entre items
+          if (index < orderInfo.length - 1) {
+              doc.moveTo(colX + 10, currentY + 10)
+                 .lineTo(colX + columnWidth - 10, currentY + 10)
+                 .lineWidth(0.5)
+                 .strokeColor('#cccccc')
+                 .dash(2, { space: 2 })
+                 .stroke()
+                 .undash();
+          }
+      });
 
-        doc.font('Helvetica')
-           .fontSize(9)
-           .text(data.consumible.nombre, x + 10, currentY, { 
-               width: width - 20 
-           });
+      colY += infoHeight + 15;
 
-        currentY += 20;
+      // Descripción del traslado - Columna 1
+      doc.rect(colX, colY, columnWidth, 25)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 25)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
 
-        // ===== TABLA DE EQUIPOS =====
-        // Encabezados de tabla
-        const tableHeaders = ['Equipo', 'Tipo', 'Cantidad'];
-        const columnWidths = [width * 0.6, width * 0.2, width * 0.2];
-        
-        let headerX = x + 10;
-        
-        // Fondo encabezados
-        tableHeaders.forEach((header, index) => {
-            doc.rect(headerX, currentY, columnWidths[index] - 5, 12)
-               .fillColor('#f0f0f0')
-               .fill();
-            headerX += columnWidths[index] - 5;
-        });
+      doc.fontSize(11)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Descripción del Traslado', colX + 10, colY + 8);
 
-        // Texto encabezados
-        headerX = x + 10;
-        doc.fillColor('#000')
-           .fontSize(8)
-           .font('Helvetica-Bold');
-        
-        tableHeaders.forEach((header, index) => {
-            doc.text(header, headerX + 2, currentY + 3, { 
-                width: columnWidths[index] - 7, 
-                align: 'left' 
-            });
-            headerX += columnWidths[index] - 5;
-        });
+      colY += 30;
 
-        currentY += 12;
-
-        // Filas de equipos
-        data.equipos.forEach((equipo, index) => {
-            // Fondo alternado para filas
-            if (index % 2 === 0) {
-                doc.rect(x + 10, currentY, width - 20, 10)
-                   .fillColor('#fafafa')
-                   .fill();
-            }
-
-            let cellX = x + 10;
-            
-            const equipoDesc = `${equipo.stock_equipos.marca} ${equipo.stock_equipos.modelo}`;
-            const tipoEquipo = equipo.stock_equipos.tipo_equipo.nombre;
-            const cantidad = `${equipo.cantidad} unidades`;
-
-            doc.fillColor('#000')
-               .fontSize(7)
-               .font('Helvetica');
-
-            // Equipo
-            doc.text(equipoDesc, cellX + 2, currentY + 2, { 
-                width: columnWidths[0] - 7 
-            });
-            cellX += columnWidths[0] - 5;
-
-            // Tipo
-            doc.text(tipoEquipo, cellX + 2, currentY + 2, { 
-                width: columnWidths[1] - 7 
-            });
-            cellX += columnWidths[1] - 5;
-
-            // Cantidad
-            doc.text(cantidad, cellX + 2, currentY + 2, { 
-                width: columnWidths[2] - 7 
-            });
-
-            currentY += 10;
-        });
-
-        // Bordes de la tabla
-        doc.rect(x + 10, currentY - (data.equipos.length * 10), width - 20, (data.equipos.length * 10) + 12)
-           .strokeColor('#000')
-           .lineWidth(0.5)
-           .stroke();
-
-        currentY += 5;
-
-        // Total unidades
-        doc.font('Helvetica-Bold')
-           .fontSize(9)
-           .text(`Total: ${data.totalUnidades} unidades`, 
-                 x + 10, currentY, { 
-                     width: width - 20, 
-                     align: 'right' 
-                 });
-
-        currentY += 20;
-
-        // ===== SEPARADOR =====
-        doc.moveTo(x + 10, currentY)
-           .lineTo(x + width - 10, currentY)
-           .strokeColor('#000')
-           .lineWidth(0.5)
-           .strokeDash([2, 2])
-           .stroke();
-
-        currentY += 15;
-
-        // ===== OBSERVACIONES =====
-        doc.rect(x + 10, currentY, width - 20, 45)
-           .fillColor('#f9f9f9')
-           .fill();
-        
-        doc.rect(x + 10, currentY, 3, 45)
-           .fillColor('#f12222')
-           .fill();
-
-        doc.fillColor('#000')
-           .fontSize(9)
-           .font('Helvetica-Bold')
-           .text('Observación:', x + 18, currentY + 5);
-
-        currentY += 12;
-
-        doc.font('Helvetica')
-           .fontSize(7)
-           .text('Cualquier Novedad informar por la siguiente dirección de correo:', 
-                 x + 18, currentY, { width: width - 30 });
-
-        currentY += 8;
-
-        doc.font('Helvetica-Bold')
-           .fontSize(7)
-           .text('JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', 
-                 x + 18, currentY, { width: width - 30 });
-
-        currentY += 8;
-
-        doc.font('Helvetica')
-           .fontSize(7)
-           .text('Para cualquier otra información llamar al', 
-                 x + 18, currentY, { width: width - 30 });
-
-        currentY += 8;
-
-        doc.font('Helvetica-Bold')
-           .fontSize(7)
-           .text('0424-5811864', x + 18, currentY, { width: width - 30 });
-
-        currentY += 40;
-
-        // ===== FIRMAS =====
-        const firmaWidth = (width - 30) / 2;
-        
-        // Firma T/C
-        doc.moveTo(x + 10, currentY + 25)
-           .lineTo(x + 10 + firmaWidth, currentY + 25)
-           .strokeColor('#000')
-           .lineWidth(1)
-           .stroke();
-
-        doc.fillColor('#000')
-           .fontSize(8)
-           .font('Helvetica-Bold')
-           .text('Firma T/C', x + 10, currentY + 28, { 
-               width: firmaWidth, 
-               align: 'center' 
-           });
-
-        // Firma Impresor PCP
-        doc.moveTo(x + 20 + firmaWidth, currentY + 25)
-           .lineTo(x + 20 + firmaWidth + firmaWidth, currentY + 25)
-           .strokeColor('#000')
-           .lineWidth(1)
-           .stroke();
-
-        doc.text('Impresor PCP (Salida)', x + 20 + firmaWidth, currentY + 28, { 
-            width: firmaWidth, 
-            align: 'center' 
-        });
-
-        // ===== NOTA DE COPIA =====
-        if (esCopia) {
-            doc.fillColor('#ff0000')
-               .fontSize(8)
-               .font('Helvetica-Bold')
-               .text('COPIA', x + 10, y + height - 15, { 
-                   width: width - 20, 
-                   align: 'center' 
+      doc.fontSize(9)
+         .font('Helvetica')
+         .fillColor('#333333')
+         .text(`Por medio de la presente se hace constar la salida de equipos desde ${data.sedeOrigen.nombre} hacia ${data.sedeDestino?.nombre || 'la sede destino'}.`, 
+               colX + 10, colY, { 
+                 width: columnWidth - 20,
+                 align: 'left'
                });
-        }
 
-        return currentY;
-      };
+      colY += 25;
 
-      // Dimensiones para las dos columnas
-      const pageWidth = 760; // Letter landscape menos márgenes
-      const pageHeight = 520;
-      const colWidth = (pageWidth - 20) / 2; // 20px de separación entre columnas
+      // Detalle de equipos - Columna 1
+      if (data.equipos && data.equipos.length > 0) {
+          doc.fontSize(11)
+             .font('Helvetica-Bold')
+             .fillColor('#333333')
+             .text('Detalle de Equipos a Trasladar', colX, colY);
+
+          colY += 15;
+
+          // Encabezados de tabla
+          const headers = ['Equipo', 'Tipo', 'Cantidad'];
+          const columnWidths = [
+              columnWidth * 0.50,
+              columnWidth * 0.30,
+              columnWidth * 0.20
+          ];
+          
+          let headerX = colX;
+          
+          // Fondo encabezados
+          headers.forEach((header, index) => {
+              doc.rect(headerX, colY, columnWidths[index], 12)
+                 .fillColor('#343a40')
+                 .fill();
+              headerX += columnWidths[index];
+          });
+
+          // Texto encabezados
+          headerX = colX;
+          doc.fillColor('white')
+             .fontSize(7);
+          
+          headers.forEach((header, index) => {
+              doc.text(header, headerX + 2, colY + 3, { 
+                  width: columnWidths[index] - 4, 
+                  align: 'left' 
+              });
+              headerX += columnWidths[index];
+          });
+
+          colY += 12;
+
+          // Filas de equipos
+          data.equipos.forEach((equipo, index) => {
+              // Fondo alternado para filas
+              if (index % 2 === 0) {
+                  doc.rect(colX, colY, columnWidth, 15)
+                     .fillColor('#f8f9fa')
+                     .fill();
+              }
+
+              let cellX = colX;
+
+              doc.fillColor('#333')
+                 .fontSize(6);
+
+              // Equipo
+              const equipoTexto = `${equipo.stock_equipos.marca || 'N/A'} ${equipo.stock_equipos.modelo || ''}`;
+              doc.text(equipoTexto, cellX + 2, colY + 4, { 
+                  width: columnWidths[0] - 4 
+              });
+              cellX += columnWidths[0];
+
+              // Tipo
+              doc.text(equipo.stock_equipos.tipo_equipo.nombre || 'N/A', cellX + 2, colY + 4, { 
+                  width: columnWidths[1] - 4 
+              });
+              cellX += columnWidths[1];
+
+              // Cantidad
+              doc.text(`${equipo.cantidad} unidades`, cellX + 2, colY + 4, { 
+                  width: columnWidths[2] - 4 
+              });
+
+              colY += 15;
+          });
+
+          // Bordes de la tabla
+          doc.rect(colX, colY - (data.equipos.length * 15), columnWidth, (data.equipos.length * 15) + 12)
+             .strokeColor('#000')
+             .lineWidth(0.5)
+             .stroke();
+
+          colY += 10;
+      }
+
+      // Observaciones - Columna 1
+      doc.rect(colX, colY, columnWidth, 60)
+         .fillColor('#e9ecef')
+         .fill();
       
-      // Dibujar primera columna (original)
-      dibujarColumna(20, 20, colWidth, pageHeight, false);
+      doc.rect(colX, colY, 3, 60)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Observaciones:', colX + 10, colY + 5);
+
+      colY += 15;
+
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('• Cualquier novedad informar al Departamento de Tecnología', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 10;
+
+      doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 10;
+
+      doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 20;
+
+      // Firmas - Columna 1
+      const firmaHeight = 65;
+      const firmaWidth = (columnWidth - 20) / 2;
+
+      // Firma T/C
+      doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+         .strokeColor('#cccccc')
+         .lineWidth(1)
+         .stroke();
       
-      // Dibujar segunda columna (copia)
-      dibujarColumna(20 + colWidth + 20, 20, colWidth, pageHeight, true);
+      // Línea de firma
+      doc.moveTo(colX + 15, colY + 40)
+         .lineTo(colX + firmaWidth - 5, colY + 40)
+         .lineWidth(1)
+         .strokeColor('#333333')
+         .stroke();
+      
+      doc.fontSize(9)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Firma T/C', colX + 5, colY + 45, {
+           width: firmaWidth,
+           align: 'center'
+         });
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('Responsable', colX + 5, colY + 55, {
+           width: firmaWidth,
+           align: 'center'
+         });
+
+      // Firma Impresor PCP
+      doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+         .strokeColor('#cccccc')
+         .lineWidth(1)
+         .stroke();
+      
+      // Línea de firma
+      doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+         .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+         .lineWidth(1)
+         .strokeColor('#333333')
+         .stroke();
+      
+      doc.fontSize(9)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Impresor PCP', colX + 10 + firmaWidth, colY + 45, {
+           width: firmaWidth,
+           align: 'center'
+         });
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('Salida', colX + 10 + firmaWidth, colY + 55, {
+           width: firmaWidth,
+           align: 'center'
+         });
+
+      colY += firmaHeight + 15;
+
+      // Footer - Columna 1
+      doc.moveTo(colX, colY)
+         .lineTo(colX + columnWidth, colY)
+         .lineWidth(1)
+         .strokeColor('#dddddd')
+         .stroke();
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
+           width: columnWidth,
+           align: 'center'
+         });
+
+      // **SEGUNDA COLUMNA** (derecha) - CONTENIDO IDÉNTICO
+      colX = margin + columnWidth + 15;
+      colY = yPosition;
+
+      // Encabezado columna 2
+      doc.rect(colX, colY, columnWidth, 50)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 50)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fontSize(16)
+         .font('Helvetica-Bold')
+         .fillColor('#DC2626')
+         .text('FRITZ C.A', colX, colY + 5, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
+      
+      doc.fontSize(14)
+         .font('Helvetica-Bold')
+         .fillColor('#666666')
+         .text(data.titulo, colX, colY + 20, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
+
+      colY += 40;
+
+      doc.fontSize(10)
+         .font('Helvetica')
+         .fillColor('#000000')
+         .text(`Generado el: ${data.fecha}`, colX, colY, { 
+           width: columnWidth, 
+           align: 'center' 
+         });
+
+      colY += 25;
+
+      // Línea separadora
+      doc.moveTo(colX, colY)
+         .lineTo(colX + columnWidth, colY)
+         .lineWidth(1)
+         .strokeColor('#000000')
+         .stroke();
+      
+      colY += 20;
+
+      // Información de la orden - Columna 2
+      doc.rect(colX, colY, columnWidth, 25)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 25)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fontSize(12)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Información de la Orden', colX + 10, colY + 8);
+
+      colY += 30;
+
+      // Contenedor principal de información - Columna 2
+      doc.rect(colX, colY, columnWidth, infoHeight)
+         .fillColor('#f8f9fa')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, infoHeight)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
+
+      infoY = colY + 10;
+
+      // Datos de la orden - Columna 2 (mismos datos)
+      orderInfo.forEach((info, index) => {
+          const currentY = infoY + (index * infoItemHeight);
+          
+          doc.fontSize(8)
+             .font('Helvetica-Bold')
+             .fillColor('#333333')
+             .text(info.label, colX + 10, currentY);
+          
+          doc.fontSize(8)
+             .font('Helvetica')
+             .fillColor('#666666')
+             .text(info.value, colX + 90, currentY, {
+               width: columnWidth - 80,
+               align: 'left'
+             });
+
+          // Línea punteada entre items
+          if (index < orderInfo.length - 1) {
+              doc.moveTo(colX + 10, currentY + 10)
+                 .lineTo(colX + columnWidth - 10, currentY + 10)
+                 .lineWidth(0.5)
+                 .strokeColor('#cccccc')
+                 .dash(2, { space: 2 })
+                 .stroke()
+                 .undash();
+          }
+      });
+
+      colY += infoHeight + 15;
+
+      // Descripción del traslado - Columna 2
+      doc.rect(colX, colY, columnWidth, 25)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, columnWidth, 25)
+         .strokeColor('#000000')
+         .lineWidth(1)
+         .stroke();
+
+      doc.fontSize(11)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Descripción del Traslado', colX + 10, colY + 8);
+
+      colY += 30;
+
+      doc.fontSize(9)
+         .font('Helvetica')
+         .fillColor('#333333')
+         .text(`Por medio de la presente se hace constar la salida de equipos desde ${data.sedeOrigen.nombre} hacia ${data.sedeDestino?.nombre || 'la sede destino'}.`, 
+               colX + 10, colY, { 
+                 width: columnWidth - 20,
+                 align: 'left'
+               });
+
+      colY += 25;
+
+      // Detalle de equipos - Columna 2
+      if (data.equipos && data.equipos.length > 0) {
+          doc.fontSize(11)
+             .font('Helvetica-Bold')
+             .fillColor('#333333')
+             .text('Detalle de Equipos a Trasladar', colX, colY);
+
+          colY += 15;
+
+          // Encabezados de tabla
+          const headers = ['Equipo', 'Tipo', 'Cantidad'];
+          const columnWidths = [
+              columnWidth * 0.50,
+              columnWidth * 0.30,
+              columnWidth * 0.20
+          ];
+          
+          let headerX = colX;
+          
+          // Fondo encabezados
+          headers.forEach((header, index) => {
+              doc.rect(headerX, colY, columnWidths[index], 12)
+                 .fillColor('#343a40')
+                 .fill();
+              headerX += columnWidths[index];
+          });
+
+          // Texto encabezados
+          headerX = colX;
+          doc.fillColor('white')
+             .fontSize(7);
+          
+          headers.forEach((header, index) => {
+              doc.text(header, headerX + 2, colY + 3, { 
+                  width: columnWidths[index] - 4, 
+                  align: 'left' 
+              });
+              headerX += columnWidths[index];
+          });
+
+          colY += 12;
+
+          // Filas de equipos
+          data.equipos.forEach((equipo, index) => {
+              // Fondo alternado para filas
+              if (index % 2 === 0) {
+                  doc.rect(colX, colY, columnWidth, 15)
+                     .fillColor('#f8f9fa')
+                     .fill();
+              }
+
+              let cellX = colX;
+
+              doc.fillColor('#333')
+                 .fontSize(6);
+
+              // Equipo
+              const equipoTexto = `${equipo.stock_equipos.marca || 'N/A'} ${equipo.stock_equipos.modelo || ''}`;
+              doc.text(equipoTexto, cellX + 2, colY + 4, { 
+                  width: columnWidths[0] - 4 
+              });
+              cellX += columnWidths[0];
+
+              // Tipo
+              doc.text(equipo.stock_equipos.tipo_equipo.nombre || 'N/A', cellX + 2, colY + 4, { 
+                  width: columnWidths[1] - 4 
+              });
+              cellX += columnWidths[1];
+
+              // Cantidad
+              doc.text(`${equipo.cantidad} unidades`, cellX + 2, colY + 4, { 
+                  width: columnWidths[2] - 4 
+              });
+
+              colY += 15;
+          });
+
+          // Bordes de la tabla
+          doc.rect(colX, colY - (data.equipos.length * 15), columnWidth, (data.equipos.length * 15) + 12)
+             .strokeColor('#000')
+             .lineWidth(0.5)
+             .stroke();
+
+          colY += 10;
+      }
+
+      // Observaciones - Columna 2
+      doc.rect(colX, colY, columnWidth, 60)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, 3, 60)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Observaciones:', colX + 10, colY + 5);
+
+      colY += 15;
+
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('• Cualquier novedad informar al Departamento de Tecnología', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 10;
+
+      doc.text('• Los equipos deben ser utilizados exclusivamente para labores de la empresa', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 10;
+
+      doc.text('• Reportar cualquier daño o mal funcionamiento inmediatamente', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 20;
+
+      // Firmas - Columna 2
+      // Firma T/C
+      doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+         .strokeColor('#cccccc')
+         .lineWidth(1)
+         .stroke();
+      
+      // Línea de firma
+      doc.moveTo(colX + 15, colY + 40)
+         .lineTo(colX + firmaWidth - 5, colY + 40)
+         .lineWidth(1)
+         .strokeColor('#333333')
+         .stroke();
+      
+      doc.fontSize(9)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Firma T/C', colX + 5, colY + 45, {
+           width: firmaWidth,
+           align: 'center'
+         });
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('Responsable', colX + 5, colY + 55, {
+           width: firmaWidth,
+           align: 'center'
+         });
+
+      // Firma Impresor PCP
+      doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+         .strokeColor('#cccccc')
+         .lineWidth(1)
+         .stroke();
+      
+      // Línea de firma
+      doc.moveTo(colX + 20 + firmaWidth, colY + 40)
+         .lineTo(colX + (firmaWidth * 2) + 5, colY + 40)
+         .lineWidth(1)
+         .strokeColor('#333333')
+         .stroke();
+      
+      doc.fontSize(9)
+         .font('Helvetica-Bold')
+         .fillColor('#333333')
+         .text('Impresor PCP', colX + 10 + firmaWidth, colY + 45, {
+           width: firmaWidth,
+           align: 'center'
+         });
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('Salida', colX + 10 + firmaWidth, colY + 55, {
+           width: firmaWidth,
+           align: 'center'
+         });
+
+      colY += firmaHeight + 15;
+
+      // Footer - Columna 2
+      doc.moveTo(colX, colY)
+         .lineTo(colX + columnWidth, colY)
+         .lineWidth(1)
+         .strokeColor('#dddddd')
+         .stroke();
+      
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
+           width: columnWidth,
+           align: 'center'
+         });
 
       doc.end();
 
