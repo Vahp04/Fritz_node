@@ -1678,13 +1678,7 @@ async generarPDFGeneral(req, res) {
     doc.font('Helvetica')
        .text(totalTelefonos.toString(), margin + 200, yPosition + 25);
     
-    // Teléfonos asignados
-    const telefonosAsignadosCount = telefonosProcesados.filter(t => t.usuario && t.usuario.nombre).length;
-    doc.font('Helvetica-Bold')
-       .text('Teléfonos asignados:', margin + 10, yPosition + 40);
-    
-    doc.font('Helvetica')
-       .text(telefonosAsignadosCount.toString(), margin + 200, yPosition + 40);
+
     
     yPosition += 70;
 
@@ -1703,7 +1697,7 @@ async generarPDFGeneral(req, res) {
 
       // Encabezados de la tabla
       const headers = ['Teléfono', 'Usuario', 'Cargo', 'Sede', 'Depto', 'Marca/Modelo', 'IP', 'MAC', 'Estado'];
-      const colWidths = [45, 60, 50, 50, 50, 60, 50, 70, 40];
+      const colWidths = [45, 60, 50, 50, 50, 60, 55, 75, 30];
       
       // Fondo del encabezado
       doc.rect(margin, yPosition, pageWidth, 15)
