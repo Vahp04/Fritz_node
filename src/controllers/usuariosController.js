@@ -968,18 +968,12 @@ export const usuariosController = {
 
   async verPdf(req, res) {
   console.log('=== VER PDF USUARIOS INICIADO ===');
-
   
-
   try {
     const usuarios = await prisma.usuarios.findMany({
       include: {
-        sede: {
-          select: { nombre: true }
-        },
-        departamento: {
-          select: { nombre: true }
-        }
+        sede: { select: { nombre: true } },
+        departamento: { select: { nombre: true } }
       },
       orderBy: { id: 'asc' }
     });
@@ -991,17 +985,11 @@ export const usuariosController = {
         });
 
         const equipos_activos_count = await prisma.equipo_asignado.count({
-          where: {
-            usuarios_id: usuario.id,
-            estado: 'activo'
-          }
+          where: { usuarios_id: usuario.id, estado: 'activo' }
         });
 
         const equipos_devueltos_count = await prisma.equipo_asignado.count({
-          where: {
-            usuarios_id: usuario.id,
-            estado: 'devuelto'
-          }
+          where: { usuarios_id: usuario.id, estado: 'devuelto' }
         });
 
         return {
@@ -1021,13 +1009,14 @@ export const usuariosController = {
       totalSinEquipos: usuariosConContadores.filter(u => u.equipos_activos_count === 0).length
     };
 
-    // Usar PDFKitGenerator - SOLO PASA LOS DATOS, NO EL HTML
+    // **REPORTE GENERAL** - sin templateType o con templateType: 'general'
     const pdfBuffer = await PDFKitGenerator.generatePDF(null, {
       title: 'Reporte de Usuarios',
       data: data
+      // templateType por defecto es 'general'
     });
 
-    console.log('=== VER PDF GENERADO EXITOSAMENTE ===');
+    console.log('=== VER PDF GENERAL GENERADO EXITOSAMENTE ===');
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="reporte-usuarios.pdf"');
@@ -1041,9 +1030,7 @@ export const usuariosController = {
 
   } catch (error) {
     console.error('ERROR viendo PDF de usuarios:', error);
-    res.status(500).json({
-      error: 'Error al cargar el PDF: ' + error.message
-    });
+    res.status(500).json({ error: 'Error al cargar el PDF: ' + error.message });
   }
 },
 
@@ -1170,88 +1157,71 @@ export const usuariosController = {
   },
 
   async verReporteIndividual(req, res) {
-    console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
+  console.log('=== VER REPORTE INDIVIDUAL USUARIO ===');
 
-    try {
-        const { id } = req.params;
-        console.log(`Viendo reporte individual para usuario ID: ${id}`);
+  try {
+    const { id } = req.params;
+    console.log(`Viendo reporte individual para usuario ID: ${id}`);
 
-        const usuario = await prisma.usuarios.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                sede: {
-                    select: { nombre: true }
-                },
-                departamento: {
-                    select: { nombre: true }
-                }
-            }
-        });
+    const usuario = await prisma.usuarios.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        sede: { select: { nombre: true } },
+        departamento: { select: { nombre: true } }
+      }
+    });
 
-        if (!usuario) {
-            return res.status(404).json({
-                error: 'Usuario no encontrado'
-            });
-        }
-
-        const equipos_totales_count = await prisma.equipo_asignado.count({
-            where: { usuarios_id: parseInt(id) }
-        });
-
-        const equipos_activos_count = await prisma.equipo_asignado.count({
-            where: {
-                usuarios_id: parseInt(id),
-                estado: 'activo'
-            }
-        });
-
-        const equipos_devueltos_count = await prisma.equipo_asignado.count({
-            where: {
-                usuarios_id: parseInt(id),
-                estado: 'devuelto'
-            }
-        });
-
-        const data = {
-            usuario,
-            titulo: 'Reporte Individual de Usuario',
-            fecha: new Date().toLocaleString('es-ES'),
-            numeroDocumento: `${usuario.id}-${Date.now().toString().slice(-6)}`,
-            estadisticas: {
-                totales: equipos_totales_count,
-                activos: equipos_activos_count,
-                devueltos: equipos_devueltos_count
-            }
-        };
-
-        console.log('Generando reporte individual con template: pdfs/reporte-usuarios-individual');
-        
-        // **IMPORTANTE**: Usar el template correcto para reporte individual
-        const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
-        
-        const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
-            format: 'Letter',
-            landscape: true  // Esto coincide con tu template que es landscape
-        });
-
-        console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
-
-        // Para VER en navegador
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-
-        res.end(pdfBuffer);
-
-    } catch (error) {
-        console.error('ERROR viendo reporte individual:', error);
-        res.status(500).json({
-            error: 'Error al cargar el reporte: ' + error.message
-        });
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
+    const equipos_totales_count = await prisma.equipo_asignado.count({
+      where: { usuarios_id: parseInt(id) }
+    });
+
+    const equipos_activos_count = await prisma.equipo_asignado.count({
+      where: { usuarios_id: parseInt(id), estado: 'activo' }
+    });
+
+    const equipos_devueltos_count = await prisma.equipo_asignado.count({
+      where: { usuarios_id: parseInt(id), estado: 'devuelto' }
+    });
+
+    const data = {
+      usuario,
+      titulo: 'Reporte Individual de Usuario',
+      fecha: new Date().toLocaleString('es-ES'),
+      numeroDocumento: `${usuario.id}-${Date.now().toString().slice(-6)}`,
+      estadisticas: {
+        totales: equipos_totales_count,
+        activos: equipos_activos_count,
+        devueltos: equipos_devueltos_count
+      }
+    };
+
+    // **REPORTE INDIVIDUAL** - especificar templateType: 'individual'
+    const pdfBuffer = await PDFKitGenerator.generatePDF(null, {
+      data: data,
+      templateType: 'individual', // **ESTO ES CLAVE**
+      format: 'Letter',
+      landscape: true
+    });
+
+    console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    res.end(pdfBuffer);
+
+  } catch (error) {
+    console.error('ERROR viendo reporte individual:', error);
+    res.status(500).json({ error: 'Error al cargar el reporte: ' + error.message });
+  }
 }
 };

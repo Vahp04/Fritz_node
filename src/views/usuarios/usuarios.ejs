@@ -2118,7 +2118,17 @@
             }
         }
 
-        
+        async function verReporteIndividual(id) {
+            try {
+                window.open(`/api/usuarios/${id}/reporte/ver`, '_blank');
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message
+                });
+            }
+        }
 
         async function cargarUsuariosParaReporte() {
             try {
