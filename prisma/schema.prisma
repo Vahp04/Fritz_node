@@ -275,6 +275,7 @@ enum cargo {
   Coordinador
   Supervisor
   Auxiliar
+  Freelance
 }
 
 enum EstadoMikrotik {
