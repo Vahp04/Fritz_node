@@ -1469,138 +1469,487 @@ export const dvrController = {
 },
 
   async generarPDFPorSede(req, res) {
-    try {
-      const { sede_id } = req.params;
-      const sedeId = parseInt(sede_id);
+  try {
+    const { sede_id } = req.params;
+    const sedeId = parseInt(sede_id);
 
-      console.log(`Generando PDF de DVRs para sede ID: ${sedeId}`);
+    console.log(`Generando PDF de DVRs para sede ID: ${sedeId}`);
 
-      if (isNaN(sedeId) || sedeId <= 0) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'ID de sede no válido' }));
-      }
-
-      const sede = await prisma.sedes.findUnique({
-        where: { id: sedeId }
-      });
-
-      if (!sede) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ error: 'Sede no encontrada' }));
-      }
-
-      const dvrs = await prisma.dvr.findMany({
-        where: { sede_id: sedeId },
-        include: {
-          stock_equipos: {
-            include: {
-              tipo_equipo: true
-            }
-          },
-          sede: true
-        },
-        orderBy: [
-          { id: 'asc' }
-        ]
-      });
-
-      if (dvrs.length === 0) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ 
-          error: 'No se encontraron DVRs para esta sede' 
-        }));
-      }
-
-      console.log(`${dvrs.length} DVRs encontrados en ${sede.nombre}`);
-
-      const dvrsConDatosCompletos = dvrs.map(dvr => ({
-        id: dvr.id,
-        descripcion: dvr.descripcion || '',
-        ubicacion: dvr.ubicacion || 'Sin ubicación',
-        sede_id: dvr.sede_id,
-        cantidad_cam: dvr.cantidad_cam || 0,
-        ip_dvr: dvr.ip_dvr || '',
-        cereal_dvr: dvr.cereal_dvr || '',
-        mac_dvr: dvr.mac_dvr || '',
-        switch: dvr.switch || '',
-        estado: dvr.estado || 'inactivo',
-        created_at: dvr.created_at,
-        stock_equipos: dvr.stock_equipos ? {
-          marca: dvr.stock_equipos.marca || '',
-          modelo: dvr.stock_equipos.modelo || '',
-          tipo_equipo: dvr.stock_equipos.tipo_equipo ? {
-            nombre: dvr.stock_equipos.tipo_equipo.nombre || ''
-          } : null
-        } : null,
-        sede: dvr.sede ? {
-          nombre: dvr.sede.nombre || 'Sin sede'
-        } : null
-      }));
-
-      const data = {
-        titulo: `Reporte de DVRs - ${sede.nombre}`,
-        subtitulo: `Sede: ${sede.nombre}`,
-        fecha: new Date().toLocaleDateString('es-ES', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        total: dvrsConDatosCompletos.length,
-        dvrs: dvrsConDatosCompletos,
-        sede: sede,
-        estadisticas: {
-          activos: dvrsConDatosCompletos.filter(d => d.estado === 'activo').length,
-          inactivos: dvrsConDatosCompletos.filter(d => d.estado === 'inactivo').length,
-          mantenimiento: dvrsConDatosCompletos.filter(d => d.estado === 'mantenimiento').length,
-          desuso: dvrsConDatosCompletos.filter(d => d.estado === 'desuso').length
-        }
-      };
-
-      console.log('Renderizando template para sede...');
-      
-      const html = await renderTemplate(req.app, 'pdfs/reporte-dvrs-sede', data);
-
-      console.log('Generando PDF para sede...');
-      
-      const pdfOptions = {
-        format: 'Letter',
-        landscape: true,
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      };
-
-      const pdfBuffer = await PuppeteerPDF.generatePDF(html, pdfOptions);
-      
-      console.log('PDF generado exitosamente');
-      console.log('Tamaño del buffer PDF:', pdfBuffer.length);
-
-      const filename = `reporte-dvrs-${sede.nombre.replace(/\s+/g, '-')}.pdf`;
-      
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-      
-      res.end(pdfBuffer);
-
-    } catch (error) {
-      console.error('Error generando PDF por sede:', error);
-
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        error: 'Error generando PDF', 
-        detalles: error.message 
-      }));
+    if (isNaN(sedeId) || sedeId <= 0) {
+      return res.status(400).json({ error: 'ID de sede no válido' });
     }
+
+    const sede = await prisma.sedes.findUnique({
+      where: { id: sedeId }
+    });
+
+    if (!sede) {
+      return res.status(404).json({ error: 'Sede no encontrada' });
+    }
+
+    const dvrs = await prisma.dvr.findMany({
+      where: { sede_id: sedeId },
+      include: {
+        stock_equipos: {
+          include: {
+            tipo_equipo: true
+          }
+        },
+        sede: true
+      },
+      orderBy: [
+        { id: 'asc' }
+      ]
+    });
+
+    if (dvrs.length === 0) {
+      return res.status(404).json({ 
+        error: 'No se encontraron DVRs para esta sede' 
+      });
+    }
+
+    console.log(`${dvrs.length} DVRs encontrados en ${sede.nombre}`);
+
+    // Crear documento PDF en LANDSCAPE como el HTML
+    const doc = new PDFDocument({
+      size: 'LETTER',
+      layout: 'landscape',
+      margins: {
+        top: 15,
+        bottom: 15,
+        left: 10,
+        right: 10
+      }
+    });
+
+    // Configurar headers de respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="reporte-dvrs-${sede.nombre.replace(/\s+/g, '-')}.pdf"`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Pipe del PDF a la respuesta
+    doc.pipe(res);
+
+    // Variables de configuración
+    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    let yPosition = doc.page.margins.top;
+
+    // ===== HEADER =====
+    // Logo placeholder (similar al HTML)
+    doc.rect(doc.page.margins.left, yPosition, 35, 25)
+       .fill('#DC2626');
+    
+    doc.fontSize(8)
+       .fillColor('white')
+       .font('Helvetica-Bold')
+       .text('LOGO', doc.page.margins.left + 8, yPosition + 8);
+    
+    // Título principal
+    doc.fontSize(18)
+       .fillColor('#DC2626')
+       .font('Helvetica-Bold')
+       .text(`Reporte de DVRs - ${sede.nombre}`, doc.page.margins.left + 45, yPosition);
+    
+    // Subtítulo
+    doc.fontSize(10)
+       .fillColor('#666666')
+       .font('Helvetica')
+       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20);
+    
+    // Línea decorativa
+    doc.moveTo(doc.page.margins.left, yPosition + 35)
+       .lineTo(doc.page.margins.left + pageWidth, yPosition + 35)
+       .strokeColor('#DC2626')
+       .lineWidth(2)
+       .stroke();
+    
+    yPosition += 45;
+
+    // ===== INFO DE SEDE (similar al HTML) =====
+    // Fondo rojo degradado
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 30)
+       .fill('#DC2626');
+    
+    // Nombre de la sede
+    doc.fontSize(14)
+       .fillColor('white')
+       .font('Helvetica-Bold')
+       .text(sede.nombre, doc.page.margins.left + 10, yPosition + 8, {
+         width: pageWidth - 20,
+         align: 'center'
+       });
+    
+    // Detalles de la sede
+    const totalCamaras = dvrs.reduce((sum, dvr) => sum + (dvr.cantidad_cam || 0), 0);
+    
+    doc.fontSize(9)
+       .fillColor('white')
+       .font('Helvetica')
+       .text(`ID: ${sede.id} • Total DVRs: ${dvrs.length} • Total Cámaras: ${totalCamaras}`, 
+             doc.page.margins.left + 10, yPosition + 22, {
+         width: pageWidth - 20,
+         align: 'center'
+       });
+    
+    yPosition += 40;
+
+    // ===== METADATA =====
+    const fecha = new Date().toLocaleDateString('es-ES', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const hora = new Date().toLocaleTimeString('es-ES');
+
+    // Fondo del metadata
+    doc.rect(doc.page.margins.left, yPosition, pageWidth, 20)
+       .fill('#f8f9fa');
+    
+    // Borde izquierdo rojo
+    doc.rect(doc.page.margins.left, yPosition, 4, 20)
+       .fill('#DC2626');
+    
+    const metaColWidth = pageWidth / 3;
+    
+    doc.fontSize(7)
+       .fillColor('#333333')
+       .font('Helvetica-Bold')
+       .text('FECHA DE GENERACIÓN', doc.page.margins.left + 10, yPosition + 5);
+    
+    doc.text('HORA', doc.page.margins.left + metaColWidth + 10, yPosition + 5);
+    
+    doc.text('TOTAL CÁMARAS', doc.page.margins.left + (metaColWidth * 2) + 10, yPosition + 5);
+    
+    yPosition += 8;
+    
+    doc.font('Helvetica')
+       .fillColor('#1a1a1a')
+       .fontSize(8)
+       .text(fecha, doc.page.margins.left + 10, yPosition + 5);
+    
+    doc.text(hora, doc.page.margins.left + metaColWidth + 10, yPosition + 5);
+    
+    doc.text(`${totalCamaras} cámaras`, doc.page.margins.left + (metaColWidth * 2) + 10, yPosition + 5);
+    
+    yPosition += 20;
+
+    // ===== ESTADÍSTICAS =====
+    const estadisticas = {
+      activos: dvrs.filter(d => d.estado === 'activo').length,
+      inactivos: dvrs.filter(d => d.estado === 'inactivo').length,
+      mantenimiento: dvrs.filter(d => d.estado === 'mantenimiento').length,
+      desuso: dvrs.filter(d => d.estado === 'desuso').length
+    };
+
+    const statWidth = (pageWidth - 20) / 5;
+    const statHeight = 25;
+    const statY = yPosition;
+
+    const stats = [
+      { label: 'TOTAL DVRs', value: dvrs.length, color: '#DC2626' },
+      { label: 'ACTIVOS', value: estadisticas.activos, color: '#DC2626' },
+      { label: 'INACTIVOS', value: estadisticas.inactivos, color: '#DC2626' },
+      { label: 'MANTENIMIENTO', value: estadisticas.mantenimiento, color: '#DC2626' },
+      { label: 'DESUSO', value: estadisticas.desuso, color: '#DC2626' }
+    ];
+
+    stats.forEach((stat, index) => {
+      const x = doc.page.margins.left + (statWidth * index);
+      
+      // Fondo de la tarjeta
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .fill('#e9ecef');
+      
+      // Borde
+      doc.rect(x, statY, statWidth - 2, statHeight)
+         .stroke('#cccccc');
+      
+      // Número
+      doc.fontSize(12)
+         .fillColor(stat.color)
+         .font('Helvetica-Bold')
+         .text(stat.value.toString(), x, statY + 5, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+      
+      // Etiqueta
+      doc.fontSize(6)
+         .fillColor('#333333')
+         .font('Helvetica')
+         .text(stat.label, x, statY + 17, {
+           width: statWidth - 2,
+           align: 'center'
+         });
+    });
+
+    yPosition += 35;
+
+    // ===== TABLA - CONFIGURACIÓN SIMILAR AL HTML =====
+    const columnWidths = {
+      id: 25,
+      descripcion: 120,
+      equipo: 100,
+      ip: 80,
+      serial: 90,
+      mac: 100,
+      switch: 80,
+      camaras: 40,
+      ubicacion: 100,
+      estado: 50
+    };
+
+    const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+    
+    const headers = [
+      { text: 'ID', width: columnWidths.id },
+      { text: 'DESCRIPCIÓN', width: columnWidths.descripcion },
+      { text: 'EQUIPO/MODELO', width: columnWidths.equipo },
+      { text: 'IP DVR', width: columnWidths.ip },
+      { text: 'SERIAL', width: columnWidths.serial },
+      { text: 'MAC', width: columnWidths.mac },
+      { text: 'SWITCH', width: columnWidths.switch },
+      { text: 'CÁMARAS', width: columnWidths.camaras },
+      { text: 'UBICACIÓN', width: columnWidths.ubicacion },
+      { text: 'ESTADO', width: columnWidths.estado }
+    ];
+
+    let currentY = yPosition;
+
+    // DIBUJAR ENCABEZADOS CON DEGRADADO ROJO
+    let currentX = doc.page.margins.left;
+    
+    headers.forEach(header => {
+      // Fondo degradado (simulado)
+      doc.rect(currentX, currentY, header.width, 15)
+         .fill('#DC2626');
+      
+      doc.fontSize(7)
+         .fillColor('white')
+         .font('Helvetica-Bold')
+         .text(header.text, currentX + 3, currentY + 4, {
+           width: header.width - 6,
+           align: 'left'
+         });
+      
+      currentX += header.width;
+    });
+
+    currentY += 15;
+
+    // CONTENIDO DE LA TABLA
+    dvrs.forEach((dvr, index) => {
+      // Verificar si necesitamos nueva página
+      if (currentY > doc.page.height - doc.page.margins.bottom - 20) {
+        doc.addPage();
+        currentY = doc.page.margins.top;
+        
+        // Redibujar encabezados en nueva página
+        let headerX = doc.page.margins.left;
+        headers.forEach(header => {
+          doc.rect(headerX, currentY, header.width, 15)
+             .fill('#DC2626');
+          
+          doc.fontSize(7)
+             .fillColor('white')
+             .font('Helvetica-Bold')
+             .text(header.text, headerX + 3, currentY + 4, {
+               width: header.width - 6,
+               align: 'left'
+             });
+          
+          headerX += header.width;
+        });
+        currentY += 15;
+      }
+
+      // Fondo alternado para filas
+      if (index % 2 === 0) {
+        doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
+           .fill('#f8f9fa');
+      }
+
+      // CONTENIDO DE LAS CELDAS
+      let cellX = doc.page.margins.left;
+
+      // Configurar fuente base
+      doc.fontSize(7)
+         .fillColor('black')
+         .font('Helvetica');
+
+      // ID
+      doc.font('Helvetica-Bold')
+         .text(dvr.id.toString(), cellX + 3, currentY + 2, {
+           width: columnWidths.id - 6
+         })
+         .font('Helvetica');
+      cellX += columnWidths.id;
+
+      // Descripción
+      const descripcionText = dvr.descripcion || '';
+      doc.font('Helvetica-Bold')
+         .text(descripcionText, cellX + 3, currentY + 2, {
+           width: columnWidths.descripcion - 6
+         })
+         .font('Helvetica');
+      cellX += columnWidths.descripcion;
+
+      // Equipo/Modelo
+      let equipoText = 'No asignado';
+      if (dvr.stock_equipos) {
+        const marca = dvr.stock_equipos.marca || '';
+        const modelo = dvr.stock_equipos.modelo || '';
+        const tipo = dvr.stock_equipos.tipo_equipo ? dvr.stock_equipos.tipo_equipo.nombre : '';
+        equipoText = `${marca}\n${modelo}\n${tipo}`;
+      }
+      doc.text(equipoText, cellX + 3, currentY + 2, {
+        width: columnWidths.equipo - 6,
+        lineGap: 1
+      });
+      cellX += columnWidths.equipo;
+
+      // IP
+      const ipText = dvr.ip_dvr || '-';
+      doc.text(ipText, cellX + 3, currentY + 2, {
+        width: columnWidths.ip - 6
+      });
+      cellX += columnWidths.ip;
+
+      // Serial
+      const serialText = dvr.cereal_dvr || '-';
+      doc.text(serialText, cellX + 3, currentY + 2, {
+        width: columnWidths.serial - 6
+      });
+      cellX += columnWidths.serial;
+
+      // MAC
+      const macText = dvr.mac_dvr || '-';
+      doc.text(macText, cellX + 3, currentY + 2, {
+        width: columnWidths.mac - 6
+      });
+      cellX += columnWidths.mac;
+
+      // Switch
+      const switchText = dvr.switch || '-';
+      doc.text(switchText, cellX + 3, currentY + 2, {
+        width: columnWidths.switch - 6
+      });
+      cellX += columnWidths.switch;
+
+      // Cámaras
+      const camarasText = dvr.cantidad_cam ? dvr.cantidad_cam.toString() : '0';
+      doc.font('Helvetica-Bold')
+         .text(camarasText, cellX + 3, currentY + 2, {
+           width: columnWidths.camaras - 6,
+           align: 'center'
+         })
+         .font('Helvetica');
+      cellX += columnWidths.camaras;
+
+      // Ubicación
+      const ubicacionText = dvr.ubicacion || 'Sin ubicación';
+      doc.text(ubicacionText, cellX + 3, currentY + 2, {
+        width: columnWidths.ubicacion - 6
+      });
+      cellX += columnWidths.ubicacion;
+
+      // Estado con colores
+      const estadoText = dvr.estado ? 
+        dvr.estado.charAt(0).toUpperCase() + dvr.estado.slice(1) : '-';
+      
+      let estadoColor = 'black';
+      let estadoBg = '#f3f4f6';
+      let estadoBorder = '#d1d5db';
+      
+      switch(dvr.estado) {
+        case 'activo': 
+          estadoColor = '#065f46'; 
+          estadoBg = '#d1fae5';
+          estadoBorder = '#a7f3d0';
+          break;
+        case 'inactivo': 
+          estadoColor = '#374151'; 
+          estadoBg = '#f3f4f6';
+          estadoBorder = '#d1d5db';
+          break;
+        case 'mantenimiento': 
+          estadoColor = '#92400e'; 
+          estadoBg = '#fef3c7';
+          estadoBorder = '#fcd34d';
+          break;
+        case 'desuso': 
+          estadoColor = '#be185d'; 
+          estadoBg = '#fce7f3';
+          estadoBorder = '#f9a8d4';
+          break;
+      }
+      
+      // Dibujar badge de estado
+      const badgeWidth = columnWidths.estado - 6;
+      const badgeHeight = 8;
+      
+      doc.rect(cellX + 3, currentY + 1, badgeWidth, badgeHeight)
+         .fill(estadoBg)
+         .stroke(estadoBorder);
+      
+      doc.fontSize(6)
+         .fillColor(estadoColor)
+         .font('Helvetica-Bold')
+         .text(estadoText.toUpperCase(), cellX + 3, currentY + 2, {
+           width: badgeWidth,
+           align: 'center'
+         })
+         .fillColor('black')
+         .fontSize(7);
+
+      // DIBUJAR BORDES DE LA TABLA
+      doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
+         .stroke('#dee2e6');
+
+      currentY += 12;
+    });
+
+    // ===== FOOTER =====
+    const footerY = doc.page.height - doc.page.margins.bottom - 15;
+    
+    // Línea separadora
+    doc.moveTo(doc.page.margins.left, footerY - 8)
+       .lineTo(doc.page.margins.left + pageWidth, footerY - 8)
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .stroke();
+    
+    // Texto del footer
+    doc.fontSize(7)
+       .fillColor('#666666')
+       .text(`Sistema de Gestión de DVRs | Reporte específico por sede`, 
+             doc.page.margins.left, footerY - 5, {
+               width: pageWidth,
+               align: 'center'
+             });
+    
+    doc.text(`Generado el ${fecha} a las ${hora}`, 
+             doc.page.margins.left, footerY + 2, {
+               width: pageWidth,
+               align: 'center'
+             });
+
+    // Finalizar PDF
+    doc.end();
+
+    console.log(`PDF por sede generado exitosamente - ${dvrs.length} DVRs en ${sede.nombre}`);
+
+  } catch (error) {
+    console.error('Error generando PDF por sede:', error);
+    
+    res.status(500).json({ 
+      error: 'Error generando PDF', 
+      detalles: error.message
+    });
   }
+}
 };
