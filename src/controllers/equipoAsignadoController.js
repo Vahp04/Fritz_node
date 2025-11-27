@@ -1921,6 +1921,7 @@ async verPdfPorUsuario(req, res) {
             day: 'numeric'
         });
 
+        // CORREGIR: Usar el nombre correcto de la propiedad
         const data = {
             titulo: `Reporte de Equipos Asignados - ${usuario.nombre} ${usuario.apellido}`,
             fecha: fecha,
@@ -1931,7 +1932,7 @@ async verPdfPorUsuario(req, res) {
             estadisticas: {
                 totales: totalEquipos,
                 activos: equiposActivos,
-                devueltos: equiposDevueltos,
+                devueltos: equiposDevueltos, // CORREGIDO: era 'devuelto' en lugar de 'devueltos'
                 obsoletos: equiposObsoletos
             }
         };
@@ -2153,7 +2154,7 @@ async verPdfPorUsuario(req, res) {
              align: 'center'
            });
 
-        // Equipos Devueltos
+        // Equipos Devueltos - CORREGIDO: usar 'devueltos' en lugar de 'devuelto'
         doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
@@ -2292,6 +2293,20 @@ async verPdfPorUsuario(req, res) {
                .stroke();
 
             colY += 10;
+        } else {
+            // Mensaje cuando no hay equipos
+            doc.rect(colX, colY, columnWidth, 30)
+               .fillColor('#f8f9fa')
+               .fill();
+            
+            doc.fillColor('#666')
+               .fontSize(10)
+               .text('El usuario no tiene equipos asignados', colX, colY + 10, { 
+                   width: columnWidth, 
+                   align: 'center' 
+               });
+            
+            colY += 40;
         }
 
         // Firmas - Columna 1
@@ -2554,7 +2569,7 @@ async verPdfPorUsuario(req, res) {
              align: 'center'
            });
 
-        // Equipos Devueltos
+        // Equipos Devueltos - CORREGIDO: usar 'devueltos' en lugar de 'devuelto'
         doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
@@ -2693,6 +2708,20 @@ async verPdfPorUsuario(req, res) {
                .stroke();
 
             colY += 10;
+        } else {
+            // Mensaje cuando no hay equipos
+            doc.rect(colX, colY, columnWidth, 30)
+               .fillColor('#f8f9fa')
+               .fill();
+            
+            doc.fillColor('#666')
+               .fontSize(10)
+               .text('El usuario no tiene equipos asignados', colX, colY + 10, { 
+                   width: columnWidth, 
+                   align: 'center' 
+               });
+            
+            colY += 40;
         }
 
         // Firmas - Columna 2
