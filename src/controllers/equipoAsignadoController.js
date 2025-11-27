@@ -2579,7 +2579,7 @@ async verPdfPorUsuario(req, res) {
         doc.fontSize(16)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.devuelto.toString(), colX + 15 + (statWidth * 2), colY + 10, {
+           .text(data.estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
              width: statWidth,
              align: 'center'
            });
