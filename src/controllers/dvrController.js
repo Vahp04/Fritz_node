@@ -1133,15 +1133,15 @@ export const dvrController = {
     if (dvrs.length > 0) {
       // Configuración de columnas para DVRs
       const columnWidths = {
-        equipo: 90,
-        ip: 70,
-        serial: 80,
-        mac: 90,
-        sede: 70,
+        equipo: 110,
+        ip: 85,
+        serial: 90,
+        mac: 100,
+        sede: 80,
         camaras: 40,
-        switch: 80,
-        ubicacion: 80,
-        estado: 40
+        switch: 95,
+        ubicacion: 90,
+        estado: 45
       };
 
       const totalTableWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
@@ -1251,7 +1251,7 @@ export const dvrController = {
             doc.rect(headerX, currentY, header.width, 15)
                .fill('#DC2626');
             
-            doc.fontSize(7)
+            doc.fontSize(8)
                .fillColor('white')
                .font('Helvetica-Bold')
                .text(header.text, headerX + 3, currentY + 4, {
@@ -1267,7 +1267,7 @@ export const dvrController = {
         // Cambio de sede
         if (currentSede !== dvr.sede_id && dvr.sede) {
           currentSede = dvr.sede_id;
-          doc.fontSize(7)
+          doc.fontSize(8)
              .fillColor('#333333')
              .font('Helvetica-Bold')
              .text(`SEDE: ${dvr.sede.nombre}`, doc.page.margins.left, currentY + 2);
@@ -1285,7 +1285,7 @@ export const dvrController = {
         let cellX = doc.page.margins.left;
 
         // Configurar fuente base
-        doc.fontSize(6)
+        doc.fontSize(9)
            .fillColor('black')
            .font('Helvetica');
 
