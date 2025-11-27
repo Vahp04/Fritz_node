@@ -1334,7 +1334,7 @@ async index(req, res) {
         doc.rect(currentX, currentY, header.width, 15)
            .fill('#DC2626');
         
-        doc.fontSize(7)
+        doc.fontSize(8)
            .fillColor('white')
            .font('Helvetica-Bold')
            .text(header.text, currentX + 3, currentY + 4, {
@@ -1426,7 +1426,7 @@ async index(req, res) {
             doc.rect(headerX, currentY, header.width, 15)
                .fill('#DC2626');
             
-            doc.fontSize(7)
+            doc.fontSize(8)
                .fillColor('white')
                .font('Helvetica-Bold')
                .text(header.text, headerX + 3, currentY + 4, {
@@ -1460,7 +1460,7 @@ async index(req, res) {
         let cellX = doc.page.margins.left;
 
         // Configurar fuente base
-        doc.fontSize(6)
+        doc.fontSize(9)
            .fillColor('black')
            .font('Helvetica');
 
