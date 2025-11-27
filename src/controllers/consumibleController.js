@@ -956,14 +956,14 @@ async generarPDFOrdenSalida(req, res) {
       doc.fillColor('#333333')
          .fontSize(10)
          .font('Helvetica-Bold')
-         .text('Observaciones:', colX + 10, colY + 5);
+         .text('Observaciones: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 5);
 
       colY += 15;
 
       doc.fontSize(8)
          .font('Helvetica')
          .fillColor('#666666')
-         .text('Observación: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY, { width: columnWidth - 15 });
+         
 
       colY += 10;
 
@@ -1291,14 +1291,13 @@ async generarPDFOrdenSalida(req, res) {
       doc.fillColor('#333333')
          .fontSize(10)
          .font('Helvetica-Bold')
-         .text('Observaciones:', colX + 10, colY + 5);
+         .text('Observaciones: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 5);
 
       colY += 15;
 
       doc.fontSize(8)
          .font('Helvetica')
          .fillColor('#666666')
-         .text('Observación: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY, { width: columnWidth - 15 });
 
       colY += 10;
 
