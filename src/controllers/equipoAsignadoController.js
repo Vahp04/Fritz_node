@@ -2314,7 +2314,7 @@ async verPdfPorUsuario(req, res) {
         const firmaWidth = (columnWidth - 20) / 2;
 
         // Firma Usuario
-        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
+        doc.rect(colX + 5, colY + 5, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2343,7 +2343,7 @@ async verPdfPorUsuario(req, res) {
            });
 
         // Firma Tecnología
-        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+        doc.rect(colX + 10 + firmaWidth, colY + 5, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2755,7 +2755,7 @@ async verPdfPorUsuario(req, res) {
            });
 
         // Firma Tecnología
-        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
+        doc.rect(colX + 10 + firmaWidth, colY + 5, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
