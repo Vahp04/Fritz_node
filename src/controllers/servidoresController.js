@@ -749,7 +749,7 @@ async generarPDFGeneral(req, res) {
     // Crear documento PDF
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'portrait',
+      layout: 'landscape',
       margins: {
         top: 20,
         bottom: 20,
