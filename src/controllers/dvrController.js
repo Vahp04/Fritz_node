@@ -1135,12 +1135,12 @@ export const dvrController = {
       const columnWidths = {
         equipo: 110,
         ip: 85,
-        serial: 90,
-        mac: 85,
+        serial: 95,
+        mac: 80,
         sede: 75,
         camaras: 45,
-        switch: 95,
-        ubicacion: 95,
+        switch: 100,
+        ubicacion: 100,
         estado: 45
       };
 
