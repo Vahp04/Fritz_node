@@ -1303,11 +1303,11 @@ async index(req, res) {
         nombre: 80,
         equipo: 90,
         ip: 70,
-        serial: 75,
+        serial: 85,
         sede: 60,
         departamento: 80,
         toner: 80,
-        ubicacion: 70,
+        ubicacion: 80,
         estado: 40
       };
 
@@ -1396,7 +1396,7 @@ async index(req, res) {
         
         const departamentoText = impresora.departamento ? impresora.departamento.nombre : 'Sin departamento';
         const tonerText = impresora.toner_actual ? 
-          `${impresora.toner_actual.marca || ''} ${impresora.toner_actual.modelo || ''}`.trim() 
+          `${impresora.toner.marca || ''} ${impresora.toner.modelo || ''}`.trim() 
           : 'Sin toner';
         const ubicacionText = impresora.ubicacion || '-';
         
@@ -1442,7 +1442,7 @@ async index(req, res) {
         // Cambio de sede
         if (currentSede !== impresora.sede_id && impresora.sede) {
           currentSede = impresora.sede_id;
-          doc.fontSize(7)
+          doc.fontSize(8)
              .fillColor('#333333')
              .font('Helvetica-Bold')
              .text(`SEDE: ${impresora.sede.nombre}`, doc.page.margins.left, currentY + 2);
