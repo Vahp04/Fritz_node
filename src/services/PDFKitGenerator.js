@@ -253,11 +253,11 @@ static generateIndividualReport(doc, data) {
     let colY = yPosition;
 
     // Encabezado columna 1
-    doc.rect(colX, colY, columnWidth, 45)
+    doc.rect(colX, colY, columnWidth, 50)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, 45)
+    doc.rect(colX, colY, columnWidth, 50)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
@@ -374,12 +374,12 @@ static generateIndividualReport(doc, data) {
 
     // Descripción si existe - Columna 1
     if (usuario.descripcion) {
-        const descHeight = 30;
-        doc.rect(colX, colY, columnWidth, descHeight)
+        const descHeight = 20;
+        doc.rect(colX, colY, columnWidth, 25, descHeight)
            .fillColor('#f8f9fa')
            .fill();
         
-        doc.rect(colX, colY, colX + columnWidth, colY + descHeight)
+        doc.rect(colX, colY, columnWidth, 25, descHeight)
            .strokeColor('#dee2e6')
            .lineWidth(1)
            .stroke();
