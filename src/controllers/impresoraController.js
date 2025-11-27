@@ -1534,8 +1534,8 @@ async index(req, res) {
         cellX += columnWidths.departamento;
 
         // Toner (puede ser multilínea)
-        const tonerFinalText = impresora.toner_actual ? 
-          `${impresora.toner_actual.marca || ''} ${impresora.toner_actual.modelo || ''}`.trim() 
+        const tonerFinalText = impresora.toner ? 
+          `${impresora.toner.marca || ''} ${impresora.toner.modelo || ''}`.trim() 
           : 'Sin toner';
         doc.text(tonerFinalText, cellX + 3, currentY + 2, {
           width: anchoToner,
