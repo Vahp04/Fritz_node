@@ -35,5 +35,5 @@ router.get('/:id', usuariosController.show);
 router.put('/:id', upload.single('comprobante'), usuariosController.update);   
 router.delete('/:id', usuariosController.destroy); 
 router.get('/:id/reporte/pdf', usuariosController.generarReporteIndividual);
-router.get('/usuarios/:id/reporte/ver', usuariosController.verReporteIndividual);  
+router.get('/:id/reporte/ver', usuariosController.verReporteIndividual);  
 export default router;
