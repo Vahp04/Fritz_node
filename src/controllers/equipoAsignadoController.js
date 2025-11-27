@@ -1923,7 +1923,7 @@ async verPdfPorUsuario(req, res) {
 
         // CORREGIR: Usar el nombre correcto de la propiedad
         const data = {
-            titulo: `Reporte de Equipos Asignados - ${usuario.nombre} ${usuario.apellido}`,
+            titulo: `Reporte de Equipos Asignados `,
             fecha: fecha,
             total: totalEquipos,
             equipos: equiposProcesados,
@@ -2306,7 +2306,7 @@ async verPdfPorUsuario(req, res) {
                    align: 'center' 
                });
             
-            colY += 40;
+            colY += 50;
         }
 
         // Firmas - Columna 1
@@ -2721,7 +2721,7 @@ async verPdfPorUsuario(req, res) {
                    align: 'center' 
                });
             
-            colY += 40;
+            colY += 50;
         }
 
         // Firmas - Columna 2
