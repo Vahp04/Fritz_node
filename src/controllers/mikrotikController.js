@@ -1487,44 +1487,10 @@ async generarPDFGeneral(req, res) {
 
     currentY += 15;
 
-    // CONTENIDO DE LA TABLA CON ALTURA DINÁMICA
+    // CONTENIDO DE LA TABLA
     mikrotiks.forEach((mikrotik, index) => {
-      // Calcular altura necesaria para esta fila
-      const lineHeight = 10;
-      const padding = 4;
-      
-      // Calcular alturas para cada columna con texto multilínea
-      const alturas = {
-        id: lineHeight + padding,
-        equipo: doc.heightOfString(
-          mikrotik.stock_equipos ? 
-            `${mikrotik.stock_equipos.marca || ''}\n${mikrotik.stock_equipos.modelo || ''}\n${mikrotik.stock_equipos.tipo_equipo ? mikrotik.stock_equipos.tipo_equipo.nombre : ''}` 
-            : 'No asignado', 
-          { width: columnWidths.equipo - 6, lineGap: 1 }
-        ) + padding,
-        ip: doc.heightOfString(mikrotik.ip_mikrotik || '-', {
-          width: columnWidths.ip - 6
-        }) + padding,
-        serial: doc.heightOfString(mikrotik.cereal_mikrotik || '-', {
-          width: columnWidths.serial - 6
-        }) + padding,
-        usuario: doc.heightOfString(mikrotik.usuario_mikrotik || '-', {
-          width: columnWidths.usuario - 6
-        }) + padding,
-        ubicacion: doc.heightOfString(mikrotik.ubicacion || 'Sin ubicación', {
-          width: columnWidths.ubicacion - 6
-        }) + padding,
-        descripcion: doc.heightOfString(mikrotik.descripcion || 'Sin descripción', {
-          width: columnWidths.descripcion - 6
-        }) + padding,
-        estado: lineHeight + padding
-      };
-
-      // La altura de la fila será la máxima altura de todas las columnas
-      const alturaFila = Math.max(...Object.values(alturas));
-
       // Verificar si necesitamos nueva página
-      if (currentY + alturaFila > doc.page.height - doc.page.margins.bottom - 20) {
+      if (currentY > doc.page.height - doc.page.margins.bottom - 20) {
         doc.addPage();
         currentY = doc.page.margins.top;
         
@@ -1549,7 +1515,7 @@ async generarPDFGeneral(req, res) {
 
       // Fondo alternado para filas
       if (index % 2 === 0) {
-        doc.rect(doc.page.margins.left, currentY, totalTableWidth, alturaFila)
+        doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
            .fill('#f8f9fa');
       }
 
@@ -1564,9 +1530,7 @@ async generarPDFGeneral(req, res) {
       // ID
       doc.font('Helvetica-Bold')
          .text(mikrotik.id.toString(), cellX + 3, currentY + 2, {
-           width: columnWidths.id - 6,
-           height: alturaFila - 2,
-           align: 'center'
+           width: columnWidths.id - 6
          })
          .font('Helvetica');
       cellX += columnWidths.id;
@@ -1581,8 +1545,6 @@ async generarPDFGeneral(req, res) {
       }
       doc.text(equipoText, cellX + 3, currentY + 2, {
         width: columnWidths.equipo - 6,
-        height: alturaFila - 2,
-        align: 'left',
         lineGap: 1
       });
       cellX += columnWidths.equipo;
@@ -1590,45 +1552,35 @@ async generarPDFGeneral(req, res) {
       // IP
       const ipText = mikrotik.ip_mikrotik || '-';
       doc.text(ipText, cellX + 3, currentY + 2, {
-        width: columnWidths.ip - 6,
-        height: alturaFila - 2,
-        align: 'left'
+        width: columnWidths.ip - 6
       });
       cellX += columnWidths.ip;
 
       // Serial
       const serialText = mikrotik.cereal_mikrotik || '-';
       doc.text(serialText, cellX + 3, currentY + 2, {
-        width: columnWidths.serial - 6,
-        height: alturaFila - 2,
-        align: 'left'
+        width: columnWidths.serial - 6
       });
       cellX += columnWidths.serial;
 
       // Usuario
       const usuarioText = mikrotik.usuario_mikrotik || '-';
       doc.text(usuarioText, cellX + 3, currentY + 2, {
-        width: columnWidths.usuario - 6,
-        height: alturaFila - 2,
-        align: 'left'
+        width: columnWidths.usuario - 6
       });
       cellX += columnWidths.usuario;
 
       // Ubicación
       const ubicacionText = mikrotik.ubicacion || 'Sin ubicación';
       doc.text(ubicacionText, cellX + 3, currentY + 2, {
-        width: columnWidths.ubicacion - 6,
-        height: alturaFila - 2,
-        align: 'left'
+        width: columnWidths.ubicacion - 6
       });
       cellX += columnWidths.ubicacion;
 
       // Descripción
       const descripcionText = mikrotik.descripcion || 'Sin descripción';
       doc.text(descripcionText, cellX + 3, currentY + 2, {
-        width: columnWidths.descripcion - 6,
-        height: alturaFila - 2,
-        align: 'left'
+        width: columnWidths.descripcion - 6
       });
       cellX += columnWidths.descripcion;
 
@@ -1663,19 +1615,18 @@ async generarPDFGeneral(req, res) {
           break;
       }
       
-      // Dibujar badge de estado centrado verticalmente
-      const badgeWidth = columnWidths.estado - 10;
+      // Dibujar badge de estado
+      const badgeWidth = columnWidths.estado - 6;
       const badgeHeight = 8;
-      const badgeY = currentY + (alturaFila / 2) - (badgeHeight / 2);
       
-      doc.rect(cellX + 5, badgeY, badgeWidth, badgeHeight)
+      doc.rect(cellX + 3, currentY + 1, badgeWidth, badgeHeight)
          .fill(estadoBg)
          .stroke(estadoBorder);
       
       doc.fontSize(6)
          .fillColor(estadoColor)
          .font('Helvetica-Bold')
-         .text(estadoText.toUpperCase(), cellX + 5, badgeY + 1, {
+         .text(estadoText.toUpperCase(), cellX + 3, currentY + 2, {
            width: badgeWidth,
            align: 'center'
          })
@@ -1683,24 +1634,10 @@ async generarPDFGeneral(req, res) {
          .fontSize(7);
 
       // DIBUJAR BORDES DE LA TABLA
-      // Bordes verticales entre celdas
-      let borderX = doc.page.margins.left;
-      headers.forEach((header, i) => {
-        if (i > 0) {
-          doc.moveTo(borderX, currentY)
-             .lineTo(borderX, currentY + alturaFila)
-             .strokeColor('#dee2e6')
-             .lineWidth(0.5)
-             .stroke();
-        }
-        borderX += header.width;
-      });
-
-      // Borde exterior de la fila
-      doc.rect(doc.page.margins.left, currentY, totalTableWidth, alturaFila)
+      doc.rect(doc.page.margins.left, currentY, totalTableWidth, 12)
          .stroke('#dee2e6');
 
-      currentY += alturaFila;
+      currentY += 12;
     });
 
     // ===== FOOTER =====

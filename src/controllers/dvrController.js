@@ -1696,9 +1696,9 @@ export const dvrController = {
       equipo: 100,
       ip: 70,
       serial: 90,
-      mac: 85,
+      mac: 77,
       switch: 80,
-      camaras: 40,
+      camaras: 45,
       ubicacion: 100,
       estado: 50
     };
