@@ -1265,7 +1265,7 @@ async generarPDFGeneral(req, res) {
     // Crear documento PDF en LANDSCAPE
     const doc = new PDFDocument({
       size: 'LETTER',
-      layout: 'landscape',
+      layout: 'portrait',
       margins: {
         top: 15,
         bottom: 15,
@@ -1445,7 +1445,6 @@ async generarPDFGeneral(req, res) {
       equipo: 100,
       ip: 80,
       serial: 90,
-      usuario: 80,
       ubicacion: 100,
       descripcion: 120,
       estado: 50
@@ -1458,7 +1457,6 @@ async generarPDFGeneral(req, res) {
       { text: 'EQUIPO/MODELO', width: columnWidths.equipo },
       { text: 'IP MIKROTIK', width: columnWidths.ip },
       { text: 'SERIAL', width: columnWidths.serial },
-      { text: 'USUARIO', width: columnWidths.usuario },
       { text: 'UBICACIÓN', width: columnWidths.ubicacion },
       { text: 'DESCRIPCIÓN', width: columnWidths.descripcion },
       { text: 'ESTADO', width: columnWidths.estado }
@@ -1563,12 +1561,7 @@ async generarPDFGeneral(req, res) {
       });
       cellX += columnWidths.serial;
 
-      // Usuario
-      const usuarioText = mikrotik.usuario_mikrotik || '-';
-      doc.text(usuarioText, cellX + 3, currentY + 2, {
-        width: columnWidths.usuario - 6
-      });
-      cellX += columnWidths.usuario;
+      
 
       // Ubicación
       const ubicacionText = mikrotik.ubicacion || 'Sin ubicación';
