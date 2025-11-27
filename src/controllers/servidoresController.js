@@ -928,7 +928,7 @@ async generarPDFGeneral(req, res) {
         doc.rect(currentX, currentY, header.width, 15)
            .fill('#DC2626');
         
-        doc.fontSize(10)
+        doc.fontSize(8)
            .fillColor('white')
            .font('Helvetica-Bold')
            .text(header.text, currentX + 3, currentY + 4, {
@@ -989,8 +989,7 @@ async generarPDFGeneral(req, res) {
         // CONTENIDO DE LAS CELDAS - CORREGIDO
         let cellX = doc.page.margins.left;
 
-        // IMPORTANTE: Configurar la fuente ANTES de escribir el texto
-        doc.fontSize(6)
+        doc.fontSize(10)
            .fillColor('black')
            .font('Helvetica');
 
