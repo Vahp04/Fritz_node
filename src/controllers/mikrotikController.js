@@ -1443,9 +1443,9 @@ async generarPDFGeneral(req, res) {
     const columnWidths = {
       id: 25,
       equipo: 100,
-      ip: 70,
+      ip: 80,
       serial: 90,
-      usuario: 70,
+      usuario: 80,
       ubicacion: 100,
       descripcion: 120,
       estado: 50
