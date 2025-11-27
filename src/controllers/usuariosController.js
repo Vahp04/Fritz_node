@@ -1174,7 +1174,7 @@ export const usuariosController = {
 
     try {
         const { id } = req.params;
-        console.log(`Viendo reporte para usuario ID: ${id}`);
+        console.log(`Viendo reporte individual para usuario ID: ${id}`);
 
         const usuario = await prisma.usuarios.findUnique({
             where: { id: parseInt(id) },
@@ -1224,17 +1224,19 @@ export const usuariosController = {
             }
         };
 
-        // **SOLUCIÓN: Usar el template correcto para vista individual**
+        console.log('Generando reporte individual con template: pdfs/reporte-usuarios-individual');
+        
+        // **IMPORTANTE**: Usar el template correcto para reporte individual
         const htmlContent = await renderTemplate(req.app, 'pdfs/reporte-usuarios-individual', data);
         
         const pdfBuffer = await PDFKitGenerator.generatePDF(htmlContent, {
             format: 'Letter',
-            landscape: true
+            landscape: true  // Esto coincide con tu template que es landscape
         });
 
         console.log('=== VER REPORTE INDIVIDUAL GENERADO EXITOSAMENTE ===');
 
-        // **SOLUCIÓN: Content-Disposition diferente para vista vs descarga**
+        // Para VER en navegador
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="reporte-usuario-${usuario.nombre}-${usuario.apellido}.pdf"`);
         res.setHeader('Content-Length', pdfBuffer.length);
