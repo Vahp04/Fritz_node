@@ -788,7 +788,7 @@ async generarPDFGeneral(req, res) {
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text('FRITZ C.A', textStartX, yPosition + 5, { 
+       .text('FRITZ C.A', yPosition + 5, { 
          width: pageWidth - (logoExists ? logoWidth + 10 : 0),
          align: 'center'
        });
