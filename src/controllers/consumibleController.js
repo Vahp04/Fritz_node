@@ -965,11 +965,11 @@ async generarPDFOrdenSalida(req, res) {
          .fillColor('#666666')
          
 
-      colY += 12;
+      colY += 14;
 
       doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 12;
+      colY += 14;
 
       doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
@@ -1291,19 +1291,19 @@ async generarPDFOrdenSalida(req, res) {
       doc.fillColor('#333333')
          .fontSize(10)
          .font('Helvetica-Bold')
-         .text('Observaciones: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 5);
-
+         .text('Observaciones: ', colX + 10, colY + 5);
+          doc.text('Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 15);
       colY += 15;
 
       doc.fontSize(8)
          .font('Helvetica')
          .fillColor('#666666')
 
-      colY += 12;
+      colY += 14;
 
       doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 12;
+      colY += 14;
 
       doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
