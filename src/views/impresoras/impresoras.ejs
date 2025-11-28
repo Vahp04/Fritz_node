@@ -272,11 +272,11 @@
         .ip-address {
             font-family: 'Courier New', monospace;
             font-weight: bold;
-            background-color: #f8f9fa;
+            background-color: #bc4ad3;
             padding: 2px 6px;
             border-radius: 4px;
             font-size: 0.75rem;
-            border: 1px solid #dee2e6;
+            border: 1px solid #bc4ad3;
             color: #495057;
         }
 
@@ -1500,10 +1500,7 @@
             document.getElementById('filterDepartamento').addEventListener('change', aplicarFiltros);
             document.getElementById('filterEstado').addEventListener('change', aplicarFiltros);
 
-            const clearFiltersBtn = document.createElement('button');
-            clearFiltersBtn.className = 'btn btn-sm btn-outline-secondary ms-2';
-            clearFiltersBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Limpiar';
-            clearFiltersBtn.onclick = resetFiltros;
+            
             
             const resultCount = document.getElementById('resultCount');
             resultCount.parentNode.insertBefore(clearFiltersBtn, resultCount.nextSibling);
