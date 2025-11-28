@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
+import path from "path";
+
 
 const prisma = new PrismaClient();
 
@@ -744,10 +746,21 @@ async generarPDFGeneral(req, res) {
       ]
     });
 
-    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
-    const logoWidth = 55; // Ancho de la imagen
+    const logoPath = path.join(__dirname, '../public/img/logo-fritz-web.png');
+    
+    // Verificar si el archivo existe
+    let logoExists = false;
+    try {
+      logoExists = fs.existsSync(logoPath);
+      console.log('¿Logo existe?', logoExists, 'en ruta:', logoPath);
+    } catch (error) {
+      console.log('Error verificando logo:', error.message);
+    }
+
+    const logoWidth = 55;
     const logoHeight = 40;
     console.log(`${servidores.length} servidores encontrados`);
+
 
     // Crear documento PDF
     const doc = new PDFDocument({
@@ -776,24 +789,28 @@ async generarPDFGeneral(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
-    try {
-        doc.image(logoPath, colX + 10, colY + 5, {
+      if (logoExists) {
+      try {
+        // Logo a la izquierda
+        doc.image(logoPath, doc.page.margins.left, yPosition, {
           width: logoWidth,
-          height: logoHeight,
-          align: 'left'
+          height: logoHeight
         });
-      } catch (error) {
-        console.warn('No se pudo cargar la imagen del logo:', error.message);
-        // Continúa sin la imagen si hay error
+        console.log('Logo agregado al PDF');
+      } catch (imageError) {
+        console.error('Error cargando imagen:', imageError.message);
+        logoExists = false;
       }
+    }
 
-      const textStartX = doc.page.margins.left + logoWidth + 20; // Espacio después del logo
+    // Texto del header (ajustado si hay logo)
+    const textStartX = logoExists ? doc.page.margins.left + logoWidth + 10 : doc.page.margins.left;
 
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text('FRITZ C.A', textStartX, yPosition, { 
-         width: pageWidth - logoWidth - 20,
+       .text('FRITZ C.A', textStartX, yPosition + 5, { 
+         width: pageWidth - (logoExists ? logoWidth + 10 : 0),
          align: 'center'
        });
     
