@@ -956,8 +956,8 @@ async generarPDFOrdenSalida(req, res) {
       doc.fillColor('#333333')
          .fontSize(10)
          .font('Helvetica-Bold')
-         .text('Observaciones: Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 5);
-
+         .text('Observaciones:', colX + 10, colY + 5);
+          doc.text('Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 10);
       colY += 15;
 
       doc.fontSize(8)
@@ -965,15 +965,15 @@ async generarPDFOrdenSalida(req, res) {
          .fillColor('#666666')
          
 
-      colY += 10;
+      colY += 12;
 
       doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 10;
+      colY += 12;
 
       doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 20;
+      colY += 30;
 
       // Firmas - Columna 1
       const firmaHeight = 65;
@@ -1299,11 +1299,11 @@ async generarPDFOrdenSalida(req, res) {
          .font('Helvetica')
          .fillColor('#666666')
 
-      colY += 10;
+      colY += 12;
 
       doc.text('• JEFETIC@FRITZVE.COM O ANALISTATIC@FRITVE.COM', colX + 10, colY, { width: columnWidth - 15 });
 
-      colY += 10;
+      colY += 12;
 
       doc.text('• Para cualquier otra información llamar al 0424-5811864', colX + 10, colY, { width: columnWidth - 15 });
 
