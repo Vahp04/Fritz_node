@@ -1304,12 +1304,21 @@ async generarPDFGeneral(req, res) {
          align: 'center',
          width: pageWidth
        });
+
+       doc.fontSize(16)
+       .fillColor('black')
+       .text('Reporte General de Mikrotiks', doc.page.margins.left, yPosition, { 
+         align: 'center',
+         width: pageWidth
+       });
     
     // Subtítulo
     doc.fontSize(10)
        .fillColor('#666666')
        .font('Helvetica')
-       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20);
+       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20, {
+        align: 'center',
+       });
     
     // Línea decorativa
     doc.moveTo(doc.page.margins.left, yPosition + 35)

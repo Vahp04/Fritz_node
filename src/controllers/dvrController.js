@@ -1564,13 +1564,17 @@ export const dvrController = {
     doc.fontSize(18)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text(`Reporte de DVRs - ${sede.nombre}`, doc.page.margins.left + 45, yPosition);
+       .text(`Reporte de DVRs - ${sede.nombre}`, doc.page.margins.left + 45, yPosition, {
+        align: 'center',
+       });
     
     // Subtítulo
     doc.fontSize(10)
        .fillColor('#666666')
        .font('Helvetica')
-       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20);
+       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20, {
+        align: 'center',
+       });
     
     // Línea decorativa
     doc.moveTo(doc.page.margins.left, yPosition + 35)
