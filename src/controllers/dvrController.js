@@ -1008,6 +1008,16 @@ export const dvrController = {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
@@ -1536,15 +1546,24 @@ export const dvrController = {
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     let yPosition = doc.page.margins.top;
 
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+    const logoWidth = 55; // Ancho de la imagen
+    const logoHeight = 40;
     // ===== HEADER =====
     // Logo placeholder (similar al HTML)
     doc.rect(doc.page.margins.left, yPosition, 35, 25)
        .fill('#DC2626');
     
-    doc.fontSize(8)
-       .fillColor('white')
-       .font('Helvetica-Bold')
-       .text('LOGO', doc.page.margins.left + 8, yPosition + 8);
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     
     // Título principal
     doc.fontSize(18)

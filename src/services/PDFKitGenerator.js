@@ -37,6 +37,9 @@ class PDFKitGenerator {
           console.log('Generando reporte GENERAL');
           this.generateGeneralReport(doc, options.data);
         }
+        const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+        const logoWidth = 55; // Ancho de la imagen
+        const logoHeight = 40;
         
         doc.end();
         
@@ -53,23 +56,16 @@ class PDFKitGenerator {
     const pageWidth = 500;
     let yPosition = margin;
 
-    // Logo
-    if (data.logoBase64) {
-      try {
-        const logoBuffer = Buffer.from(data.logoBase64, 'base64');
-        doc.image(logoBuffer, margin, yPosition, { 
-          width: 70, 
-          height: 50
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
         });
-        console.log('Logo cargado desde Base64');
       } catch (error) {
-        console.log('Error cargando logo Base64:', error.message);
-        this.drawTextLogo(doc, margin, yPosition);
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
       }
-    } else {
-      this.drawTextLogo(doc, margin, yPosition);
-    }
-
     // Título principal
     doc.fontSize(18)
        .font('Helvetica-Bold')
@@ -261,6 +257,17 @@ static generateIndividualReport(doc, data) {
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
+
+       try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
     doc.fontSize(16)
        .font('Helvetica-Bold')

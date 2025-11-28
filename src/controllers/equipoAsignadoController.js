@@ -1330,6 +1330,9 @@ async verPdfAsignaciones(req, res) {
             asignacionesObsoletas: asignacionesObsoletas,
             asignacionesPorTipo: asignacionesPorTipo
         };
+      const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+      const logoWidth = 55; // Ancho de la imagen
+      const logoHeight = 40;
 
         console.log('Generando PDF con PDFKit...');
 
@@ -1356,12 +1359,16 @@ async verPdfAsignaciones(req, res) {
 
         // ===== HEADER =====
         // Logo placeholder
-        doc.fillColor('#DC2626')
-           .rect(20, 20, 60, 40)
-           .fill()
-           .fillColor('white')
-           .fontSize(10)
-           .text('FRITZ C.A', 25, 35, { width: 50, align: 'center' });
+        try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
         // Título
         doc.fillColor('#DC2626')
@@ -1961,6 +1968,10 @@ async verPdfPorUsuario(req, res) {
         let yPosition = margin;
         const pageWidth = doc.page.width - (margin * 2);
         const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
+
+        const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+        const logoWidth = 55; // Ancho de la imagen
+        const logoHeight = 40;
 
         // **PRIMERA COLUMNA** (izquierda)
         let colX = margin;

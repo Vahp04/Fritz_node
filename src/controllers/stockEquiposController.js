@@ -602,6 +602,9 @@ async verPdfStock(req, res) {
             equiposPorTipo: equiposPorTipo
         };
 
+        const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+        const logoWidth = 55; // Ancho de la imagen
+        const logoHeight = 40;
         // Crear documento PDF
         const doc = new PDFDocument({ 
             margin: 25,
@@ -640,12 +643,16 @@ async verPdfStock(req, res) {
 
         // ===== HEADER =====
         // Logo placeholder
-        doc.fillColor('#DC2626')
-           .rect(25, 25, 50, 35)
-           .fill()
-           .fillColor('white')
-           .fontSize(8)
-           .text('FRITZ C.A', 30, 38, { width: 40, align: 'center' });
+        try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
         // Título
         doc.fillColor('#DC2626')

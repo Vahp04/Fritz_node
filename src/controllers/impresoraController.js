@@ -1146,6 +1146,9 @@ async index(req, res) {
       ]
     });
 
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+    const logoWidth = 55; // Ancho de la imagen
+    const logoHeight = 40;
     console.log(`${impresoras.length} impresoras encontradas`);
 
     // Crear documento PDF
@@ -1175,6 +1178,16 @@ async index(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
@@ -1692,6 +1705,9 @@ async index(req, res) {
       });
     }
 
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+    const logoWidth = 55; // Ancho de la imagen
+    const logoHeight = 40;
     console.log(`${impresoras.length} impresoras encontradas en ${sede.nombre}`);
 
     // Crear documento PDF en LANDSCAPE
@@ -1722,15 +1738,28 @@ async index(req, res) {
 
     // ===== HEADER =====
     // Logo placeholder
-    doc.rect(doc.page.margins.left, yPosition, 35, 25)
-       .fill('#DC2626');
-    
-    doc.fontSize(8)
-       .fillColor('white')
-       .font('Helvetica-Bold')
-       .text('LOGO', doc.page.margins.left + 8, yPosition + 8);
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     
     // Título principal
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     doc.fontSize(18)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')

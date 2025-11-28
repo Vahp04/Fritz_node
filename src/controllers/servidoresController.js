@@ -744,6 +744,9 @@ async generarPDFGeneral(req, res) {
       ]
     });
 
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+    const logoWidth = 55; // Ancho de la imagen
+    const logoHeight = 40;
     console.log(`${servidores.length} servidores encontrados`);
 
     // Crear documento PDF
@@ -773,6 +776,16 @@ async generarPDFGeneral(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
+    try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
