@@ -1962,7 +1962,7 @@ async verPdfPorUsuario(req, res) {
         const doc = new PDFDocument({ 
             margin: 20,
             size: 'LETTER',
-            layout: 'portrait'
+            layout: 'landscape'
         });
 
         // Configurar headers

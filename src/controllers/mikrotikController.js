@@ -1297,13 +1297,7 @@ async generarPDFGeneral(req, res) {
   width: 55,
   height: 40
 });
-    doc.fontSize(12)
-       .fillColor('#DC2626')
-       .font('Helvetica-Bold')
-       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
-         align: 'center',
-         width: pageWidth
-       });
+
 
        doc.fontSize(16)
        .fillColor('black')

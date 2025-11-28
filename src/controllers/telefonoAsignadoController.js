@@ -852,7 +852,7 @@ async generarPDFPorUsuario(req, res) {
       numeroDocumento: numeroDocumento
     };
 
-    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+    const logoPath = './public/img/logo-fritz-web.png'; 
     const logoWidth = 55; // Ancho de la imagen
     const logoHeight = 40;
     console.log('Generando PDF con PDFDocument...');
@@ -861,7 +861,7 @@ async generarPDFPorUsuario(req, res) {
     const doc = new PDFDocument({ 
       margin: 20,
       size: 'LETTER',
-      layout: 'portrait' // Cambiado a portrait para mejor distribución
+      layout: 'landscape' 
     });
 
     // Configurar headers
