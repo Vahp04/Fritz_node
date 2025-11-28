@@ -752,21 +752,25 @@ async generarPDFGeneral(req, res) {
       ]
     });
 
-    const logoPath = path.join(__dirname, '../public/img/logo-fritz-web.png');
     
-    // Verificar si el archivo existe
+    // **RUTA CORREGIDA para ES Modules**
+    const logoPath = new URL('../public/img/logo-fritz-web.png', import.meta.url).pathname;
+    
+    // En Windows, remover el slash inicial
+    const normalizedLogoPath = logoPath.startsWith('/') ? logoPath.substring(1) : logoPath;
+    
+    console.log('Buscando logo en:', normalizedLogoPath);
+
     let logoExists = false;
     try {
-      logoExists = fs.existsSync(logoPath);
-      console.log('¿Logo existe?', logoExists, 'en ruta:', logoPath);
+      logoExists = fs.existsSync(normalizedLogoPath);
+      console.log('¿Logo existe?', logoExists);
     } catch (error) {
       console.log('Error verificando logo:', error.message);
     }
 
     const logoWidth = 55;
     const logoHeight = 40;
-    console.log(`${servidores.length} servidores encontrados`);
-
 
     // Crear documento PDF
     const doc = new PDFDocument({
@@ -795,18 +799,29 @@ async generarPDFGeneral(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
-      if (logoExists) {
+       if (logoExists) {
       try {
-        // Logo a la izquierda
-        doc.image(logoPath, doc.page.margins.left, yPosition, {
+        doc.image(normalizedLogoPath, doc.page.margins.left, yPosition, {
           width: logoWidth,
           height: logoHeight
         });
-        console.log('Logo agregado al PDF');
+        console.log('Logo agregado exitosamente');
       } catch (imageError) {
         console.error('Error cargando imagen:', imageError.message);
         logoExists = false;
       }
+    } else {
+      console.log('Usando placeholder para logo');
+      // Placeholder
+      doc.rect(doc.page.margins.left, yPosition, logoWidth, logoHeight)
+         .fill('#DC2626');
+      doc.fontSize(8)
+         .fillColor('white')
+         .font('Helvetica-Bold')
+         .text('FRITZ', doc.page.margins.left, yPosition + 15, {
+           width: logoWidth,
+           align: 'center'
+         });
     }
 
     // Texto del header (ajustado si hay logo)
