@@ -1930,7 +1930,7 @@ async verPdfPorUsuario(req, res) {
 
         // CORREGIR: Usar el nombre correcto de la propiedad
         const data = {
-            titulo: `Reporte de Equipos Asignados `,
+            titulo: `Reporte de Equipos`,
             fecha: fecha,
             total: totalEquipos,
             equipos: equiposProcesados,
@@ -1939,7 +1939,7 @@ async verPdfPorUsuario(req, res) {
             estadisticas: {
                 totales: totalEquipos,
                 activos: equiposActivos,
-                devueltos: equiposDevueltos, // CORREGIDO: era 'devuelto' en lugar de 'devueltos'
+                devueltos: equiposDevueltos, 
                 obsoletos: equiposObsoletos
             }
         };

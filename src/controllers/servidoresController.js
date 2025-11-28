@@ -786,12 +786,15 @@ async generarPDFGeneral(req, res) {
         console.warn('No se pudo cargar la imagen del logo:', error.message);
         // Continúa sin la imagen si hay error
       }
+
+      const textStartX = doc.page.margins.left + logoWidth + 20; // Espacio después del logo
+
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
-         align: 'center',
-         width: pageWidth
+       .text('FRITZ C.A', textStartX, yPosition, { 
+         width: pageWidth - logoWidth - 20,
+         align: 'center'
        });
     
     yPosition += 18;
