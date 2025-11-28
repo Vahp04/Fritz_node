@@ -2,7 +2,13 @@ import { PrismaClient } from '@prisma/client';
 import PuppeteerPDF from '../services/puppeteerPDF.js';
 import PDFDocument from 'pdfkit';
 import { renderTemplate } from '../helpers/renderHelper.js';
-import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from 'fs';
+
+// Definir __dirname para ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 const prisma = new PrismaClient();
