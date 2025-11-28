@@ -754,7 +754,7 @@ async generarPDFGeneral(req, res) {
 
     
     // **RUTA CORREGIDA para ES Modules**
-    const logoPath = new URL('../public/img/logo-fritz-web.png', import.meta.url).pathname;
+    const logoPath = new URL('../public/img/logo-fritz-web.webp', import.meta.url).pathname;
     
     // En Windows, remover el slash inicial
     const normalizedLogoPath = logoPath.startsWith('/') ? logoPath.substring(1) : logoPath;
