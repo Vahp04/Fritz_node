@@ -619,6 +619,10 @@ async verPdfStock(req, res) {
         // Pipe el PDF a la respuesta
         doc.pipe(res);
 
+        // **DEFINIR VARIABLES QUE FALTAN**
+        const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+        let yPosition = doc.page.margins.top;
+
         // Función helper para formatear moneda
         const formatCurrency = (amount) => {
             return new Intl.NumberFormat('es-ES', {
@@ -639,37 +643,46 @@ async verPdfStock(req, res) {
             return text.substring(0, maxLength - 3) + '...';
         };
 
-        // ===== HEADER =====
-          doc.image(logoBase64, doc.page.margins.left, {
-  width: 55,
-  height: 40
-});
-    doc.fontSize(12)
-       .fillColor('#DC2626')
-       .font('Helvetica-Bold')
-       .text('FRITZ C.A', doc.page.margins.left, { 
-         align: 'center',
-         width: pageWidth
-       });
+        // ===== HEADER CORREGIDO =====
+        // **LOGO CON VARIABLES CORRECTAS**
+        doc.image(logoBase64, doc.page.margins.left, yPosition, {
+            width: 55,
+            height: 40
+        });
+
+        // **TEXTO AJUSTADO PARA NO SUPER PONERSE CON EL LOGO**
+        doc.fontSize(12)
+           .fillColor('#DC2626')
+           .font('Helvetica-Bold')
+           .text('FRITZ C.A', doc.page.margins.left + 60, yPosition + 10, { 
+               width: pageWidth - 60,
+               align: 'center'
+           });
 
         // Título
-        doc.fillColor('#0000')
+        doc.fillColor('#000000') // **CORREGIDO: era #0000**
            .fontSize(18)
            .font('Helvetica-Bold')
-           .text('Reporte de Stock de Equipos', 85, 30, {align: 'center' });
+           .text('Reporte de Stock de Equipos', doc.page.margins.left, yPosition + 40, {
+               align: 'center',
+               width: pageWidth
+           });
         
-        doc.fillColor('#666')
+        doc.fillColor('#666666')
            .fontSize(10)
            .font('Helvetica')
-           .text('Sistema de Gestión de Inventario', 85, 50, {align: 'center'});
+           .text('Sistema de Gestión de Inventario', doc.page.margins.left, yPosition + 60, {
+               align: 'center',
+               width: pageWidth
+           });
 
-        doc.moveTo(25, 75)
-           .lineTo(770, 75)
+        doc.moveTo(doc.page.margins.left, yPosition + 80)
+           .lineTo(doc.page.margins.left + pageWidth, yPosition + 80)
            .strokeColor('#DC2626')
            .lineWidth(2)
            .stroke();
 
-        let yPosition = 90;
+        yPosition += 100;
 
         // ===== INFORMACIÓN GENERAL =====
         doc.fillColor('#333')
