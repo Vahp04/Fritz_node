@@ -1986,6 +1986,16 @@ async verPdfPorUsuario(req, res) {
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
+            try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
         doc.fontSize(16)
            .font('Helvetica-Bold')
@@ -2418,6 +2428,17 @@ async verPdfPorUsuario(req, res) {
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
+
+            try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
         doc.fontSize(16)
            .font('Helvetica-Bold')

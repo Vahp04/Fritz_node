@@ -844,7 +844,7 @@ async generarPDFPorUsuario(req, res) {
     });
 
     const data = {
-      titulo: `Reporte de Teléfonos Asignados `,
+      titulo: `Reporte de Teléfonos`,
       fecha: fecha,
       total: totalTelefonos,
       telefonos: telefonosProcesados,
@@ -1229,6 +1229,17 @@ async generarPDFPorUsuario(req, res) {
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
+
+        try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
     drawText('FRITZ C.A', colX + (columnWidth / 2), colY + 5, {
       fontSize: 16,
@@ -1643,7 +1654,17 @@ async generarPDFGeneral(req, res) {
     });
 
     // HEADER - Usando métodos directos de PDFDocument
-    try {
+    
+    // Título principal
+    doc.fontSize(18)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text('FRITZ C.A', margin, yPosition, { 
+         width: pageWidth, 
+         align: 'center' 
+       });
+
+       try {
         doc.image(logoPath, colX + 10, colY + 5, {
           width: logoWidth,
           height: logoHeight,
@@ -1653,14 +1674,6 @@ async generarPDFGeneral(req, res) {
         console.warn('No se pudo cargar la imagen del logo:', error.message);
         // Continúa sin la imagen si hay error
       }
-    // Título principal
-    doc.fontSize(18)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text('FRITZ C.A', margin, yPosition, { 
-         width: pageWidth, 
-         align: 'center' 
-       });
     
     yPosition += 25;
 

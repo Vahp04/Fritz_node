@@ -1551,9 +1551,6 @@ export const dvrController = {
     const logoHeight = 40;
     // ===== HEADER =====
     // Logo placeholder (similar al HTML)
-    doc.rect(doc.page.margins.left, yPosition, 35, 25)
-       .fill('#DC2626');
-    
     try {
         doc.image(logoPath, colX + 10, colY + 5, {
           width: logoWidth,
@@ -1564,7 +1561,6 @@ export const dvrController = {
         console.warn('No se pudo cargar la imagen del logo:', error.message);
         // Continúa sin la imagen si hay error
       }
-    
     // Título principal
     doc.fontSize(18)
        .fillColor('#DC2626')

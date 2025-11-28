@@ -37,9 +37,7 @@ class PDFKitGenerator {
           console.log('Generando reporte GENERAL');
           this.generateGeneralReport(doc, options.data);
         }
-        const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
-        const logoWidth = 55; // Ancho de la imagen
-        const logoHeight = 40;
+        
         
         doc.end();
         
@@ -55,7 +53,9 @@ class PDFKitGenerator {
     const margin = 50;
     const pageWidth = 500;
     let yPosition = margin;
-
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+        const logoWidth = 55; // Ancho de la imagen
+        const logoHeight = 40;
     try {
         doc.image(logoPath, colX + 10, colY + 5, {
           width: logoWidth,
@@ -243,7 +243,9 @@ static generateIndividualReport(doc, data) {
     let yPosition = margin;
     const pageWidth = doc.page.width - (margin * 2);
     const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
-
+    const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
+        const logoWidth = 55; // Ancho de la imagen
+        const logoHeight = 40;
     // **PRIMERA COLUMNA** (izquierda)
     let colX = margin;
     let colY = yPosition;
