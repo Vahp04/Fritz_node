@@ -1734,13 +1734,7 @@ async index(req, res) {
   width: 55,
   height: 40
 });
-    doc.fontSize(12)
-       .fillColor('#DC2626')
-       .font('Helvetica-Bold')
-       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
-         align: 'center',
-         width: pageWidth
-       });
+
     
     // Título principal
     try {
@@ -1756,13 +1750,17 @@ async index(req, res) {
     doc.fontSize(18)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text(`Reporte de Impresoras - ${sede.nombre}`, doc.page.margins.left + 45, yPosition);
+       .text(`Reporte de Impresoras - ${sede.nombre}`, doc.page.margins.left + 45, yPosition, {
+        align: 'center'
+       });
     
     // Subtítulo
     doc.fontSize(10)
        .fillColor('#666666')
        .font('Helvetica')
-       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20);
+       .text('Reporte Específico por Sede', doc.page.margins.left + 45, yPosition + 20, {
+        align: 'center'
+       });
     
     // Línea decorativa
     doc.moveTo(doc.page.margins.left, yPosition + 35)

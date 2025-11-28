@@ -1357,14 +1357,14 @@ async verPdfAsignaciones(req, res) {
         };
 
         // ===== HEADER =====
-                doc.image(logoBase64, doc.page.margins.left, yPosition, {
+                doc.image(logoBase64, doc.page.margins.left, {
   width: 55,
   height: 40
 });
     doc.fontSize(12)
        .fillColor('#DC2626')
        .font('Helvetica-Bold')
-       .text('FRITZ C.A', doc.page.margins.left, yPosition, { 
+       .text('FRITZ C.A', doc.page.margins.left, { 
          align: 'center',
          width: pageWidth
        });
