@@ -710,7 +710,7 @@ async generarPDFOrdenSalida(req, res) {
       const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
 
       const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
-      const logoWidth = 40; // Ancho de la imagen
+      const logoWidth = 55; // Ancho de la imagen
       const logoHeight = 40;
 
       // **PRIMERA COLUMNA** (izquierda)
@@ -1082,6 +1082,17 @@ async generarPDFOrdenSalida(req, res) {
          .strokeColor('#000000')
          .lineWidth(1)
          .stroke();
+
+         try {
+        doc.image(logoPath, colX + 10, colY + 5, {
+          width: logoWidth,
+          height: logoHeight,
+          align: 'left'
+        });
+      } catch (error) {
+        console.warn('No se pudo cargar la imagen del logo:', error.message);
+        // Continúa sin la imagen si hay error
+      }
 
       doc.fontSize(16)
          .font('Helvetica-Bold')
