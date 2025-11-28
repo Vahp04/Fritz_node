@@ -785,13 +785,7 @@ async generarPDFGeneral(req, res) {
   width: 55,
   height: 40
 });
-    doc.fontSize(12)
-       .fillColor('#DC2626')
-       .font('Helvetica-Bold')
-       .text('FRITZ C.A', yPosition + 5, { 
-         width: pageWidth - (logoExists ? logoWidth + 10 : 0),
-         align: 'center'
-       });
+    
     
     yPosition += 18;
     
