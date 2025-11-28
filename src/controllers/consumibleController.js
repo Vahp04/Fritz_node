@@ -957,7 +957,7 @@ async generarPDFOrdenSalida(req, res) {
          .fontSize(10)
          .font('Helvetica-Bold')
          .text('Observaciones:', colX + 10, colY + 5);
-          doc.text('Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 10);
+          doc.text('Cualquier Novedad informar por la siguiente dirección de correo:', colX + 10, colY + 15);
       colY += 15;
 
       doc.fontSize(8)
