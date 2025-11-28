@@ -752,19 +752,37 @@ async generarPDFGeneral(req, res) {
       ]
     });
 
-    
-    // **RUTA CORREGIDA para ES Modules**
-    const logoPath = new URL('../public/img/logo-fritz-web.webp', import.meta.url).pathname;
-    
-    // En Windows, remover el slash inicial
-    const normalizedLogoPath = logoPath.startsWith('/') ? logoPath.substring(1) : logoPath;
-    
-    console.log('Buscando logo en:', normalizedLogoPath);
-
+  
     let logoExists = false;
+    let logoBuffer = null;
+
     try {
-      logoExists = fs.existsSync(normalizedLogoPath);
-      console.log('¿Logo existe?', logoExists);
+      if (fs.existsSync(logoPath)) {
+        logoBuffer = fs.readFileSync(logoPath);
+        logoExists = true;
+        console.log('Logo encontrado y cargado');
+      } else {
+        console.log('Logo no encontrado en la ruta especificada');
+        
+        // Buscar en ubicaciones alternativas
+        console.log('Buscando en otras ubicaciones...');
+        const alternativePaths = [
+          path.join(process.cwd(), 'public', 'img', 'logo-fritz-web.webp'),
+          path.join(process.cwd(), 'public', 'img', 'logo-fritz-web.jpg'),
+          path.join(process.cwd(), 'public', 'images', 'logo-fritz-web.png'),
+          path.join(process.cwd(), 'src', 'public', 'img', 'logo-fritz-web.png'),
+          path.join(process.cwd(), 'assets', 'logo-fritz-web.png'),
+        ];
+
+        for (const altPath of alternativePaths) {
+          if (fs.existsSync(altPath)) {
+            logoBuffer = fs.readFileSync(altPath);
+            logoExists = true;
+            console.log(`Logo encontrado en: ${altPath}`);
+            break;
+          }
+        }
+      }
     } catch (error) {
       console.log('Error verificando logo:', error.message);
     }
@@ -799,22 +817,27 @@ async generarPDFGeneral(req, res) {
     let yPosition = doc.page.margins.top;
 
     // ===== HEADER =====
-       if (logoExists) {
+ if (logoExists && logoBuffer) {
       try {
-        doc.image(normalizedLogoPath, doc.page.margins.left, yPosition, {
+        // **USAR EL BUFFER directamente**
+        doc.image(logoBuffer, doc.page.margins.left, yPosition, {
           width: logoWidth,
           height: logoHeight
         });
-        console.log('Logo agregado exitosamente');
+        console.log('✅ Logo agregado al PDF exitosamente');
       } catch (imageError) {
-        console.error('Error cargando imagen:', imageError.message);
+        console.error('❌ Error cargando imagen en PDF:', imageError.message);
         logoExists = false;
       }
-    } else {
-      console.log('Usando placeholder para logo');
-      // Placeholder
+    }
+
+    // Si no se pudo cargar el logo, crear placeholder
+    if (!logoExists) {
+      console.log('🔄 Usando placeholder para logo');
       doc.rect(doc.page.margins.left, yPosition, logoWidth, logoHeight)
          .fill('#DC2626');
+      doc.rect(doc.page.margins.left, yPosition, logoWidth, logoHeight)
+         .stroke('#000000');
       doc.fontSize(8)
          .fillColor('white')
          .font('Helvetica-Bold')
@@ -824,7 +847,6 @@ async generarPDFGeneral(req, res) {
          });
     }
 
-    // Texto del header (ajustado si hay logo)
     const textStartX = logoExists ? doc.page.margins.left + logoWidth + 10 : doc.page.margins.left;
 
     doc.fontSize(12)
