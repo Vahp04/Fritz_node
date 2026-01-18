@@ -231,7 +231,6 @@ class PDFKitGenerator {
     doc.text(`Generado el: ${data.fechaGeneracion || new Date().toLocaleString('es-ES')}`, margin, yPosition, { align: 'center' });
   }
 
-// **MÉTODO PARA REPORTE INDIVIDUAL** - Diseño de dos columnas idénticas
 static generateIndividualReport(doc, data) {
     const { usuario, titulo, fecha, estadisticas } = data;
     const margin = 20;
@@ -239,8 +238,9 @@ static generateIndividualReport(doc, data) {
     const pageWidth = doc.page.width - (margin * 2);
     const columnWidth = (pageWidth - 15) / 2; // 15px de separación entre columnas
     const logoPath = './public/img/logo-fritz-web.png'; // Ajusta la ruta según tu estructura
-        const logoWidth = 55; // Ancho de la imagen
-        const logoHeight = 40;
+    const logoWidth = 55; // Ancho de la imagen
+    const logoHeight = 40;
+    
     // **PRIMERA COLUMNA** (izquierda)
     let colX = margin;
     let colY = yPosition;
@@ -255,31 +255,31 @@ static generateIndividualReport(doc, data) {
        .lineWidth(1)
        .stroke();
 
-       try {
+    try {
         doc.image(logoPath, colX + 10, colY + 5, {
-          width: logoWidth,
-          height: logoHeight,
-          align: 'left'
+            width: logoWidth,
+            height: logoHeight,
+            align: 'left'
         });
-      } catch (error) {
+    } catch (error) {
         console.warn('No se pudo cargar la imagen del logo:', error.message);
         // Continúa sin la imagen si hay error
-      }
+    }
 
     doc.fontSize(16)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
        .text('FRITZ C.A', colX, colY + 5, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
     
     doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#666666')
        .text(titulo || 'Reporte Individual de Usuario', colX, colY + 20, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
 
     colY += 40;
@@ -288,8 +288,8 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica')
        .fillColor('#000000')
        .text(`Generado el: ${fecha || new Date().toLocaleString('es-ES')}`, colX, colY, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
 
     colY += 25;
@@ -303,7 +303,7 @@ static generateIndividualReport(doc, data) {
     
     colY += 20;
 
-    // Información del usuario - Columna 1
+    // Información del usuario - Columna 1 (más pequeño y con resumen al lado)
     doc.rect(colX, colY, columnWidth, 25)
        .fillColor('#f8f9fa')
        .fill();
@@ -320,33 +320,38 @@ static generateIndividualReport(doc, data) {
 
     colY += 30;
 
-    // Contenedor principal de información
+    // MODIFICACIÓN: Contenedor de información principal más pequeño y resumen al lado
     const infoHeight = 120;
-    doc.rect(colX, colY, columnWidth, infoHeight)
+    const infoWidth = columnWidth * 0.6; // 60% para información del usuario
+    const statsWidth = columnWidth * 0.4; // 40% para estadísticas
+    
+    // Contenedor principal de información (lado izquierdo)
+    doc.rect(colX, colY, infoWidth, infoHeight)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, infoHeight)
+    doc.rect(colX, colY, infoWidth, infoHeight)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
 
-    let infoY = colY + 10;
+    let infoY = colY + 12;
     const infoItemHeight = 14;
 
-    // Datos del usuario - Columna 1
+    // Datos del usuario - Columna 1 (en el lado izquierdo)
     const userInfo = [
         { label: 'ID de Usuario:', value: usuario.id.toString() },
         { label: 'Nombre Completo:', value: `${usuario.nombre} ${usuario.apellido}` },
         { label: 'Cargo:', value: usuario.cargo || 'No especificado' },
-        { label: 'Correo Electrónico:', value: usuario.correo || 'No especificado' },
+        { label: 'Correo:', value: usuario.correo || 'No especificado' },
         { label: 'RDP Fiscal:', value: usuario.rdpfis || 'No asignado' },
         { label: 'RDP Financiero:', value: usuario.rdpfin || 'No asignado' },
         { label: 'Sede:', value: usuario.sede?.nombre || 'No asignada' },
         { label: 'Departamento:', value: usuario.departamento?.nombre || 'No asignado' }
     ];
 
-    userInfo.forEach((info, index) => {
+    // Mostrar solo los primeros 6 items para dejar espacio
+    userInfo.slice(0, 6).forEach((info, index) => {
         const currentY = infoY + (index * infoItemHeight);
         
         doc.fontSize(8)
@@ -357,15 +362,15 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(info.value, colX + 90, currentY, {
-             width: columnWidth - 80,
-             align: 'left'
+           .text(info.value, colX + 60, currentY, {
+               width: infoWidth - 70,
+               align: 'right'
            });
 
         // Línea punteada entre items
-        if (index < userInfo.length - 1) {
+        if (index < 5 && index < userInfo.slice(0, 6).length - 1) {
             doc.moveTo(colX + 10, currentY + 10)
-               .lineTo(colX + columnWidth - 10, currentY + 10)
+               .lineTo(colX + infoWidth - 10, currentY + 10)
                .lineWidth(0.5)
                .strokeColor('#cccccc')
                .dash(2, { space: 2 })
@@ -374,127 +379,200 @@ static generateIndividualReport(doc, data) {
         }
     });
 
-    colY += infoHeight + 15;
-
-    // Descripción si existe - Columna 1
-    if (usuario.descripcion) {
-        const descHeight = 20;
-        doc.rect(colX, colY, columnWidth, 25, descHeight)
-           .fillColor('#f8f9fa')
-           .fill();
-        
-        doc.rect(colX, colY, columnWidth, 25, descHeight)
-           .strokeColor('#dee2e6')
-           .lineWidth(1)
-           .stroke();
-
-        doc.fontSize(9)
-           .font('Helvetica-Bold')
-           .fillColor('#333333')
-           .text('Módulos y Descripción:', colX + 10, colY + 5);
-        
-        doc.fontSize(8)
-           .font('Helvetica')
-           .fillColor('#666666')
-           .text(usuario.descripcion, colX + 10, colY + 15, {
-             width: columnWidth - 15,
-             align: 'left'
-           });
-
-        colY += descHeight + 15;
-    }
-
-    // Resumen de equipos - Columna 1
-    doc.rect(colX, colY, columnWidth, 25)
+    // Resumen de equipos al lado derecho (dentro del mismo contenedor)
+    const statsX = colX + infoWidth;
+    const statsBoxHeight = infoHeight;
+    
+    // Contenedor de estadísticas (lado derecho)
+    doc.rect(statsX, colY, statsWidth, statsBoxHeight)
        .fillColor('#e9ecef')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, 25)
+    doc.rect(statsX, colY, statsWidth, statsBoxHeight)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
 
-    doc.fontSize(11)
+    // Título del resumen más pequeño
+    doc.fontSize(10)
        .font('Helvetica-Bold')
        .fillColor('#333333')
-       .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+       .text('Resumen de Equipos', statsX + 5, colY + 10, {
+           width: statsWidth - 10,
+           align: 'center'
+       });
 
-    colY += 30;
-
-    // Estadísticas de equipos - Columna 1
-    const statsHeight = 50;
-    const statWidth = (columnWidth - 20) / 3;
+    // Estadísticas de equipos - más compactas
+    const statItemHeight = 25;
+    const statStartY = colY + 25;
     
     // Total Equipos
-    doc.rect(colX + 5, colY, statWidth, statsHeight)
+    doc.rect(statsX + 10, statStartY, statsWidth - 20, statItemHeight)
        .fillColor('#ffffff')
        .strokeColor('#dddddd')
        .lineWidth(1)
        .fillAndStroke();
     
-    doc.fontSize(16)
+    doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
-       .text(estadisticas.totales.toString(), colX + 5, colY + 10, {
-         width: statWidth,
-         align: 'center'
+       .text(estadisticas.totales.toString(), statsX + 10, statStartY + 5, {
+           width: statsWidth - 20,
+           align: 'center'
        });
     
-    doc.fontSize(9)
+    doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('Total Equipos', colX + 5, colY + 30, {
-         width: statWidth,
-         align: 'center'
+       .text('Total', statsX + 10, statStartY + 18, {
+           width: statsWidth - 20,
+           align: 'center'
        });
 
     // Equipos Activos
-    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+    doc.rect(statsX + 10, statStartY + 30, statsWidth - 20, statItemHeight)
        .fillColor('#ffffff')
        .strokeColor('#dddddd')
        .lineWidth(1)
        .fillAndStroke();
     
-    doc.fontSize(16)
+    doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
-       .text(estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
-         width: statWidth,
-         align: 'center'
+       .text(estadisticas.activos.toString(), statsX + 10, statStartY + 35, {
+           width: statsWidth - 20,
+           align: 'center'
        });
     
-    doc.fontSize(9)
+    doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
-         width: statWidth,
-         align: 'center'
+       .text('Activos', statsX + 10, statStartY + 48, {
+           width: statsWidth - 20,
+           align: 'center'
        });
 
     // Equipos Devueltos
-    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+    doc.rect(statsX + 10, statStartY + 55, statsWidth - 20, statItemHeight)
        .fillColor('#ffffff')
        .strokeColor('#dddddd')
        .lineWidth(1)
        .fillAndStroke();
     
-    doc.fontSize(16)
+    doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
-       .text(estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
-         width: statWidth,
-         align: 'center'
+       .text(estadisticas.devueltos.toString(), statsX + 10, statStartY + 60, {
+           width: statsWidth - 20,
+           align: 'center'
        });
     
-    doc.fontSize(9)
+    doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
-       .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
-         width: statWidth,
-         align: 'center'
+       .text('Devueltos', statsX + 10, statStartY + 73, {
+           width: statsWidth - 20,
+           align: 'center'
        });
 
-    colY += statsHeight + 20;
+    colY += infoHeight + 15;
+
+    // Descripción si existe - Columna 1 (MODIFICADO)
+    if (usuario.descripcion) {
+        // Calcular la altura necesaria para la descripción
+        const descPaddingTop = 15;
+        const descPaddingBottom = 10;
+        const descPaddingX = 10;
+        const descContentWidth = columnWidth - (descPaddingX * 2);
+        
+        // Primero medir la altura del texto
+        const descTextHeight = doc.fontSize(8)
+            .font('Helvetica')
+            .heightOfString(usuario.descripcion, {
+                width: descContentWidth
+            });
+        
+        // Calcular la altura total del cuadro de descripción
+        const descBoxHeight = descTextHeight + descPaddingTop + descPaddingBottom;
+        const descBoxHeaderHeight = 25; // Altura del encabezado
+        
+        // Dibujar el cuadro de descripción - Encabezado
+        doc.rect(colX, colY, columnWidth, descBoxHeaderHeight)
+           .fillColor('#f8f9fa')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, descBoxHeaderHeight)
+           .strokeColor('#dee2e6')
+           .lineWidth(1)
+           .stroke();
+
+        // Título de la descripción
+        doc.fontSize(9)
+           .font('Helvetica-Bold')
+           .fillColor('#333333')
+           .text('Módulos y Descripción:', colX + 10, colY + 8);
+        
+        colY += descBoxHeaderHeight;
+        
+        // Dibujar el cuadro para el contenido de la descripción
+        doc.rect(colX, colY, columnWidth, descBoxHeight)
+           .fillColor('#ffffff')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, descBoxHeight)
+           .strokeColor('#dee2e6')
+           .lineWidth(1)
+           .stroke();
+        
+        // Contenido de la descripción
+        doc.fontSize(8)
+           .font('Helvetica')
+           .fillColor('#666666')
+           .text(usuario.descripcion, colX + descPaddingX, colY + descPaddingTop, {
+               width: descContentWidth,
+               align: 'left'
+           });
+        
+        colY += descBoxHeight + 15;
+    }
+
+     // Observaciones 
+      doc.rect(colX, colY, columnWidth, 80)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, 3, 80)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Normas Establecidas:', colX + 10, colY + 5);
+      colY += 10;
+
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         
+
+      colY += 14;
+
+      doc.text('• No navegar por internet dentro del Servidor', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• No utilizar el paquete Office dentro del Servidor', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• No dejar el Profit abierto', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Cerrar su Sesión al finalizar con su trabajo', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 30;
 
     // Firmas - Columna 1
     const firmaHeight = 65;
@@ -517,16 +595,16 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica-Bold')
        .fillColor('#333333')
        .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
        .text('Usuario', colX + 5, colY + 55, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
 
     // Firma Tecnología
@@ -546,16 +624,16 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica-Bold')
        .fillColor('#333333')
        .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
        .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
 
     colY += firmaHeight + 15;
@@ -571,8 +649,8 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica')
        .fillColor('#666666')
        .text('FRITZ C.A - Sistema de Gestión de Usuarios', colX, colY + 10, {
-         width: columnWidth,
-         align: 'center'
+           width: columnWidth,
+           align: 'center'
        });
 
     // **SEGUNDA COLUMNA** (derecha) - CONTENIDO IDÉNTICO
@@ -589,32 +667,31 @@ static generateIndividualReport(doc, data) {
        .lineWidth(1)
        .stroke();
 
-        try {
+    try {
         doc.image(logoPath, colX + 10, colY + 5, {
-          width: logoWidth,
-          height: logoHeight,
-          align: 'left'
+            width: logoWidth,
+            height: logoHeight,
+            align: 'left'
         });
-      } catch (error) {
+    } catch (error) {
         console.warn('No se pudo cargar la imagen del logo:', error.message);
         // Continúa sin la imagen si hay error
-      }
-
+    }
 
     doc.fontSize(16)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
        .text('FRITZ C.A', colX, colY + 5, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
     
     doc.fontSize(14)
        .font('Helvetica-Bold')
        .fillColor('#666666')
        .text(titulo || 'Reporte Individual de Usuario', colX, colY + 20, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
 
     colY += 40;
@@ -623,8 +700,8 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica')
        .fillColor('#000000')
        .text(`Generado el: ${fecha || new Date().toLocaleString('es-ES')}`, colX, colY, { 
-         width: columnWidth, 
-         align: 'center' 
+            width: columnWidth, 
+            align: 'center' 
        });
 
     colY += 25;
@@ -638,7 +715,7 @@ static generateIndividualReport(doc, data) {
     
     colY += 20;
 
-    // Información del usuario - Columna 2 (idéntica a columna 1)
+    // Información del usuario - Columna 2 (misma estructura que columna 1)
     doc.rect(colX, colY, columnWidth, 25)
        .fillColor('#f8f9fa')
        .fill();
@@ -655,20 +732,24 @@ static generateIndividualReport(doc, data) {
 
     colY += 30;
 
-    // Contenedor principal de información - Columna 2
-    doc.rect(colX, colY, columnWidth, infoHeight)
+    // Contenedor de información principal más pequeño y resumen al lado - Columna 2
+    const infoWidth2 = columnWidth * 0.6;
+    const statsWidth2 = columnWidth * 0.4;
+    
+    // Contenedor principal de información (lado izquierdo)
+    doc.rect(colX, colY, infoWidth2, infoHeight)
        .fillColor('#f8f9fa')
        .fill();
     
-    doc.rect(colX, colY, columnWidth, infoHeight)
+    doc.rect(colX, colY, infoWidth2, infoHeight)
        .strokeColor('#000000')
        .lineWidth(1)
        .stroke();
 
     infoY = colY + 10;
 
-    // Datos del usuario - Columna 2 (mismos datos)
-    userInfo.forEach((info, index) => {
+    // Datos del usuario - Columna 2 (en el lado izquierdo)
+    userInfo.slice(0, 6).forEach((info, index) => {
         const currentY = infoY + (index * infoItemHeight);
         
         doc.fontSize(8)
@@ -679,15 +760,15 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(info.value, colX + 90, currentY, {
-             width: columnWidth - 80,
-             align: 'left'
+           .text(info.value, colX + 60, currentY, {
+               width: infoWidth2 - 70,
+               align: 'right'
            });
 
         // Línea punteada entre items
-        if (index < userInfo.length - 1) {
+        if (index < 5 && index < userInfo.slice(0, 6).length - 1) {
             doc.moveTo(colX + 10, currentY + 10)
-               .lineTo(colX + columnWidth - 10, currentY + 10)
+               .lineTo(colX + infoWidth2 - 10, currentY + 10)
                .lineWidth(0.5)
                .strokeColor('#cccccc')
                .dash(2, { space: 2 })
@@ -696,16 +777,124 @@ static generateIndividualReport(doc, data) {
         }
     });
 
+    // Resumen de equipos al lado derecho (dentro del mismo contenedor) - Columna 2
+    const statsX2 = colX + infoWidth2;
+    
+    // Contenedor de estadísticas (lado derecho)
+    doc.rect(statsX2, colY, statsWidth2, statsBoxHeight)
+       .fillColor('#e9ecef')
+       .fill();
+    
+    doc.rect(statsX2, colY, statsWidth2, statsBoxHeight)
+       .strokeColor('#000000')
+       .lineWidth(1)
+       .stroke();
+
+    // Título del resumen más pequeño
+    doc.fontSize(10)
+       .font('Helvetica-Bold')
+       .fillColor('#333333')
+       .text('Resumen de Equipos', statsX2 + 5, colY + 10, {
+           width: statsWidth2 - 10,
+           align: 'center'
+       });
+
+    // Estadísticas de equipos - más compactas
+    const statStartY2 = colY + 25;
+    
+    // Total Equipos
+    doc.rect(statsX2 + 10, statStartY2, statsWidth2 - 20, statItemHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.totales.toString(), statsX2 + 10, statStartY2 + 5, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Total', statsX2 + 10, statStartY2 + 18, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+
+    // Equipos Activos
+    doc.rect(statsX2 + 10, statStartY2 + 30, statsWidth2 - 20, statItemHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.activos.toString(), statsX2 + 10, statStartY2 + 35, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Activos', statsX2 + 10, statStartY2 + 48, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+
+    // Equipos Devueltos
+    doc.rect(statsX2 + 10, statStartY2 + 55, statsWidth2 - 20, statItemHeight)
+       .fillColor('#ffffff')
+       .strokeColor('#dddddd')
+       .lineWidth(1)
+       .fillAndStroke();
+    
+    doc.fontSize(14)
+       .font('Helvetica-Bold')
+       .fillColor('#DC2626')
+       .text(estadisticas.devueltos.toString(), statsX2 + 10, statStartY2 + 60, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+    
+    doc.fontSize(8)
+       .font('Helvetica')
+       .fillColor('#666666')
+       .text('Devueltos', statsX2 + 10, statStartY2 + 73, {
+           width: statsWidth2 - 20,
+           align: 'center'
+       });
+
     colY += infoHeight + 15;
 
-    // Descripción si existe - Columna 2
+    // Descripción si existe - Columna 2 (misma lógica que columna 1)
     if (usuario.descripcion) {
-        const descHeight = 20;
-        doc.rect(colX, colY, columnWidth, 25, descHeight)
+        const descPaddingTop = 15;
+        const descPaddingBottom = 10;
+        const descPaddingX = 10;
+        const descContentWidth = columnWidth - (descPaddingX * 2);
+        
+        const descTextHeight = doc.fontSize(8)
+            .font('Helvetica')
+            .heightOfString(usuario.descripcion, {
+                width: descContentWidth
+            });
+        
+        const descBoxHeight = descTextHeight + descPaddingTop + descPaddingBottom;
+        const descBoxHeaderHeight = 25;
+        
+        // Encabezado
+        doc.rect(colX, colY, columnWidth, descBoxHeaderHeight)
            .fillColor('#f8f9fa')
            .fill();
         
-        doc.rect(colX, colY, columnWidth, 25, descHeight)
+        doc.rect(colX, colY, columnWidth, descBoxHeaderHeight)
            .strokeColor('#dee2e6')
            .lineWidth(1)
            .stroke();
@@ -713,107 +902,69 @@ static generateIndividualReport(doc, data) {
         doc.fontSize(9)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text('Módulos y Descripción:', colX + 10, colY + 5);
+           .text('Módulos y Descripción:', colX + 10, colY + 8);
+        
+        colY += descBoxHeaderHeight;
+        
+        // Contenido
+        doc.rect(colX, colY, columnWidth, descBoxHeight)
+           .fillColor('#ffffff')
+           .fill();
+        
+        doc.rect(colX, colY, columnWidth, descBoxHeight)
+           .strokeColor('#dee2e6')
+           .lineWidth(1)
+           .stroke();
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text(usuario.descripcion, colX + 10, colY + 15, {
-             width: columnWidth - 20,
-             align: 'left'
+           .text(usuario.descripcion, colX + descPaddingX, colY + descPaddingTop, {
+               width: descContentWidth,
+               align: 'left'
            });
-
-        colY += descHeight + 15;
+        
+        colY += descBoxHeight + 15;
     }
 
-    // Resumen de equipos - Columna 2
-    doc.rect(colX, colY, columnWidth, 25)
-       .fillColor('#e9ecef')
-       .fill();
-    
-    doc.rect(colX, colY, columnWidth, 25)
-       .strokeColor('#000000')
-       .lineWidth(1)
-       .stroke();
+    // Observaciones 
+      doc.rect(colX, colY, columnWidth, 80)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, 3, 80)
+         .fillColor('#DC2626')
+         .fill();
 
-    doc.fontSize(11)
-       .font('Helvetica-Bold')
-       .fillColor('#333333')
-       .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Normas Establecidas:', colX + 10, colY + 5);
+      colY += 10;
 
-    colY += 30;
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         
 
-    // Estadísticas de equipos - Columna 2 (idénticas)
-    // Total Equipos
-    doc.rect(colX + 5, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    doc.fontSize(16)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text(estadisticas.totales.toString(), colX + 5, colY + 10, {
-         width: statWidth,
-         align: 'center'
-       });
-    
-    doc.fontSize(9)
-       .font('Helvetica')
-       .fillColor('#666666')
-       .text('Total Equipos', colX + 5, colY + 30, {
-         width: statWidth,
-         align: 'center'
-       });
+      colY += 14;
 
-    // Equipos Activos
-    doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    doc.fontSize(16)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text(estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
-         width: statWidth,
-         align: 'center'
-       });
-    
-    doc.fontSize(9)
-       .font('Helvetica')
-       .fillColor('#666666')
-       .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
-         width: statWidth,
-         align: 'center'
-       });
+      doc.text('• No navegar por internet dentro del Servidor', colX + 10, colY, { width: columnWidth - 15 });
 
-    // Equipos Devueltos
-    doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
-       .fillColor('#ffffff')
-       .strokeColor('#dddddd')
-       .lineWidth(1)
-       .fillAndStroke();
-    
-    doc.fontSize(16)
-       .font('Helvetica-Bold')
-       .fillColor('#DC2626')
-       .text(estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
-         width: statWidth,
-         align: 'center'
-       });
-    
-    doc.fontSize(9)
-       .font('Helvetica')
-       .fillColor('#666666')
-       .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
-         width: statWidth,
-         align: 'center'
-       });
+      colY += 14;
 
-    colY += statsHeight + 20;
+      doc.text('• No utilizar el paquete Office dentro del Servidor', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• No dejar el Profit abierto', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Cerrar su Sesión al finalizar con su trabajo', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 30;
+
 
     // Firmas - Columna 2 (idénticas)
     // Firma Usuario
@@ -833,16 +984,16 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica-Bold')
        .fillColor('#333333')
        .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
        .text('Usuario', colX + 5, colY + 55, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
 
     // Firma Tecnología
@@ -862,16 +1013,16 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica-Bold')
        .fillColor('#333333')
        .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
     
     doc.fontSize(8)
        .font('Helvetica')
        .fillColor('#666666')
        .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
-         width: firmaWidth,
-         align: 'center'
+           width: firmaWidth,
+           align: 'center'
        });
 
     colY += firmaHeight + 15;
@@ -887,38 +1038,38 @@ static generateIndividualReport(doc, data) {
        .font('Helvetica')
        .fillColor('#666666')
        .text('FRITZ C.A - Sistema de Gestión de Usuarios', colX, colY + 10, {
-         width: columnWidth,
-         align: 'center'
+           width: columnWidth,
+           align: 'center'
        });
 }
 
-  // Métodos auxiliares (mantener los que ya tienes)
-  static getEstadoText(activos, total) {
+// Métodos auxiliares (mantener los que ya tienes)
+static getEstadoText(activos, total) {
     if (activos > 0) {
-      return 'Con equipos';
+        return 'Con equipos';
     } else if (total > 0) {
-      return 'Solo devueltos';
+        return 'Solo devueltos';
     } else {
-      return 'Sin equipos';
+        return 'Sin equipos';
     }
-  }
+}
 
-  static getEstadoColor(activos, total) {
+static getEstadoColor(activos, total) {
     if (activos > 0) {
-      return '#155724';
+        return '#155724';
     } else if (total > 0) {
-      return '#856404';
+        return '#856404';
     } else {
-      return '#495057';
+        return '#495057';
     }
-  }
+}
 
-  static drawTextLogo(doc, x, y) {
+static drawTextLogo(doc, x, y) {
     doc.fontSize(10)
        .font('Helvetica-Bold')
        .fillColor('#DC2626')
        .text('FRITZ C.A', x, y + 15);
-  }
+}
 }
 
 export default PDFKitGenerator;

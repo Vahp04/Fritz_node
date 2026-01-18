@@ -1940,7 +1940,6 @@ async verPdfPorUsuario(req, res) {
             day: 'numeric'
         });
 
-        // CORREGIR: Usar el nombre correcto de la propiedad
         const data = {
             titulo: `Reporte de Equipos`,
             fecha: fecha,
@@ -1998,31 +1997,32 @@ async verPdfPorUsuario(req, res) {
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
-            try {
-        doc.image(logoPath, colX + 10, colY + 5, {
-          width: logoWidth,
-          height: logoHeight,
-          align: 'left'
-        });
-      } catch (error) {
-        console.warn('No se pudo cargar la imagen del logo:', error.message);
-        // Continúa sin la imagen si hay error
-      }
+            
+        try {
+            doc.image(logoPath, colX + 10, colY + 5, {
+                width: logoWidth,
+                height: logoHeight,
+                align: 'left'
+            });
+        } catch (error) {
+            console.warn('No se pudo cargar la imagen del logo:', error.message);
+            // Continúa sin la imagen si hay error
+        }
 
         doc.fontSize(16)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
            .text('FRITZ C.A', colX, colY + 5, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
         
         doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#666666')
            .text(data.titulo, colX, colY + 20, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
 
         colY += 40;
@@ -2031,8 +2031,8 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica')
            .fillColor('#000000')
            .text(`Generado el: ${data.fecha}`, colX, colY, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
 
         colY += 25;
@@ -2046,7 +2046,7 @@ async verPdfPorUsuario(req, res) {
         
         colY += 20;
 
-        // Información del usuario - Columna 1
+        // Información del usuario - Columna 1 (más pequeño y con resumen al lado)
         doc.rect(colX, colY, columnWidth, 25)
            .fillColor('#f8f9fa')
            .fill();
@@ -2059,17 +2059,24 @@ async verPdfPorUsuario(req, res) {
         doc.fontSize(12)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text('Información del Usuario', colX + 10, colY + 8);
+           .text('Información del Usuario', colX, colY + 8, { 
+                width: columnWidth, 
+                align: 'center' 
+           });
 
         colY += 30;
 
-        // Contenedor principal de información
+        // MODIFICACIÓN: Contenedor de información principal más pequeño y resumen al lado
         const infoHeight = 120;
-        doc.rect(colX, colY, columnWidth, infoHeight)
+        const infoWidth = columnWidth * 0.6; // 60% para información del usuario
+        const statsWidth = columnWidth * 0.4; // 40% para estadísticas
+        
+        // Contenedor principal de información (lado izquierdo)
+        doc.rect(colX, colY, infoWidth, infoHeight)
            .fillColor('#f8f9fa')
            .fill();
         
-        doc.rect(colX, colY, columnWidth, infoHeight)
+        doc.rect(colX, colY, infoWidth, infoHeight)
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
@@ -2077,12 +2084,12 @@ async verPdfPorUsuario(req, res) {
         let infoY = colY + 10;
         const infoItemHeight = 14;
 
-        // Datos del usuario - Columna 1
+        // Datos del usuario - Columna 1 (en el lado izquierdo)
         const userInfo = [
             { label: 'ID de Usuario:', value: usuario.id.toString() },
             { label: 'Nombre Completo:', value: `${usuario.nombre} ${usuario.apellido}` },
             { label: 'Cargo:', value: usuario.cargo || 'No especificado' },
-            { label: 'Correo Electrónico:', value: usuario.correo || 'No especificado' },
+            { label: 'Correo:', value: usuario.correo || 'No especificado' },
             { label: 'Sede:', value: usuario.sede?.nombre || 'No asignada' },
             { label: 'Departamento:', value: usuario.departamento?.nombre || 'No asignado' },
             { label: 'Total Equipos:', value: data.total.toString() },
@@ -2090,7 +2097,8 @@ async verPdfPorUsuario(req, res) {
                 new Date(data.equipos[0].fecha_asignacion).toLocaleDateString('es-ES') : 'No disponible' }
         ];
 
-        userInfo.forEach((info, index) => {
+        // Mostrar solo los primeros 6 items para dejar espacio
+        userInfo.slice(0, 6).forEach((info, index) => {
             const currentY = infoY + (index * infoItemHeight);
             
             doc.fontSize(8)
@@ -2101,15 +2109,15 @@ async verPdfPorUsuario(req, res) {
             doc.fontSize(8)
                .font('Helvetica')
                .fillColor('#666666')
-               .text(info.value, colX + 90, currentY, {
-                 width: columnWidth - 80,
-                 align: 'left'
+               .text(info.value, colX + 60, currentY, {
+                   width: infoWidth - 70,
+                   align: 'right'
                });
 
             // Línea punteada entre items
-            if (index < userInfo.length - 1) {
+            if (index < 5 && index < userInfo.slice(0, 6).length - 1) {
                 doc.moveTo(colX + 10, currentY + 10)
-                   .lineTo(colX + columnWidth - 10, currentY + 10)
+                   .lineTo(colX + infoWidth - 10, currentY + 10)
                    .lineWidth(0.5)
                    .strokeColor('#cccccc')
                    .dash(2, { space: 2 })
@@ -2118,99 +2126,103 @@ async verPdfPorUsuario(req, res) {
             }
         });
 
-        colY += infoHeight + 15;
-
-        // Resumen de equipos - Columna 1
-        doc.rect(colX, colY, columnWidth, 25)
+        // Resumen de equipos al lado derecho (dentro del mismo contenedor)
+        const statsX = colX + infoWidth;
+        const statsBoxHeight = infoHeight;
+        
+        // Contenedor de estadísticas (lado derecho)
+        doc.rect(statsX, colY, statsWidth, statsBoxHeight)
            .fillColor('#e9ecef')
            .fill();
         
-        doc.rect(colX, colY, columnWidth, 25)
+        doc.rect(statsX, colY, statsWidth, statsBoxHeight)
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
 
-        doc.fontSize(11)
+        // Título del resumen más pequeño - CENTRADO
+        doc.fontSize(10)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+           .text('Resumen de Equipos', statsX, colY + 10, {
+               width: statsWidth,
+               align: 'center'
+           });
 
-        colY += 30;
-
-        // Estadísticas de equipos - Columna 1
-        const statsHeight = 50;
-        const statWidth = (columnWidth - 20) / 3;
+        // Estadísticas de equipos - más compactas
+        const statItemHeight = 25;
+        const statStartY = colY + 25;
         
         // Total Equipos
-        doc.rect(colX + 5, colY, statWidth, statsHeight)
+        doc.rect(statsX + 10, statStartY, statsWidth - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.totales.toString(), colX + 5, colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.totales.toString(), statsX + 10, statStartY + 5, {
+               width: statsWidth - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Total Equipos', colX + 5, colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Total', statsX + 10, statStartY + 18, {
+               width: statsWidth - 20,
+               align: 'center'
            });
 
         // Equipos Activos
-        doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+        doc.rect(statsX + 10, statStartY + 30, statsWidth - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.activos.toString(), statsX + 10, statStartY + 35, {
+               width: statsWidth - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Activos', statsX + 10, statStartY + 48, {
+               width: statsWidth - 20,
+               align: 'center'
            });
 
-        // Equipos Devueltos - CORREGIDO: usar 'devueltos' en lugar de 'devuelto'
-        doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+        // Equipos Devueltos
+        doc.rect(statsX + 10, statStartY + 55, statsWidth - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.devueltos.toString(), statsX + 10, statStartY + 60, {
+               width: statsWidth - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Devueltos', statsX + 10, statStartY + 73, {
+               width: statsWidth - 20,
+               align: 'center'
            });
 
-        colY += statsHeight + 20;
+        colY += infoHeight + 15;
 
         // Detalle de equipos asignados - Columna 1
         if (data.equipos && data.equipos.length > 0) {
@@ -2342,12 +2354,56 @@ async verPdfPorUsuario(req, res) {
             colY += 50;
         }
 
+            colY += 14;
+
+
+        // Observaciones 
+      doc.rect(colX, colY, columnWidth, 87)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, 3, 87)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Normas Establecidas:', colX + 10, colY + 5);
+      colY += 10;
+
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         
+
+      colY += 14;
+
+      doc.text('• Prohibido el uso de Pendrive', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Prohibido la instalación o desinstanlación de aplicaciones', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Cualquier configuración adicional o instalación de algun programa, notificar al departamento T.I.C para ser realizado', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 20;
+
+      doc.text('• El usuario se compromete cuidar los equipos asinados, así como reportar averias del mismo', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 30;
+
+
+
+
         // Firmas - Columna 1
         const firmaHeight = 65;
         const firmaWidth = (columnWidth - 20) / 2;
 
         // Firma Usuario
-        doc.rect(colX + 5, colY + 5, firmaWidth, firmaHeight)
+        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2363,20 +2419,20 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica-Bold')
            .fillColor('#333333')
            .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
            .text('Usuario', colX + 5, colY + 55, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
 
         // Firma Tecnología
-        doc.rect(colX + 10 + firmaWidth, colY + 5, firmaWidth, firmaHeight)
+        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2392,16 +2448,16 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica-Bold')
            .fillColor('#333333')
            .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
            .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
 
         colY += firmaHeight + 15;
@@ -2417,15 +2473,11 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica')
            .fillColor('#666666')
            .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
-             width: columnWidth,
-             align: 'center'
+               width: columnWidth,
+               align: 'center'
            });
 
-        // Número de documento
-        doc.text('Registro: ' + data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
-          width: columnWidth,
-          align: 'right'
-        });
+
 
         // **SEGUNDA COLUMNA** (derecha) - CONTENIDO IDÉNTICO
         colX = margin + columnWidth + 15;
@@ -2441,31 +2493,31 @@ async verPdfPorUsuario(req, res) {
            .lineWidth(1)
            .stroke();
 
-            try {
-        doc.image(logoPath, colX + 10, colY + 5, {
-          width: logoWidth,
-          height: logoHeight,
-          align: 'left'
-        });
-      } catch (error) {
-        console.warn('No se pudo cargar la imagen del logo:', error.message);
-        // Continúa sin la imagen si hay error
-      }
+        try {
+            doc.image(logoPath, colX + 10, colY + 5, {
+                width: logoWidth,
+                height: logoHeight,
+                align: 'left'
+            });
+        } catch (error) {
+            console.warn('No se pudo cargar la imagen del logo:', error.message);
+            // Continúa sin la imagen si hay error
+        }
 
         doc.fontSize(16)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
            .text('FRITZ C.A', colX, colY + 5, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
         
         doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#666666')
            .text(data.titulo, colX, colY + 20, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
 
         colY += 40;
@@ -2474,8 +2526,8 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica')
            .fillColor('#000000')
            .text(`Generado el: ${data.fecha}`, colX, colY, { 
-             width: columnWidth, 
-             align: 'center' 
+                width: columnWidth, 
+                align: 'center' 
            });
 
         colY += 25;
@@ -2489,7 +2541,7 @@ async verPdfPorUsuario(req, res) {
         
         colY += 20;
 
-        // Información del usuario - Columna 2
+        // Información del usuario - Columna 2 (misma estructura que columna 1)
         doc.rect(colX, colY, columnWidth, 25)
            .fillColor('#f8f9fa')
            .fill();
@@ -2502,24 +2554,31 @@ async verPdfPorUsuario(req, res) {
         doc.fontSize(12)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text('Información del Usuario', colX + 10, colY + 8);
+           .text('Información del Usuario', colX, colY + 8, { 
+                width: columnWidth, 
+                align: 'center' 
+           });
 
         colY += 30;
 
-        // Contenedor principal de información - Columna 2
-        doc.rect(colX, colY, columnWidth, infoHeight)
+        // Contenedor de información principal más pequeño y resumen al lado - Columna 2
+        const infoWidth2 = columnWidth * 0.6;
+        const statsWidth2 = columnWidth * 0.4;
+        
+        // Contenedor principal de información (lado izquierdo)
+        doc.rect(colX, colY, infoWidth2, infoHeight)
            .fillColor('#f8f9fa')
            .fill();
         
-        doc.rect(colX, colY, columnWidth, infoHeight)
+        doc.rect(colX, colY, infoWidth2, infoHeight)
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
 
         infoY = colY + 10;
 
-        // Datos del usuario - Columna 2 (mismos datos)
-        userInfo.forEach((info, index) => {
+        // Datos del usuario - Columna 2 (en el lado izquierdo)
+        userInfo.slice(0, 6).forEach((info, index) => {
             const currentY = infoY + (index * infoItemHeight);
             
             doc.fontSize(8)
@@ -2530,15 +2589,15 @@ async verPdfPorUsuario(req, res) {
             doc.fontSize(8)
                .font('Helvetica')
                .fillColor('#666666')
-               .text(info.value, colX + 90, currentY, {
-                 width: columnWidth - 80,
-                 align: 'left'
+               .text(info.value, colX + 60, currentY, {
+                   width: infoWidth2 - 70,
+                   align: 'right'
                });
 
             // Línea punteada entre items
-            if (index < userInfo.length - 1) {
+            if (index < 5 && index < userInfo.slice(0, 6).length - 1) {
                 doc.moveTo(colX + 10, currentY + 10)
-                   .lineTo(colX + columnWidth - 10, currentY + 10)
+                   .lineTo(colX + infoWidth2 - 10, currentY + 10)
                    .lineWidth(0.5)
                    .strokeColor('#cccccc')
                    .dash(2, { space: 2 })
@@ -2547,96 +2606,101 @@ async verPdfPorUsuario(req, res) {
             }
         });
 
-        colY += infoHeight + 15;
-
-        // Resumen de equipos - Columna 2
-        doc.rect(colX, colY, columnWidth, 25)
+        // Resumen de equipos al lado derecho (dentro del mismo contenedor) - Columna 2
+        const statsX2 = colX + infoWidth2;
+        
+        // Contenedor de estadísticas (lado derecho)
+        doc.rect(statsX2, colY, statsWidth2, statsBoxHeight)
            .fillColor('#e9ecef')
            .fill();
         
-        doc.rect(colX, colY, columnWidth, 25)
+        doc.rect(statsX2, colY, statsWidth2, statsBoxHeight)
            .strokeColor('#000000')
            .lineWidth(1)
            .stroke();
 
-        doc.fontSize(11)
+        // Título del resumen más pequeño - CENTRADO
+        doc.fontSize(10)
            .font('Helvetica-Bold')
            .fillColor('#333333')
-           .text('Resumen de Equipos Asignados', colX + 10, colY + 8);
+           .text('Resumen de Equipos', statsX2, colY + 10, {
+               width: statsWidth2,
+               align: 'center'
+           });
 
-        colY += 30;
-
-        // Estadísticas de equipos - Columna 2 (idénticas)
+        // Estadísticas de equipos - más compactas
+        const statStartY2 = colY + 25;
+        
         // Total Equipos
-        doc.rect(colX + 5, colY, statWidth, statsHeight)
+        doc.rect(statsX2 + 10, statStartY2, statsWidth2 - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.totales.toString(), colX + 5, colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.totales.toString(), statsX2 + 10, statStartY2 + 5, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Total Equipos', colX + 5, colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Total', statsX2 + 10, statStartY2 + 18, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
 
         // Equipos Activos
-        doc.rect(colX + 10 + statWidth, colY, statWidth, statsHeight)
+        doc.rect(statsX2 + 10, statStartY2 + 30, statsWidth2 - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.activos.toString(), colX + 10 + statWidth, colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.activos.toString(), statsX2 + 10, statStartY2 + 35, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Equipos Activos', colX + 10 + statWidth, colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Activos', statsX2 + 10, statStartY2 + 48, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
 
-        // Equipos Devueltos - CORREGIDO: usar 'devueltos' en lugar de 'devuelto'
-        doc.rect(colX + 15 + (statWidth * 2), colY, statWidth, statsHeight)
+        // Equipos Devueltos
+        doc.rect(statsX2 + 10, statStartY2 + 55, statsWidth2 - 20, statItemHeight)
            .fillColor('#ffffff')
            .strokeColor('#dddddd')
            .lineWidth(1)
            .fillAndStroke();
         
-        doc.fontSize(16)
+        doc.fontSize(14)
            .font('Helvetica-Bold')
            .fillColor('#DC2626')
-           .text(data.estadisticas.devueltos.toString(), colX + 15 + (statWidth * 2), colY + 10, {
-             width: statWidth,
-             align: 'center'
+           .text(data.estadisticas.devueltos.toString(), statsX2 + 10, statStartY2 + 60, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
         
-        doc.fontSize(9)
+        doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
-           .text('Equipos Devueltos', colX + 15 + (statWidth * 2), colY + 30, {
-             width: statWidth,
-             align: 'center'
+           .text('Devueltos', statsX2 + 10, statStartY2 + 73, {
+               width: statsWidth2 - 20,
+               align: 'center'
            });
 
-        colY += statsHeight + 20;
+        colY += infoHeight + 15;
 
         // Detalle de equipos asignados - Columna 2
         if (data.equipos && data.equipos.length > 0) {
@@ -2768,9 +2832,53 @@ async verPdfPorUsuario(req, res) {
             colY += 50;
         }
 
+            colY += 14;
+
+
+        // Observaciones 
+      doc.rect(colX, colY, columnWidth, 87)
+         .fillColor('#e9ecef')
+         .fill();
+      
+      doc.rect(colX, colY, 3, 87)
+         .fillColor('#DC2626')
+         .fill();
+
+      doc.fillColor('#333333')
+         .fontSize(10)
+         .font('Helvetica-Bold')
+         .text('Normas Establecidas:', colX + 10, colY + 5);
+      colY += 10;
+
+      doc.fontSize(8)
+         .font('Helvetica')
+         .fillColor('#666666')
+         
+
+      colY += 14;
+
+      doc.text('• Prohibido el uso de Pendrive', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Prohibido la instalación o desinstanlación de aplicaciones', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 14;
+
+      doc.text('• Cualquier configuración adicional o instalación de algun programa, notificar al departamento T.I.C para ser realizado', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 20;
+
+      doc.text('• El usuario se compromete cuidar los equipos asinados, así como reportar averias del mismo', colX + 10, colY, { width: columnWidth - 15 });
+
+      colY += 30;
+
+
+
+
         // Firmas - Columna 2
         // Firma Usuario
-        doc.rect(colX + 5, colY + 5, firmaWidth, firmaHeight)
+        doc.rect(colX + 5, colY, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2786,20 +2894,20 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica-Bold')
            .fillColor('#333333')
            .text(`${usuario.nombre} ${usuario.apellido}`, colX + 5, colY + 45, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
            .text('Usuario', colX + 5, colY + 55, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
 
         // Firma Tecnología
-        doc.rect(colX + 10 + firmaWidth, colY + 5, firmaWidth, firmaHeight)
+        doc.rect(colX + 10 + firmaWidth, colY, firmaWidth, firmaHeight)
            .strokeColor('#cccccc')
            .lineWidth(1)
            .stroke();
@@ -2815,16 +2923,16 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica-Bold')
            .fillColor('#333333')
            .text('Departamento de Tecnología', colX + 10 + firmaWidth, colY + 45, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
         
         doc.fontSize(8)
            .font('Helvetica')
            .fillColor('#666666')
            .text('FRITZ C.A', colX + 10 + firmaWidth, colY + 55, {
-             width: firmaWidth,
-             align: 'center'
+               width: firmaWidth,
+               align: 'center'
            });
 
         colY += firmaHeight + 15;
@@ -2840,14 +2948,16 @@ async verPdfPorUsuario(req, res) {
            .font('Helvetica')
            .fillColor('#666666')
            .text('FRITZ C.A - Sistema de Gestión de Equipos', colX, colY + 10, {
-             width: columnWidth,
-             align: 'center'
-           });
+               width: columnWidth,
+               align: 'center'
+  
+           
+              });
 
         // Número de documento
-        doc.text(data.numeroRegistro, colX + columnWidth - 10, colY + 10, {
-          width: columnWidth,
-          align: 'right'
+        doc.text(data.numeroRegistro, colX , colY + 60, {
+            width: columnWidth,
+            align: 'right'
         });
 
         // Finalizar documento
